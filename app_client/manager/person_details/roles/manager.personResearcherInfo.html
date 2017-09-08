@@ -1,0 +1,76 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Researcher information</span>
+        </md-card-title-text>
+    </md-card-title>
+    <md-card-content layout="column" flex>
+        <form flex novalidate name="personResearcherInfoForm[num]"
+                ng-submit="personResearcherInfoForm[num].$valid
+                && vm.submitResearcherInfo(vm.forms['personResInfo'],vm.selectedIndex-2,vm.thisPerson[vm.selectedIndex-2])">
+            <div layout="column" layout-gt-sm="row">
+                <md-switch ng-model="vm.thisPerson[vm.selectedIndex-2].researcher_data[0].pluriannual"
+                        ng-true-value="1" ng-false-value="0"
+                        class="md-warn">
+                     Pluriannual: {{ vm.switchValue(vm.thisPerson[vm.selectedIndex-2].researcher_data[0].pluriannual) }}
+                </md-switch>
+                <md-switch ng-model="vm.thisPerson[vm.selectedIndex-2].researcher_data[0].integrated"
+                        ng-true-value="1" ng-false-value="0"
+                        class="md-warn">
+                     Integrated: {{ vm.switchValue(vm.thisPerson[vm.selectedIndex-2].researcher_data[0].integrated) }}
+                </md-switch>
+                <md-switch ng-model="vm.thisPerson[vm.selectedIndex-2].researcher_data[0].nuclearCV"
+                        ng-true-value="1" ng-false-value="0"
+                        class="md-warn">
+                     Nuclear CV: {{ vm.switchValue(vm.thisPerson[vm.selectedIndex-2].researcher_data[0].nuclearCV) }}
+                </md-switch>
+            </div>
+            <div layout="column" layout-gt-xs="row" class="spacer-top">
+                <md-input-container>
+                    <label>FCT association key</label>
+                    <input required
+                            ng-model="vm.thisPerson[vm.selectedIndex-2].researcher_data[0].association_key"
+                            name="researcherID">
+                </md-input-container>
+            </div>
+            <div layout="column" layout-gt-xs="row">
+                <md-input-container>
+                    <label>ResearcherID</label>
+                    <input ng-model="vm.thisPerson[vm.selectedIndex-2].researcher_data[0].researcherID"
+                            name="researcherID">
+                </md-input-container>
+                <md-input-container>
+                    <label>scopusID</label>
+                    <input ng-model="vm.thisPerson[vm.selectedIndex-2].researcher_data[0].scopusID"
+                            name="scopusID">
+                </md-input-container>
+            </div>
+            <div layout="column">
+                <md-input-container>
+                    <label>ORCID</label>
+                    <input ng-model="vm.thisPerson[vm.selectedIndex-2].researcher_data[0].ORCID"
+                            name="ORCID">
+                </md-input-container>
+
+            </div>
+            <div layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button id="person-researcher-info" type="submit"
+                    class="button-small md-raised md-primary">Update</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personResInfo']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['personResInfo']]">
+                        {{vm.updateStatus[vm.forms['personResInfo']]}}
+                    </span>
+                </div>
+                <md-button id="person-researcher-remove-info"
+                    ng-click="vm.deleteRole('researcher',vm.forms['personRmResearcherRole'],vm.selectedIndex-2)"
+                    class="button-small md-raised md-warn">Remove 'Scientific' role</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personRmResearcherRole']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['personRmResearcherRole']]">
+                        {{vm.updateStatus[vm.forms['personRmResearcherRole']]}}
+                    </span>
+                </div>
+            </div>
+        </form>
+        <manager-person-affiliation-lab></manager-person-affiliation-lab>
+    </md-card-content>
+</md-card>

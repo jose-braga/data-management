@@ -1,0 +1,100 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Researcher information</span>
+        </md-card-title-text>
+    </md-card-title>
+    <md-card-content layout="column" flex>
+        <div layout="column" layout-gt-xs="row" class="spacer-top">
+            <md-input-container>
+                <label>FCT association key</label>
+                <input required ng-model="vm.thisPerson.researcher_data[0].association_key"
+                        name="researcher_association_key">
+            </md-input-container>
+            <md-input-container>
+                <label>Researcher ID</label>
+                <input ng-model="vm.thisPerson.researcher_data[0].researcherID"
+                        name="researcher_researcherID">
+            </md-input-container>
+        </div>
+        <md-input-container>
+            <label>ORCID</label>
+            <input ng-model="vm.thisPerson.researcher_data[0].ORCID"
+                    name="researcher_orcid">
+        </md-input-container>
+        <md-input-container>
+            <label>scopus ID</label>
+            <input ng-model="vm.thisPerson.researcher_data[0].scopus"
+                    name="researcher_scopus">
+        </md-input-container>
+        <div ng-repeat="(num,affLab) in vm.thisPerson.lab_data track by $index"
+                    layout="column">
+            <fieldset class="spacer">
+                <div layout="column" layout-gt-sm="row">
+                    <md-input-container
+                        class="search-box select-container input-row"
+                        ng-controller="LabSelectCtrl as laboratory">
+                        <label>Lab</label>
+                        <md-select disabled ng-model="vm.thisPerson.lab_data[num].lab_id"
+                            md-on-close="vm.updateOnSelect(vm.thisPerson.lab_data,vm.labs,num,'lab_id', ['lab','group_id','group_name','unit_id','unit'])"
+                            md-container-class="correct-overflow" name="affLab_id[num]">
+                            <div class="anchored">
+                                <md-select-header class="select-search-header">
+                                    <input ng-model="laboratory.searchTerm" type="search"
+                                      placeholder="Search your lab"
+                                      class="md-text select-search-box">
+                                </md-select-header>
+                            </div>
+                                <md-optgroup class="scrollable" label="laboratories">
+                                    <md-option ng-repeat="lab in vm.labs | filter: {name: laboratory.searchTerm}"
+                                        ng-value="lab.lab_id">{{lab.name}}</md-option>
+                                </md-optgroup>
+                        </md-select>
+                    </md-input-container>
+                    <md-input-container flex>
+                        <label>Group</label>
+                        <input disabled ng-model="vm.thisPerson.lab_data[num].group_name"
+                                name="affLab_group_name[num]">
+                    </md-input-container>
+                </div>
+                <div flex>
+                    <md-input-container flex>
+                        <label>Unit</label>
+                        <input disabled ng-model="vm.thisPerson.lab_data[num].unit"
+                                name="affLab_unit[num]">
+                    </md-input-container>
+                </div>
+                <div layout="column" layout-gt-xs="row">
+                    <md-input-container>
+                        <label>Dedication (%)</label>
+                        <input disabled ng-model="vm.thisPerson.lab_data[num].dedication"
+                                name="affLab_dedication[num]" dedication-validate>
+                    </md-input-container>
+                    <md-input-container>
+                        <label>Position</label>
+                        <md-select disabled ng-model="vm.thisPerson.lab_data[num].lab_position_id"
+                                name="affLab_position[num]">
+                            <md-option ng-repeat="pos in vm.labPositions" ng-value="pos.lab_position_id">{{pos.name_en}}</md-option>
+                        </md-select>
+                    </md-input-container>
+                </div>
+                <div layout="column" layout-gt-xs="row">
+                    <md-input-container class="input-row-longer">
+                        <label>Start</label>
+                        <md-datepicker disabled md-current-view="year" required ng-model="vm.thisPerson.lab_data[num].lab_start"
+                                name="affLab_start[num]" md-placeholder="Enter date"></md-datepicker>
+                    </md-input-container>
+                    <md-input-container class="input-row-longer">
+                        <label>End</label>
+                        <md-datepicker disabled md-current-view="year" ng-model="vm.thisPerson.lab_data[num].lab_end"
+                                md-min-date="vm.thisPerson.lab_data[num].lab_start"
+                                name="affLab_end[num]" md-placeholder="Enter date"></md-datepicker>
+                    </md-input-container>
+                </div>
+            </fieldset>
+        </div>
+        <div ng-if="vm.nothingToShow(vm.thisPerson.lab_data)" layout="column">
+            <br><br>No affiliations to labs reported
+        </div>
+    </md-card-content>
+</md-card>

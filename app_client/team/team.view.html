@@ -1,0 +1,63 @@
+<div layout="row">
+    <navigation-column></navigation-column>
+    <div ng-if="!vm.accessPermission" layout="column" flex>
+        <md-content class='md-padding' flex>
+            Make sure you have the appropriate permissions to access this page.
+        </md-content>
+    </div>
+    <div ng-if="vm.accessPermission" layout="column" flex>
+        <toolbar-row></toolbar-row>
+        <md-tabs md-dynamic-height md-border-bottom>
+            <md-tab ng-if="vm.show('labs')" ng-repeat="lab in vm.personLab"
+                    label={{lab.lab}}>
+                <md-content>
+                    <div layout="row" layout-padding>
+                        <team-people-lab-presentation data-lab="{{lab.lab_id}}" flex>
+                        </team-people-lab-presentation>
+                    </div>
+                </md-content>
+            </md-tab>
+            <md-tab ng-if="vm.show('techOffices')" ng-repeat="office in vm.personTech"
+                    label={{office.tech_office_name_en}}>
+                <md-content>
+                    <div layout="row" layout-padding>
+                        <team-people-tech-office-presentation data-office="{{office.tech_office_id}}" flex>
+                        </team-people-tech-office-presentation>
+                    </div>
+                </md-content>
+            </md-tab>
+            <md-tab ng-if="vm.show('scManOffices')" ng-repeat="office in vm.personScMan"
+                    label={{office.sc_man_office_name_en}}>
+                <md-content>
+                    <div layout="row" layout-padding>
+                        <team-people-sc-man-office-presentation data-office="{{office.sc_man_office_id}}" flex>
+                        </team-people-sc-man-office-presentation>
+                    </div>
+                </md-content>
+            </md-tab>
+            <md-tab ng-if="vm.show('admOffices')" ng-repeat="office in vm.personAdm"
+                    label={{office.adm_office_name_en}}>
+                <md-content>
+                    <div layout="row" layout-padding>
+                        <team-people-adm-office-presentation data-office="{{office.adm_office_id}}" flex>
+                        </team-people-adm-office-presentation>
+                    </div>
+                </md-content>
+            </md-tab>
+            <!--
+            <md-tab label='Spaces'>
+                <md-content>
+                    <div layout="row" layout-padding>
+
+                    </div>
+                </md-content>
+            </md-tab>
+            -->
+            <md-tab label="Pre-register">
+                <md-content>
+                    <team-pre-register-member></team-pre-register-member>
+                </md-content>
+            </md-tab>
+        </md-tabs>
+    </div>
+</div>

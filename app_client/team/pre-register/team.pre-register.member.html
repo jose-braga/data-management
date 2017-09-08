@@ -1,0 +1,19 @@
+<form flex novalidate name="teamPreRegistrationForm"
+        ng-submit="teamPreRegistrationForm.$valid && vm.submitRegistration(vm.forms['teamPreRegistration'])">
+    <div layout-xs="column" layout="row" layout-padding>
+        <div flex-xs flex-gt-xs="50" layout="column">
+            <team-pre-registration-user></team-pre-registration-user>
+        </div>
+        <div flex-xs flex-gt-xs="50" layout="column">
+            <team-affiliations-member></team-affiliations-member>
+
+            <md-button type="submit"
+               class="button-small md-raised md-primary">Start pre-registration</md-button>
+            <div class="status-message" ng-hide="vm.hideMessage[vm.forms['teamPreRegistration']]">
+                <span class="message" ng-class="vm.messageType[vm.forms['teamPreRegistration']]">
+                    {{vm.updateStatus[vm.forms['teamPreRegistration']]}}
+                </span>
+            </div>
+        </div>
+    </div>
+</form>

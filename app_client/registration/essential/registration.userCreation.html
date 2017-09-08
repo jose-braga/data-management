@@ -1,0 +1,53 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">User creation</span>
+        </md-card-title-text>
+    </md-card-title>
+    <md-card-content layout="column" flex>
+        <md-input-container>
+            <label>Username</label>
+            <input ng-model="vm.thisPerson.username" name="username"
+                    username-validate="vm.usernames">
+            <div ng-messages="registrationForm.username.$error">
+                <div ng-message="username">Username already taken.</div>
+            </div>
+        </md-input-container>
+        <md-input-container>
+            <label>Password</label>
+            <input type="password" ng-model="vm.thisPerson.password"
+                name="password" ng-minlength="8" required>
+            <div ng-messages="registrationForm.password.$error">
+                <div ng-message="minlength">Must be 8 characters or more.</div>
+            </div>
+        </md-input-container>
+        <md-input-container>
+            <label>Confirm Password</label>
+            <input type="password" ng-model="vm.thisPerson.passwordConfirm"
+                name="passwordConfirm" required
+                change-password-validate="vm.thisPerson.password">
+            <div ng-messages="registrationForm.passwordConfirm.$error">
+                <div ng-message="changePasswordValidate">No match with previous.</div>
+            </div>
+        </md-input-container>
+        <md-input-container>
+            <label>Permissions</label>
+            <md-select ng-model="vm.thisPerson.permissions"
+                    ng-model-options="{trackBy: '$value.permissions_id'}"
+                    required>
+                <md-option ng-repeat="permission in vm.permissions"
+                        ng-value="permission">{{permission.name_en}} - {{permission.description_en}}
+                </md-option>
+            </md-select>
+        </md-input-container>
+        <md-input-container>
+            <label>Institution Pole</label>
+            <md-select ng-model="vm.thisPerson.institution_city"
+                    ng-model-options="{trackBy: '$value.id'}"
+                    required>
+                <md-option ng-repeat="city in vm.institutionCities"
+                        ng-value="city">{{city.city}}</md-option>
+            </md-select>
+        </md-input-container>
+    </md-card-content>
+</md-card>

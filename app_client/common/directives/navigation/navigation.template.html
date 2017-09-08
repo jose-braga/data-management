@@ -1,0 +1,67 @@
+<div layout="row" md-dynamic-height>
+  <md-sidenav md-component-id="left" md-is-locked-open="$mdMedia('gt-sm')" class="site-sidenav md-sidenav-left">
+    <header class="nav-header"></header>
+    <md-list style="padding:0px;">
+      <md-list-item ng-hide="nav.isLoggedIn" style="padding:0px; border-radius:0px;">
+        <md-button ng-href="/#"
+            style="border-radius:0px;" layout-align="center center"
+            class="md-toolbar-tools sidenav-button md-accent">
+          Login
+        </md-button>
+      </md-list-item>
+      <md-list-item ng-show="nav.isLoggedIn" style="padding:0px; border-radius:0px;">
+        <md-button ng-href="" ng-click="nav.logout()"
+            style="border-radius:0px;" layout-align="center center"
+            class="md-toolbar-tools sidenav-button md-primary">
+          Logout
+        </md-button>
+      </md-list-item>
+      <md-divider ng-show="nav.isLoggedIn"></md-divider>
+      <div ng-show="nav.isLoggedIn">
+        <md-divider ng-hide="nav.isLoggedIn"></md-divider>
+        <md-list-item style="padding:0px; border-radius:0px;">
+          <md-button ng-href="/#!person" style="border-radius:0px;" layout-align="center center"
+              class="md-toolbar-tools sidenav-button" ng-class="nav.selected('/person')">
+            Myself
+          </md-button>
+        </md-list-item>
+        <md-divider></md-divider>
+        <md-list-item style="padding:0px; border-radius:0px;">
+          <md-button ng-href="/#!team" style="border-radius:0px;" layout-align="center center"
+              class="md-toolbar-tools sidenav-button"  ng-class="nav.selected('/team')">
+            Team
+          </md-button>
+        </md-list-item>
+        <md-divider></md-divider>
+        <md-list-item style="padding:0px; border-radius:0px;">
+          <md-button href="/#!unit" style="border-radius:0px;" layout-align="center center"
+              class="md-toolbar-tools sidenav-button"  ng-class="nav.selected('/unit')">
+            Unit
+          </md-button>
+        </md-list-item>
+        <md-divider></md-divider>
+        <md-list-item ng-if="nav.showManager" style="padding:0px; border-radius:0px;">
+          <md-button href="/#!manager" style="border-radius:0px;" layout-align="center center"
+              class="md-toolbar-tools sidenav-button"  ng-class="nav.selected('/manager')">
+            Manager
+          </md-button>
+        </md-list-item>
+        <md-divider></md-divider>
+        <md-list-item ng-if="nav.showManager" style="padding:0px; border-radius:0px;">
+          <md-button href="/#!registration" style="border-radius:0px;" layout-align="center center"
+              class="md-toolbar-tools sidenav-button"  ng-class="nav.selected('/registration')">
+            Add Member
+          </md-button>
+        </md-list-item>
+        <md-divider></md-divider>
+        <md-list-item ng-if="nav.showAdmin" style="padding:0px; border-radius:0px;">
+          <md-button ng-href="/#!admin" style="border-radius:0px;" layout-align="center center"
+              class="md-toolbar-tools sidenav-button"  ng-class="nav.selected('/admin')">
+            Admin
+          </md-button>
+        </md-list-item>
+        <md-divider></md-divider>
+      </div>
+    </md-list>
+  </md-sidenav>
+</div>

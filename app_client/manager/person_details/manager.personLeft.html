@@ -1,0 +1,28 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Person left LAQV/UCIBIO</span>
+        </md-card-title-text>
+    </md-card-title>
+    <form novalidate flex name="managerPersonLeftForm[num]"
+        ng-submit="managerPersonLeftForm[num].$valid
+        && vm.submitLeftInfo(vm.forms['personLeft'],vm.selectedIndex-2)">
+        <md-card-content layout="row" flex>
+            <md-input-container class="input-row">
+                    <label>Left on</label>
+                    <md-datepicker md-current-view="year" ng-model="vm.thisPerson[vm.selectedIndex-2].active_until"
+                        md-placeholder="Enter date"
+                        name="vm.thisPerson[vm.selectedIndex-2].active_until"></md-datepicker>
+            </md-input-container>
+            <div layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button type="submit"
+                    class="button-small md-raised md-warn">Update</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personLeft']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['personLeft']]">
+                        {{vm.updateStatus[vm.forms['personLeft']]}}
+                    </span>
+                </div>
+            </div>
+        </md-card-content>
+    </form>
+</md-card>

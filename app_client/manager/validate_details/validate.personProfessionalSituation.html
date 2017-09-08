@@ -1,0 +1,183 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Professional situation and category</span>
+        </md-card-title-text>
+    </md-card-title>
+    <form flex novalidate name="validateJobForm[num]"
+        ng-submit="validateJobForm[num].$valid
+        && vm.submitJob(vm.forms['validateProfessional'], vm.selectedIndexValidate-1,vm.thisPersonValidate[vm.selectedIndexValidate-1],true)">
+        <md-card-content layout="column" flex>
+            <div ng-if="!vm.nothingToShow(vm.currentProfessionalSituationValidate[vm.selectedIndexValidate-1],'job_id')" layout="column">
+                <div ng-repeat="(num,jobs) in vm.currentProfessionalSituationValidate[vm.selectedIndexValidate-1] track by $index"
+                            layout="column">
+                    <fieldset class="spacer">
+                        <div layout="column" layout-gt-sm="row">
+                            <md-input-container flex>
+                                <label>Situation</label>
+                                <md-select required ng-model="vm.currentProfessionalSituationValidate[vm.selectedIndexValidate-1][num].job_situation_id"
+                                        md-on-close="vm.changeSituation(vm.currentProfessionalSituationValidate[vm.selectedIndexValidate-1][num])"
+                                        name="job_situation_id[num]">
+                                    <md-option ng-repeat="sit in vm.professionalSituations"
+                                        ng-value="sit.id">
+                                        {{sit.name_en}} ({{sit.name_pt}})
+                                    </md-option>
+                                </md-select>
+                            </md-input-container>
+                        </div>
+                        <div layout="column" layout-gt-sm="row">
+                            <md-input-container flex>
+                                <label>Category</label>
+                                <md-select required ng-model="vm.currentProfessionalSituationValidate[vm.selectedIndexValidate-1][num].job_category_id"
+                                            md-on-close="vm.changeCategory(vm.currentProfessionalSituationValidate[vm.selectedIndexValidate-1][num])"
+                                            name="job_category_id[num]">
+                                    <md-option ng-repeat="cat in vm.professionalCategories"
+                                        ng-value="cat.id">
+                                        {{cat.name_en}} ({{cat.name_pt}})
+                                    </md-option>
+                                </md-select>
+                            </md-input-container>
+                        </div>
+                        <div layout="column" layout-gt-sm="row">
+                            <md-input-container ng-if="!vm.currentProfessionalSituationValidate[vm.selectedIndexValidate-1][num].job_situation_requires_unit_contract" flex>
+                                <label>Organization</label>
+                                <input required ng-model="vm.currentProfessionalSituationValidate[vm.selectedIndexValidate-1][num].job_organization" name="job_organization[num]">
+                            </md-input-container>
+
+
+                            <md-input-container ng-if="vm.currentProfessionalSituationValidate[vm.selectedIndexValidate-1][num].job_situation_requires_unit_contract" flex>
+                                <label>Unit</label>
+                                <md-select required ng-model="vm.currentProfessionalSituationValidate[vm.selectedIndexValidate-1][num].job_organization" name="job_organization[num]">
+                                    <md-option ng-repeat="unit in vm.units"
+                                            ng-value="unit.name">
+                                        {{unit.name}}
+                                    </md-option>
+                                </md-select>
+                            </md-input-container>
+                        </div>
+                        <div layout="column" layout-gt-sm="row">
+                            <md-input-container class="input-row-longer">
+                                <label>Dedication (%)</label>
+                                <input required ng-model="vm.currentProfessionalSituationValidate[vm.selectedIndexValidate-1][num].job_dedication"
+                                        name="job_dedication[num]" dedication-validate>
+                                <div ng-messages="validateJobForm.job_dedication.$error">
+                                    <div ng-message="required">This is required.</div>
+                                </div>
+                            </md-input-container>
+                        </div>
+                        <div ng-if="vm.currentProfessionalSituationValidate[vm.selectedIndexValidate-1][num].job_situation_requires_unit_contract || vm.currentProfessionalSituationValidate[vm.selectedIndexValidate-1][num].job_situation_requires_fellowship"
+                             layout="column" layout-gt-sm="row">
+                            <div layout="column" flex>
+                                <md-input-container ng-if="vm.currentProfessionalSituationValidate[vm.selectedIndexValidate-1][num].job_situation_requires_fellowship">
+                                    <label>Fellowship type</label>
+                                    <md-select required ng-model="vm.currentProfessionalSituationValidate[vm.selectedIndexValidate-1][num].fellowship_type_id"
+                                                name="fellowsip_type_id[num]">
+                                        <md-option ng-repeat="fellow in vm.fellowshipTypes"
+                                            ng-value="fellow.id">
+                                            {{fellow.acronym}} - {{fellow.name}}
+                                        </md-option>
+                                    </md-select>
+                                </md-input-container>
+                                <md-input-container ng-if="vm.currentProfessionalSituationValidate[vm.selectedIndexValidate-1][num].job_situation_requires_fellowship"
+                                        class="input-row-longer">
+                                    <label>Reference</label>
+                                    <input required ng-model="vm.currentProfessionalSituationValidate[vm.selectedIndexValidate-1][num].fellowship_reference" name="job_reference[num]">
+                                    <div ng-messages="validateJobForm.job_reference.$error">
+                                        <div ng-message="required">This is required.</div>
+                                    </div>
+                                </md-input-container>
+                                <md-input-container ng-if="vm.currentProfessionalSituationValidate[vm.selectedIndexValidate-1][num].job_situation_requires_unit_contract"
+                                        class="input-row-longer">
+                                    <label>Reference</label>
+                                    <input required ng-model="vm.currentProfessionalSituationValidate[vm.selectedIndexValidate-1][num].contract_reference" name="job_reference[num]">
+                                    <div ng-messages="validateJobForm.job_reference.$error">
+                                        <div ng-message="required">This is required.</div>
+                                    </div>
+                                </md-input-container>
+                                <md-input-container ng-if="vm.currentProfessionalSituationValidate[vm.selectedIndexValidate-1][num].job_situation_requires_fellowship" flex>
+                                    <label>Funding agency</label>
+                                    <md-select required ng-model="vm.currentProfessionalSituationValidate[vm.selectedIndexValidate-1][num].funding_agency_id"
+                                                name="funding_agency_id[num]">
+                                        <md-option ng-repeat="ag in vm.fundingAgencies"
+                                            ng-value="ag.id">
+                                            {{ag.short_name}} - {{ag.official_name}}
+                                        </md-option>
+                                    </md-select>
+                                </md-input-container>
+                                <md-input-container ng-if="vm.currentProfessionalSituationValidate[vm.selectedIndexValidate-1][num].job_situation_requires_fellowship" flex>
+                                    <label>Management entities</label>
+                                    <md-select required ng-model="vm.currentProfessionalSituationValidate[vm.selectedIndexValidate-1][num].management_entity_id"
+                                                name="management_entity_id[num]">
+                                        <md-option ng-repeat="ent in vm.managementEntities"
+                                            ng-value="ent.id">
+                                            {{ent.short_name}} - {{ent.official_name}}
+                                        </md-option>
+                                    </md-select>
+                                </md-input-container>
+                            </div>
+                        </div>
+                        <div layout="column" layout-gt-xs="row">
+                            <md-input-container class="input-row-longer">
+                                <label>Start</label>
+                                <md-datepicker md-current-view="year" required ng-model="vm.currentProfessionalSituationValidate[vm.selectedIndexValidate-1][num].job_valid_from"
+                                        name="contract_start[num]" md-placeholder="Enter date"></md-datepicker>
+                            </md-input-container>
+                            <md-input-container class="input-row-longer">
+                                <label>End</label>
+                                <md-datepicker md-current-view="year" ng-model="vm.currentProfessionalSituationValidate[vm.selectedIndexValidate-1][num].job_valid_until"
+                                        md-min-date="vm.currentProfessionalSituationValidate[vm.selectedIndexValidate-1][num].job_valid_from"
+                                        name="contract_end[num]"
+                                        md-placeholder="Enter date"></md-datepicker>
+                            </md-input-container>
+                        </div>
+                        <div layout="column" layout-gt-xs="row">
+                            <md-input-container class="input-row-longer"
+                               ng-if="vm.currentProfessionalSituationValidate[vm.selectedIndexValidate-1][num].job_situation_requires_unit_contract">
+                                <label>Maximum Extension</label>
+                                <md-datepicker md-current-view="year" ng-model="vm.currentProfessionalSituationValidate[vm.selectedIndexValidate-1][num].contract_maximum_extension"
+                                        md-min-date="vm.currentProfessionalSituationValidate[vm.selectedIndexValidate-1][num].job_valid_until"
+                                        name="contract_maximum_extension[num]"
+                                        md-placeholder="Enter date"></md-datepicker>
+                            </md-input-container>
+                            <md-input-container class="input-row-longer"
+                               ng-if="vm.currentProfessionalSituationValidate[vm.selectedIndexValidate-1][num].job_situation_requires_fellowship">
+                                <label>Maximum Extension</label>
+                                <md-datepicker md-current-view="year" ng-model="vm.currentProfessionalSituationValidate[vm.selectedIndexValidate-1][num].fellowship_maximum_extension"
+                                        md-min-date="vm.currentProfessionalSituationValidate[vm.selectedIndexValidate-1][num].job_valid_until"
+                                        name="fellowship_maximum_extension[num]"
+                                        md-placeholder="Enter date"></md-datepicker>
+                            </md-input-container>
+                            <div layout="row" layout-align="start center">
+                                <md-button ng-click="vm.removeRows2(vm.currentProfessionalSituationValidate[vm.selectedIndexValidate-1],$index)"
+                                        aria-label="Remove"
+                                        class="md-icon-button interaction-button">
+                                    <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
+                                </md-button>
+                                <md-button ng-if="$last" ng-click="vm.addRows2(vm.currentProfessionalSituationValidate[vm.selectedIndexValidate-1], 'jobs')"
+                                        aria-label="Add more" class="md-icon-button interaction-button">
+                                    <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                                </md-button>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+            <div ng-if="vm.nothingToShow(vm.currentProfessionalSituationValidate[vm.selectedIndexValidate-1],'job_id')" layout="column">
+                <br><br>No data, press + to add
+                <md-button ng-click="vm.addRows2(vm.currentProfessionalSituationValidate[vm.selectedIndexValidate-1], 'jobs')"
+                        aria-label="Add more" class="md-icon-button interaction-button">
+                    <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                </md-button>
+            </div>
+            <div layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button id="person-jobs" type="submit"
+                    class="button-small md-raised md-primary">Update</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['validateProfessional']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['validateProfessional']]">
+                        {{vm.updateStatus[vm.forms['validateProfessional']]}}
+                    </span>
+                </div>
+            </div>
+        </md-card-content>
+    </form>
+</md-card>

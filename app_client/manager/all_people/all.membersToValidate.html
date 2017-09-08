@@ -1,0 +1,109 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">People awaiting validation</span>
+        </md-card-title-text>
+    </md-card-title>
+    <md-card-content layout="column">
+        <div layout="row">
+            <div layout="row" layout-align="none center" flex="20">
+                <ng-md-icon icon="search" size="24"></ng-md-icon>
+                <md-input-container flex>
+                    <label>Name</label>
+                    <input ng-model="vm.searchNameValidate" ng-change="vm.renderPeopleValidate('new', true)">
+                </md-input-container>
+            </div>
+        </div>
+        <div class="small-screens" layout="column" ng-if="!vm.showTable()">
+            <div ng-repeat="(memberNum,member) in vm.currPeopleValidate track by $index">
+                <div layout="column">
+                    <div layout="row" layout-align=" center">
+                        <div class="question"><span class="highlight">Name:</span></div>
+                        <div class="answer"><span>{{member.person_name}}</span></div>
+                    </div>
+                    <div layout="row" layout-align=" center">
+                        <div class="question"><span class="highlight">City:</span></div>
+                        <div class="answer"><span>{{member.pole_name}}</span></div>
+                    </div>
+                    <div layout="row">
+                        <md-button ng-click="vm.showDetailsPerson(member, true)"
+                                            aria-label="Details"
+                                            class="md-icon-button interaction-button">
+                                    <md-icon md-svg-src="images/icons/description_24px.svg"></md-icon>
+                                </md-button>
+                        <md-button ng-click="vm.removePerson(member.person_id)"
+                                    aria-label="Remove"
+                                    class="md-icon-button interaction-button">
+                            <md-icon md-svg-src="images/icons/delete_24px.svg"></md-icon>
+                        </md-button>
+                    </div>
+                </div>
+                <md-divider ng-if="!vm.showTable()"></md-divider>
+            </div>
+        </div>
+        <div ng-if="vm.showTable()">
+            <table>
+                <thead>
+                    <tr>
+                        <th>
+                            <a ng-click="vm.sortColumn('person_name', true)">Name</a>
+                            <ng-md-icon ng-if="!vm.sortReverse && vm.sortType=='person_name'"
+                                    icon="arrow_downward" size="12"></ng-md-icon>
+                            <ng-md-icon ng-if="vm.sortReverse  && vm.sortType=='person_name'"
+                                    icon="arrow_upwards" size="12"></ng-md-icon>
+                        </th>
+                        <th class="larger-column">
+                            <a ng-click="vm.sortColumn('pole_name', true)">City</a>
+                            <ng-md-icon ng-if="!vm.sortReverse && vm.sortType=='pole_name'"
+                                    icon="arrow_downward" size="12"></ng-md-icon>
+                            <ng-md-icon ng-if="vm.sortReverse  && vm.sortType=='pole_name'"
+                                    icon="arrow_upwards" size="12"></ng-md-icon>
+                        </th>
+                        <th>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="(memberNum,member) in vm.currPeopleValidate track by $index">
+                        <td>{{member.person_name}}</td>
+                        <td><span class="space-left">{{member.pole_name}}</span></td>
+                        <td>
+                            <md-button ng-click="vm.showDetailsPersonValidate(member)"
+                                        aria-label="Details"
+                                        class="md-icon-button interaction-button">
+                                <md-icon md-svg-src="images/icons/description_24px.svg"></md-icon>
+                            </md-button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div layout="row" class="paginator">
+            <md-input-container class="input-no-margin wider">
+                <label>Results/page</label>
+                <md-select ng-model="vm.pageSizeValidate"
+                        md-on-close="vm.renderPeople('new', true)"
+                        aria-label="pageSizeValidate"
+                        name="pageSizeValidate">
+                        <md-option ng-value="10">10</md-option>
+                        <md-option ng-value="20">20</md-option>
+                        <md-option ng-value="50">50</md-option>
+                </md-select>
+            </md-input-container>
+            <md-input-container class="input-no-margin">
+                <label>Page</label>
+                <md-select ng-model="vm.currentPageValidate"
+                        md-on-close="vm.renderPeople('page', true)"
+                        aria-label="currentPageValidate"
+                        name="currentPageValidate">
+                        <md-option ng-repeat="page in vm.pagesValidate" ng-value="page">{{page}}</md-option>
+                </md-select>
+            </md-input-container>
+        </div>
+        <div layout="column" layout-gt-sm="row" layout-align="none center">
+            <md-button class="button-small md-raised md-warn"
+                ng-click="vm.closeTabs()">Close details tabs</md-button>
+        </div>
+    </md-card-content>
+</md-card>

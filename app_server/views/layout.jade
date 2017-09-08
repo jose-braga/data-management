@@ -1,0 +1,44 @@
+doctype html
+html(ng-app='managementApp')
+  head
+    meta(name='viewport', content='initial-scale=1, maximum-scale=1, user-scalable=no')
+    title= title
+    link(rel='stylesheet', href='/stylesheets/style.css')
+    link(rel='stylesheet', href='/stylesheets/angular-material.min.css')
+  body(ng-cloak)
+    div(layout='row')
+      div(layout='row', md-dynamic-height)
+        md-sidenav(class='site-sidenav md-sidenav-left', md-component-id="left", md-is-locked-open="$mdMedia('gt-sm')")
+          header(class='nav-header')
+          md-list(style='padding:0px;')
+            md-list-item(style='padding:0px; border-radius:0px;')
+              md-button(ng-href='/', class='md-toolbar-tools sidenav-button md-primary', style='border-radius:0px;', layout-align='center center') Person
+            md-divider
+            md-list-item(style='padding:0px; border-radius:0px;')
+              md-button(ng-href='/team', class='md-toolbar-tools sidenav-button md-primary', style='border-radius:0px;', layout-align='center center') Team
+            md-divider
+            md-list-item(style='padding:0px; border-radius:0px;')
+              md-button(href='/unit', class='md-toolbar-tools sidenav-button md-primary', style='border-radius:0px;', layout-align='center center') Unit
+            md-divider
+            md-list-item(style='padding:0px; border-radius:0px;')
+              md-button(ng-href='/admin', class='md-toolbar-tools sidenav-button md-primary', style='border-radius:0px;', layout-align='center center') Admin
+            md-divider
+      div(layout='column', flex)
+        md-toolbar(class='md-whiteframe-glow-z1 site-content-toolbar')
+          div(layout='row')
+            md-button(class='md-icon-button', ng-click="toggleLeft()", hide-gt-sm, aria-label='Toggle Menu')
+              md-icon(md-svg-src='images/icons/menu_24px.svg')
+            p #{toolbar}
+        div(ng-view)
+        block content
+    script(src='/javascripts/angular/angular.min.js', type='text/javascript')
+    script(src='/javascripts/angular/angular-route.min.js', type='text/javascript')
+    script(src='/javascripts/angular/angular-animate.min.js', type='text/javascript')
+    script(src='/javascripts/angular/angular-aria.min.js', type='text/javascript')
+    script(src='/javascripts/angular/angular-material.min.js', type='text/javascript')
+    script(src='/javascripts/moment.min.js', type='text/javascript')
+    script(src='/app.js', type='text/javascript')
+    script(src='/person/person.controller.js', type='text/javascript')
+    script(src='/common/services/personData.service.js', type='text/javascript')
+    
+   

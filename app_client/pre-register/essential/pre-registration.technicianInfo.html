@@ -1,0 +1,72 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Technician information</span>
+        </md-card-title-text>
+    </md-card-title>
+    <md-card-content layout="column" flex>
+        <div layout="column" layout-gt-xs="row" class="spacer-top">
+            <md-input-container>
+                <label>FCT association key</label>
+                <input required ng-model="vm.thisPerson.technician_data[0].association_key"
+                        name="technician_association_key">
+            </md-input-container>
+            <md-input-container>
+                <label>Researcher ID</label>
+                <input ng-model="vm.thisPerson.technician_data[0].researcherID"
+                        name="technician_researcherID">
+            </md-input-container>
+        </div>
+        <md-input-container>
+            <label>ORCID</label>
+            <input ng-model="vm.thisPerson.technician_data[0].ORCID"
+                    name="technician_orcid">
+        </md-input-container>
+        <div ng-repeat="(num,office) in vm.thisPerson.technician_offices track by $index"
+                    layout="column">
+            <fieldset class="spacer">
+                <div layout="column" layout-gt-sm="row">
+                    <md-input-container
+                        class="search-box select-container input-row">
+                        <label>Office</label>
+                        <md-select disabled ng-model="vm.thisPerson.technician_offices[num].tech_office_id"
+                                    name="technician_office_id[num]">
+                            <md-option ng-repeat="off in vm.facilities"
+                                ng-value="off.id">{{off.name_en}}</md-option>
+                        </md-select>
+                    </md-input-container>
+                </div>
+                <div layout="column" layout-gt-xs="row">
+                    <md-input-container>
+                        <label>Dedication (%)</label>
+                        <input disabled ng-model="vm.thisPerson.technician_offices[num].tech_dedication"
+                                name="technician_dedication[num]" dedication-validate>
+                    </md-input-container>
+                    <md-input-container>
+                        <label>Position</label>
+                        <md-select disabled ng-model="vm.thisPerson.technician_offices[num].tech_position_id"
+                                name="technician_position[num]">
+                            <md-option ng-repeat="pos in vm.technicianPositions" ng-value="pos.id">{{pos.name_en}}</md-option>
+                        </md-select>
+                    </md-input-container>
+                </div>
+                <div layout="column" layout-gt-xs="row">
+                    <md-input-container class="input-row-longer">
+                        <label>Start</label>
+                        <md-datepicker disabled md-current-view="year" required ng-model="vm.thisPerson.technician_offices[num].tech_valid_from"
+                                name="technician_start[num]" md-placeholder="Enter date"></md-datepicker>
+                    </md-input-container>
+                    <md-input-container class="input-row-longer">
+                        <label>End</label>
+                        <md-datepicker disabled md-current-view="year" ng-model="vm.thisPerson.technician_offices[num].tech_valid_from"
+                                md-min-date="vm.thisPerson.technician_offices[num].tech_valid_until"
+                                name="technician_end[num]" md-placeholder="Enter date"></md-datepicker>
+                    </md-input-container>
+                </div>
+            </fieldset>
+        </div>
+        <div ng-if="vm.nothingToShow(vm.thisPerson.technician_offices)" layout="column">
+            <br><br>No affiliations to facilities reported
+        </div>
+    </md-card-content>
+</md-card>

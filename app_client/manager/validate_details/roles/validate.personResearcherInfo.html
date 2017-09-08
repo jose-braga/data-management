@@ -1,0 +1,77 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Researcher information</span>
+        </md-card-title-text>
+    </md-card-title>
+    <md-card-content layout="column" flex>
+        <form flex novalidate name="validateResearcherInfoForm[num]"
+                ng-submit="validateResearcherInfoForm[num].$valid
+                && vm.submitResearcherInfo(vm.forms['validateResInfo'],vm.selectedIndexValidate-1,vm.thisPersonValidate[vm.selectedIndexValidate-1],true)">
+            <h6>For this new user confirm that these buttons are correct:</h6>
+            <div layout="column" layout-gt-sm="row">
+                <md-switch ng-model="vm.thisPersonValidate[vm.selectedIndexValidate-1].researcher_data[0].pluriannual"
+                        ng-true-value="1" ng-false-value="0"
+                        class="md-warn">
+                     Pluriannual: {{ vm.switchValue(vm.thisPersonValidate[vm.selectedIndexValidate-1].researcher_data[0].pluriannual) }}
+                </md-switch>
+                <md-switch ng-model="vm.thisPersonValidate[vm.selectedIndexValidate-1].researcher_data[0].integrated"
+                        ng-true-value="1" ng-false-value="0"
+                        class="md-warn">
+                     Integrated: {{ vm.switchValue(vm.thisPersonValidate[vm.selectedIndexValidate-1].researcher_data[0].integrated) }}
+                </md-switch>
+                <md-switch ng-model="vm.thisPersonValidate[vm.selectedIndexValidate-1].researcher_data[0].nuclearCV"
+                        ng-true-value="1" ng-false-value="0"
+                        class="md-warn">
+                     Nuclear CV: {{ vm.switchValue(vm.thisPersonValidate[vm.selectedIndexValidate-1].researcher_data[0].nuclearCV) }}
+                </md-switch>
+            </div>
+            <div layout="column" layout-gt-xs="row" class="spacer-top">
+                <md-input-container>
+                    <label>FCT association key</label>
+                    <input required
+                            ng-model="vm.thisPersonValidate[vm.selectedIndexValidate-1].researcher_data[0].association_key"
+                            name="researcherID">
+                </md-input-container>
+            </div>
+            <div layout="column" layout-gt-xs="row">
+                <md-input-container>
+                    <label>ResearcherID</label>
+                    <input ng-model="vm.thisPersonValidate[vm.selectedIndexValidate-1].researcher_data[0].researcherID"
+                            name="researcherID">
+                </md-input-container>
+                <md-input-container>
+                    <label>scopusID</label>
+                    <input ng-model="vm.thisPersonValidate[vm.selectedIndexValidate-1].researcher_data[0].scopusID"
+                            name="scopusID">
+                </md-input-container>
+            </div>
+            <div layout="column">
+                <md-input-container>
+                    <label>ORCID</label>
+                    <input ng-model="vm.thisPersonValidate[vm.selectedIndexValidate-1].researcher_data[0].ORCID"
+                            name="ORCID">
+                </md-input-container>
+
+            </div>
+            <div layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button id="person-researcher-info" type="submit"
+                    class="button-small md-raised md-primary">Update</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['validateResInfo']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['validateResInfo']]">
+                        {{vm.updateStatus[vm.forms['validateResInfo']]}}
+                    </span>
+                </div>
+                <md-button
+                    ng-click="vm.deleteRole('researcher',vm.forms['validateRmResearcherRole'],vm.selectedIndexValidate-1)"
+                    class="button-small md-raised md-warn">Remove 'Scientific' role</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['validateRmResearcherRole']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['validateRmResearcherRole']]">
+                        {{vm.updateStatus[vm.forms['validateRmResearcherRole']]}}
+                    </span>
+                </div>
+            </div>
+        </form>
+        <validate-person-affiliation-lab></validate-person-affiliation-lab>
+    </md-card-content>
+</md-card>

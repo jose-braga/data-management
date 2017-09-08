@@ -1,0 +1,73 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Affiliation to Academic Institutions</span>
+        </md-card-title-text>
+    </md-card-title>
+    <md-card-content layout="column" flex>
+        <form flex novalidate name="validateDepartmentInfoForm[num]"
+                ng-submit="validateDepartmentInfoForm[num].$valid
+            && vm.submitDepartmentInfo(vm.forms['validateDepartment'], vm.selectedIndexValidate-1,vm.thisPersonValidate[vm.selectedIndexValidate-1],true)">
+            <div ng-if="!vm.nothingToShow(vm.currentAffiliationsDepartmentValidate[vm.selectedIndexValidate-1],'people_departments_id')">
+                <div ng-repeat="(num,department) in vm.currentAffiliationsDepartmentValidate[vm.selectedIndexValidate-1] track by $index"
+                            layout="column">
+                    <fieldset class="spacer">
+                        <div layout="column" layout-gt-sm="row">
+                            <md-input-container>
+                                <label>Department</label>
+                                <md-select ng-model="vm.currentAffiliationsDepartmentValidate[vm.selectedIndexValidate-1][num].department_id"
+                                            name="department_id[num]">
+                                    <md-option ng-repeat="dep in vm.departments"
+                                        ng-value="dep.department_id">
+                                        {{dep.department_name_en}}, {{dep.school_shortname_en}}, {{dep.university_shortname_en}}
+                                    </md-option>
+                                </md-select>
+                            </md-input-container>
+                        </div>
+                        <div layout="column" layout-gt-xs="row">
+                            <md-input-container class="input-row-longer">
+                                <label>Start</label>
+                                <md-datepicker md-current-view="year" ng-model="vm.currentAffiliationsDepartmentValidate[vm.selectedIndexValidate-1][num].department_start"
+                                        name="department_start[num]" md-placeholder="Enter date"></md-datepicker>
+                            </md-input-container>
+                            <md-input-container class="input-row-longer">
+                                <label>End</label>
+                                <md-datepicker md-current-view="year" ng-model="vm.currentAffiliationsDepartmentValidate[vm.selectedIndexValidate-1][num].department_end"
+                                        md-min-date="vm.currentAffiliationsDepartmentValidate[vm.selectedIndexValidate-1][num].department_start"
+                                        name="department_end[num]"
+                                        md-placeholder="Enter date"></md-datepicker>
+                            </md-input-container>
+                            <div layout="row" layout-align="start center">
+                                <md-button ng-click="vm.removeRows2(vm.currentAffiliationsDepartmentValidate[vm.selectedIndexValidate-1],num)"
+                                        aria-label="Remove"
+                                        class="md-icon-button interaction-button">
+                                    <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
+                                </md-button>
+                                <md-button ng-if="$last" ng-click="vm.addRows2(vm.currentAffiliationsDepartmentValidate[vm.selectedIndexValidate-1], 'affiliationsDepartment')"
+                                        aria-label="Add more" class="md-icon-button interaction-button">
+                                    <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                                </md-button>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+            <div ng-if="vm.nothingToShow(vm.currentAffiliationsDepartmentValidate[vm.selectedIndexValidate-1], 'people_departments_id')" layout="column">
+                <br><br>To add affiliations to departments press +
+                <md-button ng-click="vm.addRows2(vm.currentAffiliationsDepartmentValidate[vm.selectedIndexValidate-1], 'affiliationsDepartment')"
+                        aria-label="Add more" class="md-icon-button interaction-button">
+                    <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                </md-button>
+            </div>
+            <div layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button type="submit"
+                    class="button-small md-raised md-primary">Update</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['validateDepartment']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['validateDepartment']]">
+                        {{vm.updateStatus[vm.forms['validateDepartment']]}}
+                    </span>
+                </div>
+            </div>
+        </form>
+    </md-card-content>
+</md-card>

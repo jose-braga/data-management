@@ -1,0 +1,42 @@
+<div ng-if="!vm.isLoggedIn" layout="column" flex>
+    <md-content class='md-padding' flex>
+        Error entering pre-registration. Possible causes for error:<br>
+        1. You have already pre-registered.<br>
+        2. You didn't provide the full link sent to your email.<br>
+    </md-content>
+</div>
+<div ng-if="vm.isLoggedIn" layout="column" flex>
+    <toolbar-row></toolbar-row>
+    <form flex novalidate name="preRegistrationForm"
+                    ng-submit="preRegistrationForm.$valid && vm.submitPreRegistration(vm.forms['preRegisterSubmit'])">
+        <md-content>
+            <div layout-xs="column" layout="row" layout-padding>
+                <div flex-xs flex-gt-xs="50" layout="column">
+                    <pre-registration-change-password></pre-registration-change-password>
+                    <pre-registration-person-nuclear-info></pre-registration-person-nuclear-info>
+                    <pre-registration-contact-info></pre-registration-contact-info>
+                    <pre-registration-identifications></pre-registration-identifications>
+                    <pre-registration-comments></pre-registration-comments>
+                </div>
+                <div flex-xs flex-gt-xs="50" layout="column">
+                    <pre-registration-institutional-contacts-info></pre-registration-institutional-contacts-info>
+                    <pre-registration-department></pre-registration-department>
+                    <pre-registration-professional-situation></pre-registration-professional-situation>
+                    <pre-registration-responsibles></pre-registration-responsibles>
+                    <pre-registration-person-roles></pre-registration-person-roles>
+                    <pre-registration-researcher-info ng-if="vm.rolePresent(vm.thisPerson.roles_data,'Scientific')"></pre-registration-researcher-info>
+                    <pre-registration-technician-info ng-if="vm.rolePresent(vm.thisPerson.roles_data,'Technical')"></pre-registration-technician-info>
+                    <pre-registration-science-manager-info ng-if="vm.rolePresent(vm.thisPerson.roles_data,'Science management')"></pre-registration-science-manager-info>
+                    <pre-registration-administrative-info ng-if="vm.rolePresent(vm.thisPerson.roles_data,'Administrative')"></pre-registration-administrative-info>
+                    <md-button type="submit"
+                       class="button-small md-raised md-primary">Submit</md-button>
+                    <div class="status-message" ng-hide="vm.hideMessage[vm.forms['preRegisterSubmit']]">
+                        <span class="message" ng-class="vm.messageType[vm.forms['preRegisterSubmit']]">
+                            {{vm.updateStatus[vm.forms['preRegisterSubmit']]}}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </md-content>
+    </form>
+</div>

@@ -1,0 +1,69 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Affiliation to Academic Institution</span>
+        </md-card-title-text>
+    </md-card-title>
+    <form flex novalidate name="personAffiliationDepartmentForm"
+        ng-submit="personAffiliationDepartmentForm.$valid && vm.submitAffiliationDepartment(vm.forms['personDepAffiliation'])">
+        <md-card-content layout="column" flex>
+            <div ng-if="!vm.nothingToShow(vm.currentAffiliationsDepartment,'people_departments_id')" layout="column">
+                <div ng-repeat="(num,affDep) in vm.currentAffiliationsDepartment track by $index"
+                    layout="column">
+                    <fieldset class="spacer">
+                        <div layout="column">
+                            <md-input-container>
+                                <label>Department</label>
+                                <md-select ng-model="vm.currentAffiliationsDepartment[num].department_id"
+                                        name="affDep_department[num]">
+                                    <md-option ng-repeat="dep in vm.departments" ng-value="dep.department_id">
+                                        {{vm.departmentNames(dep)}}
+                                    </md-option>
+                                </md-select>
+                            </md-input-container>
+                        </div>
+                        <div layout="column" layout-gt-md="row">
+                            <md-input-container class="input-row-longer">
+                                <label>Start</label>
+                                <md-datepicker md-current-view="year" required ng-model="vm.currentAffiliationsDepartment[num].department_start"
+                                        name="affDep_start[num]" md-placeholder="Enter date"></md-datepicker>
+                            </md-input-container>
+                            <md-input-container class="input-row-longer">
+                                <label>End</label>
+                                <md-datepicker md-current-view="year" ng-model="vm.currentAffiliationsDepartment[num].department_end"
+                                        name="affDep_end[num]" md-placeholder="Enter date"></md-datepicker>
+                            </md-input-container>
+                            <div layout="row" layout-align="start center">
+                                <md-button ng-click="vm.removeRows(vm.currentAffiliationsDepartment,$index)"
+                                        aria-label="Remove"
+                                        class="md-icon-button interaction-button">
+                                    <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
+                                </md-button>
+                                <md-button ng-if="$last" ng-click="vm.addRows(vm.currentAffiliationsDepartment, 'affiliationsDepartment')"
+                                        aria-label="Add more" class="md-icon-button interaction-button">
+                                    <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                                </md-button>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+            <div ng-if="vm.nothingToShow(vm.currentAffiliationsDepartment,'people_departments_id')" layout="column">
+                 No data, press + to add
+                <md-button ng-click="vm.addRows(vm.currentAffiliationsDepartment, 'affiliationsDepartment')"
+                        aria-label="Add more" class="md-icon-button interaction-button">
+                    <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                </md-button>
+            </div>
+            <div layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button type="submit"
+                    class="button-small md-raised md-primary">Update</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personDepAffiliation']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['personDepAffiliation']]">
+                        {{vm.updateStatus[vm.forms['personDepAffiliation']]}}
+                    </span>
+                </div>
+            </div>
+        </md-card-content>
+    </form>
+</md-card>

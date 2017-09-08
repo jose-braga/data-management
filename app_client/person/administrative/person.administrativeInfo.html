@@ -1,0 +1,36 @@
+<md-button id="person-sc_man-remove-info"
+    ng-click="vm.deleteRole('administrative', vm.forms['personRmAdmRole'])"
+    class="button-small md-raised md-warn">Remove role</md-button>
+<div class="status-message" ng-hide="vm.hideMessage[vm.forms['personRmAdmRole']]">
+        <span class="message" ng-class="vm.messageType[vm.forms['personRmAdmRole']]">
+            {{vm.updateStatus[vm.forms['personRmAdmRole']]}}
+        </span>
+</div>
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Administrative information</span>
+        </md-card-title-text>
+    </md-card-title>
+    <form flex novalidate name="personAdministrativeInfoForm"
+        ng-submit="personAdministrativeInfoForm.$valid && vm.submitAdministrativeInfo(vm.forms['personAdmInfo'])">
+        <md-card-content layout="column" flex>
+            <div layout="column" layout-gt-xs="row" class="spacer-top">
+                <md-input-container>
+                    <label>FCT association key</label>
+                    <input required ng-model="vm.thisPerson.administrative_data[0].association_key"
+                            name="adm_association_key">
+                </md-input-container>
+            </div>
+            <div layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button type="submit"
+                    class="button-small md-raised md-primary">Update</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personAdmInfo']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['personAdmInfo']]">
+                        {{vm.updateStatus[vm.forms['personAdmInfo']]}}
+                    </span>
+                </div>
+            </div>
+        </md-card-content>
+    </form>
+</md-card>

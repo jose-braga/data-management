@@ -1,0 +1,72 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Science manager information</span>
+        </md-card-title-text>
+    </md-card-title>
+    <md-card-content layout="column" flex>
+        <div layout="column" layout-gt-xs="row" class="spacer-top">
+            <md-input-container>
+                <label>FCT association key</label>
+                <input required ng-model="vm.thisPerson.science_manager_data[0].association_key"
+                        name="manager_association_key">
+            </md-input-container>
+            <md-input-container>
+                <label>Researcher ID</label>
+                <input ng-model="vm.thisPerson.science_manager_data[0].researcherID"
+                        name="manager_researcherID">
+            </md-input-container>
+        </div>
+        <md-input-container>
+            <label>ORCID</label>
+            <input ng-model="vm.thisPerson.science_manager_data[0].ORCID"
+                    name="manager_orcid">
+        </md-input-container>
+        <div ng-repeat="(num,office) in vm.thisPerson.science_manager_offices track by $index"
+                    layout="column">
+            <fieldset class="spacer">
+                <div layout="column" layout-gt-sm="row">
+                    <md-input-container
+                        class="search-box select-container input-row">
+                        <label>Office</label>
+                        <md-select disabled ng-model="vm.thisPerson.science_manager_offices[num].sc_man_office_id"
+                                    name="manager_office_id[num]">
+                            <md-option ng-repeat="off in vm.scienceManagementOffices"
+                                ng-value="off.id">{{off.name_en}}</md-option>
+                        </md-select>
+                    </md-input-container>
+                </div>
+                <div layout="column" layout-gt-xs="row">
+                    <md-input-container>
+                        <label>Dedication (%)</label>
+                        <input disabled ng-model="vm.thisPerson.science_manager_offices[num].sc_man_dedication"
+                                name="manager_dedication[num]" dedication-validate>
+                    </md-input-container>
+                    <md-input-container>
+                        <label>Position</label>
+                        <md-select disabled ng-model="vm.thisPerson.science_manager_offices[num].sc_man_position_id"
+                                name="manager_position[num]">
+                            <md-option ng-repeat="pos in vm.scienceManagementPositions" ng-value="pos.id">{{pos.name_en}}</md-option>
+                        </md-select>
+                    </md-input-container>
+                </div>
+                <div layout="column" layout-gt-xs="row">
+                    <md-input-container class="input-row-longer">
+                        <label>Start</label>
+                        <md-datepicker md-current-view="year" disabled ng-model="vm.thisPerson.science_manager_offices[num].sc_man_valid_from"
+                                name="manager_start[num]" md-placeholder="Enter date"></md-datepicker>
+                    </md-input-container>
+                    <md-input-container class="input-row-longer">
+                        <label>End</label>
+                        <md-datepicker md-current-view="year" disabled ng-model="vm.thisPerson.science_manager_offices[num].sc_man_valid_until"
+                                md-min-date="vm.thisPerson.science_manager_offices[num].sc_man_valid_from"
+                                name="manager_end[num]" md-placeholder="Enter date"></md-datepicker>
+                    </md-input-container>
+                </div>
+            </fieldset>
+        </div>
+        <div ng-if="vm.nothingToShow(vm.thisPerson.science_manager_offices)" layout="column">
+            <br><br>No affiliations to science management offices reported
+        </div>
+    </md-card-content>
+</md-card>

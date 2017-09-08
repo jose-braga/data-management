@@ -1,0 +1,26 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Roles at institution</span>
+        </md-card-title-text>
+    </md-card-title>
+    <md-card-content layout="column" flex>
+        <div ng-if="vm.isEmpty(vm.currentRoles[vm.selectedIndex-2])">
+            <p>To add data specific for your role select below: </p>
+        </div>
+        <div layout="column">
+            <md-input-container>
+                <label>Roles</label>
+                <md-select ng-model="vm.currentRoles[vm.selectedIndex-2]"
+                        ng-model-options="{trackBy: '$value.role_id'}" multiple>
+                    <md-option ng-repeat="role in vm.roles"
+                            ng-value="role">{{role.name_en}}</md-option>
+                </md-select>
+            </md-input-container>
+        </div>
+    </md-card-content>
+</md-card>
+<manager-person-researcher-info ng-if="vm.rolePresent(vm.currentRoles[vm.selectedIndex-2],'Scientific')"></manager-person-researcher-info>
+<manager-person-technician-info ng-if="vm.rolePresent(vm.currentRoles[vm.selectedIndex-2],'Technical')"></manager-person-technician-info>
+<manager-person-manager-info ng-if="vm.rolePresent(vm.currentRoles[vm.selectedIndex-2],'Science management')"></manager-person-manager-info>
+<manager-person-administrative-info ng-if="vm.rolePresent(vm.currentRoles[vm.selectedIndex-2],'Administrative')"></manager-person-administrative-info>

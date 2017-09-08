@@ -1,0 +1,21 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Roles at LAQV/UCIBIO</span>
+        </md-card-title-text>
+    </md-card-title>
+    <md-card-content layout="column" flex>
+        <div ng-if="vm.isEmpty(vm.currentRoles)">
+        <p>To add data specific for your role select below: </p>
+        </div>
+        <div layout="column">
+            <md-input-container>
+                <label>Roles</label>
+                <md-select ng-model="vm.thisPerson.roles" required multiple>
+                    <md-option ng-repeat="role in vm.roles"
+                            ng-value="role">{{role.name_en}}</md-option>
+                </md-select>
+            </md-input-container>
+        </div>
+    </md-card-content>
+</md-card>

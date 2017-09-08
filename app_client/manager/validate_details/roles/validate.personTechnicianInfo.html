@@ -1,0 +1,51 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Technician information</span>
+        </md-card-title-text>
+    </md-card-title>
+    <form flex novalidate name="validateTechnicianInfoForm[num]"
+        ng-submit="validateTechnicianInfoForm[num].$valid
+        && vm.submitTechnicianInfo(vm.forms['validateTechInfo'],vm.selectedIndexValidate-1,vm.thisPersonValidate[vm.selectedIndexValidate-1],true)">
+        <md-card-content layout="column" flex>
+            <div layout="column" layout-gt-xs="row" class="spacer-top">
+                <md-input-container>
+                    <label>FCT association key</label>
+                    <input required
+                            ng-model="vm.thisPersonValidate[vm.selectedIndexValidate-1].technician_data[0].association_key"
+                            name="researcherID">
+                </md-input-container>
+                <md-input-container>
+                    <label>ResearcherID</label>
+                    <input ng-model="vm.thisPersonValidate[vm.selectedIndexValidate-1].technician_data[0].researcherID"
+                            name="researcherID">
+                </md-input-container>
+            </div>
+            <div layout="column">
+                <md-input-container>
+                    <label>ORCID</label>
+                    <input ng-model="vm.thisPersonValidate[vm.selectedIndexValidate-1].technician_data[0].ORCID"
+                            name="ORCID">
+                </md-input-container>
+
+            </div>
+            <div layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button type="submit"
+                    class="button-small md-raised md-primary">Update</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['validateTechInfo']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['validateTechInfo']]">
+                        {{vm.updateStatus[vm.forms['validateTechInfo']]}}
+                    </span>
+                </div>
+                <md-button ng-click="vm.deleteRole('technician',vm.forms['validateRmTechnicianRole'],vm.selectedIndexValidate-1)"
+                    class="button-small md-raised md-warn">Remove 'Technician' role</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['validateRmTechnicianRole']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['validateRmTechnicianRole']]">
+                        {{vm.updateStatus[vm.forms['validateRmTechnicianRole']]}}
+                    </span>
+                </div>
+            </div>
+        </md-card-content>
+    </form>
+    <validate-person-affiliation-technician></validate-person-affiliation-technician>
+</md-card>

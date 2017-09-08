@@ -1,0 +1,113 @@
+md-tab(label='Personal')
+    div(layout-xs='column', layout='row')
+        div(flex-xs, flex-gt-xs='50', layout='column')
+            md-card(ng-controller='NuclearInfoCtrl as nuclear')
+                md-card-title
+                    md-card-title-text
+                        span(class='md-headline') Name and nuclear information
+                md-card-content
+                    div(layout='column')
+                        md-input-container
+                            label Name
+                            input(ng-model='thisPerson.name', name='thisPerson.name')
+                        div(layout='column', layout-gt-sm='row')
+                            md-input-container(class='input-row')
+                                label Birth date
+                                md-datepicker(ng-model='thisPerson.birth_date', name='thisPerson.birth_date')
+                            md-input-container(class='select-container input-row')
+                                label Gender
+                                md-select(ng-model='thisPerson.gender', name='thisPerson.gender')
+                                    md-option(value='F') Female
+                                    md-option(value='M') Male
+                            md-input-container(ng-controller='CountrySelectCtrl as count', id='person-country', class='search-box select-container input-row')
+                                label Nationalities
+                                md-select(ng-model='thisPerson.nationalities', ng-model-options="{trackBy: '$value.country_id'}", multiple)
+                                    md-select-header(class='select-search-header')
+                                        input(ng-model='searchTerm', type='search', placeholder='Search your countries...', class='md-text select-search-box')
+                                    md-optgroup(label='countries')
+                                        md-option(ng-repeat='country in countries | filter:searchTerm', ng-value='country') {{country.name}}
+                        md-button(id='person-nuclear-submit', class='button-small md-raised md-primary') Update
+            md-card(ng-controller='ContactInfoCtrl as contacts')
+                md-card-title
+                    md-card-title-text
+                        span(class='md-headline') Contact information
+                md-card-content
+                    div(layout='column')
+                        md-input-container
+                            label Current adress
+                            input(ng-model='thisPerson.address', name='thisPerson.address')
+                        div(layout='row')
+                            md-input-container
+                                label Zip-code
+                                input(ng-model='thisPerson.postal_code', name='thisPerson.postal_code')
+                            md-input-container
+                                label City
+                                input(ng-model='thisPerson.city', name='thisPerson.city')
+                        div(layout='row')
+                            md-input-container
+                                label Personal Phone
+                                input(ng-model='thisPerson.personal_phone[0]', name='thisPerson.personal_phone[0]')
+                            md-input-container
+                                label Personal Email
+                                input(ng-model='thisPerson.personal_email', name='thisPerson.personal_email')
+                        md-button(id='person-contact-submit', class='button-small md-raised md-primary') Update
+        div(flex-xs, flex-gt-xs='50', layout='column')
+            md-card(ng-controller='IdentificationsCtrl as ids')
+                md-card-title
+                    md-card-title-text
+                        span(class='md-headline')  Identifications
+                md-card-content
+                    div(layout='column')
+                        div(ng-repeat='(num,ident) in thisPerson.identifications track by $index', layout='column', layout-gt-xs='row')
+                            md-input-container(class='select-container input-row card-type')
+                                label Card Type
+                                md-select(ng-model='thisPerson.identifications[num].card_type_id', name='thisPerson.identifications[num].card_type_id')
+                                    md-option(ng-repeat='type in cardTypes', ng-value='type.card_type_id') {{type.name_en}}
+                            md-input-container(class='input-row')
+                                label Number
+                                input(ng-model='thisPerson.identifications[num].card_number', name='thisPerson.identifications[num].card_number')
+                            md-button(class='md-icon-button interaction-button', ng-click="removeIDs($index)", aria-label='Remove')
+                                md-icon(md-svg-src='images/icons/remove_24px.svg')
+                            md-button(class='md-icon-button interaction-button', ng-if='$last', ng-click="addMoreIDs()", aria-label='Add more')
+                                md-icon(md-svg-src='images/icons/add_24px.svg')
+                        md-button(id='person-id-submit', class='button-small md-raised md-primary') Update
+            md-card(ng-controller='EmergencyContactsCtrl as contacts')
+                md-card-title
+                    md-card-title-text
+                        span(class='md-headline')  Emergency contact information
+                md-card-content
+                    div(ng-repeat='(i,emer) in thisPerson.emergency_contacts track by $index', layout='column', layout-gt-xs='row')
+                        md-input-container
+                            label Name
+                            input(ng-model='thisPerson.emergency_contacts[i].emergency_name', name='thisPerson.emergency_contacts[i].emergency_name')
+                        md-input-container
+                            label Phone
+                            input(ng-model='thisPerson.emergency_contacts[i].emergency_phone', name='thisPerson.emergency_contacts[i].emergency_phone')
+                        md-button(class='md-icon-button interaction-button', ng-click="removeEmergencyContacts($index)", aria-label='Remove')
+                            md-icon(md-svg-src='images/icons/remove_24px.svg')
+                        md-button(class='md-icon-button interaction-button', ng-if='$last', ng-click="addMoreEmergencyContacts()", aria-label='Add more')
+                            md-icon(md-svg-src='images/icons/add_24px.svg')
+                    md-button(id='person-emergency-submit', class='button-small md-raised md-primary') Update
+            md-card(ng-controller='CarsCtrl as cars')
+                md-card-title
+                    md-card-title-text
+                        span(class='md-headline')  Cars (for access control)
+                md-card-content
+                    div(ng-repeat='(i,id) in cars track by $index', layout='column', layout-gt-xs='row')
+                        md-input-container
+                            label Brand
+                            input(ng-model='cars[i].brand', name='cars[i].brand')
+                        md-input-container
+                            label Model
+                            input(ng-model='cars[i].model', name='cars[i].model')
+                        md-input-container
+                            label Color
+                            input(ng-model='cars[i].color', name='cars[i].color')
+                        md-input-container
+                            label License #
+                            input(ng-model='cars[i].license', name='cars[i].license')
+                        md-button(class='md-icon-button interaction-button', ng-click="removeCars($index)", aria-label='Remove')
+                            md-icon(md-svg-src='images/icons/remove_24px.svg')
+                        md-button(class='md-icon-button interaction-button', ng-if='$last', ng-click="addMoreCars()", aria-label='Add more')
+                            md-icon(md-svg-src='images/icons/add_24px.svg')
+                    md-button(id='person-emergency-submit', class='button-small md-raised md-primary') Update       

@@ -1,0 +1,54 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Identifications</span>
+        </md-card-title-text>
+    </md-card-title>
+    <md-card-content layout="column" flex>
+        <div ng-if="!vm.nothingToShow(vm.thisPerson.identifications)" layout="column">
+            <div ng-repeat="(num,ident) in vm.thisPerson.identifications track by $index"
+                layout="column"  layout-gt-md="row">
+                <md-input-container class="select-container input-row card-type">
+                    <label>Card Type</label>
+
+                    <md-select ng-model="vm.thisPerson.identifications[num].card_type_id"
+                            name="card_type_id[num]">
+                        <div class="scrollable">
+                            <md-option ng-repeat="type in vm.cardTypes" ng-value="type.card_type_id">{{type.name_en}}</md-option>
+                        </div>
+                    </md-select>
+
+                </md-input-container>
+                <md-input-container class="input-row">
+                    <label>Number</label>
+                    <input ng-model="vm.thisPerson.identifications[num].card_number"
+                            name="card_number[num]">
+                </md-input-container>
+                <md-input-container>
+                    <md-datepicker md-current-view="year" ng-model="vm.thisPerson.identifications[num].card_valid_until"
+                            name="card_valid_until[num]"
+                            md-placeholder="Expires" md-hide-icons="calendar">
+                    </md-datepicker>
+                </md-input-container>
+                <div layout="row" layout-align="start center">
+                    <md-button ng-click="vm.removeRows(vm.thisPerson.identifications,$index)" aria-label="Remove"
+                            class="md-icon-button interaction-button">
+                        <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
+                    </md-button>
+                    <md-button ng-if="$last" ng-click="vm.addRows(vm.thisPerson.identifications,'identifications')"
+                            aria-label="Add more" class="md-icon-button interaction-button">
+                        <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                    </md-button>
+                </div>
+                <md-divider hide-gt-md></md-divider>
+            </div>
+        </div>
+        <div ng-if="vm.nothingToShow(vm.thisPerson.identifications)" >
+            No data, press + to add
+            <md-button ng-click="vm.addRows(vm.thisPerson.identifications,'identifications')"
+                    aria-label="Add more" class="md-icon-button interaction-button">
+                <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+            </md-button>
+        </div>
+    </md-card-content>
+</md-card>

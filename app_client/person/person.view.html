@@ -1,0 +1,127 @@
+<div layout="row">
+    <navigation-column></navigation-column>
+    <div ng-if="!vm.isLoggedIn" layout="column" flex>
+        <md-content class='md-padding' flex>
+            Please log in first
+        </md-content>
+    </div>
+    <div ng-if="vm.isLoggedIn" layout="column" flex>
+        <toolbar-row></toolbar-row>
+        <md-tabs md-dynamic-height md-border-bottom md-selected="vm.selectedTab">
+            <md-tab label='Personal'>
+                <md-content>
+                    <div layout-xs="column" layout="row" layout-padding>
+                        <div flex-xs flex-gt-xs="50" layout="column">
+                            <person-nuclear-info></person-nuclear-info>
+                            <person-contact-info></person-contact-info>
+
+                        </div>
+                         <div flex-xs flex-gt-xs="50" layout="column">
+                            <person-identifications-info></person-identifications-info>
+                            <person-emergency-contacts></person-emergency-contacts>
+                        </div>
+                    </div>
+                </md-content>
+            </md-tab>
+            <md-tab label='Academic'>
+                <md-content>
+                    <div layout-xs="column" layout="row" layout-padding>
+                        <div flex-xs flex-gt-xs="50" layout="column">
+                            <person-finished-degrees></person-finished-degrees>
+                        </div>
+                        <div flex-xs flex-gt-xs="50" layout="column">
+                            <person-ongoing-degrees></person-ongoing-degrees>
+                        </div>
+                    </div>
+                </md-content>
+            </md-tab>
+            <md-tab label='Institutional'>
+                <md-content>
+                    <div layout-xs="column" layout="row" layout-padding>
+                        <div flex-xs flex-gt-xs="50" layout="column">
+                            <person-institutional-contacts></person-institutional-contacts>
+                            <person-affiliation-department></person-affiliation-department>
+                        </div>
+                        <div flex-xs flex-gt-xs="50" layout="column">
+                            <person-poles></person-poles>
+                            <person-roles></person-roles>
+                        </div>
+                    </div>
+                </md-content>
+            </md-tab>
+            <md-tab ng-repeat='role in vm.currentRoles | orderBy:"role_id"'
+                    label='{{role.name_en}}'
+                    class="darker-tab">
+                <md-content>
+                    <div ng-if="role.name_en == 'Scientific'">
+                        <div layout-xs="column" layout="row" layout-padding>
+                            <div flex-xs flex-gt-xs="50" layout="column">
+                                <person-researcher-info></person-researcher-info>
+                            </div>
+                            <div flex-xs flex-gt-xs="50" layout="column">
+                                <person-affiliation-lab></person-affiliation-lab>
+                            </div>
+                        </div>
+                    </div>
+                    <div ng-if="role.name_en == 'Technical'">
+                        <div layout-xs="column" layout="row" layout-padding>
+                            <div flex-xs flex-gt-xs="50" layout="column">
+                                <person-technician-info></person-technician-info>
+                            </div>
+                            <div flex-xs flex-gt-xs="50" layout="column">
+                                <person-technician-affiliation></person-technician-affiliation>
+                            </div>
+                        </div>
+                    </div>
+                    <div ng-if="role.name_en == 'Science management'">
+                        <div layout-xs="column" layout="row" layout-padding>
+                            <div flex-xs flex-gt-xs="50" layout="column">
+                                <person-sc-manager-info></person-sc-manager-info>
+                            </div>
+                            <div flex-xs flex-gt-xs="50" layout="column">
+                                <person-sc-manager-affiliation></person-sc-manager-affiliation>
+                            </div>
+                        </div>
+                    </div>
+                    <div ng-if="role.name_en == 'Administrative'">
+                        <div layout-xs="column" layout="row" layout-padding>
+                            <div flex-xs flex-gt-xs="50" layout="column">
+                                <person-adm-info></person-adm-info>
+                            </div>
+                            <div flex-xs flex-gt-xs="50" layout="column">
+                                <person-adm-affiliation></person-adm-affiliation>
+                            </div>
+                        </div>
+                    </div>
+                </md-content>
+            </md-tab>
+            <md-tab label='Professional'>
+                <md-content>
+                    <div layout-xs="column" layout="row" layout-padding>
+                        <div flex-xs flex-gt-xs="50" layout="column">
+                            <person-professional></person-professional>
+                        </div>
+                        <div flex-xs flex-gt-xs="50" layout="column">
+                            <person-responsible></person-responsible>
+                        </div>
+                    </div>
+                </md-content>
+            </md-tab>
+            <!--
+            <md-tab label='Spaces'>
+                <md-content>
+                    <div layout-xs="column" layout="row" layout-padding>
+                        <div flex-xs flex-gt-xs="50" layout="column">
+
+                        </div>
+                        <div flex-xs flex-gt-xs="50" layout="column">
+
+
+                        </div>
+                    </div>
+                </md-content>
+            </md-tab>
+            -->
+        </md-tabs>
+    </div>
+</div>

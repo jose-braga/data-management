@@ -1,0 +1,93 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Responsibles</span>
+        </md-card-title-text>
+    </md-card-title>
+    <form flex novalidate name="personResponsiblesForm"
+        ng-submit="personResponsiblesForm.$valid
+            && vm.submitResponsibles(vm.forms['personResponsibles'], vm.selectedIndex-2)">
+        <md-card-content layout="column" flex>
+            <div ng-if="!vm.nothingToShow(vm.currentResponsibles[vm.selectedIndex-2],'people_responsibles_id')" layout="column">
+                <div ng-repeat="(num,resp) in vm.currentResponsibles[vm.selectedIndex-2] track by $index"
+                    layout="column">
+                    <fieldset class="spacer">
+                        <div layout="column" layout-gt-xs="row">
+                            <md-input-container class="search-box select-container input-row"
+                                ng-controller="PeopleSelectCtrl as peop">
+                                <label>Responsible name</label>
+                                <md-select ng-model="vm.currentResponsibles[vm.selectedIndex-2][num].responsible_id"
+                                        name="supervisor[num]">
+                                    <div class="anchored">
+                                        <md-select-header class="select-search-header">
+                                            <input ng-model="peop.searchTerm" type="search"
+                                              placeholder="Search responsible"
+                                              class="md-text select-search-box">
+                                    </md-select-header>
+                                    </div>
+                                    <div class="scrollable">
+                                        <md-optgroup label="people">
+                                            <md-option ng-repeat="person in peop.people | filter:peop.searchTerm"
+                                                ng-value="person.id">{{person.colloquial_name}}</md-option>
+                                        </md-optgroup>
+                                    </div>
+                                </md-select>
+                            </md-input-container>
+                            <!--
+                            <md-input-container class="select-container input-row card-type">
+                                <label>Responsible type</label>
+                                <md-select ng-model="vm.currentResponsibles[vm.selectedIndex-2][num].responsible_type_id"
+                                        name="responsible_type_id[num][nSup]">
+                                    <div class="scrollable">
+                                        <md-option ng-repeat="type in vm.responsibleTypes" ng-value="type.id">{{type.name_en}}</md-option>
+                                    </div>
+                                </md-select>
+                            </md-input-container>
+                            -->
+                        </div>
+                        <div layout="column" layout-gt-xs="row">
+                            <md-input-container class="input-row-longer">
+                                <label>Start</label>
+                                <md-datepicker md-current-view="year" ng-model="vm.currentResponsibles[vm.selectedIndex-2][num].valid_from"
+                                       md-placeholder="Enter date" name="responsible_start[num]"></md-datepicker>
+                            </md-input-container>
+                            <md-input-container class="input-row-longer">
+                                <label>End</label>
+                                <md-datepicker md-current-view="year" ng-model="vm.currentResponsibles[vm.selectedIndex-2][num].valid_until"
+                                       md-placeholder="Enter date" name="responsible_end[num]"></md-datepicker>
+                            </md-input-container>
+                        </div>
+
+                        <div layout="row"  layout-align="start center">
+                            <md-button ng-click="vm.removeRows2(vm.currentResponsibles[vm.selectedIndex-2],$index)"
+                                    aria-label="Remove"
+                                    class="md-icon-button interaction-button">
+                                <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
+                            </md-button>
+                            <md-button ng-if="$last" ng-click="vm.addRows2(vm.currentResponsibles[vm.selectedIndex-2], 'responsibles')"
+                                    aria-label="Add more" class="md-icon-button interaction-button">
+                                <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                            </md-button>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+            <div ng-if="vm.nothingToShow(vm.currentResponsibles[vm.selectedIndex-2],'people_responsibles_id')" >
+                No data, press + to add
+                <md-button ng-click="vm.addRows2(vm.currentResponsibles[vm.selectedIndex-2], 'responsibles')"
+                        aria-label="Add more" class="md-icon-button interaction-button">
+                    <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                </md-button>
+            </div>
+            <div layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button id="person-finished-degrees" type="submit"
+                    class="button-small md-raised md-primary">Update</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personResponsibles']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['personResponsibles']]">
+                        {{vm.updateStatus[vm.forms['personResponsibles']]}}
+                    </span>
+                </div>
+            </div>
+        </md-card-content>
+    </form>
+</md-card>

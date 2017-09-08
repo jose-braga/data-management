@@ -1,0 +1,29 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Institutional contacts</span>
+        </md-card-title-text>
+    </md-card-title>
+    <md-card-content layout="column" flex>
+        <div layout="column" layout-gt-xs="row">
+            <md-input-container>
+                <label>Phone</label>
+                <input ng-model="vm.thisPerson.work_phone[0].phone"
+                        name="work_phone" required>
+            </md-input-container>
+            <md-input-container>
+                <label>Extension</label>
+                <input ng-model="vm.thisPerson.work_phone[0].extension"
+                        name="work_extension">
+            </md-input-container>
+            <md-input-container>
+                <label>Email</label>
+                <input type="email" ng-model="vm.thisPerson.work_email[0]"
+                        name="work_email" required>
+                <div ng-messages="registrationForm.work_email.$error" role="alert">
+                    <div ng-message="email">Must be a valid email.</div>
+                </div>
+            </md-input-container>
+        </div>
+    </md-card-content>
+</md-card>

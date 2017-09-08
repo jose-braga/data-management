@@ -1,0 +1,56 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Personal contact information</span>
+        </md-card-title-text>
+    </md-card-title>
+    <form flex novalidate name="personContactInfoForm"
+        ng-submit="personContactInfoForm.$valid && vm.submitContactInfo(vm.forms['personContact'])">
+        <input type="hidden" ng-model="vm.thisPerson.personal_address_id" name="address_id">
+        <input type="hidden" ng-model="vm.thisPerson.pers_phone[0].personal_phone_id" name="phone_id">
+        <input type="hidden" ng-model="vm.thisPerson.pers_email[0].personal_email_id" name="email_id">
+        <md-card-content layout="column" flex>
+            <md-input-container>
+                <label>Current address</label>
+                <input ng-model="vm.thisPerson.address" name="address">
+            </md-input-container>
+            <div layout="row">
+                <md-input-container class="input-row">
+                    <label>Postal Code</label>
+                    <input ng-model="vm.thisPerson.postal_code" name="postal_code"
+                            md-maxlength="8" postal-code-validate>
+                    <div ng-messages="personContactInfoForm.postal_code.$error">
+                        <div ng-message="md-maxlength">Must be less than 8 characters long.</div>
+                        <div ng-message="postalFormat">Must be dddd-ddd or dddd.</div>
+                    </div>
+                </md-input-container>
+                <md-input-container class="input-row">
+                    <label>City</label></label>
+                    <input ng-model="vm.thisPerson.city" name="city">
+                </md-input-container>
+            </div>
+            <div layout="row">
+                <md-input-container class="input-row">
+                    <label>Personal Phone</label></label>
+                    <input ng-model="vm.thisPerson.pers_phone[0].personal_phone" name="personal_phone[0]">
+                </md-input-container>
+                <md-input-container class="input-row">
+                    <label>Personal Email</label></label>
+                    <input type="email" ng-model="vm.thisPerson.pers_email[0].personal_email" name="personal_email">
+                    <div ng-messages="personContactInfoForm.personal_email.$error" role="alert">
+                        <div ng-message="email">Must be a valid email.</div>
+                    </div>
+                </md-input-container>
+            </div>
+            <div layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button id="person-contact-submit" type="submit"
+                    class="button-small md-raised md-primary">Update</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personContact']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['personContact']]">
+                        {{vm.updateStatus[vm.forms['personContact']]}}
+                    </span>
+                </div>
+            </div>
+        </md-card-content>
+    </form>
+</md-card>

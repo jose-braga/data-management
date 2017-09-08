@@ -1,0 +1,247 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Ongoing degrees</span>
+        </md-card-title-text>
+    </md-card-title>
+    <form flex novalidate name="personOngoingDegreesForm"
+        ng-submit="personOngoingDegreesForm.$valid && vm.submitOngoingDegrees(vm.forms['personOngoingDegrees'])">
+        <md-card-content layout="column" flex>
+            <div ng-if="!vm.nothingToShow(vm.currentOngoingDegrees,'degrees_people_id')" layout="column">
+                <div ng-repeat="(num,deg) in vm.currentOngoingDegrees track by $index"
+                    layout="column">
+                    <fieldset class="spacer">
+                        <div layout="column" layout-gt-xs="row">
+                            <md-input-container class="select-container input-row card-type">
+                                <label>Degree</label>
+                                <md-select required ng-model="vm.currentOngoingDegrees[num].degree_type_id"
+                                        name="degree_type_id[num]">
+                                    <div class="scrollable">
+                                        <md-option ng-repeat="degType in vm.degreeTypes" ng-value="degType.degree_type_id">{{degType.name_en}}</md-option>
+                                    </div>
+                                </md-select>
+                            </md-input-container>
+                            <md-input-container class="input-row-longer">
+                                <label>Institution</label>
+                                <input ng-model="vm.currentOngoingDegrees[num].degree_institution"
+                                        name="degree_institution[num]">
+                            </md-input-container>
+                        </div>
+                        <div layout="column" layout-gt-xs="row">
+                            <md-input-container class="input-row">
+                                <label>Field</label>
+                                <input ng-model="vm.currentOngoingDegrees[num].degree_area"
+                                        name="degree_area[num]">
+                            </md-input-container>
+                            <md-input-container class="input-row">
+                                <label>Program</label>
+                                <input ng-model="vm.currentOngoingDegrees[num].degree_program"
+                                        name="degree_area[num]">
+                            </md-input-container>
+                        </div>
+                        <div layout="column" layout-gt-xs="row" flex>
+
+                            <md-input-container class="input-row" flex>
+                                <label>Thesis title</label>
+                                <input ng-model="vm.currentOngoingDegrees[num].degree_title"
+                                        name="degree_title[num]">
+                            </md-input-container>
+                        </div>
+                        <div layout="column" layout-gt-xs="row">
+                            <md-input-container class="input-row-longer">
+                                <label>Start</label>
+                                <md-datepicker md-current-view="year" required ng-model="vm.currentOngoingDegrees[num].degree_start"
+                                       md-placeholder="Enter date" name="degree_start[num]"></md-datepicker>
+                            </md-input-container>
+                            <md-input-container class="input-row-longer">
+                                <label>End estimate</label>
+                                <md-datepicker md-current-view="year" required ng-model="vm.currentOngoingDegrees[num].degree_estimate_end"
+                                       md-placeholder="Enter date" name="degree_end[num]"></md-datepicker>
+                            </md-input-container>
+                        </div>
+                        <md-input-container class="input-row-longer">
+                                <label>Effective End</label>
+                                <md-datepicker md-current-view="year" ng-model="vm.currentOngoingDegrees[num].degree_end"
+                                       md-placeholder="Enter date" name="degree_end[num]"></md-datepicker>
+                            </md-input-container>
+                        <fieldset>
+                            <legend>Supervisors</legend>
+                            <span class="group"><h4>Internal supervisors</h4></span>
+                            <div ng-if="!vm.nothingToShow(vm.currentOngoingDegrees[num].supervisors,'degrees_supervisors_id')">
+                                <div ng-repeat="(nSup,sup) in vm.currentOngoingDegrees[num].supervisors track by $index"
+                                    layout="column">
+                                    <div layout="row">
+                                        <md-input-container class="search-box select-container input-row"
+                                            ng-controller="PeopleSelectCtrl as peop">
+                                            <label>Supervisor name</label>
+                                            <md-select ng-model="vm.currentOngoingDegrees[num].supervisors[nSup].supervisor_id"
+                                                    name="supervisor[num][nSup]">
+                                                <div class="anchored">
+                                                    <md-select-header class="select-search-header">
+                                                        <input ng-model="peop.searchTerm" type="search"
+                                                          placeholder="Search your supervisor"
+                                                          class="md-text select-search-box">
+                                                </md-select-header>
+                                                </div>
+                                                <div class="scrollable">
+                                                    <md-optgroup label="people">
+                                                        <md-option ng-repeat="person in peop.people | filter:peop.searchTerm"
+                                                            ng-value="person.id">{{person.colloquial_name}}</md-option>
+                                                    </md-optgroup>
+                                                </div>
+                                            </md-select>
+                                        </md-input-container>
+                                        <md-input-container class="select-container input-row card-type">
+                                            <label>Supervisor type</label>
+                                            <md-select ng-model="vm.currentOngoingDegrees[num].supervisors[nSup].supervisor_type_id"
+                                                    name="supervisor_type_id[num][nSup]">
+                                                <div class="scrollable">
+                                                    <md-option ng-repeat="type in vm.supervisorTypes" ng-value="type.id">{{type.name_en}}</md-option>
+                                                </div>
+                                            </md-select>
+                                        </md-input-container>
+                                    </div>
+                                    <div layout="row">
+                                        <md-input-container class="input-row-longer">
+                                            <label>From</label>
+                                            <md-datepicker md-current-view="year" ng-model="vm.currentOngoingDegrees[num].supervisors[nSup].valid_from"
+                                                   md-min-date="vm.currentOngoingDegrees[num].degree_start"
+                                                   md-max-date="vm.currentOngoingDegrees[num].degree_estimate_end"
+                                                   md-placeholder="Enter date" name="degree_start[num][nSup]"></md-datepicker>
+                                        </md-input-container>
+                                        <md-input-container class="input-row-longer">
+                                            <label>Until</label>
+                                            <md-datepicker md-current-view="year" ng-model="vm.currentOngoingDegrees[num].supervisors[nSup].valid_until"
+                                                   md-min-date="vm.currentOngoingDegrees[num].degree_start"
+                                                   md-max-date="vm.currentOngoingDegrees[num].degree_estimate_end"
+                                                   md-placeholder="Enter date" name="degree_start[num]"></md-datepicker>
+                                        </md-input-container>
+                                    </div>
+                                    <div layout="row"  layout-align="start center">
+                                        <span class="highlight"><h5>Remove supervisor:</h5></span>
+                                        <md-button ng-click="vm.removeRows(vm.currentOngoingDegrees[num].supervisors,nSup)"
+                                                aria-label="Remove"
+                                                class="md-icon-button interaction-button">
+                                            <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
+                                        </md-button>
+                                        <span ng-if="$last" class="highlight"><h5>Add supervisor:</h5></span>
+                                        <md-button ng-if="$last" ng-click="vm.addRows(vm.currentOngoingDegrees[num].supervisors, 'degreeSupervisors')"
+                                                aria-label="Add more" class="md-icon-button interaction-button">
+                                            <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                                        </md-button>
+                                    </div>
+                                    <md-divider></md-divider>
+                                </div>
+                            </div>
+                            <div ng-if="vm.nothingToShow(vm.currentOngoingDegrees[num].supervisors,'degrees_supervisors_id')"
+                                    layout="row" layout-align="start center">
+                                No supervisors chosen, press + to add
+                                <md-button ng-click="vm.addRows(vm.currentOngoingDegrees[num].supervisors, 'degreeSupervisors')"
+                                        aria-label="Add more" class="md-icon-button interaction-button">
+                                    <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                                </md-button>
+                            </div>
+                            <span class="group"><h4>External supervisors</h4></span>
+                            <div ng-if="!vm.nothingToShow(vm.currentOngoingDegrees[num].external_supervisors,'degrees_ext_supervisors_id')">
+                                <div ng-repeat="(nSup,sup) in vm.currentOngoingDegrees[num].external_supervisors track by $index"
+                                    layout="column">
+                                    <div layout="row">
+                                        <md-input-container>
+                                            <label>Ext. supervisor name</label>
+                                            <input required ng-model="vm.currentOngoingDegrees[num].external_supervisors[nSup].supervisor_name"
+                                                    name="ext_supervisor_name[num]">
+                                        </md-input-container>
+                                        <md-input-container class="select-container input-row card-type">
+                                            <label>Supervisor type</label>
+                                            <md-select ng-model="vm.currentOngoingDegrees[num].external_supervisors[nSup].supervisor_type_id"
+                                                    name="ext_supervisor_type_id[num][nSup]">
+                                                <div class="scrollable">
+                                                    <md-option ng-repeat="type in vm.supervisorTypes" ng-value="type.id">{{type.name_en}}</md-option>
+                                                </div>
+                                            </md-select>
+                                        </md-input-container>
+                                    </div>
+                                    <div>
+                                        <md-input-container>
+                                            <label>Organization</label>
+                                            <input required ng-model="vm.currentOngoingDegrees[num].external_supervisors[nSup].supervisor_organization"
+                                                    name="ext_supervisor_organization[num]">
+                                        </md-input-container>
+                                    </div>
+                                    <div layout="row">
+                                        <md-input-container class="input-row-longer">
+                                            <label>From</label>
+                                            <md-datepicker md-current-view="year" ng-model="vm.currentOngoingDegrees[num].external_supervisors[nSup].valid_from"
+                                                   md-min-date="vm.currentOngoingDegrees[num].degree_start"
+                                                   md-max-date="vm.currentOngoingDegrees[num].degree_end"
+                                                   md-placeholder="Enter date" name="ext_degree_start[num][nSup]"></md-datepicker>
+                                        </md-input-container>
+                                        <md-input-container class="input-row-longer">
+                                            <label>Until</label>
+                                            <md-datepicker md-current-view="year" ng-model="vm.currentOngoingDegrees[num].external_supervisors[nSup].valid_until"
+                                                   md-min-date="vm.currentOngoingDegrees[num].degree_start"
+                                                   md-max-date="vm.currentOngoingDegrees[num].degree_end"
+                                                   md-placeholder="Enter date" name="ext_degree_start[num]"></md-datepicker>
+                                        </md-input-container>
+                                    </div>
+                                    <div layout="row"  layout-align="start center">
+                                        <span class="highlight"><h5>Remove ext. supervisor:</h5></span>
+                                        <md-button ng-click="vm.removeRows(vm.currentOngoingDegrees[num].external_supervisors,nSup)"
+                                                aria-label="Remove"
+                                                class="md-icon-button interaction-button">
+                                            <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
+                                        </md-button>
+                                        <span ng-if="$last" class="highlight"><h5>Add ext. supervisor:</h5></span>
+                                        <md-button ng-if="$last" ng-click="vm.addRows(vm.currentOngoingDegrees[num].external_supervisors, 'degreeExtSupervisors')"
+                                                aria-label="Add more" class="md-icon-button interaction-button">
+                                            <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                                        </md-button>
+                                    </div>
+                                    <md-divider></md-divider>
+                                </div>
+                            </div>
+                            <div ng-if="vm.nothingToShow(vm.currentOngoingDegrees[num].external_supervisors,'degrees_ext_supervisors_id')"
+                                    layout="row" layout-align="start center">
+                                No ext. supervisors chosen, press + to add
+                                <md-button ng-click="vm.addRows(vm.currentOngoingDegrees[num].external_supervisors, 'degreeExtSupervisors')"
+                                        aria-label="Add more" class="md-icon-button interaction-button">
+                                    <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                                </md-button>
+                            </div>
+
+                        </fieldset>
+                        <div layout="row"  layout-align="start center">
+                            <span class="highlight"><h4>Remove this degree:</h4></span>
+                            <md-button ng-click="vm.removeRows(vm.currentOngoingDegrees,$index)"
+                                    aria-label="Remove"
+                                    class="md-icon-button interaction-button">
+                                <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
+                            </md-button>
+                            <span ng-if="$last" class="highlight"><h4>Add degree:</h4></span>
+                            <md-button ng-if="$last" ng-click="vm.addRows(vm.currentOngoingDegrees, 'ongoingDegrees')"
+                                    aria-label="Add more" class="md-icon-button interaction-button">
+                                <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                            </md-button>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+            <div ng-if="vm.nothingToShow(vm.currentOngoingDegrees,'degrees_people_id')" >
+                No data, press + to add
+                <md-button ng-click="vm.addRows(vm.currentOngoingDegrees, 'ongoingDegrees')"
+                        aria-label="Add more" class="md-icon-button interaction-button">
+                    <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                </md-button>
+            </div>
+            <div layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button type="submit"
+                    class="button-small md-raised md-primary">Update</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personOngoingDegrees']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['personOngoingDegrees']]">
+                        {{vm.updateStatus[vm.forms['personOngoingDegrees']]}}
+                    </span>
+                </div>
+            </div>
+        </md-card-content>
+    </form>
+</md-card>

@@ -1,0 +1,80 @@
+<div layout="row">
+    <navigation-column></navigation-column>
+    <div ng-if="!vm.accessPermission" layout="column" flex>
+        <md-content class='md-padding' flex>
+            Make sure you have the appropriate permissions to access this page.
+        </md-content>
+    </div>
+    <div ng-if="vm.accessPermission" layout="column" flex>
+        <toolbar-row></toolbar-row>
+        <md-tabs md-selected="vm.selectedIndex" md-dynamic-height md-border-bottom>
+            <md-tab label='With roles'>
+                <md-content>
+                    <div layout="row" layout-padding>
+                        <all-people-presentation flex></all-people-presentation>
+                    </div>
+                </md-content>
+            </md-tab>
+            <md-tab label='Without roles'>
+                <md-content>
+                    <all-people-no-roles-presentation flex></all-people-no-roles-presentation>
+                </md-content>
+            </md-tab>
+            <md-tab ng-repeat="(num,name) in vm.nameDetails" label='{{name}}'>
+                <md-content>
+                    <div layout-xs="column" layout="row" layout-padding>
+                        <div flex-xs flex-gt-xs="50" layout="column">
+                            <manager-person-left></manager-person-left>
+                            <manager-password-reset></manager-password-reset>
+                            <manager-person-nuclear-info></manager-person-nuclear-info>
+                            <manager-person-contact-info></manager-person-contact-info>
+                            <manager-person-identifications-info></manager-person-identifications-info>
+                            <manager-person-emergency-contacts-info></manager-person-emergency-contacts-info>
+                            <manager-person-finished-degrees></manager-person-finished-degrees>
+                            <manager-person-ongoing-degrees></manager-person-ongoing-degrees>
+                        </div>
+                         <div flex-xs flex-gt-xs="50" layout="column">
+                            <manager-person-pole></manager-person-pole>
+                            <manager-person-institutional-contacts-info></manager-person-institutional-contacts-info>
+                            <manager-person-department></manager-person-department>
+                            <manager-person-professional></manager-person-professional>
+                            <manager-person-responsibles></manager-person-responsibles>
+                            <manager-person-current-roles></manager-person-current-roles>
+                        </div>
+                    </div>
+                </md-content>
+            </md-tab>
+            <md-tab label='To Validate'>
+                <md-tabs md-selected="vm.selectedIndexValidate" md-dynamic-height md-border-bottom>
+                    <md-tab label='List'>
+                        <md-content>
+                            <div layout="row" layout-padding>
+                                <list-people-validate flex></list-people-validate>
+                            </div>
+                        </md-content>
+                    </md-tab>
+                    <md-tab ng-repeat="(num,name) in vm.nameDetailsValidate" label='{{name}}'>
+                        <md-content>
+                            <div layout-xs="column" layout="row" layout-padding>
+                                <div flex-xs flex-gt-xs="50" layout="column">
+                                    <validate-person></validate-person>
+                                    <validate-person-nuclear-info></validate-person-nuclear-info>
+                                    <validate-person-pole></validate-person-pole>
+                                    <validate-person-contact-info></validate-person-contact-info>
+                                    <validate-person-identifications-info></validate-person-identifications-info>
+                                </div>
+                                 <div flex-xs flex-gt-xs="50" layout="column">
+                                    <validate-person-institutional-contacts-info></validate-person-institutional-contacts-info>
+                                    <validate-person-department></validate-person-department>
+                                    <validate-person-professional></validate-person-professional>
+                                    <validate-person-responsibles></validate-person-responsibles>
+                                    <validate-person-current-roles></validate-person-current-roles>
+                                </div>
+                            </div>
+                        </md-content>
+                    </md-tab>
+                </md-tabs>
+            </md-tab>
+        </md-tabs>
+    </div>
+</div>

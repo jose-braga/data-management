@@ -1,0 +1,29 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Pole</span>
+        </md-card-title-text>
+    </md-card-title>
+    <form flex novalidate name="personPoleForm[num]"
+        ng-submit="personPoleForm[num].$valid
+        && vm.submitPoleInfo(vm.forms['personPole'], vm.selectedIndex-2,vm.thisPerson[vm.selectedIndex-2])">
+        <md-card-content layout="row" flex>
+            <md-input-container>
+                <md-select ng-model="vm.thisPerson[vm.selectedIndex-2].institution_city_id"
+                            name="city_id">
+                    <md-option ng-repeat="city in vm.institutionCities"
+                        ng-value="city.id">{{city.city}}</md-option>
+                </md-select>
+            </md-input-container>
+            <div layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button type="submit"
+                    class="button-small md-raised md-primary">Update</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personPole']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['personPole']]">
+                        {{vm.updateStatus[vm.forms['personPole']]}}
+                    </span>
+                </div>
+            </div>
+        </md-card-content>
+    </form>
+</md-card>

@@ -1,0 +1,54 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Emergency contacts information</span>
+        </md-card-title-text>
+    </md-card-title>
+    <form flex novalidate name="personEmergencyContactsForm" 
+        ng-submit="personEmergencyContactsForm.$valid && vm.submitEmergencyContacts(vm.forms['personEmergency'])">
+        <md-card-content layout="column" flex>
+            <div ng-if="!vm.nothingToShow(vm.currentEmergencyContacts,'emergency_id')" layout="column">
+                <div ng-repeat="(num,emer) in vm.currentEmergencyContacts track by $index" 
+                    layout="column" layout-gt-xs="row">
+                    <md-input-container class="select-container input-row card-type">
+                        <label>Name</label>
+                        <input ng-model="vm.currentEmergencyContacts[num].emergency_name" 
+                                name="emergency_name[num]">
+                    </md-input-container>
+                    <md-input-container class="input-row">
+                        <label>Phone</label>
+                        <input ng-model="vm.currentEmergencyContacts[num].emergency_phone" 
+                                name="emergency_phone[num]">
+                    </md-input-container>
+                    <div layout="row"  layout-align="start center">
+                        <md-button ng-click="vm.removeRows(vm.currentEmergencyContacts,$index)" 
+                                aria-label="Remove" 
+                                class="md-icon-button interaction-button">
+                            <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
+                        </md-button>
+                        <md-button ng-if="$last" ng-click="vm.addRows(vm.currentEmergencyContacts, 'emergencyContacts')" 
+                                aria-label="Add more" class="md-icon-button interaction-button">
+                            <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                        </md-button>
+                    </div>
+                </div>
+            </div>
+            <div ng-if="vm.nothingToShow(vm.currentEmergencyContacts,'emergency_id')" >
+                No data, press + to add
+                <md-button ng-click="vm.addRows(vm.currentEmergencyContacts, 'emergencyContacts')" 
+                        aria-label="Add more" class="md-icon-button interaction-button">
+                    <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                </md-button>
+            </div>
+            <div layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button id="person-emergency-submit" type="submit"
+                    class="button-small md-raised md-primary">Update</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personEmergency']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['personEmergency']]">
+                        {{vm.updateStatus[vm.forms['personEmergency']]}}
+                    </span>
+                </div>
+            </div>
+        </md-card-content>
+    </form>
+</md-card>

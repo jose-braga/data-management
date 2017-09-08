@@ -1,0 +1,217 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Team members</span>
+        </md-card-title-text>
+    </md-card-title>
+    <md-card-content layout="column">
+        <form flex novalidate name="teamLabPeopleForm"
+                ng-submit="teamLabPeopleForm.$valid && submitLabPeople()">
+            <div layout="row" layout-align="none center">
+                <ng-md-icon icon="search" size="24"></ng-md-icon>
+                <md-input-container flex>
+                    <label>Search by name</label>
+                    <input ng-model="searchName" ng-change="renderPeople('new')">
+                </md-input-container>
+            </div>
+           <!-- <p> This information about your team members is {{infoFormCompletion | number:0}}% complete</p> -->
+            <div class="small-screens" layout="column" hide-gt-sm show-sm show-xs>
+                <div ng-repeat="(memberNum,member) in currPeople track by $index">
+                    <div layout="column">
+                        <div layout="row" layout-align=" center">
+                            <div class="question"><span class="highlight">Name:</span></div>
+                            <div class="answer"><span>{{member.person_name}}</span></div>
+                        </div>
+                        <div layout="row" layout-align=" center">
+                            <div class="question"><span class="highlight">Position:</span></div>
+                            <div class="answer">
+                                <md-input-container class="select-container select-no-margin card-type">
+                                    <md-select ng-model="member.lab_position_id"
+                                            ng-change="updateDataSubmit(member.id,currPeople[memberNum],'updateLabPerson', [])"
+                                            aria-label="positions"
+                                            name="member_labPosition[memberNum]">
+                                        <div class="scrollable">
+                                            <md-option ng-repeat="type in labPositions" ng-value="type.lab_position_id">{{type.name_en}}</md-option>
+                                        </div>
+                                    </md-select>
+                                </md-input-container>
+                            </div>
+                        </div>
+                        <div layout="row" layout-align="none center">
+                            <div class="question"><span class="highlight">Time (%):</span></div>
+                            <div class="answer">
+                                <md-input-container class="input-no-margin simple-input">
+                                    <input ng-model="member.dedication"
+                                        ng-change="updateDataSubmit(member.id,currPeople[memberNum],'updateLabPerson', [])"
+                                        aria-label="dedications"
+                                        name="member_dedication[memberNum]" dedication-validate>
+                                </md-input-container>
+                            </div>
+                        </div>
+                        <div layout="row" layout-align=" center">
+                            <div class="question"><span class="highlight">Started:</span></div>
+                            <div class="answer">
+                                <md-input-container class="input-no-margin">
+                                    <md-datepicker md-current-view="year" ng-model="member.valid_from"
+                                            ng-change="updateDataSubmit(member.id,currPeople[memberNum],'updateLabPerson', [])"
+                                            name="member_startDate[memberNum]"
+                                            md-placeholder="Enter date" md-hide-icons="calendar"></md-datepicker>
+                                </md-input-container>
+                            </div>
+                        </div>
+                        <div layout="row" layout-align=" center">
+                            <div class="question"><span class="highlight">Finished:</span></div>
+                            <div class="answer">
+                                <md-input-container class="input-row input-no-margin">
+                                    <md-datepicker md-current-view="year" ng-model="member.valid_until"
+                                            ng-change="updateDataSubmit(member.id,currPeople[memberNum],'updateLabPerson', [])"
+                                            name="member_endDate[memberNum]"
+                                            md-placeholder="Enter date" md-hide-icons="calendar"></md-datepicker>
+                                </md-input-container>
+                            </div>
+                        </div>
+                        <!--
+                        <md-button ng-click="removeRows(member)"
+                                            aria-label="Remove"
+                                            class="md-icon-button interaction-button">
+                            <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
+                        </md-button>
+                        -->
+                    </div>
+                    <md-divider hide-gt-sm></md-divider>
+                </div>
+            </div>
+
+            <div show-gt-sm hide-sm hide-xs>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>
+                                <a ng-click="sortColumn('person_name')">Name </a>
+                                <ng-md-icon ng-if="!sortReverse && sortType=='person_name'"
+                                        icon="arrow_downward" size="12"></ng-md-icon>
+                                <ng-md-icon ng-if="sortReverse  && sortType=='person_name'"
+                                        icon="arrow_upwards" size="12"></ng-md-icon>
+                            </th>
+                            <th><a ng-click="sortColumn('lab_position_id')">Position</a>
+                                <ng-md-icon ng-if="!sortReverse && sortType=='lab_position_id'"
+                                        icon="arrow_downward" size="12"></ng-md-icon>
+                                <ng-md-icon ng-if="sortReverse  && sortType=='lab_position_id'"
+                                        icon="arrow_upwards" size="12"></ng-md-icon>
+                            </th>
+                            <th><a ng-click="sortColumn('dedication')">Time (%)</a>
+                                <ng-md-icon ng-if="!sortReverse && sortType=='dedication'"
+                                        icon="arrow_downward" size="12"></ng-md-icon>
+                                <ng-md-icon ng-if="sortReverse  && sortType=='dedication'"
+                                        icon="arrow_upwards" size="12"></ng-md-icon>
+                            </th>
+                            <th><a ng-click="sortColumn('valid_from')">Started</a>
+                                <ng-md-icon ng-if="!sortReverse && sortType=='valid_from'"
+                                        icon="arrow_downward" size="12"></ng-md-icon>
+                                <ng-md-icon ng-if="sortReverse  && sortType=='valid_from'"
+                                        icon="arrow_upwards" size="12"></ng-md-icon>
+                            </th>
+                            <th><a ng-click="sortColumn('valid_until')">Finished</a>
+                                <ng-md-icon ng-if="!sortReverse && sortType=='valid_until'"
+                                        icon="arrow_downward" size="12"></ng-md-icon>
+                                <ng-md-icon ng-if="sortReverse  && sortType=='valid_until'"
+                                        icon="arrow_upwards" size="12"></ng-md-icon>
+                            </th>
+                            <th>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="(memberNum,member) in currPeople track by $index">
+                            <td>{{member.person_name}}</td>
+                            <td>
+                                <md-input-container class="select-container select-no-margin card-type">
+
+                                    <md-select ng-model="member.lab_position_id"
+                                            ng-change="updateDataSubmit(member.id,currPeople[memberNum],'updateLabPerson', [])"
+                                            aria-label="positions"
+                                            name="member_labPosition[memberNum]">
+                                        <div class="scrollable">
+                                            <md-option ng-repeat="type in labPositions" ng-value="type.lab_position_id">{{type.name_en}}</md-option>
+                                        </div>
+                                    </md-select>
+
+                                </md-input-container>
+                            </td>
+                            <td>
+                                <md-input-container class="input-no-margin">
+                                    <input ng-model="member.dedication"
+                                        ng-change="updateDataSubmit(member.id,currPeople[memberNum],'updateLabPerson', [])"
+                                        aria-label="dedications"
+                                        name="member_dedication[memberNum]" dedication-validate>
+                                </md-input-container>
+                            </td>
+                            <td>
+                                <md-input-container class="input-no-margin simple-input">
+                                    <md-datepicker md-current-view="year" ng-model="member.valid_from"
+                                            ng-change="updateDataSubmit(member.id,currPeople[memberNum],'updateLabPerson', [])"
+                                            name="member_startDate[memberNum]"
+                                            md-placeholder="Enter date" md-hide-icons="calendar"></md-datepicker>
+                                </md-input-container>
+                            </td>
+                            <td>
+                                <md-input-container class="input-no-margin simple-input">
+                                    <md-datepicker md-current-view="year" ng-model="member.valid_until"
+                                            ng-change="updateDataSubmit(member.id,currPeople[memberNum],'updateLabPerson', [])"
+                                            name="member_endDate[memberNum]"
+                                            md-placeholder="Enter date" md-hide-icons="calendar"></md-datepicker>
+                                </md-input-container>
+                            </td>
+                            <td>
+                                <!--
+                                <md-button ng-click="removeRows(member)"
+                                            aria-label="Remove"
+                                            class="md-icon-button interaction-button">
+                                    <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
+                                </md-button>
+                                -->
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div layout="row" class="paginator">
+                <md-input-container class="input-no-margin wider">
+                    <label>Results/page</label>
+                    <md-select ng-model="pageSize"
+                            md-on-close="renderPeople('new')"
+                            aria-label="pageSize"
+                            name="pageSize">
+                            <md-option ng-value="10">10</md-option>
+                            <md-option ng-value="20">20</md-option>
+                            <md-option ng-value="50">50</md-option>
+                    </md-select>
+                </md-input-container>
+                <md-input-container class="input-no-margin">
+                    <label>Page</label>
+                    <md-select ng-model="currentPage"
+                            md-on-close="renderPeople('page')"
+                            aria-label="currentPage"
+                            name="currentPage">
+                            <md-option ng-repeat="page in pages" ng-value="page">{{page}}</md-option>
+                    </md-select>
+                </md-input-container>
+            </div>
+
+            <div layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button id="team-people-lab" type="submit"
+                    class="button-small md-raised md-primary">Update</md-button>
+                <div class="status-message" ng-hide="hideMessage[forms['peopleLab']]">
+                    <span class="message" ng-class="messageType[forms['peopleLab']]">
+                        {{updateStatus[forms['peopleLab']]}}
+                    </span>
+                </div>
+            </div>
+
+        </form>
+
+
+    </md-card-content>
+</md-card>
+

@@ -1,0 +1,84 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">New user affiliations</span>
+        </md-card-title-text>
+    </md-card-title>
+    <md-card-content layout="column" flex>
+        <div ng-repeat="(num,affLab) in vm.newPerson.affiliations track by $index"
+                    layout="column">
+            <fieldset class="spacer">
+                <div layout="column" layout-gt-sm="row">
+                    <md-input-container
+                        class="search-box select-container input-row">
+                        <label>Lab/Office</label>
+                        <md-select required ng-model="vm.newPerson.affiliations[num].data"
+                                md-container-class="correct-overflow" name="affLab_id[num]">
+                            <md-option ng-repeat="off in vm.affiliationsList"
+                                    ng-value="off">{{off.name}}</md-option>
+                        </md-select>
+                    </md-input-container>
+                </div>
+                <div layout="column" layout-gt-xs="row">
+                    <md-input-container>
+                        <label>Dedication (%)</label>
+                        <input required ng-model="vm.newPerson.affiliations[num].dedication"
+                                name="affLab_dedication[num]" dedication-validate>
+                    </md-input-container>
+                    <md-input-container ng-if="vm.newPerson.affiliations[num].data.type === 'lab'">
+                        <label>Position</label>
+                        <md-select required ng-model="vm.newPerson.affiliations[num].lab_position_id"
+                                name="affLab_position[num]">
+                            <md-option ng-repeat="pos in vm.labPositions" ng-value="pos.lab_position_id">{{pos.name_en}}</md-option>
+                        </md-select>
+                    </md-input-container>
+                    <md-input-container ng-if="vm.newPerson.affiliations[num].data.type === 'technician'">
+                        <label>Position</label>
+                        <md-select required ng-model="vm.newPerson.affiliations[num].tech_position_id"
+                                name="affTech_position[num]">
+                            <md-option ng-repeat="pos in vm.technicianPositions" ng-value="pos.id">{{pos.name_en}}</md-option>
+                        </md-select>
+                    </md-input-container>
+                    <md-input-container ng-if="vm.newPerson.affiliations[num].data.type === 'scienceManager'">
+                        <label>Position</label>
+                        <md-select required ng-model="vm.newPerson.affiliations[num].sc_man_position_id"
+                                name="affScMan_position[num]">
+                            <md-option ng-repeat="pos in vm.scienceManagementPositions" ng-value="pos.id">{{pos.name_en}}</md-option>
+                        </md-select>
+                    </md-input-container>
+                    <md-input-container ng-if="vm.newPerson.affiliations[num].data.type === 'administrative'">
+                        <label>Position</label>
+                        <md-select required ng-model="vm.newPerson.affiliations[num].adm_position_id"
+                                name="affAdm_position[num]">
+                            <md-option ng-repeat="pos in vm.administrativePositions" ng-value="pos.id">{{pos.name_en}}</md-option>
+                        </md-select>
+                    </md-input-container>
+                </div>
+                <div layout="column" layout-gt-xs="row">
+                    <md-input-container class="input-row-longer">
+                        <label>Start</label>
+                        <md-datepicker md-current-view="year" required ng-model="vm.newPerson.affiliations[num].start"
+                                name="affLab_start[num]" md-placeholder="Enter date"></md-datepicker>
+                    </md-input-container>
+                    <md-input-container class="input-row-longer">
+                        <label>End</label>
+                        <md-datepicker md-current-view="year" ng-model="vm.newPerson.affiliations[num].end"
+                                md-min-date="vm.newPerson.affiliations[num].start"
+                                name="affLab_end[num]" md-placeholder="Enter date"></md-datepicker>
+                    </md-input-container>
+                    <div layout="row" layout-align="start center">
+                        <md-button ng-click="vm.removeRows(vm.newPerson.affiliations,$index)"
+                                aria-label="Remove"
+                                class="md-icon-button interaction-button">
+                            <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
+                        </md-button>
+                        <md-button ng-if="$last" ng-click="vm.addRows(vm.newPerson.affiliations, 'newAffiliation')"
+                                aria-label="Add more" class="md-icon-button interaction-button">
+                            <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                        </md-button>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+    </md-card-content>
+</md-card>

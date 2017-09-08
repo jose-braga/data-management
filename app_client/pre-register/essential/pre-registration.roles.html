@@ -1,0 +1,20 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Roles at LAQV/UCIBIO</span>
+        </md-card-title-text>
+    </md-card-title>
+    <md-card-content layout="column" flex>
+        <div layout="column">
+            <md-input-container>
+                <label>Roles</label>
+                <md-select ng-model="vm.thisPerson.roles_data"
+                        ng-model-options="{trackBy: '$value.role_id'}"
+                        disabled multiple>
+                    <md-option ng-repeat="role in vm.roles"
+                            ng-value="role">{{role.role_name}}</md-option>
+                </md-select>
+            </md-input-container>
+        </div>
+    </md-card-content>
+</md-card>

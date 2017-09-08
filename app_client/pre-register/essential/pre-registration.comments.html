@@ -1,0 +1,14 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Comments to manager</span>
+        </md-card-title-text>
+    </md-card-title>
+    <md-card-content layout="column" flex>
+        <md-input-container class="md-block">
+            <label>(to ask questions, request more affiliations)</label>
+            <textarea ng-model="vm.thisPerson.comments"
+                    md-maxlength="2000" rows="5"></textarea>
+        </md-input-container>
+    </md-card-content>
+</md-card>

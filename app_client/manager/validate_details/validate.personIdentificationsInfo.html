@@ -1,0 +1,67 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Identifications</span>
+        </md-card-title-text>
+    </md-card-title>
+    <form flex novalidate name="validateIdentificationsForm[num]"
+        ng-submit="validateIdentificationsForm[num].$valid
+        && vm.submitIdentificationsInfo(vm.forms['validateIdentifications'],vm.selectedIndexValidate-1,vm.thisPersonValidate[vm.selectedIndexValidate-1],true)">
+        <md-card-content layout="column" flex>
+            <div ng-if="!vm.nothingToShow(vm.currentIDsValidate[vm.selectedIndexValidate-1],'card_id')" layout="column">
+                <div ng-repeat="(numID,ident) in vm.currentIDsValidate[vm.selectedIndexValidate-1] track by $index"
+                    layout="column"  layout-gt-md="row">
+                    <md-input-container class="select-container input-row card-type">
+                        <label>Card Type</label>
+
+                        <md-select ng-model="vm.currentIDsValidate[vm.selectedIndexValidate-1][numID].card_type_id"
+                                name="card_type_id[vm.selectedIndexValidate-1][numID]">
+                            <div class="scrollable">
+                                <md-option ng-repeat="type in vm.cardTypes" ng-value="type.card_type_id">{{type.name_en}}</md-option>
+                            </div>
+                        </md-select>
+
+                    </md-input-container>
+                    <md-input-container class="input-row">
+                        <label>Number</label>
+                        <input ng-model="vm.currentIDsValidate[vm.selectedIndexValidate-1][numID].card_number"
+                                name="card_number[vm.selectedIndexValidate-1][numID]">
+                    </md-input-container>
+                    <md-input-container>
+                        <md-datepicker md-current-view="year" ng-model="vm.currentIDsValidate[vm.selectedIndexValidate-1][numID].card_valid_until"
+                                name="card_valid_until[vm.selectedIndexValidate-1][numID]"
+                                md-placeholder="Expires" md-hide-icons="calendar">
+                        </md-datepicker>
+                    </md-input-container>
+                    <div layout="row" layout-align="start center">
+                        <md-button ng-click="vm.removeRows2(vm.currentIDsValidate[vm.selectedIndexValidate-1],$index)" aria-label="Remove"
+                                class="md-icon-button interaction-button">
+                            <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
+                        </md-button>
+                        <md-button ng-if="$last" ng-click="vm.addRows2(vm.currentIDsValidate[vm.selectedIndexValidate-1],'identifications')"
+                                aria-label="Add more" class="md-icon-button interaction-button">
+                            <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                        </md-button>
+                    </div>
+                    <md-divider hide-gt-md></md-divider>
+                </div>
+            </div>
+            <div ng-if="vm.nothingToShow(vm.currentIDsValidate[vm.selectedIndexValidate-1],'card_id')" >
+                No data, press + to add
+                <md-button ng-click="vm.addRows2(vm.currentIDsValidate[vm.selectedIndexValidate-1],'identifications')"
+                        aria-label="Add more" class="md-icon-button interaction-button">
+                    <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                </md-button>
+            </div>
+            <div layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button id="person-identifications-submit" type="submit"
+                    class="button-small md-raised md-primary">Update</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['validateIdentifications']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['validateIdentifications']]">
+                        {{vm.updateStatus[vm.forms['validateIdentifications']]}}
+                    </span>
+                </div>
+            </div>
+        </md-card-content>
+    </form>
+</md-card>

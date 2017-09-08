@@ -1,0 +1,67 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Name and nuclear information</span>
+        </md-card-title-text>
+    </md-card-title>
+    <form novalidate flex name="personNuclearInfoForm"
+        ng-submit="personNuclearInfoForm.$valid && vm.submitNuclearInfo(vm.forms['personNuclear'])">
+        <md-card-content layout="column" flex>
+            <md-input-container>
+                <label>Name</label>
+                <input required ng-model="vm.thisPerson.name" name="name">
+                <div ng-messages="personNuclearInfoForm.name.$error">
+                    <div ng-message="required">This is required.</div>
+                </div>
+            </md-input-container>
+            <md-input-container>
+                <label>Colloquial Name</label>
+                <input ng-model="vm.thisPerson.colloquial_name" name="colloquial_name">
+            </md-input-container>
+            <div layout="column" layout-gt-sm="row">
+                <md-input-container class="input-row">
+                    <label>Birth date</label>
+                    <md-datepicker md-current-view="year" ng-model="vm.thisPerson.birth_date"
+                        md-placeholder="Enter date" name="vm.thisPerson.birth_date"></md-datepicker>
+                </md-input-container>
+                <md-input-container class="select-container input-row">
+                    <label>Gender</label>
+                    <md-select ng-model="vm.thisPerson.gender" name="vm.thisPerson.gender">
+                        <md-option value="F">Female</md-option>
+                        <md-option value="M">Male</md-option>
+                    </md-select>
+                </md-input-container>
+                <md-input-container id="person-country"
+                    class="search-box select-container input-row"
+                    ng-controller="CountrySelectCtrl as count">
+                    <label>Nationalities</label>
+                    <md-select id="nationalities" ng-model="vm.selectedNationalities"
+                        ng-model-options="{trackBy: '$value.country_id'}" multiple>
+                        <div class="anchored">
+                            <md-select-header class="select-search-header">
+                                <input ng-model="count.searchTerm" type="search"
+                                  placeholder="Search your countries"
+                                  class="md-text select-search-box">
+                        </md-select-header>
+                        </div>
+                        <div class="scrollable">
+                            <md-optgroup label="countries">
+                                <md-option ng-repeat="country in count.countries | filter:count.searchTerm"
+                                    ng-value="country">{{country.name}}</md-option>
+                            </md-optgroup>
+                        </div>
+                    </md-select>
+                </md-input-container>
+            </div>
+            <div layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button id="person-nuclear-submit" type="submit"
+                    class="button-small md-raised md-primary">Update</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personNuclear']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['personNuclear']]">
+                        {{vm.updateStatus[vm.forms['personNuclear']]}}
+                    </span>
+                </div>
+            </div>
+        </md-card-content>
+    </form>
+</md-card>

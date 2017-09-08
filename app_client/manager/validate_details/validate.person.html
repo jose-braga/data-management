@@ -1,0 +1,21 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Validate user information</span>
+        </md-card-title-text>
+    </md-card-title>
+    <form novalidate flex name="validateUserForm[num]"
+        ng-submit="vm.submitUserValidation(vm.forms['validateUser'],vm.selectedIndexValidate-1,vm.thisPersonValidate[vm.selectedIndexValidate-1],true)">
+        <md-card-content layout="column" flex>
+            <div layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button type="submit"
+                    class="button-small md-raised md-warn">Validate pre-registration</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['validateUser']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['validateUser']]">
+                        {{vm.updateStatus[vm.forms['validateUser']]}}
+                    </span>
+                </div>
+            </div>
+        </md-card-content>
+    </form>
+</md-card>

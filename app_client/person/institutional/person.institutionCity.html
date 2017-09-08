@@ -1,0 +1,17 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Pole</span>
+        </md-card-title-text>
+    </md-card-title>
+    <md-card-content layout="column" flex>
+        <div layout="column">
+            <md-input-container>
+                <md-select disabled ng-model="vm.thisPerson.institution_city_id">
+                    <md-option ng-repeat="pole in vm.institutionCities"
+                            ng-value="pole.id">{{pole.city}}</md-option>
+                </md-select>
+            </md-input-container>
+        </div>
+    </md-card-content>
+</md-card>

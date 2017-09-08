@@ -1,0 +1,206 @@
+body {
+  padding: 50px;
+  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+}
+
+a {
+  color: #00B7FF;
+}
+
+/* Added by JB */
+
+.layout-column>.flex {
+  min-height: initial !important;
+}
+
+.site-sidenav, .site-sidenav.md-locked-open-add-active, .site-sidenav.md-locked-open {
+  width: 272px;
+  min-width: 272px;
+  max-width: 272px;
+}
+
+.input-no-margin {
+  margin-top: 1px;
+  margin-bottom: 0px;
+}
+
+.input-no-margin.simple-input .md-input {
+  height: 16px;
+  width: 50px;
+}
+
+.simple-input {
+  margin-top: 5px;
+}
+
+.input-no-margin .md-input{
+  line-height: 16px;
+  height: 16px;
+  max-width: 100px;
+}
+
+.input-no-margin .md-button.md-icon-button {
+  margin-top: 5px;
+  padding-top: 0px;
+}
+
+.input-no-margin .md-datepicker-triangle-button.md-icon-button.md-button {
+  margin-top: 0px;
+  padding-top: 0px;
+  top: -10px;
+}
+
+.select-no-margin {
+  margin-top: 0px;
+  margin-bottom: 0px;
+}
+
+
+.select-no-margin md-select-value{
+  padding: 0px;
+  min-height: 0px;
+}
+
+
+.select-no-margin .md-input{
+  line-height: 16px;
+  height: 16px;
+  max-width: 100px;
+}
+
+.select-no-margin .md-button.md-icon-button {
+  margin-top: 0px;
+  padding-top: 0px;
+  top: 0px;
+}
+
+.question {
+  width: 20%;
+  float: left;
+  margin-right: 2%;
+}
+
+.question .highlight {
+  font-weight: bold;
+}
+
+.answer {
+  width: 78%;
+  float: left;
+}
+
+.small-screens md-divider  {
+  margin-bottom: 10px;
+}
+
+.select-container {
+  max-width: 250px;
+}
+
+.card-type {
+  width: 150px;
+}
+
+.select-search-box {
+  border: none;
+  outline: none;
+  height: 100%;
+  width: 100%;
+  padding: 0;
+}
+
+md-select-menu ._md .scrollable{
+  max-height: 208px;
+}
+
+.select-search-header {
+  box-shadow: 0 1px 0 0 rgba(0, 0, 0, 0.1), 0 0 0 0 rgba(0, 0, 0, 0.14), 0 0 0 0 rgba(0, 0, 0, 0.12);
+  padding-left: 10.667px;
+  height: 48px;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: auto; }
+
+.input-row {
+  margin-right: 10px;
+}
+
+.input-row-longer {
+  margin-right: 10px;
+  max-width: 200px;
+}
+
+.button-small {
+  max-width: 200px;
+}
+
+.interaction-button {
+ /* margin-top: 10px !important;*/
+}
+
+.vertical-space {
+  margin-bottom: 10px;
+}
+
+.md-errors-spacer {
+  min-height: 0 !important;
+}
+
+.message {
+  /*transition: all linear 1.0s;*/
+  color: blue;
+}
+
+.message.message-updating {
+  color: blue;
+}
+
+.message.message-success {
+  color: green;
+  /*opacity: 0;*/
+}
+
+.message.message-error {
+  color: red;
+}
+
+.spacer {
+  margin-bottom: 5px;
+}
+
+.spacer-top {
+  margin-top: 20px;
+}
+
+.small-text {
+  font-size: 12px;
+}
+
+.passwordBtn {
+  background-color: rgb(150,0,0) !important;
+  color: rgb(255,255,255) !important;
+}
+
+.paginator {
+  margin-top: 20px;
+}
+
+.paginator .wider {
+  width: 80px;
+  margin-right: 20px;
+}
+
+.large-optgroup > label {
+  font-weight: bold;
+  font-size: 20px;
+}
+
+.larger-column {
+  width: 65px;
+}
+
+.space-left {
+  padding-left: 8px;
+}

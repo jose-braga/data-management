@@ -1,0 +1,66 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Identifications</span>
+        </md-card-title-text>
+    </md-card-title>
+    <form flex novalidate name="personIdentificationsForm"
+        ng-submit="personIdentificationsForm.$valid && vm.submitIdentificationsInfo(vm.forms['personIdentifications'])">
+        <md-card-content layout="column" flex>
+            <div ng-if="!vm.nothingToShow(vm.currentIDs,'card_id')" layout="column">
+                <div ng-repeat="(num,ident) in vm.currentIDs track by $index"
+                    layout="column"  layout-gt-md="row">
+                    <md-input-container class="select-container input-row card-type">
+                        <label>Card Type</label>
+
+                        <md-select ng-model="vm.currentIDs[num].card_type_id"
+                                name="card_type_id[num]">
+                            <div class="scrollable">
+                                <md-option ng-repeat="type in vm.cardTypes" ng-value="type.card_type_id">{{type.name_en}}</md-option>
+                            </div>
+                        </md-select>
+
+                    </md-input-container>
+                    <md-input-container class="input-row">
+                        <label>Number</label>
+                        <input ng-model="vm.currentIDs[num].card_number"
+                                name="card_number[num]">
+                    </md-input-container>
+                    <md-input-container>
+                        <md-datepicker md-current-view="year" ng-model="vm.currentIDs[num].card_valid_until"
+                                name="card_valid_until[num]"
+                                md-placeholder="Expires" md-hide-icons="calendar">
+                        </md-datepicker>
+                    </md-input-container>
+                    <div layout="row" layout-align="start center">
+                        <md-button ng-click="vm.removeRows(vm.currentIDs,$index)" aria-label="Remove"
+                                class="md-icon-button interaction-button">
+                            <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
+                        </md-button>
+                        <md-button ng-if="$last" ng-click="vm.addRows(vm.currentIDs,'identifications')"
+                                aria-label="Add more" class="md-icon-button interaction-button">
+                            <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                        </md-button>
+                    </div>
+                    <md-divider hide-gt-md></md-divider>
+                </div>
+            </div>
+            <div ng-if="vm.nothingToShow(vm.currentIDs,'card_id')" >
+                No data, press + to add
+                <md-button ng-click="vm.addRows(vm.currentIDs,'identifications')"
+                        aria-label="Add more" class="md-icon-button interaction-button">
+                    <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                </md-button>
+            </div>
+            <div layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button type="submit"
+                    class="button-small md-raised md-primary">Update</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personIdentifications']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['personIdentifications']]">
+                        {{vm.updateStatus[vm.forms['personIdentifications']]}}
+                    </span>
+                </div>
+            </div>
+        </md-card-content>
+    </form>
+</md-card>

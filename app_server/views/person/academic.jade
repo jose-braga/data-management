@@ -1,0 +1,126 @@
+md-tab(label='Academic')
+    div(layout-xs='column', layout='row')
+        div(flex-xs, flex-gt-xs='50', layout='column')
+            md-card(ng-controller='DegreesCtrl as deg')
+                md-card-title 
+                    md-card-title-text
+                        span(class='md-headline') Finished degrees
+                md-card-content
+                    div(layout='column')
+                        div(ng-repeat='(i,id) in degrees track by $index', layout='column')
+                            fieldset(class='vertical-space')
+                                div(layout='column', layout-gt-xs='row')
+                                    md-input-container(class='select-container input-row card-type')
+                                        label Degree
+                                        md-select(ng-model='degrees[i].idType', name='degrees[i].idType')
+                                            md-option(ng-repeat='type in degreeTypes', value='{{type.id}}') {{type.type}}
+                                    md-input-container(class='input-row')
+                                        label Field
+                                        input(ng-model='degrees[i].area', name='degrees[i].area')
+                                div(layout='column', layout-gt-xs='row')
+                                    md-input-container(class='input-row-longer ')
+                                        label Institution
+                                        input(ng-model='degrees[i].institution', name='degrees[i].institution')
+                                    md-input-container(class='input-row')
+                                        label Date
+                                        md-datepicker(ng-model='degrees[i].date', name='degrees[i].date')
+                                    md-button(class='md-icon-button interaction-button', ng-click="removeDegrees($index)", aria-label='Remove')
+                                        md-icon(md-svg-src='images/icons/remove_24px.svg')
+                                    md-button(class='md-icon-button interaction-button', ng-if='$last', ng-click="addMoreDegrees()", aria-label='Add more')
+                                        md-icon(md-svg-src='images/icons/add_24px.svg')
+                        md-button(id='person-degrees-submit', class='button-small md-raised md-primary') Update
+        div(flex-xs, flex-gt-xs='50', layout='column')
+            md-card(ng-controller='OngoingDegreesCtrl as deg')
+                md-card-title 
+                    md-card-title-text
+                        span(class='md-headline') Ongoing degrees
+                md-card-content
+                    div(layout='column')
+                        div(ng-repeat='(i,id) in ongoingDegrees track by $index', layout='column')
+                            fieldset(class='vertical-space')
+                                div(layout='column', layout-gt-xs='row')
+                                    md-input-container(class='select-container input-row card-type')
+                                        label Degree
+                                        md-select(ng-model='ongoingDegrees[i].idType', name='ongoingDegrees[i].idType')
+                                            md-option(ng-repeat='type in ongoingDegreesTypes', value='{{type.id}}') {{type.type}}
+                                    md-input-container(class='input-row')
+                                        label Field
+                                        input(ng-model='ongoingDegrees[i].area', name='ongoingDegrees[i].area')
+                                div(layout='column', layout-gt-xs='row')
+                                    md-input-container(class='input-row-longer')
+                                        label Institution
+                                        input(ng-model='ongoingDegrees[i].institution', name='ongoingDegrees[i].institution')
+                                    md-input-container(class='input-row-longer ')
+                                        label PhD program (if applicable)
+                                        input(ng-model='ongoingDegrees[i].program', name='ongoingDegrees[i].program')
+                                div(layout='column')
+                                    md-input-container(class='input-row')
+                                        label Preliminary thesis title (if applicable)
+                                        input(ng-model='ongoingDegrees[i].title', name='ongoingDegrees[i].title')
+                                div(layout='column', layout-gt-xs='row')
+                                    md-input-container(class='input-row')
+                                        label Start date
+                                        md-datepicker(ng-model='ongoingDegrees[i].startDate', name='ongoingDegrees[i].startDate')
+                                    md-input-container(class='input-row')
+                                        label End date
+                                        md-datepicker(ng-model='ongoingDegrees[i].endDate', name='ongoingDegrees[i].endDate')
+                                    md-button(class='md-icon-button interaction-button', ng-click="removeOngoingDegrees($index)", aria-label='Remove')
+                                        md-icon(md-svg-src='images/icons/remove_24px.svg')
+                                    md-button(class='md-icon-button interaction-button', ng-if='$last', ng-click="addMoreOngoingDegrees()", aria-label='Add more')
+                                        md-icon(md-svg-src='images/icons/add_24px.svg')
+                        md-button(id='person-degrees-submit', class='button-small md-raised md-primary') Update
+            md-card(ng-controller='ThesesCtrl as thes')
+                md-card-title 
+                    md-card-title-text
+                        span(class='md-headline') Theses at UCIBIO/LAQV
+                md-card-content
+                    div(layout='column')
+                        div(ng-repeat='(i,id) in theses track by $index', ng-init='thesesIndex = $index' ,layout='column')
+                            fieldset(class='vertical-space')
+                                div(layout='column', layout-gt-xs='row')
+                                    md-input-container(class='select-container input-row card-type')
+                                        label Degree
+                                        md-select(ng-model='theses[i].idType', name='theses[i].idType')
+                                            md-option(ng-repeat='type in thesesTypes', value='{{type.id}}') {{type.type}}
+                                    md-input-container(class='input-row')
+                                        label Field
+                                        input(ng-model='theses[i].area', name='theses[i].area')
+                                div(layout='column', layout-gt-xs='row')
+                                    md-input-container(class='input-row-longer ')
+                                        label PhD program (if applicable)
+                                        input(ng-model='theses[i].program', name='theses[i].program')
+                                div(layout='column', layout-gt-xs='row')
+                                    md-input-container(ng-controller='PeopleSelectCtrl as peop', id='thesis-supervisors', class='search-box select-container input-row')
+                                        label Internal Supervisors
+                                        md-select(ng-model='theses[i].supervisors', multiple)
+                                            md-select-header(class='select-search-header')
+                                                input(ng-model='searchTerm', type='search', placeholder='Search people...', class='md-text select-search-box')
+                                            md-optgroup(label='people')
+                                                md-option(ng-repeat='person in people | filter:searchTerm', value='{{person.id}}') {{person.name}}
+                                div(ng-repeat='(j,id2) in theses[i].externalSupervisors track by $index')
+                                    div(layout='column', layout-gt-xs='row')
+                                        md-input-container(class='input-row-longer')
+                                            label External Supervisor
+                                            input(ng-model='theses[i].externalSupervisors[j].name', name='theses[i].externalSupervisors[j].name')
+                                        md-input-container(class='input-row-longer ')
+                                            label External Institution
+                                            input(ng-model='theses[i].externalSupervisors[j].institution', name='theses[i].externalSupervisors[j].institution')
+                                        md-button(class='md-icon-button interaction-button', ng-click="removeExternalSupervisors(i,j)", aria-label='Remove')
+                                            md-icon(md-svg-src='images/icons/remove_24px.svg')
+                                        md-button(class='md-icon-button interaction-button', ng-if='$last', ng-click="addMoreExternalSupervisors(i)", aria-label='Add more')
+                                            md-icon(md-svg-src='images/icons/add_24px.svg')
+                                div(layout='column')
+                                    md-input-container(class='input-row')
+                                        label Thesis title
+                                        input(ng-model='theses[i].title', name='theses[i].title')
+                                div(layout='column', layout-gt-xs='row')
+                                    md-input-container(class='input-row')
+                                        label Date
+                                        md-datepicker(ng-model='theses[i].date', name='theses[i].date')
+                                    md-button(class='md-icon-button interaction-button', ng-click="removeTheses(i)", aria-label='Remove')
+                                        md-icon(md-svg-src='images/icons/remove_24px.svg')
+                                    md-button(class='md-icon-button interaction-button', ng-if='$last', ng-click="addMoreTheses()", aria-label='Add more')
+                                        md-icon(md-svg-src='images/icons/add_24px.svg')
+                        md-button(id='person-degrees-submit', class='button-small md-raised md-primary') Update
+            
+                    

@@ -1,0 +1,34 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">User creation</span>
+        </md-card-title-text>
+    </md-card-title>
+    <md-card-content layout="column" flex>
+        <md-input-container>
+            <label>Change username</label>
+            <input ng-model="vm.thisPerson.username" name="username"
+                    username-validate="vm.usernames" required>
+            <div ng-messages="preRegistrationForm.username.$error">
+                <div ng-message="username">Username already taken.</div>
+            </div>
+        </md-input-container>
+        <md-input-container>
+            <label>Password</label>
+            <input type="password" ng-model="vm.thisPerson.password"
+                name="password" ng-minlength="8" required>
+            <div ng-messages="preRegistrationForm.password.$error">
+                <div ng-message="minlength">Must be 8 characters or more.</div>
+            </div>
+        </md-input-container>
+        <md-input-container>
+            <label>Confirm Password</label>
+            <input type="password" ng-model="vm.thisPerson.passwordConfirm"
+                name="passwordConfirm" required
+                change-password-validate="vm.thisPerson.password">
+            <div ng-messages="preRegistrationForm.passwordConfirm.$error">
+                <div ng-message="changePasswordValidate">No match with previous.</div>
+            </div>
+        </md-input-container>
+    </md-card-content>
+</md-card>

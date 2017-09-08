@@ -1,0 +1,33 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">User creation</span>
+        </md-card-title-text>
+    </md-card-title>
+    <md-card-content layout="column" flex>
+        <md-input-container>
+            <label>Username</label>
+            <input ng-model="vm.newPerson.username" name="username"
+                    username-validate="vm.usernames" required>
+            <div ng-messages="teamPreRegistrationForm.username.$error">
+                <div ng-message="username">Username already taken.</div>
+            </div>
+        </md-input-container>
+        <md-input-container>
+            <label>Personal Email</label>
+            <input type="email" ng-model="vm.newPerson.personal_email" name="personal_email" required>
+            <div ng-messages="teamPreRegistrationForm.personal_email.$error" role="alert">
+                 <div ng-message="email">Must be a valid email.</div>
+            </div>
+        </md-input-container>
+        <md-input-container>
+            <label>Institution Pole</label>
+            <md-select ng-model="vm.newPerson.institution_city"
+                    ng-model-options="{trackBy: '$value.id'}"
+                    required>
+                <md-option ng-repeat="city in vm.institutionCities"
+                        ng-value="city">{{city.city}}</md-option>
+            </md-select>
+        </md-input-container>
+    </md-card-content>
+</md-card>

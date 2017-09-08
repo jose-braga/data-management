@@ -1,0 +1,46 @@
+<div layout="row">
+    <navigation-column></navigation-column>
+    <div ng-if="!vm.accessPermission" layout="column" flex>
+        <md-content class='md-padding' flex>
+            Make sure you have the appropriate permissions to access this page.
+        </md-content>
+    </div>
+    <div ng-if="vm.accessPermission" layout="column" flex>
+        <toolbar-row></toolbar-row>
+        <form flex novalidate name="registrationForm"
+                    ng-submit="registrationForm.$valid && vm.submitRegistration(vm.forms['registrationEssential'])">
+            <md-tabs md-dynamic-height md-border-bottom md-selected="vm.selectedTab">
+                <md-tab label='Essential'>
+                    <md-content>
+                        <div layout-xs="column" layout="row" layout-padding>
+                            <div flex-xs flex-gt-xs="50" layout="column">
+                                <registration-user-creation></registration-user-creation>
+                                <registration-person-nuclear-info></registration-person-nuclear-info>
+                                <registration-contact-info></registration-contact-info>
+                                <registration-institutional-contacts-info></registration-institutional-contacts-info>
+                            </div>
+                            <div flex-xs flex-gt-xs="50" layout="column">
+                                <registration-department></registration-department>
+                                <registration-professional-situation></registration-professional-situation>
+                                <registration-responsibles></registration-responsibles>
+                                <registration-person-roles></registration-person-roles>
+                                <registration-researcher-info ng-if="vm.rolePresent(vm.thisPerson.roles,'Scientific')"></registration-researcher-info>
+                                <registration-technician-info ng-if="vm.rolePresent(vm.thisPerson.roles,'Technical')"></registration-technician-info>
+                                <registration-science-manager-info ng-if="vm.rolePresent(vm.thisPerson.roles,'Science management')"></registration-science-manager-info>
+                                <registration-administrative-info ng-if="vm.rolePresent(vm.thisPerson.roles,'Administrative')"></registration-administrative-info>
+
+                                <md-button id="registration-submit-down" type="submit"
+                                   class="button-small md-raised md-primary">Create</md-button>
+                                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['registrationEssential']]">
+                                    <span class="message" ng-class="vm.messageType[vm.forms['registrationEssential']]">
+                                        {{vm.updateStatus[vm.forms['registrationEssential']]}}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </md-content>
+                </md-tab>
+            </md-tabs>
+        </form>
+    </div>
+</div>

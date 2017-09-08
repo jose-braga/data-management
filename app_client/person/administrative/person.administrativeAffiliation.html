@@ -1,0 +1,82 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Administrative offices affiliations</span>
+        </md-card-title-text>
+    </md-card-title>
+    <form flex novalidate name="personAdministrativeAffiliationForm"
+        ng-submit="personAdministrativeAffiliationForm.$valid && vm.submitAdministrativeAffiliation(vm.forms['personAdmAffiliation'])">
+        <md-card-content layout="column" flex>
+            <div ng-if="!vm.nothingToShow(vm.currentAdmAffiliations,'adm_id')" layout="column">
+                <div ng-repeat="(num,office) in vm.currentAdmAffiliations track by $index"
+                    layout="column">
+                    <fieldset class="spacer">
+                        <div layout="column" layout-gt-sm="row">
+                            <md-input-container class="select-container input-row">
+                                <label>Office</label>
+                                <md-select required ng-model="vm.currentAdmAffiliations[num].adm_office_id"
+                                        name="office_id[num]">
+                                    <md-option ng-repeat="off in vm.administrativeOffices"
+                                        ng-value="off.id">{{off.name_en}}</md-option>
+                                </md-select>
+                            </md-input-container>
+                        </div>
+                        <div layout="column" layout-gt-xs="row">
+                            <md-input-container>
+                                <label>Dedication (%)</label>
+                                <input required ng-model="vm.currentAdmAffiliations[num].adm_dedication"
+                                        name="office_dedication[num]" dedication-validate>
+                            </md-input-container>
+                            <md-input-container>
+                                <label>Position</label>
+                                <md-select ng-model="vm.currentAdmAffiliations[num].adm_position_id"
+                                        name="office_position[num]">
+                                    <md-option ng-repeat="pos in vm.administrativePositions" ng-value="pos.id">{{pos.name_en}}</md-option>
+                                </md-select>
+                            </md-input-container>
+                        </div>
+                        <div layout="column" layout-gt-xs="row">
+                            <md-input-container class="input-row-longer">
+                                <label>Start</label>
+                                <md-datepicker md-current-view="year" required ng-model="vm.currentAdmAffiliations[num].adm_valid_from"
+                                        name="office_start[num]" md-placeholder="Enter date"></md-datepicker>
+                            </md-input-container>
+                            <md-input-container class="input-row-longer">
+                                <label>End</label>
+                                <md-datepicker md-current-view="year" ng-model="vm.currentAdmAffiliations[num].adm_valid_until"
+                                        name="office_end[num]" md-placeholder="Enter date"></md-datepicker>
+                            </md-input-container>
+                            <div layout="row" layout-align="start center">
+                                <md-button ng-click="vm.removeRows(vm.currentAdmAffiliations,$index)"
+                                        aria-label="Remove"
+                                        class="md-icon-button interaction-button">
+                                    <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
+                                </md-button>
+                                <md-button ng-if="$last" ng-click="vm.addRows(vm.currentAdmAffiliations, 'admAffiliations')"
+                                        aria-label="Add more" class="md-icon-button interaction-button">
+                                    <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                                </md-button>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+            <div ng-if="vm.nothingToShow(vm.currentAdmAffiliations,'adm_id')" layout="column">
+                 No data, press + to add
+                <md-button ng-click="vm.addRows(vm.currentAdmAffiliations, 'admAffiliations')"
+                        aria-label="Add more" class="md-icon-button interaction-button">
+                    <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                </md-button>
+            </div>
+            <div layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button id="person-affiliation-lab" type="submit"
+                    class="button-small md-raised md-primary">Update</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personAdmAffiliation']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['personAdmAffiliation']]">
+                        {{vm.updateStatus[vm.forms['personAdmAffiliation']]}}
+                    </span>
+                </div>
+            </div>
+        </md-card-content>
+    </form>
+</md-card>

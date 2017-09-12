@@ -8,6 +8,7 @@
   "dependencies": {
     "bcryptjs": "^2.3.0",
     "body-parser": "~1.15.2",
+    "clean-css": "^3.4.28",
     "cookie-parser": "~1.4.3",
     "debug": "~2.2.0",
     "dotenv": "^2.0.0",
@@ -22,6 +23,7 @@
     "nodemailer": "^4.0.1",
     "passport": "^0.3.2",
     "passport-local": "^1.0.0",
-    "serve-favicon": "~2.3.0"
+    "serve-favicon": "~2.3.0",
+    "uglify-js": "^2.8.29"
   }
 }

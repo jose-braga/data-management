@@ -5,7 +5,7 @@ module.exports = {
    */
   apps : [
 
-    // First application
+    // First application...
     {
       name      : "app",
       script    : "./bin/www",

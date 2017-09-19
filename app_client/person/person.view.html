@@ -108,11 +108,22 @@
                 </md-content>
             </md-tab>
             <md-tab label='Publications'>
-                <md-content>
-                    <div layout="row" layout-padding>
-                        <person-publications></person-publications>
-                    </div>
-                </md-content>
+                <md-tabs md-selected="vm.selectedIndexPublications" md-dynamic-height md-border-bottom>
+                    <md-tab label='List'>
+                        <md-content>
+                            <div layout="row" layout-padding>
+                                <person-publications></person-publications>
+                            </div>
+                        </md-content>
+                    </md-tab>
+                    <md-tab ng-repeat="(num,title) in vm.nameDetailsPublications" label='{{title | limitTo: 20}}...'>
+                        <md-content>
+                            <div layout="row" layout-padding>
+                                <person-publication-detail></person-publication-detail>
+                            </div>
+                        </md-content>
+                    </md-tab>
+                </md-tabs>
             </md-tab>
             <!--
             <md-tab label='Spaces'>

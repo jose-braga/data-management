@@ -1045,6 +1045,8 @@
                 .catch(function (err) {
                     console.log(err);
                 });
+        }
+        function getPublications() {
             publications.thisPersonPublications(vm.currentUser.personID)
                 .then(function (response) {
                     vm.personPublications = response.data.result;

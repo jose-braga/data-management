@@ -52,6 +52,7 @@
                 vm.hideMessage.push(true);
             }
             getPersonData(vm.currentUser.personID, -1);
+            getPublications()
             getDataLists();
         }
 

@@ -13,6 +13,8 @@ var auth = jwt({
 var ctrlPeopleData = require('../controllers/people.js');
 var ctrlTeamData = require('../controllers/team.js');
 var ctrlManagerData = require('../controllers/manager.js');
+var ctrlPublicationsData = require('../controllers/publications.js');
+
 var ctrlRegistrationData = require('../controllers/registration.js');
 var ctrlPreRegistrationData = require('../controllers/pre-registration.js');
 var ctrlAuth = require('../controllers/authentication.js');
@@ -89,6 +91,11 @@ router.put('/manager/people/validate/:personID', auth, ctrlManagerData.validateP
 router.put('/manager/people/password-reset/:personID', auth, ctrlManagerData.passwordReset);
 router.put('/manager/people/all', auth, ctrlManagerData.updateAllPeopleData);
 
+// GET PUBLICATION information (authenticated)
+router.get('/publications/person/:personID', auth, ctrlPublicationsData.listPersonPublications);
+
+
+
 // POST (Create) new user (authenticated)
 router.post('/registration', auth, ctrlRegistrationData.addPerson);
 
@@ -97,7 +104,6 @@ router.post('/pre-registration', ctrlAuth.preRegistration);
 
 // POST new user data on pre.registration
 router.post('/pre-registration/data', auth, ctrlPreRegistrationData.preRegisterPerson);
-
 router.get('/pre-registration/people/:personID', auth, ctrlPreRegistrationData.getPersonData);
 
 // API points for authentication

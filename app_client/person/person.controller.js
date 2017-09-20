@@ -1,6 +1,6 @@
 (function(){
 /******************************* Controllers **********************************/
-    var personCtrl = function ($scope, $timeout, personData, authentication) {
+    var personCtrl = function ($scope, $timeout, personData, publications, authentication) {
         //TODO: add image utilities
 
         var vm = this;
@@ -794,6 +794,9 @@
             return name;
         };
 
+        /* For managing publications */
+
+
         /* Auxiliary functions */
         function findEarliestDate(thisPerson, data, type){
             var dates = [];
@@ -1038,6 +1041,13 @@
                         });
                         //vm.selectedTab = tab;
                     }
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            publications.thisPersonPublications(vm.currentUser.personID)
+                .then(function (response) {
+                    vm.personPublications = response.data.result;
                 })
                 .catch(function (err) {
                     console.log(err);
@@ -1443,6 +1453,18 @@
             templateUrl: 'person/professional/person.responsible.html'
         };
     };
+    var personPublications = function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'person/publications/person.publications.html'
+        };
+    };
+    var personPublicationDetail = function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'person/publications/person.publicationDetail.html'
+        };
+    };
 
     var personPoles = function () {
         return {
@@ -1451,7 +1473,7 @@
         };
     };
 
-// to check that postal codes are properly formed
+    // to check that postal codes are properly formed
     var postalCodeValidate = function () {
         return {
             require: 'ngModel',
@@ -1532,6 +1554,8 @@
         .directive('personProfessional', personProfessional)
         .directive('personResponsible', personResponsible)
         .directive('personPoles', personPoles)
+        .directive('personPublications', personPublications)
+        .directive('personPublicationDetail', personPublicationDetail)
 
         .directive('postalCodeValidate', postalCodeValidate)
         .directive('dedicationValidate', dedicationValidate)

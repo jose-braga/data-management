@@ -1,11 +1,12 @@
  (function(){
     // Current version: 0.1.2
     // TODO: (v0.2.0) Add export to Excel
+    // TODO: (v0.2.0) Add automatic PDF generator
 
     // TODO: (v1.0.0) Productivity (publications)
     // TODO: (v1.0.0) add Author names on 'MySelf'/Scientific and 'MySelf'/Technician
-    // TODO: (v1.?.?) Add photos
 
+    // TODO: (v1.?.?) Add photos
     // TODO: (v1.?.?) ??? change getUser and similar functions to connection and connection.release???
     // TODO: (future) interface improvement - "Myself" (current affiliations); "Manager" list show only current affiliations
     // TODO: (future) easier administration - Delete user from all tables

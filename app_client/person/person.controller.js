@@ -1,6 +1,6 @@
 (function(){
 /******************************* Controllers **********************************/
-    var personCtrl = function ($scope, $timeout, personData, publications, authentication) {
+    var personCtrl = function ($scope, $timeout, $mdMedia, personData, publications, authentication) {
         //TODO: add image utilities
 
         var vm = this;
@@ -52,7 +52,7 @@
                 vm.hideMessage.push(true);
             }
             getPersonData(vm.currentUser.personID, -1);
-            getPublications()
+            getPublications();
             getDataLists();
         }
 
@@ -797,7 +797,83 @@
 
         /* For managing publications */
 
+        vm.showTable = function () {
+            return $mdMedia('min-width: 1440px');
+        };
+        vm.sortColumn = function(colName, noRoles) {
+            if (noRoles === undefined) {
+                noRoles = false;
+            }
+            if (colName === vm.sortType) {
+                vm.sortReverse = !vm.sortReverse;
+            } else {
+                vm.sortType = colName;
+                vm.sortReverse = false;
+            }
+            vm.renderPublications('new');
+        };
+        vm.renderPublications = function (str) {
+            if (str === 'new') {
+                vm.currentPage = 1;
+            }
+            vm.totalPublications = vm.personPublications.length;
+            vm.totalPages = Math.ceil(vm.totalPublications / vm.pageSize);
+            vm.pages = [];
+            for (var num=1; num<=vm.totalPages; num++) {
+                vm.pages.push(num);
+            }
+            // Sort selectedPeople according to defined order, before
+            // defining page contents
+            vm.selectedPublications = vm.personPublications.sort(sorter);
+            vm.currPublications = [];
+            for (var member = (vm.currentPage - 1) * vm.pageSize;
+                    member < vm.currentPage * vm.pageSize && member < vm.totalPublications;
+                    member++) {
+                vm.currPublications.push(Object.assign({}, vm.selectedPublications[member]));
+            }
+        };
 
+        function getPublications() {
+            publications.thisPersonPublications(vm.currentUser.personID)
+                .then(function (response) {
+                    vm.personPublications = response.data.result;
+                    initializeVariables();
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+        }
+        function sorter(a,b) {
+            if (vm.sortType === 'year') {
+                if (vm.sortReverse) {
+                    return (a[vm.sortType] ? a[vm.sortType] : 9999) > (b[vm.sortType] ? b[vm.sortType] : 9999);
+                } else {
+                    return (a[vm.sortType] ? a[vm.sortType] : 0) < (b[vm.sortType] ? b[vm.sortType] : 0);
+                }
+            } else {
+                if (vm.sortReverse) {
+                    return -(a[vm.sortType] ? a[vm.sortType] : '')
+                        .localeCompare(b[vm.sortType] ? b[vm.sortType] : '');
+                } else {
+                    return (a[vm.sortType] ? a[vm.sortType] : '')
+                        .localeCompare(b[vm.sortType] ? b[vm.sortType] : '');
+                }
+            }
+        }
+        function initializeVariables() {
+            vm.sortReverse = false;
+            vm.sortType = 'year';
+            vm.currentPage = 1;
+            vm.pageSize = 10;
+            // computes the number of pages
+            vm.totalPublications = vm.personPublications.length;
+            vm.totalPages = Math.ceil(vm.totalPublications / vm.pageSize);
+            vm.pages = [];
+            for (var num=1; num<=vm.totalPages; num++) {
+                vm.pages.push(num);
+            }
+            vm.renderPublications();
+        }
         /* Auxiliary functions */
         function findEarliestDate(thisPerson, data, type){
             var dates = [];
@@ -1042,15 +1118,6 @@
                         });
                         //vm.selectedTab = tab;
                     }
-                })
-                .catch(function (err) {
-                    console.log(err);
-                });
-        }
-        function getPublications() {
-            publications.thisPersonPublications(vm.currentUser.personID)
-                .then(function (response) {
-                    vm.personPublications = response.data.result;
                 })
                 .catch(function (err) {
                     console.log(err);

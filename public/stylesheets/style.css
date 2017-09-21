@@ -204,3 +204,32 @@ md-select-menu ._md .scrollable{
 .space-left {
   padding-left: 8px;
 }
+
+.publications {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.publications .large-contents-wide {
+  width: 45%;
+}
+
+.publications .large-contents-narrow {
+  width: 25%;
+}
+
+.publications .standard-width {
+  width: 15%;
+}
+
+.publications .small-width {
+  width: 10%;
+}
+
+.publications .smaller-width {
+  width: 5%;
+}
+
+.publications tbody tr:nth-child(even) {
+  background-color: #eeeeee;
+}

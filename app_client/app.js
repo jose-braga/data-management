@@ -1,6 +1,5 @@
  (function(){
     // Current version: 0.1.2
-    // TODO: (v0.2.0) Add export to Excel
     // TODO: (v0.2.0) Add automatic PDF generator
 
     // TODO: (v1.0.0) Productivity (publications)

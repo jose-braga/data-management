@@ -796,7 +796,6 @@
         };
 
         /* For managing publications */
-
         vm.showTable = function () {
             return $mdMedia('min-width: 1440px');
         };
@@ -874,6 +873,7 @@
             }
             vm.renderPublications();
         }
+
         /* Auxiliary functions */
         function findEarliestDate(thisPerson, data, type){
             var dates = [];

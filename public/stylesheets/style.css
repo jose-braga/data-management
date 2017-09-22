@@ -89,6 +89,21 @@ a {
   float: left;
 }
 
+button.s48 {
+  width: 96px;
+  height: 96px;
+}
+
+.spreadsheet-text {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.s48 {
+  width: 48px;
+  height: 48px;
+}
+
 .small-screens md-divider  {
   margin-bottom: 10px;
 }
@@ -231,5 +246,5 @@ md-select-menu ._md .scrollable{
 }
 
 .publications tbody tr:nth-child(even) {
-  background-color: #eeeeee;
+  background-color: #f5f5f5;
 }

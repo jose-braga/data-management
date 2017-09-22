@@ -616,6 +616,23 @@
             return false;
         };
 
+        vm.exportSpreadsheet = function() {
+            var type = 'xlsx';
+            var wsName = 'Data';
+            var wb = {};
+            var selectedPeople = convertData(vm.selectedPeople);
+            var ws = XLSX.utils.json_to_sheet(selectedPeople);
+            wb.SheetNames = [wsName];
+            wb.Sheets = {};
+            wb.Sheets[wsName] = ws;
+            var wbout = XLSX.write(wb, {bookType: type, bookSST: true, type: 'binary'});
+            var dateTime = momentToDate(moment(),undefined,'YYYYMMDD_HHmmss')
+            var fname = 'manager_people_with_roles_' + dateTime + '.' + type;
+            try {
+            	saveAs(new Blob([s2ab(wbout)],{type:"application/octet-stream"}), fname);
+            } catch(e) { if(typeof console != 'undefined') console.log(e, wbout); }
+        };
+
         vm.submitAllPeople = function () {
             var ind = vm.forms['allPeople'];
             vm.updateStatus[ind] = "Updating...";
@@ -2352,6 +2369,111 @@
                 }
             }
         }
+
+        /* Auxiliary functions for exporting */
+        function s2ab(s) {
+        	if(typeof ArrayBuffer !== 'undefined') {
+        		var buf = new ArrayBuffer(s.length);
+        		var view = new Uint8Array(buf);
+        		for (var i=0; i!=s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
+        		return buf;
+        	} else {
+        		var buf = new Array(s.length);
+        		for (var i=0; i!=s.length; ++i) buf[i] = s.charCodeAt(i) & 0xFF;
+        		return buf;
+        	}
+        }
+        function getPosition(id, role) {
+            if (id !== undefined) {
+                if (role === 1) {
+                    for (var ind in vm.labPositions) {
+                        if (id === vm.labPositions[ind].lab_position_id) {
+                            return vm.labPositions[ind].name_en;
+                        }
+                    }
+                }
+                if (role === 2) {
+                    for (var ind in vm.technicianPositions) {
+                        if (id === vm.technicianPositions[ind].id) {
+                            return vm.technicianPositions[ind].name_en;
+                        }
+                    }
+                }
+                if (role === 3) {
+                    for (var ind in vm.scienceManagementPositions) {
+                        if (id === vm.scienceManagementPositions[ind].id) {
+                            return vm.scienceManagementPositions[ind].name_en;
+                        }
+                    }
+                }
+                if (role === 4) {
+                    for (var ind in vm.administrativePositions) {
+                        if (id === vm.administrativePositions[ind].id) {
+                            return vm.administrativePositions[ind].name_en;
+                        }
+                    }
+                }
+                return null;
+
+            }
+            return null;
+        }
+        function getGroup (id, role) {
+            if (id !== undefined) {
+                if (role === 1) {
+                    for (var ind in vm.groups) {
+                        if (id === vm.groups[ind].group_id) {
+                            return vm.groups[ind].name;
+                        }
+                    }
+                }
+                return null;
+            }
+            return null;
+        }
+        function getUnit (id, role) {
+            if (id !== undefined) {
+                if (role === 1) {
+                    for (var ind in vm.units) {
+                        if (id === vm.units[ind].id) {
+                            return vm.units[ind].name;
+                        }
+                    }
+                }
+                return null;
+            }
+            return null;
+        }
+        function convertData(arrObj) {
+            // selects data for exporting
+            var data = [];
+            if (arrObj.length > 0) {
+                for (var el in arrObj) {
+                    data.push({
+                        "Person Name": arrObj[el]['person_name'],
+                        "Position": getPosition(arrObj[el]['position_id'], arrObj[el]['role_id']),
+                        "Dedication": arrObj[el]['dedication'],
+                        "Lab": arrObj[el]['lab'],
+                        "Group": getGroup(arrObj[el]['group_id'], arrObj[el]['role_id']),
+                        "Unit": getUnit(arrObj[el]['unit_id'], arrObj[el]['role_id']),
+                        "Pole": arrObj[el]['pole_name'],
+                        "Started": momentToDate(arrObj[el]['valid_from']),
+                        "Ended": momentToDate(arrObj[el]['valid_until'])
+                    });
+                }
+                return data;
+            }
+            return data;
+        }
+        function momentToDate(timedate, timezone, timeformat) {
+        if (timezone === undefined) {
+            timezone = 'Europe/Lisbon';
+        }
+        if (timeformat === undefined) {
+            timeformat = 'YYYY-MM-DD';
+        }
+        return timedate !== null ? moment.tz(timedate,timezone).format(timeformat) : null;
+}
     };
 
 /******************************** Directives **********************************/

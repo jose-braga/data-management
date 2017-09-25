@@ -13,6 +13,13 @@
                     <label>Search by name</label>
                     <input ng-model="searchName" ng-change="renderPeople('new')">
                 </md-input-container>
+                <md-button class="s48" ng-click="exportSpreadsheet()"
+                            aria-label="Export selection"
+                            class="md-icon-button interaction-button">
+                    <md-tooltip>Export filtered results to spreadsheet</md-tooltip>
+                    <md-icon md-svg-src="images/icons/spreadsheet.svg"
+                            class="s48"></md-icon>
+                </md-button>
             </div>
            <!-- <p> This information about your team members is {{infoFormCompletion | number:0}}% complete</p> -->
             <div class="small-screens" layout="column" hide-gt-sm show-sm show-xs>

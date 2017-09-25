@@ -328,6 +328,13 @@
                     .catch(function (err) {
                         console.log(err);
                     });
+                personData.labs()
+                    .then(function (response) {
+                        scope.labs = response.data.result;
+                    })
+                    .catch(function (err) {
+                        console.log(err);
+                    });
 
                 scope.renderPeople = function (str) {
                     if (str === 'new') {
@@ -560,6 +567,84 @@
                         }
                     }
                 }
+
+                /* for exporting */
+                scope.exportSpreadsheet = function() {
+                    var type = 'xlsx';
+                    var wsName = 'Data';
+                    var wb = {};
+                    var selectedPeople = convertData(scope.selectedPeople);
+                    var ws = XLSX.utils.json_to_sheet(selectedPeople);
+                    wb.SheetNames = [wsName];
+                    wb.Sheets = {};
+                    wb.Sheets[wsName] = ws;
+                    var wbout = XLSX.write(wb, {bookType: type, bookSST: true, type: 'binary'});
+                    var dateTime = momentToDate(moment(),undefined,'YYYYMMDD_HHmmss')
+                    var fname = 'team_lab_' + scope.lab + '_' + dateTime + '.' + type;
+                    try {
+                    	saveAs(new Blob([s2ab(wbout)],{type:"application/octet-stream"}), fname);
+                    } catch(e) { if(typeof console != 'undefined') console.log(e, wbout); }
+                };
+
+                function s2ab(s) {
+                	if(typeof ArrayBuffer !== 'undefined') {
+                		var buf = new ArrayBuffer(s.length);
+                		var view = new Uint8Array(buf);
+                		for (var i=0; i!=s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
+                		return buf;
+                	} else {
+                		var buf = new Array(s.length);
+                		for (var i=0; i!=s.length; ++i) buf[i] = s.charCodeAt(i) & 0xFF;
+                		return buf;
+                	}
+                }
+                function getOffice(id) {
+                    if (id !== undefined) {
+                        for (var ind in scope.labs) {
+                            if (id === scope.labs[ind].lab_id) {
+                                return scope.labs[ind].name;
+                            }
+                        }
+                    }
+                    return null;
+                }
+                function getPosition(id) {
+                    if (id !== undefined) {
+                        for (var ind in scope.labPositions) {
+                            if (id === scope.labPositions[ind].lab_position_id) {
+                                return scope.labPositions[ind].name_en;
+                            }
+                        }
+                    }
+                    return null;
+                }
+                function convertData(arrObj) {
+                    // selects data for exporting
+                    var data = [];
+                    if (arrObj.length > 0) {
+                        for (var el in arrObj) {
+                            data.push({
+                                "Person Name": arrObj[el]['person_name'],
+                                "Position": getPosition(arrObj[el]['lab_position_id']),
+                                "Dedication": arrObj[el]['dedication'],
+                                "Office": getOffice(arrObj[el]['lab_id']),
+                                "Started": momentToDate(arrObj[el]['valid_from']),
+                                "Ended": momentToDate(arrObj[el]['valid_until'])
+                            });
+                        }
+                        return data;
+                    }
+                    return data;
+                }
+                function momentToDate(timedate, timezone, timeformat) {
+                    if (timezone === undefined) {
+                        timezone = 'Europe/Lisbon';
+                    }
+                    if (timeformat === undefined) {
+                        timeformat = 'YYYY-MM-DD';
+                    }
+                    return timedate !== null ? moment.tz(timedate,timezone).format(timeformat) : null;
+                }
             }
         };
     }];
@@ -604,6 +689,13 @@
                 personData.technicianPositions()
                     .then(function (response) {
                         scope.technicianPositions = response.data.result;
+                    })
+                    .catch(function (err) {
+                        console.log(err);
+                    });
+                personData.facilities()
+                    .then(function (response) {
+                        scope.technicianOffices = response.data.result;
                     })
                     .catch(function (err) {
                         console.log(err);
@@ -840,6 +932,84 @@
                         }
                     }
                 }
+
+                /* for exporting */
+                scope.exportSpreadsheet = function() {
+                    var type = 'xlsx';
+                    var wsName = 'Data';
+                    var wb = {};
+                    var selectedPeople = convertData(scope.selectedPeople);
+                    var ws = XLSX.utils.json_to_sheet(selectedPeople);
+                    wb.SheetNames = [wsName];
+                    wb.Sheets = {};
+                    wb.Sheets[wsName] = ws;
+                    var wbout = XLSX.write(wb, {bookType: type, bookSST: true, type: 'binary'});
+                    var dateTime = momentToDate(moment(),undefined,'YYYYMMDD_HHmmss')
+                    var fname = 'team_facility_' + scope.office + '_' + dateTime + '.' + type;
+                    try {
+                    	saveAs(new Blob([s2ab(wbout)],{type:"application/octet-stream"}), fname);
+                    } catch(e) { if(typeof console != 'undefined') console.log(e, wbout); }
+                };
+
+                function s2ab(s) {
+                	if(typeof ArrayBuffer !== 'undefined') {
+                		var buf = new ArrayBuffer(s.length);
+                		var view = new Uint8Array(buf);
+                		for (var i=0; i!=s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
+                		return buf;
+                	} else {
+                		var buf = new Array(s.length);
+                		for (var i=0; i!=s.length; ++i) buf[i] = s.charCodeAt(i) & 0xFF;
+                		return buf;
+                	}
+                }
+                function getOffice(id) {
+                    if (id !== undefined) {
+                        for (var ind in scope.technicianOffices) {
+                            if (id === scope.technicianOffices[ind].id) {
+                                return scope.technicianOffices[ind].name_en;
+                            }
+                        }
+                    }
+                    return null;
+                }
+                function getPosition(id) {
+                    if (id !== undefined) {
+                        for (var ind in scope.technicianPositions) {
+                            if (id === scope.technicianPositions[ind].id) {
+                                return scope.technicianPositions[ind].name_en;
+                            }
+                        }
+                    }
+                    return null;
+                }
+                function convertData(arrObj) {
+                    // selects data for exporting
+                    var data = [];
+                    if (arrObj.length > 0) {
+                        for (var el in arrObj) {
+                            data.push({
+                                "Person Name": arrObj[el]['person_name'],
+                                "Position": getPosition(arrObj[el]['technician_position_id']),
+                                "Dedication": arrObj[el]['dedication'],
+                                "Office": getOffice(arrObj[el]['technician_office_id']),
+                                "Started": momentToDate(arrObj[el]['valid_from']),
+                                "Ended": momentToDate(arrObj[el]['valid_until'])
+                            });
+                        }
+                        return data;
+                    }
+                    return data;
+                }
+                function momentToDate(timedate, timezone, timeformat) {
+                    if (timezone === undefined) {
+                        timezone = 'Europe/Lisbon';
+                    }
+                    if (timeformat === undefined) {
+                        timeformat = 'YYYY-MM-DD';
+                    }
+                    return timedate !== null ? moment.tz(timedate,timezone).format(timeformat) : null;
+                }
             }
         };
     }];
@@ -883,6 +1053,13 @@
                 personData.scienceManagementPositions()
                     .then(function (response) {
                         scope.scienceManagementPositions = response.data.result;
+                    })
+                    .catch(function (err) {
+                        console.log(err);
+                    });
+                personData.scienceManagementOffices()
+                    .then(function (response) {
+                        scope.scienceManagementOffices = response.data.result;
                     })
                     .catch(function (err) {
                         console.log(err);
@@ -1118,6 +1295,84 @@
                         }
                     }
                 }
+
+                /* for exporting */
+                scope.exportSpreadsheet = function() {
+                    var type = 'xlsx';
+                    var wsName = 'Data';
+                    var wb = {};
+                    var selectedPeople = convertData(scope.selectedPeople);
+                    var ws = XLSX.utils.json_to_sheet(selectedPeople);
+                    wb.SheetNames = [wsName];
+                    wb.Sheets = {};
+                    wb.Sheets[wsName] = ws;
+                    var wbout = XLSX.write(wb, {bookType: type, bookSST: true, type: 'binary'});
+                    var dateTime = momentToDate(moment(),undefined,'YYYYMMDD_HHmmss')
+                    var fname = 'team_science_management_' + scope.office + '_' + dateTime + '.' + type;
+                    try {
+                    	saveAs(new Blob([s2ab(wbout)],{type:"application/octet-stream"}), fname);
+                    } catch(e) { if(typeof console != 'undefined') console.log(e, wbout); }
+                };
+
+                function s2ab(s) {
+                	if(typeof ArrayBuffer !== 'undefined') {
+                		var buf = new ArrayBuffer(s.length);
+                		var view = new Uint8Array(buf);
+                		for (var i=0; i!=s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
+                		return buf;
+                	} else {
+                		var buf = new Array(s.length);
+                		for (var i=0; i!=s.length; ++i) buf[i] = s.charCodeAt(i) & 0xFF;
+                		return buf;
+                	}
+                }
+                function getOffice(id) {
+                    if (id !== undefined) {
+                        for (var ind in scope.scienceManagementOffices) {
+                            if (id === scope.scienceManagementOffices[ind].id) {
+                                return scope.scienceManagementOffices[ind].name_en;
+                            }
+                        }
+                    }
+                    return null;
+                }
+                function getPosition(id) {
+                    if (id !== undefined) {
+                        for (var ind in scope.scienceManagementPositions) {
+                            if (id === scope.scienceManagementPositions[ind].id) {
+                                return scope.scienceManagementPositions[ind].name_en;
+                            }
+                        }
+                    }
+                    return null;
+                }
+                function convertData(arrObj) {
+                    // selects data for exporting
+                    var data = [];
+                    if (arrObj.length > 0) {
+                        for (var el in arrObj) {
+                            data.push({
+                                "Person Name": arrObj[el]['person_name'],
+                                "Position": getPosition(arrObj[el]['science_manager_position_id']),
+                                "Dedication": arrObj[el]['dedication'],
+                                "Office": getOffice(arrObj[el]['science_manager_office_id']),
+                                "Started": momentToDate(arrObj[el]['valid_from']),
+                                "Ended": momentToDate(arrObj[el]['valid_until'])
+                            });
+                        }
+                        return data;
+                    }
+                    return data;
+                }
+                function momentToDate(timedate, timezone, timeformat) {
+                    if (timezone === undefined) {
+                        timezone = 'Europe/Lisbon';
+                    }
+                    if (timeformat === undefined) {
+                        timeformat = 'YYYY-MM-DD';
+                    }
+                    return timedate !== null ? moment.tz(timedate,timezone).format(timeformat) : null;
+                }
             }
         };
     }];
@@ -1161,6 +1416,13 @@
                 personData.administrativePositions()
                     .then(function (response) {
                         scope.administrativePositions = response.data.result;
+                    })
+                    .catch(function (err) {
+                        console.log(err);
+                    });
+                personData.administrativeOffices()
+                    .then(function (response) {
+                        scope.administrativeOffices = response.data.result;
                     })
                     .catch(function (err) {
                         console.log(err);
@@ -1394,6 +1656,84 @@
                                 .localeCompare(b[scope.sortType] ? b[scope.sortType] : '');
                         }
                     }
+                }
+
+                /* for exporting */
+                scope.exportSpreadsheet = function() {
+                    var type = 'xlsx';
+                    var wsName = 'Data';
+                    var wb = {};
+                    var selectedPeople = convertData(scope.selectedPeople);
+                    var ws = XLSX.utils.json_to_sheet(selectedPeople);
+                    wb.SheetNames = [wsName];
+                    wb.Sheets = {};
+                    wb.Sheets[wsName] = ws;
+                    var wbout = XLSX.write(wb, {bookType: type, bookSST: true, type: 'binary'});
+                    var dateTime = momentToDate(moment(),undefined,'YYYYMMDD_HHmmss')
+                    var fname = 'team_administrative_' + scope.office + '_' + dateTime + '.' + type;
+                    try {
+                    	saveAs(new Blob([s2ab(wbout)],{type:"application/octet-stream"}), fname);
+                    } catch(e) { if(typeof console != 'undefined') console.log(e, wbout); }
+                };
+
+                function s2ab(s) {
+                	if(typeof ArrayBuffer !== 'undefined') {
+                		var buf = new ArrayBuffer(s.length);
+                		var view = new Uint8Array(buf);
+                		for (var i=0; i!=s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
+                		return buf;
+                	} else {
+                		var buf = new Array(s.length);
+                		for (var i=0; i!=s.length; ++i) buf[i] = s.charCodeAt(i) & 0xFF;
+                		return buf;
+                	}
+                }
+                function getOffice(id) {
+                    if (id !== undefined) {
+                        for (var ind in scope.administrativeOffices) {
+                            if (id === scope.administrativeOffices[ind].id) {
+                                return scope.administrativeOffices[ind].name_en;
+                            }
+                        }
+                    }
+                    return null;
+                }
+                function getPosition(id) {
+                    if (id !== undefined) {
+                        for (var ind in scope.administrativePositions) {
+                            if (id === scope.administrativePositions[ind].id) {
+                                return scope.administrativePositions[ind].name_en;
+                            }
+                        }
+                    }
+                    return null;
+                }
+                function convertData(arrObj) {
+                    // selects data for exporting
+                    var data = [];
+                    if (arrObj.length > 0) {
+                        for (var el in arrObj) {
+                            data.push({
+                                "Person Name": arrObj[el]['person_name'],
+                                "Position": getPosition(arrObj[el]['administrative_position_id']),
+                                "Dedication": arrObj[el]['dedication'],
+                                "Office": getOffice(arrObj[el]['administrative_office_id']),
+                                "Started": momentToDate(arrObj[el]['valid_from']),
+                                "Ended": momentToDate(arrObj[el]['valid_until'])
+                            });
+                        }
+                        return data;
+                    }
+                    return data;
+                }
+                function momentToDate(timedate, timezone, timeformat) {
+                    if (timezone === undefined) {
+                        timezone = 'Europe/Lisbon';
+                    }
+                    if (timeformat === undefined) {
+                        timeformat = 'YYYY-MM-DD';
+                    }
+                    return timedate !== null ? moment.tz(timedate,timezone).format(timeformat) : null;
                 }
             }
         };

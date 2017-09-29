@@ -4488,7 +4488,7 @@ var queryUpdatePhotoDatabaseGetPrevious = function (req, res, next, file) {
 
 var queryUpdatePhotoDatabaseFinal = function (req, res, next, file, action) {
     var personID = req.params.personID;
-    var filePath = file.path.replace('public/','');
+    var filePath = process.env.PATH_PREFIX + '/' + file.path.replace('public/','');
     var query;
     var places;
     if (action === 'update') {

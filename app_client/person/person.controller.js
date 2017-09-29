@@ -1,6 +1,7 @@
 (function(){
 /******************************* Controllers **********************************/
-    var personCtrl = function ($scope, $timeout, $mdMedia, personData, publications, authentication) {
+    var personCtrl = function ($scope, $timeout, $mdMedia,
+                               Upload, personData, publications, authentication) {
         //TODO: add image utilities
 
         var vm = this;
@@ -35,8 +36,12 @@
             'personScManAffiliation':   20,
             'personAdmAffiliation':     21,
             'personJobs':               22,
-            'personResponsibles':       23
+            'personResponsibles':       23,
+            'personPhoto':              24
         };
+        vm.changePhoto = false;
+
+
 
         if (authentication.currentUser() == null) {
 
@@ -54,6 +59,7 @@
             getPersonData(vm.currentUser.personID, -1);
             getPublications();
             getDataLists();
+            initializeImages();
         }
 
         vm.deleteRole = function (role, ind) {
@@ -576,6 +582,33 @@
                 );
             return false;
         };
+        vm.submitPersonPhoto = function (ind) {
+            vm.updateStatus[ind] = "Updating...";
+            vm.messageType[ind] = 'message-updating';
+            vm.hideMessage[ind] = false;
+            Upload.urlToBlob(vm.imagePersonCropped)
+                .then(function(blob) {
+                    var croppedImagePre = blob;
+                    var croppedImageFile = new File([croppedImagePre],
+                            vm.imagePersonPre.name, {type: vm.personImageType});
+                    var data = {
+                        file: croppedImageFile
+                    };
+                    personData.updatePersonPhoto(vm.currentUser.personID,1, data)
+                        .then( function () {
+                            getPersonData(vm.currentUser.personID, ind);
+                            vm.changePhoto = false;
+                        },
+                        function () {
+                            vm.updateStatus[ind] = "Error!";
+                            vm.messageType[ind] = 'message-error';
+                        },
+                        function () {}
+                        );
+                    return false;
+
+                });
+        };
 
         vm.isRole = function (role, currRoles) {
             for (var el in currRoles) {
@@ -799,6 +832,9 @@
         vm.showTable = function () {
             return $mdMedia('min-width: 1440px');
         };
+        vm.changePhotoAction = function () {
+            vm.changePhoto = true;
+        };
         vm.sortColumn = function(colName, noRoles) {
             if (noRoles === undefined) {
                 noRoles = false;
@@ -858,6 +894,15 @@
                         .localeCompare(b[vm.sortType] ? b[vm.sortType] : '');
                 }
             }
+        }
+        function initializeImages() {
+            $scope.imagePersonPre = '';
+            $scope.imagePerson = '';
+            $scope.imagePersonCropped = '';
+            $scope.$watch('vm.imagePersonPre["$ngfBlobUrl"]', function(newValue, oldValue, scope) {
+                vm.imagePerson = newValue;
+                vm.personImageType = vm.imagePersonPre.type;
+            }, true);
         }
         function initializeVariables() {
             vm.sortReverse = false;
@@ -990,6 +1035,9 @@
                     vm.pluriannual = vm.thisPerson.researcher_data[0].pluriannual;
                     vm.integrated = vm.thisPerson.researcher_data[0].integrated;
                     vm.nuclearCV = vm.thisPerson.researcher_data[0].nuclearCV;
+                    if (vm.thisPerson.pers_photo[0].personal_photo_id !== null) {
+                        vm.hasPhoto = true;
+                    }
                     if (vm.thisPerson['birth_date'] !== null) {
                         var birthDate = new Date(vm.thisPerson['birth_date']);
                         vm.thisPerson['birth_date'] = birthDate;
@@ -1367,7 +1415,6 @@
         });
 
     };
-
     var LabSelectCtrl = function ($scope, $element, personData) {
         var laboratory = this;
 
@@ -1382,7 +1429,6 @@
             ev.stopPropagation();
         });
     };
-
     var PeopleSelectCtrl = function ($scope, $element, personData) {
         var peop = this;
         // CREATE all people service
@@ -1406,6 +1452,7 @@
         });
 
     };
+
 
 /******************************** Directives **********************************/
 
@@ -1535,6 +1582,12 @@
             templateUrl: 'person/publications/person.publicationDetail.html'
         };
     };
+    var personWebsitePhoto = function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'person/personal/person.websitePhoto.html'
+        };
+    };
 
     var personPoles = function () {
         return {
@@ -1570,7 +1623,6 @@
             }
         };
     };
-
     var dedicationValidate = function () {
         return {
             require: 'ngModel',
@@ -1626,10 +1678,12 @@
         .directive('personPoles', personPoles)
         .directive('personPublications', personPublications)
         .directive('personPublicationDetail', personPublicationDetail)
+        .directive('personWebsitePhoto', personWebsitePhoto)
 
         .directive('postalCodeValidate', postalCodeValidate)
         .directive('dedicationValidate', dedicationValidate)
-        .controller('personCtrl', personCtrl)
+
+        .controller('personCtrl',  personCtrl)
         .controller('CountrySelectCtrl', CountrySelectCtrl)
         .controller('LabSelectCtrl', LabSelectCtrl)
         .controller('PeopleSelectCtrl', PeopleSelectCtrl)

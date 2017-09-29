@@ -1,11 +1,11 @@
  (function(){
-    // Current version: 0.1.2
-    // TODO: (v0.2.0) Add automatic PDF generator
+    // Current version: 1.0.0
 
-    // TODO: (v1.0.0) Productivity (publications)
-    // TODO: (v1.0.0) add Author names on 'MySelf'/Scientific and 'MySelf'/Technician
+    // TODO: (v1.0.0) Add photos
+    // TODO: (v1.1.0) Productivity (publications)
+    // TODO: (v1.1.0) add Author names on 'MySelf'/Scientific and 'MySelf'/Technician
+    // TODO: (v1.2.0) Add automatic PDF generator
 
-    // TODO: (v1.?.?) Add photos
     // TODO: (v1.?.?) ??? change getUser and similar functions to connection and connection.release???
     // TODO: (future) interface improvement - "Myself" (current affiliations); "Manager" list show only current affiliations
     // TODO: (future) easier administration - Delete user from all tables
@@ -52,7 +52,15 @@
         $locationProvider.html5Mode(true);
     };
 
-     angular.module('managementApp', ['ngMaterial','ngRoute', 'ngMessages','ngMdIcons'])
+     angular.module('managementApp', ['ngMaterial','ngRoute', 'ngMessages','ngMdIcons','ngFileUpload','uiCropper'])
+        /*
+        .config(['$compileProvider', function ($compileProvider) {
+            $compileProvider.debugInfoEnabled(false);
+            // test lines below
+            //$compileProvider.commentDirectivesEnabled(false);
+            //$compileProvider.cssClassDirectivesEnabled(false);
+        }])
+        */
         .config(['$routeProvider', '$locationProvider', config])
         .config(function($mdDateLocaleProvider) {
             $mdDateLocaleProvider.formatDate = function(date) {

@@ -108,7 +108,6 @@
                 }
             );
         };
-
         var updateContactInfoPersonByID = function (personID, data) {
             return $http.put('api/people/contact-info/' + personID, data,
                 {
@@ -116,7 +115,6 @@
                 }
             );
         };
-
         var updateIdentificationsPersonByID = function (personID, data) {
             return $http.put('api/people/identifications/' + personID, data,
                 {
@@ -124,7 +122,6 @@
                 }
             );
         };
-
         var updateInstitutionalContactsPersonByID = function (personID, data) {
             return $http.put('api/people/institutional-contacts/' + personID, data,
                 {
@@ -132,7 +129,6 @@
                 }
             );
         };
-
         var updateEmergencyContactsPersonByID = function (personID, data) {
             return $http.put('api/people/emergency-contacts/' + personID, data,
                 {
@@ -140,7 +136,6 @@
                 }
             );
         };
-
         var updateFinishedDegreesPersonByID = function (personID, data) {
             return $http.put('api/people/finished-degrees/' + personID, data,
                 {
@@ -148,7 +143,6 @@
                 }
             );
         };
-
         var updateOngoingDegreesPersonByID = function (personID, data) {
             return $http.put('api/people/ongoing-degrees/' + personID, data,
                 {
@@ -156,7 +150,6 @@
                 }
             );
         };
-
         var updateInstitutionCityPersonByID = function (personID, data) {
             return $http.put('api/people/institution-city/' + personID, data,
                 {
@@ -164,7 +157,6 @@
                 }
             );
         };
-
         var updateJobsPersonByID = function (personID, data) {
             return $http.put('api/people/jobs/' + personID, data,
                 {
@@ -172,7 +164,6 @@
                 }
             );
         };
-
         var updateAffiliationsDepartmentPersonByID = function (personID, data) {
             return $http.put('api/people/department-affiliations/' + personID, data,
                 {
@@ -180,7 +171,6 @@
                 }
             );
         };
-
         var updateAffiliationsLabPersonByID = function (personID, data) {
             return $http.put('api/people/lab-affiliations/' + personID, data,
                 {
@@ -188,7 +178,6 @@
                 }
             );
         };
-
         var updateTechnicianAffiliationsPersonByID = function (personID, data) {
             return $http.put('api/people/technician-affiliations/' + personID, data,
                 {
@@ -196,7 +185,6 @@
                 }
             );
         };
-
         var updateScienceManagerAffiliationsPersonByID = function (personID, data) {
             return $http.put('api/people/science-manager-affiliations/' + personID, data,
                 {
@@ -204,7 +192,6 @@
                 }
             );
         };
-
         var updateAdministrativeAffiliationsPersonByID = function (personID, data) {
             return $http.put('api/people/administrative-affiliations/' + personID, data,
                 {
@@ -212,7 +199,6 @@
                 }
             );
         };
-
         var updateResearcherInfoPersonByID = function (personID, data) {
             return $http.put('api/people/researcher-info/' + personID, data,
                 {
@@ -220,7 +206,6 @@
                 }
             );
         };
-
         var updateResponsiblesPersonByID = function (personID, data) {
             return $http.put('api/people/responsibles/' + personID, data,
                 {
@@ -228,7 +213,6 @@
                 }
             );
         };
-
         var updateTechnicianInfoPersonByID = function (personID, data) {
             return $http.put('api/people/technician-info/' + personID, data,
                 {
@@ -236,7 +220,6 @@
                 }
             );
         };
-
         var updateScienceManagerInfoPersonByID = function (personID, data) {
             return $http.put('api/people/science-manager-info/' + personID, data,
                 {
@@ -244,7 +227,6 @@
                 }
             );
         };
-
         var updateAdministrativeInfoPersonByID = function (personID, data) {
             return $http.put('api/people/administrative-info/' + personID, data,
                 {
@@ -252,7 +234,6 @@
                 }
             );
         };
-
         var updatePersonLeftByID = function (personID, data) {
             return $http.put('api/people/left/' + personID, data,
                 {
@@ -260,7 +241,6 @@
                 }
             );
         };
-
         var deleteRolePersonByID = function (role, personID) {
             return $http.delete('api/people/role/'+ role + '/'  + personID,
                 {
@@ -271,11 +251,25 @@
                 }
             );
         };
-
         var deletePersonErrorData = function (username) {
             return $http.delete('api/people/' + username,
                 {
                     headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+
+        var updatePersonPhoto = function (personID, imageType, data) {
+            var fd = new FormData();
+            fd.append('file', data.file);
+            return $http.post('api/people/photo/'+ personID + '/'  + imageType, fd,
+                {
+                    transformRequest: angular.identity,
+                    headers: {
+                        'Content-Type': undefined,
+                        Authorization: 'Bearer ' + authentication.getToken()
+
+                    }
                 }
             );
         };
@@ -331,7 +325,8 @@
             updatePersonLeftByID: updatePersonLeftByID,
             updateResponsiblesPersonByID: updateResponsiblesPersonByID,
             deleteRolePersonByID: deleteRolePersonByID,
-            deletePersonErrorData: deletePersonErrorData
+            deletePersonErrorData: deletePersonErrorData,
+            updatePersonPhoto: updatePersonPhoto
         };
     };
 

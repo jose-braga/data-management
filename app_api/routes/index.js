@@ -7,6 +7,7 @@ var auth = jwt({
     requestProperty: 'payload'
 });
 
+
 // TODO: remove verbs from URLs (e.g. 'update', 'delete')
 // TODO: substitute Uppercase in URLs by '-' (administrativeOffices to administrative-offices)
 
@@ -62,6 +63,8 @@ router.put('/people/administrative-info/:personID', auth, ctrlPeopleData.updateA
 router.put('/people/left/:personID', auth, ctrlPeopleData.updatePersonLeft);
 router.put('/people/responsibles/:personID', auth, ctrlPeopleData.updateResponsiblesPerson);
 router.put('/people/institution-city/:personID', auth, ctrlPeopleData.updateInstitutionCityPerson);
+
+router.post('/people/photo/:personID/:imageType', auth, ctrlPeopleData.updatePhoto);
 
 // DELETE request
 router.delete('/people/role/:role/:personID', auth, ctrlPeopleData.deleteRolePerson);

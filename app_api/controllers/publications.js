@@ -1,9 +1,11 @@
 var moment = require('moment-timezone');
 var server = require('../models/server');
 var pool = server.pool;
+/*
 const nodemailer = require('../controllers/emailer');
 let transporter = nodemailer.transporter;
 var userModule = require('../models/users');
+*/
 
 /**************************** Utility Functions *******************************/
 var sendJSONResponse = function(res, status, content) {
@@ -111,13 +113,14 @@ var queryPersonPublications = function (req, res, next) {
     // TODO: add impact factors, citations
     querySQL = querySQL + 'SELECT people_publications.id AS people_publications_id, people_publications.position AS author_position,' +
                                 ' people_publications.author_type_id, author_types.name_en AS author_type, ' +
-                                ' publications.*,' +
+                                ' person_selected_publications.publication_id AS selected, publications.*,' +
                                 ' journals.name AS journal_name, journals.short_name AS journal_short_name, ' +
                                 ' journals.publisher, journals.publisher_city, journals.issn, journals.eissn ' +
 
                           'FROM people_publications' +
                           ' LEFT JOIN author_types ON people_publications.author_type_id = author_types.id' +
                           ' LEFT JOIN publications ON people_publications.publication_id = publications.id' +
+                          ' LEFT JOIN person_selected_publications ON person_selected_publications.publication_id = publications.id' +
                           ' LEFT JOIN journals ON publications.journal_id = journals.id' +
                           ' WHERE people_publications.person_id = ?;';
     places.push(personID);
@@ -164,6 +167,38 @@ var queryPersonPublicationDescription = function (req, res, next, rows,i) {
                 rows[i].publication_type = resQuery;
                 if (i + 1 < rows.length) {
                     return queryPersonPublicationDescription(req,res,next,rows,i+1);
+                } else {
+                    return queryPersonPublicationAuthors(req,res,next,rows,0);
+                }
+
+            }
+        );
+    });
+};
+
+var queryPersonPublicationAuthors = function (req, res, next, rows,i) {
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'SELECT author_type_id, position ' +
+                          'FROM people_publications ' +
+                          'WHERE publication_id = ?;';
+    places.push(rows[i].id);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                rows[i].unit_authors = resQuery;
+                if (i + 1 < rows.length) {
+                    return queryPersonPublicationAuthors(req,res,next,rows,i+1);
                 } else {
                     return queryPersonPublicationCitations(req,res,next,rows,0);
                 }
@@ -225,11 +260,12 @@ var queryPersonPublicationImpact = function (req, res, next, rows,i) {
                     sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                     return;
                 }
-                var impacts = {};
+                /*
+                var impacts = [];
                 for (var el in resQuery) {
                     impacts[resQuery[el].year] = resQuery[el].impact_factor;
-                }
-                rows[i].impact_factors = impacts;
+                }*/
+                rows[i].impact_factors = resQuery;
                 //rows[i].impact_factors = resQuery;
                 if (i + 1 < rows.length) {
                     return queryPersonPublicationImpact(req,res,next,rows,i+1);
@@ -248,7 +284,43 @@ var queryPersonPublicationImpact = function (req, res, next, rows,i) {
     });
 };
 
-
+var queryUpdatePersonSelectedPublications = function (req, res, next) {
+    var personID = req.params.personID;
+    var add = req.body.addSelectedPub;
+    var del = req.body.delSelectedPub;
+    var querySQL = '';
+    var places = [];
+    for (var ind in add) {
+        querySQL = querySQL + 'INSERT INTO person_selected_publications' +
+                              ' (person_id,publication_id)' +
+                              ' VALUES (?,?);';
+        places.push(personID,add[ind].id);
+    }
+    for (var ind in del) {
+        querySQL = querySQL + 'DELETE FROM person_selected_publications' +
+                              ' WHERE person_id = ? AND publication_id = ?;';
+        places.push(personID,del[ind].id);
+    }
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                sendJSONResponse(res, 200,
+                    {"status": "success", "statusCode": 200, "count": 1,
+                     "result" : "OK!"});
+            }
+        );
+    });
+};
 
 /******************** Call SQL Generators after Validations *******************/
 
@@ -256,6 +328,14 @@ module.exports.listPersonPublications = function (req, res, next) {
     getUser(req, res, [0, 5, 10, 15],
         function (req, res, username) {
             queryPersonPublications(req,res,next);
+        }
+    );
+};
+
+module.exports.updatePersonSelectedPub = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15],
+        function (req, res, username) {
+            queryUpdatePersonSelectedPublications(req,res,next);
         }
     );
 };

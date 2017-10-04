@@ -96,6 +96,7 @@ router.put('/manager/people/all', auth, ctrlManagerData.updateAllPeopleData);
 
 // GET PUBLICATION information (authenticated)
 router.get('/publications/person/:personID', auth, ctrlPublicationsData.listPersonPublications);
+router.put('/publications/person/:personID/selected', auth, ctrlPublicationsData.updatePersonSelectedPub);
 
 
 

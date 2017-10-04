@@ -37,11 +37,11 @@
             'personAdmAffiliation':     21,
             'personJobs':               22,
             'personResponsibles':       23,
-            'personPhoto':              24
+            'personPhoto':              24,
+            'personSelectedPub':        25,
+            'personPubDetails':         26
         };
         vm.changePhoto = false;
-
-
 
         if (authentication.currentUser() == null) {
 
@@ -60,6 +60,7 @@
             getPublications();
             getDataLists();
             initializeImages();
+            initializeDetails();
         }
 
         vm.deleteRole = function (role, ind) {
@@ -610,6 +611,30 @@
                 });
         };
 
+        vm.submitSelectedPersonPublications = function (ind) {
+            vm.updateStatus[ind] = "Updating...";
+            vm.messageType[ind] = 'message-updating';
+            vm.hideMessage[ind] = false;
+            var data = processSelectedPub(vm.personPublications,vm.originalPersonPublications);
+            publications.updateSelectedPublications(vm.currentUser.personID,data)
+                .then( function () {
+                    getPublications();
+                    if (ind > -1) {
+                        vm.updateStatus[ind] = "Updated!";
+                        vm.messageType[ind] = 'message-success';
+                        vm.hideMessage[ind] = false;
+                        $timeout(function () { vm.hideMessage[ind] = true; }, 1500);
+                    }
+                },
+                function () {
+                    vm.updateStatus[ind] = "Error!";
+                    vm.messageType[ind] = 'message-error';
+                },
+                function () {}
+                );
+            return false;
+        };
+
         vm.isRole = function (role, currRoles) {
             for (var el in currRoles) {
                 if (currRoles[el].name_en === role) return true;
@@ -828,12 +853,13 @@
             return name;
         };
 
+        vm.changePhotoAction = function () {
+            vm.changePhoto = true;
+        };
+
         /* For managing publications */
         vm.showTable = function () {
             return $mdMedia('min-width: 1440px');
-        };
-        vm.changePhotoAction = function () {
-            vm.changePhoto = true;
         };
         vm.sortColumn = function(colName, noRoles) {
             if (noRoles === undefined) {
@@ -847,36 +873,159 @@
             }
             vm.renderPublications('new');
         };
-        vm.renderPublications = function (str) {
+        vm.renderPublications = function (str, ind) {
             if (str === 'new') {
                 vm.currentPage = 1;
             }
             vm.totalPublications = vm.personPublications.length;
-            vm.totalPages = Math.ceil(vm.totalPublications / vm.pageSize);
+            vm.selectedPublications = [];
+            var toInclude = 0;
+            var toIncludeDueFrom = 0;
+            var toIncludeDueTo = 0;
+            vm.fromYearPub = parseInt(vm.fromYearPub,10);
+            vm.toYearPub = parseInt(vm.toYearPub,10);
+            for (var ind in vm.personPublications) {
+                toInclude = 0;
+                toIncludeDueFrom = 0;
+                toIncludeDueTo = 0;
+                if (Number.isInteger(vm.fromYearPub)) {
+                    if (vm.fromYearPub <= vm.personPublications[ind].year) {
+                       toIncludeDueFrom = 1;
+                    }
+                } else {
+                    toIncludeDueFrom = 1;
+                }
+                if (Number.isInteger(vm.toYearPub)) {
+                    if (vm.toYearPub >= vm.personPublications[ind].year) {
+                       toIncludeDueTo = 1;
+                    }
+                } else {
+                    toIncludeDueTo = 1;
+                }
+                toInclude = toIncludeDueFrom * toIncludeDueTo;
+                if (toInclude === 1) {
+                    vm.selectedPublications.push(vm.personPublications[ind]);
+                }
+            }
+            vm.totalFromSearch = vm.selectedPublications.length;
+
+            vm.totalPages = Math.ceil(vm.totalFromSearch / vm.pageSize);
             vm.pages = [];
             for (var num=1; num<=vm.totalPages; num++) {
                 vm.pages.push(num);
             }
             // Sort selectedPeople according to defined order, before
             // defining page contents
-            vm.selectedPublications = vm.personPublications.sort(sorter);
+            vm.selectedPublications = vm.selectedPublications.sort(sorter);
             vm.currPublications = [];
             for (var member = (vm.currentPage - 1) * vm.pageSize;
-                    member < vm.currentPage * vm.pageSize && member < vm.totalPublications;
+                    member < vm.currentPage * vm.pageSize && member < vm.totalFromSearch;
                     member++) {
                 vm.currPublications.push(Object.assign({}, vm.selectedPublications[member]));
             }
+        };
+        vm.changeSelectedStatus = function (pub) {
+            for (var ind in vm.personPublications) {
+                if (pub.people_publications_id === vm.personPublications[ind].people_publications_id) {
+                    vm.personPublications[ind].selected = pub.selected;
+                    break;
+                }
+            }
+        };
+        vm.showDetailsPublication = function (pub) {
+            if (vm.pubTitles.indexOf(pub.title) === -1) {
+                vm.pubTitles.push(pub.title);
+                var authors = pub.authors_raw.split('; ');
+                for (var ind in pub.unit_authors) {
+                    // - 1 to convert from position to array index
+                    authors[pub.unit_authors[ind].position - 1] = authors[pub.unit_authors[ind].position - 1] + '^';
+                    if (pub.unit_authors[ind].author_type_id === 1) {
+                        authors[pub.unit_authors[ind].position - 1] = authors[pub.unit_authors[ind].position - 1] + '(corresp.)';
+                    }
+                }
+                var authors_str = '';
+                for (var ind in authors) {
+                    if (ind > 0) {
+                        authors_str = authors_str + '; ' + authors[ind];
+                    } else {
+                        authors_str = authors_str + authors[ind];
+                    }
+                }
+                pub['authors'] = authors_str;
+                for (var ind in pub.publication_type) {
+                    if (ind > 0) {
+                        pub['doc_type'] = pub['doc_type'] + '; ' + pub.publication_type[ind].name_en;
+                    } else {
+                        pub['doc_type'] = pub.publication_type[ind].name_en;
+                    }
+                }
+                var if_last_year;
+                for (var ind in pub.impact_factors) {
+                    if (ind > 0) {
+                        if (if_last_year.year < pub.impact_factors[ind].year) {
+                            if_last_year = pub.impact_factors[ind];
+                        }
+                    } else {
+                        if_last_year = pub.impact_factors[ind];
+                    }
+                }
+                pub['if_last_year'] = if_last_year;
+                vm.thisPublication.push(pub);
+            }
+        };
+        vm.closeTabs = function () {
+            initializeDetails();
+        };
+        vm.exportPublicationsSpreadsheet = function() {
+            alert('!!!')
+            var type = 'xlsx';
+            var wsName = 'Data';
+            var wb = {};
+            var selectedPublications = convertData(vm.selectedPublications);
+            console.log(selectedPublications)
+            var ws = XLSX.utils.json_to_sheet(selectedPublications);
+            wb.SheetNames = [wsName];
+            wb.Sheets = {};
+            wb.Sheets[wsName] = ws;
+            var wbout = XLSX.write(wb, {bookType: type, bookSST: true, type: 'binary'});
+            var dateTime = momentToDate(moment(),undefined,'YYYYMMDD_HHmmss')
+            var from;
+            var to;
+            if (vm.fromYearPub === undefined || isNaN(vm.fromYearPub)) {
+                from = 'all';
+            } else {
+                from = vm.fromYearPub;
+            }
+            if (vm.toYearPub === undefined || isNaN(vm.toYearPub)) {
+                to = 'all';
+            } else {
+                to = vm.toYearPub;
+            }
+            var fname = 'my_publications_' + from + '_' + to
+                        + '_' + dateTime + '.' + type;
+            try {
+            	saveAs(new Blob([s2ab(wbout)],{type:"application/octet-stream"}), fname);
+            } catch(e) { if(typeof console != 'undefined') console.log(e, wbout); }
         };
 
         function getPublications() {
             publications.thisPersonPublications(vm.currentUser.personID)
                 .then(function (response) {
                     vm.personPublications = response.data.result;
+                    for (var ind in vm.personPublications) {
+                        if (vm.personPublications[ind].selected !== null) {
+                            vm.personPublications[ind].selected = true;
+                        } else {
+                            vm.personPublications[ind].selected = false;
+                        }
+                    }
+                    vm.originalPersonPublications = JSON.parse(JSON.stringify(vm.personPublications));
                     initializeVariables();
                 })
                 .catch(function (err) {
                     console.log(err);
                 });
+
         }
         function sorter(a,b) {
             if (vm.sortType === 'year') {
@@ -896,9 +1045,9 @@
             }
         }
         function initializeImages() {
-            $scope.imagePersonPre = '';
-            $scope.imagePerson = '';
-            $scope.imagePersonCropped = '';
+            vm.imagePersonPre = '';
+            vm.imagePerson = '';
+            vm.imagePersonCropped = '';
             $scope.$watch('vm.imagePersonPre["$ngfBlobUrl"]', function(newValue, oldValue, scope) {
                 vm.imagePerson = newValue;
                 vm.personImageType = vm.imagePersonPre.type;
@@ -909,6 +1058,9 @@
             vm.sortType = 'year';
             vm.currentPage = 1;
             vm.pageSize = 10;
+
+            vm.deleteThesePublications = [];
+
             // computes the number of pages
             vm.totalPublications = vm.personPublications.length;
             vm.totalPages = Math.ceil(vm.totalPublications / vm.pageSize);
@@ -917,6 +1069,10 @@
                 vm.pages.push(num);
             }
             vm.renderPublications();
+        }
+        function initializeDetails() {
+            vm.pubTitles = [];
+            vm.thisPublication = [];
         }
 
         /* Auxiliary functions */
@@ -1391,6 +1547,105 @@
             objReturn[deleteName] = del;
             return objReturn;
         }
+        function processSelectedPub(current, original) {
+            var add = [];
+            var del = [];
+            for (var curr in current) {
+                for (var ori in original) {
+                    if (current[curr].people_publications_id === original[ori].people_publications_id) {
+                        if (current[curr].selected === true && original[ori].selected === false) {
+                            add.push(current[curr]);
+                        } else if (current[curr].selected === false && original[ori].selected === true) {
+                            del.push(current[curr]);
+                        }
+                        break;
+                    }
+                }
+            }
+            var objReturn = {};
+            objReturn['addSelectedPub'] = add;
+            objReturn['delSelectedPub'] = del;
+            return objReturn;
+        }
+        function convertData(arrObj) {
+            // selects data for exporting
+            var data = [];
+            if (arrObj.length > 0) {
+                for (var el in arrObj) {
+                    for (var ind in arrObj[el].publication_type) {
+                        if (ind > 0) {
+                            arrObj[el]['doc_type'] = arrObj[el]['doc_type'] + '; ' + arrObj[el].publication_type[ind].name_en;
+                        } else {
+                            arrObj[el]['doc_type'] = arrObj[el].publication_type[ind].name_en;
+                        }
+                    }
+                    var if_last_year;
+                    for (var ind in arrObj[el].impact_factors) {
+                        if (ind > 0) {
+                            if (if_last_year.year < arrObj[el].impact_factors[ind].year) {
+                                if_last_year = arrObj[el].impact_factors[ind];
+                            }
+                        } else {
+                            if_last_year = arrObj[el].impact_factors[ind];
+                        }
+                    }
+                    var citations_last_year;
+                    for (var ind in arrObj[el].citations) {
+                        if (ind > 0) {
+                            if (citations_last_year.year < arrObj[el].citations[ind].year) {
+                                citations_last_year = arrObj[el].citations[ind];
+                            }
+                        } else {
+                            citations_last_year = arrObj[el].citations[ind];
+                        }
+                    }
+                    data.push({
+                        "Authors": arrObj[el]['authors_raw'],
+                        "Tite": arrObj[el]['title'],
+                        "Year": arrObj[el]['year'],
+                        "Publication Date": arrObj[el]['publication_date'],
+                        "Journal Name": arrObj[el]['journal_name'],
+                        "Journal Short Name": arrObj[el]['journal_short_name'],
+                        "Publisher": arrObj[el]['publisher'],
+                        "Publisher City": arrObj[el]['publisher_city'],
+                        "ISSN": arrObj[el]['issn'],
+                        "EISSN": arrObj[el]['eissn'],
+                        "Volume": arrObj[el]['volume'],
+                        "Page Start": arrObj[el]['page_start'],
+                        "Page End": arrObj[el]['page_end'],
+                        "DOI": arrObj[el]['doi'],
+                        "WOS": arrObj[el]['wos'],
+                        "PubMed ID": arrObj[el]['pubmed_id'],
+                        "DOI": arrObj[el]['doi'],
+                        "Citations": citations_last_year.citations,
+                        "Impact Factors": if_last_year.impact_factor
+                    });
+                }
+                return data;
+            }
+            return data;
+        }
+        function s2ab(s) {
+        	if(typeof ArrayBuffer !== 'undefined') {
+        		var buf = new ArrayBuffer(s.length);
+        		var view = new Uint8Array(buf);
+        		for (var i=0; i!=s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
+        		return buf;
+        	} else {
+        		var buf = new Array(s.length);
+        		for (var i=0; i!=s.length; ++i) buf[i] = s.charCodeAt(i) & 0xFF;
+        		return buf;
+        	}
+        }
+        function momentToDate(timedate, timezone, timeformat) {
+        if (timezone === undefined) {
+            timezone = 'Europe/Lisbon';
+        }
+        if (timeformat === undefined) {
+            timeformat = 'YYYY-MM-DD';
+        }
+        return timedate !== null ? moment.tz(timedate,timezone).format(timeformat) : null;
+}
     };
 
     var CountrySelectCtrl = function ($scope, $element, personData) {

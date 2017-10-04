@@ -189,6 +189,12 @@ md-select-menu ._md .scrollable{
   margin-top: 20px;
 }
 
+.spacer-top-smaller {
+  margin-top: 7px;
+  margin-right: 10px;
+}
+
+
 .small-text {
   font-size: 12px;
 }
@@ -226,7 +232,7 @@ md-select-menu ._md .scrollable{
 }
 
 .publications .large-contents-wide {
-  width: 45%;
+  width: 40%;
 }
 
 .publications .large-contents-narrow {
@@ -245,10 +251,23 @@ md-select-menu ._md .scrollable{
   width: 5%;
 }
 
+.center-tick {
+  align-items: center;
+  margin-bottom: 0px;
+  margin-left:30% !important;
+}
+
 .publications tbody tr:nth-child(even) {
   background-color: #f5f5f5;
 }
 
+.publication-spacer {
+  margin-bottom: 5px;
+}
+
+.publication-spacer:nth-child(even) {
+  background-color: #f5f5f5;
+}
 .dropzone-container {
   margin-bottom: 20px;
 }

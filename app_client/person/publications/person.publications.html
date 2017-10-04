@@ -5,243 +5,57 @@
         </md-card-title-text>
     </md-card-title>
     <md-card-content layout="column">
-
+        <div layout="row" layout-align="none center">
+            <span class="spacer-top-smaller">Filter:</span>
+            <md-input-container class="input-row-longer">
+                <label>From year</label>
+                <input ng-model="vm.fromYearPub" ng-change="vm.renderPublications('new')">
+            </md-input-container>
+            <md-input-container class="input-row-longer">
+                <label>To year</label>
+                <input ng-model="vm.toYearPub" ng-change="vm.renderPublications('new')">
+            </md-input-container>
+            <md-button class="s48" ng-click="vm.exportPublicationsSpreadsheet()"
+                        aria-label="Export selection"
+                        class="md-icon-button interaction-button">
+                <md-tooltip>Export filtered results to spreadsheet</md-tooltip>
+                <md-icon md-svg-src="images/icons/spreadsheet.svg"
+                        class="s48"></md-icon>
+            </md-button>
+        </div>
         <form flex novalidate name="personPublicationsForm"
-                ng-submit="personPublicationsForm.$valid && vm.submitPersonPublications()">
+                ng-submit="personPublicationsForm.$valid && vm.submitSelectedPersonPublications(vm.forms['personSelectedPub'])">
             <div class="small-screens" layout="column" ng-if="!vm.showTable()">
-                <div ng-repeat="(memberNum,member) in vm.currPeople track by $index">
+                <div ng-repeat="(pubNum,publication) in vm.currPublications track by $index">
                     <div layout="column">
                         <div layout="row" layout-align=" center">
-                            <div class="question"><span class="highlight">Name:</span></div>
-                            <div class="answer"><span>{{member.person_name}}</span></div>
+                            <div class="question"><span class="highlight">Title:</span></div>
+                            <div class="answer"><span>{{publication.title}}</span></div>
                         </div>
                         <div layout="row" layout-align=" center">
-                            <div class="question"><span class="highlight">City:</span></div>
-                            <div class="answer"><span>{{member.pole_name}}</span></div>
+                            <div class="question"><span class="highlight">Authors:</span></div>
+                            <div class="answer"><span>{{publication.authors_raw}}</span></div>
                         </div>
                         <div layout="row" layout-align=" center">
-                            <div class="question"><span class="highlight">City:</span></div>
-                            <div class="answer"><span>{{vm.roleName(member.pole_name)}}</span></div>
-                        </div>
-                        <div ng-if="member.role_id==1" layout="row" layout-align=" center">
-                            <div class="question"><span class="highlight">Lab:</span></div>
-                            <div class="answer">
-                                <md-input-container class="select-container select-no-margin card-type">
-                                    <md-select ng-model="member.lab_id"
-                                            md-on-close="vm.changeLab(member.lab_id, member.row_id)"
-                                            aria-label="labs"
-                                            name="member_labs[memberNum]">
-                                        <div class="scrollable">
-                                            <md-optgroup ng-repeat="unit in vm.units" label="{{unit.name}}" class="large-optgroup">
-                                                <md-optgroup flex-offset="5" ng-repeat="group in vm.groups | filter: {unit_id: unit.id}"
-                                                             label="{{group.name}}">
-                                                    <md-option ng-repeat="lab in vm.labs | filter: {group_id: group.group_id, unit_id: unit.id}:strict"
-                                                               ng-value="lab.lab_id">{{lab.name}}
-                                                    </md-option>
-                                                </md-optgroup>
-                                            </md-optgroup>
-                                        </div>
-                                    </md-select>
-                                </md-input-container>
-                            </div>
-                        </div>
-                        <div ng-if="member.role_id==2" layout="row" layout-align=" center">
-                            <div class="question"><span class="highlight">Facility:</span></div>
-                            <div class="answer">
-                                <md-input-container class="select-container select-no-margin card-type">
-                                    <md-select ng-model="member.technician_office_id"
-                                            md-on-close="vm.changeFacility(member.technician_office_id, member, member.row_id)"
-                                            aria-label="labs-offices"
-                                            name="member_office[memberNum]">
-                                        <div class="scrollable">
-                                            <md-option ng-repeat="fac in vm.facilities"
-                                                       ng-value="fac.id">{{fac.name_en}}
-                                            </md-option>
-                                        </div>
-                                    </md-select>
-                                </md-input-container>
-                            </div>
-                        </div>
-                        <div ng-if="member.role_id==3" layout="row" layout-align=" center">
-                            <div class="question"><span class="highlight">Office:</span></div>
-                            <div class="answer">
-                                <md-input-container class="select-container select-no-margin card-type">
-                                    <md-select ng-model="member.science_manager_office_id"
-                                            md-on-close="vm.changeManageOffice(member.science_manager_office_id, member, member.row_id)"
-                                            aria-label="labs-offices"
-                                            name="member_office[memberNum]">
-                                        <div class="scrollable">
-                                            <md-option ng-repeat="scm in vm.scienceManagementOffices"
-                                                       ng-value="scm.id">{{scm.name_en}}
-                                            </md-option>
-                                        </div>
-                                    </md-select>
-                                </md-input-container>
-                            </div>
-                        </div>
-                        <div ng-if="member.role_id==4" layout="row" layout-align=" center">
-                            <div class="question"><span class="highlight">Office:</span></div>
-                            <div class="answer">
-                                <md-input-container class="select-container select-no-margin card-type">
-                                    <md-select ng-model="member.administrative_office_id"
-                                            md-on-close="vm.changeAdmOffice(member.administrative_office_id, member, member.row_id)"
-                                            aria-label="labs-offices"
-                                            name="member_office[memberNum]">
-                                        <div class="scrollable">
-                                            <md-option ng-repeat="adm in vm.administrativeOffices"
-                                                       ng-value="adm.id">{{adm.name_en}}
-                                            </md-option>
-                                        </div>
-                                    </md-select>
-                                </md-input-container>
-                            </div>
+                            <div class="question"><span class="highlight">Journal:</span></div>
+                            <div class="answer"><span>{{publication.journal_short_name}}</span></div>
                         </div>
                         <div layout="row" layout-align=" center">
-                            <div class="question"><span class="highlight">Position:</span></div>
-                            <div class="answer">
-                                <md-input-container ng-if="member.role_id==1"
-                                        class="select-container select-no-margin card-type">
-                                    <md-select ng-model="member.position_id"
-                                            md-on-close="vm.updateDataSubmit(member.row_id,vm.currPeople[memberNum],'updateLabPerson',[])"
-                                            aria-label="positions"
-                                            name="member_position[memberNum]">
-                                        <div class="scrollable">
-                                            <md-option ng-repeat="type in vm.labPositions" ng-value="type.lab_position_id">{{type.name_en}}</md-option>
-                                        </div>
-                                    </md-select>
-                                </md-input-container>
-                                <md-input-container ng-if="member.role_id==2"
-                                        class="select-container select-no-margin card-type">
-                                    <md-select ng-model="member.position_id"
-                                            md-on-close="vm.updateDataSubmit(member.row_id,vm.currPeople[memberNum],'updateTechPerson',[])"
-                                            aria-label="positions"
-                                            name="member_position[memberNum]">
-                                        <div class="scrollable">
-                                            <md-option ng-repeat="type in vm.technicianPositions" ng-value="type.id">{{type.name_en}}</md-option>
-                                        </div>
-                                    </md-select>
-                                </md-input-container>
-                                <md-input-container ng-if="member.role_id==3"
-                                        class="select-container select-no-margin card-type">
-                                    <md-select ng-model="member.position_id"
-                                            md-on-close="vm.updateDataSubmit(member.row_id,vm.currPeople[memberNum],'updateManagePerson',[])"
-                                            aria-label="positions"
-                                            name="member_position[memberNum]">
-                                        <div class="scrollable">
-                                            <md-option ng-repeat="type in vm.scienceManagementPositions" ng-value="type.id">{{type.name_en}}</md-option>
-                                        </div>
-                                    </md-select>
-                                </md-input-container>
-                                <md-input-container ng-if="member.role_id==4"
-                                        class="select-container select-no-margin card-type">
-                                    <md-select ng-model="member.position_id"
-                                            md-on-close="vm.updateDataSubmit(member.row_id,vm.currPeople[memberNum],'updateAdmPerson',[])"
-                                            aria-label="positions"
-                                            name="member_position[memberNum]">
-                                        <div class="scrollable">
-                                            <md-option ng-repeat="type in vm.administrativePositions" ng-value="type.id">{{type.name_en}}</md-option>
-                                        </div>
-                                    </md-select>
-                                </md-input-container>
-                            </div>
-                        </div>
-                        <div layout="row" layout-align="none center">
-                            <div class="question"><span class="highlight">Time (%):</span></div>
-                            <div class="answer">
-                                <md-input-container class="input-no-margin" ng-if="member.role_id==1">
-                                    <input ng-model="member.dedication"
-                                        ng-change="vm.updateDataSubmit(member.row_id,vm.currPeople[memberNum],'updateLabPerson', [])"
-                                        aria-label="dedications"
-                                        name="member_dedication[memberNum]" dedication-validate>
-                                </md-input-container>
-                                <md-input-container class="input-no-margin" ng-if="member.role_id==2">
-                                    <input ng-model="member.dedication"
-                                        ng-change="vm.updateDataSubmit(member.row_id,vm.currPeople[memberNum],'updateTechPerson', [])"
-                                        aria-label="dedications"
-                                        name="member_dedication[memberNum]" dedication-validate>
-                                </md-input-container>
-                                <md-input-container class="input-no-margin" ng-if="member.role_id==3">
-                                    <input ng-model="member.dedication"
-                                        ng-change="vm.updateDataSubmit(member.row_id,vm.currPeople[memberNum],'updateManagePerson', [])"
-                                        aria-label="dedications"
-                                        name="member_dedication[memberNum]" dedication-validate>
-                                </md-input-container>
-                                <md-input-container class="input-no-margin" ng-if="member.role_id==4">
-                                    <input ng-model="member.dedication"
-                                        ng-change="vm.updateDataSubmit(member.row_id,vm.currPeople[memberNum],'updateAdmPerson', [])"
-                                        aria-label="dedications"
-                                        name="member_dedication[memberNum]" dedication-validate>
-                                </md-input-container>
-                            </div>
+                            <div class="question"><span class="highlight">Year:</span></div>
+                            <div class="answer"><span>{{publication.year}}</span></div>
                         </div>
                         <div layout="row" layout-align=" center">
-                            <div class="question"><span class="highlight">Started:</span></div>
+                            <div class="question"><span class="highlight">Selected Publication:</span></div>
                             <div class="answer">
-                                <md-input-container class="input-no-margin simple-input" ng-if="member.role_id==1">
-                                    <md-datepicker md-current-view="year" ng-model="member.valid_from"
-                                            ng-change="vm.updateDataSubmit(member.row_id,vm.currPeople[memberNum],'updateLabPerson', [])"
-                                            name="member_startDate[memberNum]"
-                                            md-placeholder="Enter date" md-hide-icons="calendar"></md-datepicker>
-                                </md-input-container>
-                                <md-input-container class="input-no-margin simple-input" ng-if="member.role_id==2">
-                                    <md-datepicker md-current-view="year" ng-model="member.valid_from"
-                                            ng-change="vm.updateDataSubmit(member.row_id,vm.currPeople[memberNum],'updateTechPerson', [])"
-                                            name="member_startDate[memberNum]"
-                                            md-placeholder="Enter date" md-hide-icons="calendar"></md-datepicker>
-                                </md-input-container>
-                                <md-input-container class="input-no-margin simple-input" ng-if="member.role_id==3">
-                                    <md-datepicker md-current-view="year" ng-model="member.valid_from"
-                                            ng-change="vm.updateDataSubmit(member.row_id,vm.currPeople[memberNum],'updateManagePerson', [])"
-                                            name="member_startDate[memberNum]"
-                                            md-placeholder="Enter date" md-hide-icons="calendar"></md-datepicker>
-                                </md-input-container>
-                                <md-input-container class="input-no-margin simple-input" ng-if="member.role_id==4">
-                                    <md-datepicker md-current-view="year" ng-model="member.valid_from"
-                                            ng-change="vm.updateDataSubmit(member.row_id,vm.currPeople[memberNum],'updateAdmPerson', [])"
-                                            name="member_startDate[memberNum]"
-                                            md-placeholder="Enter date" md-hide-icons="calendar"></md-datepicker>
-                                </md-input-container>
-                            </div>
-                        </div>
-                        <div layout="row" layout-align=" center">
-                            <div class="question"><span class="highlight">Finished:</span></div>
-                            <div class="answer">
-                                <md-input-container class="input-no-margin simple-input" ng-if="member.role_id==1">
-                                    <md-datepicker md-current-view="year" ng-model="member.valid_until"
-                                            ng-change="vm.updateDataSubmit(member.row_id,vm.currPeople[memberNum],'updateLabPerson', [])"
-                                            name="member_endDate[memberNum]"
-                                            md-placeholder="Enter date" md-hide-icons="calendar"></md-datepicker>
-                                </md-input-container>
-                                <md-input-container class="input-no-margin simple-input" ng-if="member.role_id==2">
-                                    <md-datepicker md-current-view="year" ng-model="member.valid_until"
-                                            ng-change="vm.updateDataSubmit(member.row_id,vm.currPeople[memberNum],'updateTechPerson', [])"
-                                            name="member_endDate[memberNum]"
-                                            md-placeholder="Enter date" md-hide-icons="calendar"></md-datepicker>
-                                </md-input-container>
-                                <md-input-container class="input-no-margin simple-input" ng-if="member.role_id==3">
-                                    <md-datepicker md-current-view="year" ng-model="member.valid_until"
-                                            ng-change="vm.updateDataSubmit(member.row_id,vm.currPeople[memberNum],'updateManagePerson', [])"
-                                            name="member_endDate[memberNum]"
-                                            md-placeholder="Enter date" md-hide-icons="calendar"></md-datepicker>
-                                </md-input-container>
-                                <md-input-container class="input-no-margin simple-input" ng-if="member.role_id==4">
-                                    <md-datepicker md-current-view="year" ng-model="member.valid_until"
-                                            ng-change="vm.updateDataSubmit(member.row_id,vm.currPeople[memberNum],'updateAdmPerson', [])"
-                                            name="member_endDate[memberNum]"
-                                            md-placeholder="Enter date" md-hide-icons="calendar"></md-datepicker>
-                                </md-input-container>
+                                <md-checkbox class="center-tick" name="selectedPublication" aria-label="Selected Publication"
+                                        ng-change="vm.changeSelectedStatus(publication)" ng-model="publication.selected"></md-checkbox>
                             </div>
                         </div>
                         <div layout="row">
-                            <md-button ng-click="vm.showDetailsPerson(member)"
+                            <md-button ng-click="vm.showDetailsPublication(publication)"
                                         aria-label="Details"
                                         class="md-icon-button interaction-button">
                                 <md-icon md-svg-src="images/icons/description_24px.svg"></md-icon>
-                            </md-button>
-                            <md-button ng-click="vm.removePerson(member.person_id)"
-                                        aria-label="Remove"
-                                        class="md-icon-button interaction-button">
-                                <md-icon md-svg-src="images/icons/delete_24px.svg"></md-icon>
                             </md-button>
                         </div>
                     </div>
@@ -280,6 +94,7 @@
                                 <ng-md-icon ng-if="vm.sortReverse  && vm.sortType=='year'"
                                         icon="arrow_upwards" size="12"></ng-md-icon>
                             </th>
+                            <th  class="smaller-width">Sel.</th>
                             <th class="small-width"></th>
 
                         </tr>
@@ -290,16 +105,15 @@
                             <td>{{publication.authors_raw}}</td>
                             <td>{{publication.journal_short_name}}</td>
                             <td>{{publication.year}}</td>
+                            <td layout-align="center center">
+                                <md-checkbox class="center-tick" name="selectedPublication" aria-label="Selected Publication"
+                                        ng-change="vm.changeSelectedStatus(publication)" ng-model="publication.selected"></md-checkbox>
+                            </td>
                             <td>
-                                <md-button ng-click="vm.showDetailsPerson(member)"
+                                <md-button ng-click="vm.showDetailsPublication(publication)"
                                             aria-label="Details"
                                             class="md-icon-button interaction-button">
                                     <md-icon md-svg-src="images/icons/description_24px.svg"></md-icon>
-                                </md-button>
-                                <md-button ng-click="vm.removePerson(member.person_id)"
-                                            aria-label="Remove"
-                                            class="md-icon-button interaction-button">
-                                    <md-icon md-svg-src="images/icons/delete_24px.svg"></md-icon>
                                 </md-button>
                             </td>
                         </tr>
@@ -331,10 +145,10 @@
             </div>
             <div layout="column" layout-gt-sm="row" layout-align="none center">
                 <md-button id="team-people-lab" type="submit"
-                    class="button-small md-raised md-primary">Update</md-button>
-                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['allPeople']]">
-                    <span class="message" ng-class="vm.messageType[vm.forms['allPeople']]">
-                        {{vm.updateStatus[vm.forms['allPeople']]}}
+                    class="button-small md-raised md-primary">Update "Selected"</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personSelectedPub']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['personSelectedPub']]">
+                        {{vm.updateStatus[vm.forms['personSelectedPub']]}}
                     </span>
                 </div>
                 <md-button class="button-small md-raised md-warn"

@@ -1,7 +1,7 @@
  (function(){
     // Current version: 1.0.0
 
-    // TODO: (v1.0.0) Add photos
+    // TODO: (v1.0.0) Add photos on Manager view
     // TODO: (v1.1.0) Productivity (publications)
     // TODO: (v1.1.0) add Author names on 'MySelf'/Scientific and 'MySelf'/Technician
     // TODO: (v1.2.0) Add automatic PDF generator

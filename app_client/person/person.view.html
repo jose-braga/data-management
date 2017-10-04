@@ -116,17 +116,18 @@
                             </div>
                         </md-content>
                     </md-tab>
-                    <md-tab ng-repeat="(num,title) in vm.nameDetailsPublications" label='{{title | limitTo: 20}}...'>
+                    <md-tab ng-repeat="(num,title) in vm.pubTitles" label='{{title | limitTo: 20}}...'>
                         <md-content>
-                            <div layout="row" layout-padding>
-                                <person-publication-detail></person-publication-detail>
+                            <div layout="row" layout-padding flex="100">
+                                <person-publication-detail flex></person-publication-detail>
                             </div>
                         </md-content>
                     </md-tab>
                     <md-tab label='Add'>
                         <md-content>
                             <div layout="row" layout-padding>
-                                <person-publications></person-publications>
+                                Under construction, to add publications contact developer (josebraga@fct.unl.pt)
+                                <!-- <person-publications></person-publications> -->
                             </div>
                         </md-content>
                     </md-tab>

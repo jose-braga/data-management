@@ -9,9 +9,27 @@
             );
         };
 
+        var thisTeamPublications = function (teamID) {
+            return $http.get('api/publications/team/' + teamID,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+
+        var updateSelectedPublications = function (personID, data) {
+            return $http.put('api/publications/person/' + personID + '/selected', data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+
 
         return {
             thisPersonPublications: thisPersonPublications,
+            thisTeamPublications: thisTeamPublications,
+            updateSelectedPublications: updateSelectedPublications
         };
     };
 

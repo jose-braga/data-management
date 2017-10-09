@@ -1,6 +1,7 @@
 (function(){
 /******************************* Controllers **********************************/
-    var teamCtrl = function ($scope, $timeout, personData, teamData, authentication) {
+    var teamCtrl = function ($scope, $timeout, $mdMedia, $mdPanel,
+                            personData, teamData, publications, authentication) {
         var vm = this;
         vm.toolbarData = {title: 'Please update your team'};
         vm.isLoggedIn = authentication.isLoggedIn();
@@ -1740,6 +1741,383 @@
     }];
 
 
+    var teamLabPublications =
+    ['personData','teamData','publications','authentication','$timeout', '$mdMedia','$mdPanel',
+    function (personData,teamData,publications,authentication, $timeout, $mdMedia, $mdPanel) {
+        return {
+            restrict: 'E',
+            scope: {
+                lab: '@'
+            },
+            templateUrl: 'team/publications/team.labPublications.html',
+            link:
+            function (scope,element,attrs) {
+                //this._mdPanel = $mdPanel;
+
+                scope.teamPublications = [];
+
+                scope.forms = {
+                    'teamSelectedPub': 0,
+                };
+                var numberCards = Object.keys(scope.forms).length; // the number of cards with "Update" in each tab
+                scope.updateStatus = [];
+                scope.messageType = [];
+                scope.hideMessage = [];
+                for (var i=0; i<numberCards; i++) {
+                    scope.updateStatus.push('');
+                    scope.messageType.push('message-updating');
+                    scope.hideMessage.push(true);
+                }
+
+                getPublications();
+                initializeDetails();
+
+                scope.showDetailsPublication = function (pub) {
+                    var authors = pub.authors_raw.split('; ');
+                    var authors_str = '';
+                    for (var ind in authors) {
+                        if (ind > 0) {
+                            authors_str = authors_str + '; ' + authors[ind];
+                        } else {
+                            authors_str = authors_str + authors[ind];
+                        }
+                    }
+                    pub['authors'] = authors_str;
+                    for (var ind in pub.publication_type) {
+                        if (ind > 0) {
+                            pub['doc_type'] = pub['doc_type'] + '; ' + pub.publication_type[ind].name_en;
+                        } else {
+                            pub['doc_type'] = pub.publication_type[ind].name_en;
+                        }
+                    }
+                    var if_last_year;
+                    for (var ind in pub.impact_factors) {
+                        if (ind > 0) {
+                            if (if_last_year.year < pub.impact_factors[ind].year) {
+                                if_last_year = pub.impact_factors[ind];
+                            }
+                        } else {
+                            if_last_year = pub.impact_factors[ind];
+                        }
+                    }
+                    pub['if_last_year'] = if_last_year;
+
+                    var position = $mdPanel.newPanelPosition()
+                                        .absolute()
+                                        .center();
+                    var config = {
+                        attachTo: angular.element(document.body),
+                        controller: pubDetailsCtrl,
+                        controllerAs: 'ctrl',
+                        templateUrl: 'team/publications/team.labPublicationDetail.html',
+                        locals: {pub: pub},
+                        hasBackdrop: true,
+                        panelClass: 'publication-details',
+                        position: position,
+                        disableParentScroll: true,
+                        trapFocus: true,
+                        zIndex: 150,
+                        clickOutsideToClose: true,
+                        escapeToClose: true,
+                        focusOnOpen: true
+                    };
+
+                    $mdPanel.open(config);
+
+
+                };
+                scope.showTable = function () {
+                    return $mdMedia('min-width: 1440px');
+                };
+                scope.sortColumn = function(colName) {
+                    if (colName === scope.sortType) {
+                        scope.sortReverse = !scope.sortReverse;
+                    } else {
+                        scope.sortType = colName;
+                        scope.sortReverse = false;
+                    }
+                    scope.renderPublications('new');
+                };
+
+                scope.changeSelectedStatus = function (pub) {
+                    for (var ind in scope.teamPublications) {
+                        if (pub.id === scope.teamPublications[ind].id) {
+                            scope.teamPublications[ind].selected = pub.selected;
+                            break;
+                        }
+                    }
+                };
+
+                scope.renderPublications = function (str, ind) {
+                    if (str === 'new') {
+                        scope.currentPage = 1;
+                    }
+                    scope.totalPublications = scope.teamPublications.length;
+                    scope.selectedPublications = [];
+                    var toInclude = 0;
+                    var toIncludeDueFrom = 0;
+                    var toIncludeDueTo = 0;
+                    scope.fromYearPub = parseInt(scope.fromYearPub,10);
+                    scope.toYearPub = parseInt(scope.toYearPub,10);
+                    for (var ind in scope.teamPublications) {
+                        toInclude = 0;
+                        toIncludeDueFrom = 0;
+                        toIncludeDueTo = 0;
+                        if (Number.isInteger(scope.fromYearPub)) {
+                            if (scope.fromYearPub <= scope.teamPublications[ind].year) {
+                               toIncludeDueFrom = 1;
+                            }
+                        } else {
+                            toIncludeDueFrom = 1;
+                        }
+                        if (Number.isInteger(scope.toYearPub)) {
+                            if (scope.toYearPub >= scope.teamPublications[ind].year) {
+                               toIncludeDueTo = 1;
+                            }
+                        } else {
+                            toIncludeDueTo = 1;
+                        }
+                        toInclude = toIncludeDueFrom * toIncludeDueTo;
+                        if (toInclude === 1) {
+                            scope.selectedPublications.push(scope.teamPublications[ind]);
+                        }
+                    }
+                    scope.totalFromSearch = scope.selectedPublications.length;
+
+                    scope.totalPages = Math.ceil(scope.totalFromSearch / scope.pageSize);
+                    scope.pages = [];
+                    for (var num=1; num<=scope.totalPages; num++) {
+                        scope.pages.push(num);
+                    }
+                    // Sort selectedPeople according to defined order, before
+                    // defining page contents
+                    scope.selectedPublications = scope.selectedPublications.sort(sorter);
+                    scope.currPublications = [];
+                    for (var member = (scope.currentPage - 1) * scope.pageSize;
+                            member < scope.currentPage * scope.pageSize && member < scope.totalFromSearch;
+                            member++) {
+                        scope.currPublications.push(Object.assign({}, scope.selectedPublications[member]));
+                    }
+                };
+
+                scope.submitSelectedTeamPublications = function (ind) {
+                    scope.updateStatus[ind] = "Updating...";
+                    scope.messageType[ind] = 'message-updating';
+                    scope.hideMessage[ind] = false;
+                    var data = processSelectedPub(scope.teamPublications,scope.originalTeamPublications);
+                    publications.updateTeamSelectedPublications(scope.lab,data)
+                        .then( function () {
+                            getPublications();
+                            if (ind > -1) {
+                                scope.updateStatus[ind] = "Updated!";
+                                scope.messageType[ind] = 'message-success';
+                                scope.hideMessage[ind] = false;
+                                $timeout(function () { scope.hideMessage[ind] = true; }, 1500);
+                            }
+                        },
+                        function () {
+                            scope.updateStatus[ind] = "Error!";
+                            scope.messageType[ind] = 'message-error';
+                        },
+                        function () {}
+                        );
+                    return false;
+                };
+
+                function getPublications() {
+                    publications.thisTeamPublications(scope.lab)
+                        .then(function (response) {
+                            scope.teamPublications = response.data.result;
+                            for (var ind in scope.teamPublications) {
+                                if (scope.teamPublications[ind].selected !== null) {
+                                    scope.teamPublications[ind].selected = true;
+                                } else {
+                                    scope.teamPublications[ind].selected = false;
+                                }
+                            }
+                            scope.originalTeamPublications = JSON.parse(JSON.stringify(scope.teamPublications));
+                            initializeVariables();
+                        })
+                        .catch(function (err) {
+                            console.log(err);
+                        });
+                }
+                function initializeVariables() {
+                    scope.sortReverse = false;
+                    scope.sortType = 'year';
+                    scope.currentPage = 1;
+                    scope.pageSize = 10;
+
+                    // computes the number of pages
+                    scope.totalPublications = scope.teamPublications.length;
+                    scope.totalPages = Math.ceil(scope.totalPublications / scope.pageSize);
+                    scope.pages = [];
+                    for (var num=1; num<=scope.totalPages; num++) {
+                        scope.pages.push(num);
+                    }
+                    scope.renderPublications();
+                }
+                function initializeDetails() {
+                    scope.pubTitles = [];
+                    scope.thisPublication = [];
+                }
+                function sorter(a,b) {
+                    if (scope.sortType === 'year') {
+                        if (scope.sortReverse) {
+                            return (a[scope.sortType] ? a[scope.sortType] : 9999) > (b[scope.sortType] ? b[scope.sortType] : 9999);
+                        } else {
+                            return (a[scope.sortType] ? a[scope.sortType] : 0) < (b[scope.sortType] ? b[scope.sortType] : 0);
+                        }
+                    } else {
+                        if (scope.sortReverse) {
+                            return -(a[scope.sortType] ? a[scope.sortType] : '')
+                                .localeCompare(b[scope.sortType] ? b[scope.sortType] : '');
+                        } else {
+                            return (a[scope.sortType] ? a[scope.sortType] : '')
+                                .localeCompare(b[scope.sortType] ? b[scope.sortType] : '');
+                        }
+                    }
+                }
+
+                /* for exporting */
+                scope.exportPublicationsSpreadsheet = function() {
+                    var type = 'xlsx';
+                    var wsName = 'Data';
+                    var wb = {};
+                    var selectedPublications = convertData(scope.selectedPublications);
+                    var ws = XLSX.utils.json_to_sheet(selectedPublications);
+                    wb.SheetNames = [wsName];
+                    wb.Sheets = {};
+                    wb.Sheets[wsName] = ws;
+                    var wbout = XLSX.write(wb, {bookType: type, bookSST: true, type: 'binary'});
+                    var dateTime = momentToDate(moment(),undefined,'YYYYMMDD_HHmmss')
+                    var from;
+                    var to;
+                    if (scope.fromYearPub === undefined || isNaN(scope.fromYearPub)) {
+                        from = 'all';
+                    } else {
+                        from = scope.fromYearPub;
+                    }
+                    if (scope.toYearPub === undefined || isNaN(scope.toYearPub)) {
+                        to = 'all';
+                    } else {
+                        to = scope.toYearPub;
+                    }
+                    var fname = 'my_publications_' + from + '_' + to
+                                + '_' + dateTime + '.' + type;
+                    try {
+                    	saveAs(new Blob([s2ab(wbout)],{type:"application/octet-stream"}), fname);
+                    } catch(e) { if(typeof console != 'undefined') console.log(e, wbout); }
+                };
+
+                function processSelectedPub(current, original) {
+                    var add = [];
+                    var del = [];
+                    for (var curr in current) {
+                        for (var ori in original) {
+                            if (current[curr].id === original[ori].id) {
+                                if (current[curr].selected === true && original[ori].selected === false) {
+                                    add.push(current[curr]);
+                                } else if (current[curr].selected === false && original[ori].selected === true) {
+                                    del.push(current[curr]);
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    var objReturn = {};
+                    objReturn['addSelectedPub'] = add;
+                    objReturn['delSelectedPub'] = del;
+                    return objReturn;
+                }
+                function s2ab(s) {
+                	if(typeof ArrayBuffer !== 'undefined') {
+                		var buf = new ArrayBuffer(s.length);
+                		var view = new Uint8Array(buf);
+                		for (var i=0; i!=s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
+                		return buf;
+                	} else {
+                		var buf = new Array(s.length);
+                		for (var i=0; i!=s.length; ++i) buf[i] = s.charCodeAt(i) & 0xFF;
+                		return buf;
+                	}
+                }
+                function convertData(arrObj) {
+                    // selects data for exporting
+                    var data = [];
+                    if (arrObj.length > 0) {
+                        for (var el in arrObj) {
+                            for (var ind in arrObj[el].publication_type) {
+                                if (ind > 0) {
+                                    arrObj[el]['doc_type'] = arrObj[el]['doc_type'] + '; ' + arrObj[el].publication_type[ind].name_en;
+                                } else {
+                                    arrObj[el]['doc_type'] = arrObj[el].publication_type[ind].name_en;
+                                }
+                            }
+                            var if_last_year;
+                            for (var ind in arrObj[el].impact_factors) {
+                                if (ind > 0) {
+                                    if (if_last_year.year < arrObj[el].impact_factors[ind].year) {
+                                        if_last_year = arrObj[el].impact_factors[ind];
+                                    }
+                                } else {
+                                    if_last_year = arrObj[el].impact_factors[ind];
+                                }
+                            }
+                            var citations_last_year;
+                            for (var ind in arrObj[el].citations) {
+                                if (ind > 0) {
+                                    if (citations_last_year.year < arrObj[el].citations[ind].year) {
+                                        citations_last_year = arrObj[el].citations[ind];
+                                    }
+                                } else {
+                                    citations_last_year = arrObj[el].citations[ind];
+                                }
+                            }
+                            data.push({
+                                "Authors": arrObj[el]['authors_raw'],
+                                "Tite": arrObj[el]['title'],
+                                "Year": arrObj[el]['year'],
+                                "Publication Date": arrObj[el]['publication_date'],
+                                "Journal Name": arrObj[el]['journal_name'],
+                                "Journal Short Name": arrObj[el]['journal_short_name'],
+                                "Publisher": arrObj[el]['publisher'],
+                                "Publisher City": arrObj[el]['publisher_city'],
+                                "ISSN": arrObj[el]['issn'],
+                                "EISSN": arrObj[el]['eissn'],
+                                "Volume": arrObj[el]['volume'],
+                                "Page Start": arrObj[el]['page_start'],
+                                "Page End": arrObj[el]['page_end'],
+                                "DOI": arrObj[el]['doi'],
+                                "WOS": arrObj[el]['wos'],
+                                "PubMed ID": arrObj[el]['pubmed_id'],
+                                "DOI": arrObj[el]['doi'],
+                                "Citations": citations_last_year.citations,
+                                "Impact Factors": if_last_year.impact_factor
+                            });
+                        }
+                        return data;
+                    }
+                    return data;
+                }
+                function momentToDate(timedate, timezone, timeformat) {
+                    if (timezone === undefined) {
+                        timezone = 'Europe/Lisbon';
+                    }
+                    if (timeformat === undefined) {
+                        timeformat = 'YYYY-MM-DD';
+                    }
+                    return timedate !== null ? moment.tz(timedate,timezone).format(timeformat) : null;
+                }
+            }
+        };
+    }];
+
+    var pubDetailsCtrl = function(mdPanelRef) {
+        this._mdPanelRef = mdPanelRef;
+    };
+
+
     /**************************** Register components *****************************/
     angular.module('managementApp')
         .directive('teamPeopleLabPresentation', teamPeopleLabPresentation)
@@ -1750,6 +2128,9 @@
         .directive('teamPreRegistrationUser', teamPreRegistrationUser)
         .directive('teamAffiliationsMember', teamAffiliationsMember)
 
+        .directive('teamLabPublications', teamLabPublications)
+
         .controller('teamCtrl', teamCtrl)
+        .controller('pubDetailsCtrl', pubDetailsCtrl)
         ;
 })();

@@ -9,13 +9,13 @@
             <span class="spacer-top-smaller">Filter:</span>
             <md-input-container class="input-row-longer">
                 <label>From year</label>
-                <input ng-model="vm.fromYearPub" ng-change="vm.renderPublications('new')">
+                <input ng-model="fromYearPub" ng-change="renderPublications('new')">
             </md-input-container>
             <md-input-container class="input-row-longer">
                 <label>To year</label>
-                <input ng-model="vm.toYearPub" ng-change="vm.renderPublications('new')">
+                <input ng-model="toYearPub" ng-change="renderPublications('new')">
             </md-input-container>
-            <md-button class="s48" ng-click="vm.exportPublicationsSpreadsheet()"
+            <md-button class="s48" ng-click="exportPublicationsSpreadsheet()"
                         aria-label="Export selection"
                         class="md-icon-button interaction-button">
                 <md-tooltip>Export filtered results to spreadsheet</md-tooltip>
@@ -23,10 +23,10 @@
                         class="s48"></md-icon>
             </md-button>
         </div>
-        <form flex novalidate name="personPublicationsForm"
-                ng-submit="personPublicationsForm.$valid && vm.submitSelectedPersonPublications(vm.forms['personSelectedPub'])">
-            <div class="small-screens" layout="column" ng-if="!vm.showTable()">
-                <div ng-repeat="(pubNum,publication) in vm.currPublications track by $index">
+        <form flex novalidate name="teamPublicationsForm"
+                ng-submit="teamPublicationsForm.$valid && submitSelectedTeamPublications(forms['teamSelectedPub'])">
+            <div class="small-screens" layout="column" ng-if="!showTable()">
+                <div ng-repeat="(pubNum,publication) in currPublications track by $index">
                     <div layout="column">
                         <div layout="row" layout-align=" center">
                             <div class="question"><span class="highlight">Title:</span></div>
@@ -48,50 +48,50 @@
                             <div class="question"><span class="highlight">Selected Publication:</span></div>
                             <div class="answer">
                                 <md-checkbox class="center-tick" name="selectedPublication" aria-label="Selected Publication"
-                                        ng-change="vm.changeSelectedStatus(publication)" ng-model="publication.selected"></md-checkbox>
+                                        ng-change="changeSelectedStatus(publication)" ng-model="publication.selected"></md-checkbox>
                             </div>
                         </div>
                         <div layout="row">
-                            <md-button ng-click="vm.showDetailsPublication(publication)"
+                            <md-button ng-click="showDetailsPublication(publication)"
                                         aria-label="Details"
                                         class="md-icon-button interaction-button">
                                 <md-icon md-svg-src="images/icons/description_24px.svg"></md-icon>
                             </md-button>
                         </div>
                     </div>
-                    <md-divider ng-if="!vm.showTable()"></md-divider>
+                    <md-divider ng-if="!showTable()"></md-divider>
                 </div>
             </div>
-            <div ng-if="vm.showTable()">
+            <div ng-if="showTable()">
                 <table class="publications">
                     <thead>
                         <tr>
                             <th class="large-contents-wide">
-                                <a ng-click="vm.sortColumn('title')">Title</a>
-                                <ng-md-icon ng-if="!vm.sortReverse && vm.sortType=='title'"
+                                <a ng-click="sortColumn('title')">Title</a>
+                                <ng-md-icon ng-if="!sortReverse && sortType=='title'"
                                         icon="arrow_downward" size="12"></ng-md-icon>
-                                <ng-md-icon ng-if="vm.sortReverse  && vm.sortType=='title'"
+                                <ng-md-icon ng-if="sortReverse  && sortType=='title'"
                                         icon="arrow_upwards" size="12"></ng-md-icon>
                             </th>
                             <th class="large-contents-narrow">
-                                <a ng-click="vm.sortColumn('authors_raw')">Authors</a>
-                                <ng-md-icon ng-if="!vm.sortReverse && vm.sortType=='authors_raw'"
+                                <a ng-click="sortColumn('authors_raw')">Authors</a>
+                                <ng-md-icon ng-if="!sortReverse && sortType=='authors_raw'"
                                         icon="arrow_downward" size="12"></ng-md-icon>
-                                <ng-md-icon ng-if="vm.sortReverse  && vm.sortType=='authors_raw'"
+                                <ng-md-icon ng-if="sortReverse  && sortType=='authors_raw'"
                                         icon="arrow_upwards" size="12"></ng-md-icon>
                             </th>
                             <th class="standard-width">
-                                <a ng-click="vm.sortColumn('journal_short_name')">Journal</a>
-                                <ng-md-icon ng-if="!vm.sortReverse && vm.sortType=='journal_short_name'"
+                                <a ng-click="sortColumn('journal_short_name')">Journal</a>
+                                <ng-md-icon ng-if="!sortReverse && sortType=='journal_short_name'"
                                         icon="arrow_downward" size="12"></ng-md-icon>
-                                <ng-md-icon ng-if="vm.sortReverse  && vm.sortType=='journal_short_name'"
+                                <ng-md-icon ng-if="sortReverse  && sortType=='journal_short_name'"
                                         icon="arrow_upwards" size="12"></ng-md-icon>
                             </th>
                             <th class="smaller-width">
-                                <a ng-click="vm.sortColumn('year')">Year</a>
-                                <ng-md-icon ng-if="!vm.sortReverse && vm.sortType=='year'"
+                                <a ng-click="sortColumn('year')">Year</a>
+                                <ng-md-icon ng-if="!sortReverse && sortType=='year'"
                                         icon="arrow_downward" size="12"></ng-md-icon>
-                                <ng-md-icon ng-if="vm.sortReverse  && vm.sortType=='year'"
+                                <ng-md-icon ng-if="sortReverse  && sortType=='year'"
                                         icon="arrow_upwards" size="12"></ng-md-icon>
                             </th>
                             <th  class="smaller-width">Sel.</th>
@@ -100,17 +100,17 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr ng-repeat="(pubNum,publication) in vm.currPublications track by $index">
+                        <tr ng-repeat="(pubNum,publication) in currPublications track by $index">
                             <td>{{publication.title}}</td>
                             <td>{{publication.authors_raw}}</td>
                             <td>{{publication.journal_short_name}}</td>
                             <td>{{publication.year}}</td>
                             <td layout-align="center center">
                                 <md-checkbox class="center-tick" name="selectedPublication" aria-label="Selected Publication"
-                                        ng-change="vm.changeSelectedStatus(publication)" ng-model="publication.selected"></md-checkbox>
+                                        ng-change="changeSelectedStatus(publication)" ng-model="publication.selected"></md-checkbox>
                             </td>
                             <td>
-                                <md-button ng-click="vm.showDetailsPublication(publication)"
+                                <md-button ng-click="showDetailsPublication(publication)"
                                             aria-label="Details"
                                             class="md-icon-button interaction-button">
                                     <md-icon md-svg-src="images/icons/description_24px.svg"></md-icon>
@@ -124,8 +124,8 @@
             <div layout="row" class="paginator">
                 <md-input-container class="input-no-margin wider">
                     <label>Results/page</label>
-                    <md-select ng-model="vm.pageSize"
-                            md-on-close="vm.renderPublications('new')"
+                    <md-select ng-model="pageSize"
+                            md-on-close="renderPublications('new')"
                             aria-label="pageSize"
                             name="pageSize">
                             <md-option ng-value="10">10</md-option>
@@ -135,24 +135,24 @@
                 </md-input-container>
                 <md-input-container class="input-no-margin">
                     <label>Page</label>
-                    <md-select ng-model="vm.currentPage"
-                            md-on-close="vm.renderPublications('page')"
+                    <md-select ng-model="currentPage"
+                            md-on-close="renderPublications('page')"
                             aria-label="currentPage"
                             name="currentPage">
-                            <md-option ng-repeat="page in vm.pages" ng-value="page">{{page}}</md-option>
+                            <md-option ng-repeat="page in pages" ng-value="page">{{page}}</md-option>
                     </md-select>
                 </md-input-container>
             </div>
             <div layout="column" layout-gt-sm="row" layout-align="none center">
                 <md-button id="team-people-lab" type="submit"
                     class="button-small md-raised md-primary">Update "Selected"</md-button>
-                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personSelectedPub']]">
-                    <span class="message" ng-class="vm.messageType[vm.forms['personSelectedPub']]">
-                        {{vm.updateStatus[vm.forms['personSelectedPub']]}}
+                <div class="status-message" ng-hide="hideMessage[forms['teamSelectedPub']]">
+                    <span class="message" ng-class="messageType[forms['teamSelectedPub']]">
+                        {{updateStatus[forms['teamSelectedPub']]}}
                     </span>
                 </div>
                 <md-button class="button-small md-raised md-warn"
-                    ng-click="vm.closeTabs()">Close details tabs</md-button>
+                    ng-click="closeTabs()">Close details tabs</md-button>
             </div>
         </form>
 

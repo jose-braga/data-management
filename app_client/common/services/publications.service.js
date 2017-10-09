@@ -25,11 +25,20 @@
             );
         };
 
+        var updateTeamSelectedPublications = function (teamID, data) {
+            return $http.put('api/publications/team/' + teamID + '/selected', data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+
 
         return {
             thisPersonPublications: thisPersonPublications,
             thisTeamPublications: thisTeamPublications,
-            updateSelectedPublications: updateSelectedPublications
+            updateSelectedPublications: updateSelectedPublications,
+            updateTeamSelectedPublications: updateTeamSelectedPublications
         };
     };
 

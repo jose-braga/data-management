@@ -977,12 +977,10 @@
             initializeDetails();
         };
         vm.exportPublicationsSpreadsheet = function() {
-            alert('!!!')
             var type = 'xlsx';
             var wsName = 'Data';
             var wb = {};
             var selectedPublications = convertData(vm.selectedPublications);
-            console.log(selectedPublications)
             var ws = XLSX.utils.json_to_sheet(selectedPublications);
             wb.SheetNames = [wsName];
             wb.Sheets = {};
@@ -1058,8 +1056,6 @@
             vm.sortType = 'year';
             vm.currentPage = 1;
             vm.pageSize = 10;
-
-            vm.deleteThesePublications = [];
 
             // computes the number of pages
             vm.totalPublications = vm.personPublications.length;

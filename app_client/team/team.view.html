@@ -19,12 +19,16 @@
             </md-tab>
             <md-tab ng-if="vm.show('labs')" ng-repeat="lab in vm.personLab"
                     label="Publications {{ lab.lab | limitTo : 10 }}...">
-                <md-content>
-                    <div layout="row" layout-padding>
-                        <team-publications data-lab="{{lab.lab_id}}" flex>
-                        </team-publications>
-                    </div>
-                </md-content>
+                <md-tabs md-selected="vm.selectedIndexPublications" md-dynamic-height md-border-bottom>
+                    <md-tab label='List'>
+                        <md-content>
+                            <div layout="row" layout-padding>
+                                <team-lab-publications data-lab="{{lab.lab_id}}" flex>
+                                </team-lab-publications>
+                            </div>
+                        </md-content>
+                    </md-tab>
+                </md-tabs>
             </md-tab>
             <md-tab ng-if="vm.show('techOffices')" ng-repeat="office in vm.personTech"
                     label={{office.tech_office_name_en}}>

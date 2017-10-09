@@ -251,6 +251,10 @@ md-select-menu ._md .scrollable{
   width: 5%;
 }
 
+.publication-details {
+  width: 50%;
+}
+
 .center-tick {
   align-items: center;
   margin-bottom: 0px;

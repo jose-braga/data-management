@@ -2,12 +2,11 @@
     // Current version: 1.0.0
 
     // TODO: (v1.1.0) Add "selected" and "full" publications to people data and to team data
-    // TODO: (v1.1.1) Add photos on Manager view
+    // TODO: (v1.1.1) Add "photos" and "author names" on Manager view
     // TODO: (v1.2.0) Add automatic PDF generator
 
     // TODO: (future) interface improvement - "Myself" (current affiliations); "Manager" list show only current affiliations
     // TODO: (future) easier administration - Delete user from all tables
-    // TODO: (v1.?.?) ??? change getUser and similar functions to connection and connection.release???
 
     var config = function ($routeProvider, $locationProvider) {
         $routeProvider

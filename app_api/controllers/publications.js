@@ -360,6 +360,44 @@ var queryUpdatePersonSelectedPublications = function (req, res, next) {
     });
 };
 
+var queryUpdatePersonAuthorNames = function (req, res, next) {
+    var personID = req.params.personID;
+    var add = req.body.addAuthorNames;
+    var del = req.body.delAuthorNames;
+    var querySQL = '';
+    var places = [];
+    for (var ind in add) {
+        querySQL = querySQL + 'INSERT INTO author_names' +
+                              ' (person_id,name)' +
+                              ' VALUES (?,?);';
+        places.push(personID,add[ind].author_name);
+    }
+    for (var ind in del) {
+        querySQL = querySQL + 'DELETE FROM author_names' +
+                              ' WHERE id = ?;';
+        places.push(del[ind].author_name_id);
+    }
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                sendJSONResponse(res, 200,
+                    {"status": "success", "statusCode": 200, "count": 1,
+                     "result" : "OK!"});
+            }
+        );
+    });
+};
+
 var queryUpdateTeamSelectedPublications = function (req, res, next) {
     var teamID = req.params.teamID;
     var add = req.body.addSelectedPub;
@@ -422,6 +460,14 @@ module.exports.updatePersonSelectedPub = function (req, res, next) {
     getUser(req, res, [0, 5, 10, 15],
         function (req, res, username) {
             queryUpdatePersonSelectedPublications(req,res,next);
+        }
+    );
+};
+
+module.exports.updatePersonAuthorNames = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15],
+        function (req, res, username) {
+            queryUpdatePersonAuthorNames(req,res,next);
         }
     );
 };

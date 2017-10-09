@@ -33,12 +33,21 @@
             );
         };
 
+        var updateAuthorNamesPerson = function (personID, data) {
+            return $http.put('api/publications/person/' + personID + '/author-names', data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+
 
         return {
             thisPersonPublications: thisPersonPublications,
             thisTeamPublications: thisTeamPublications,
             updateSelectedPublications: updateSelectedPublications,
-            updateTeamSelectedPublications: updateTeamSelectedPublications
+            updateTeamSelectedPublications: updateTeamSelectedPublications,
+            updateAuthorNamesPerson: updateAuthorNamesPerson
         };
     };
 

@@ -100,6 +100,7 @@ router.get('/publications/team/:teamID', auth, ctrlPublicationsData.listTeamPubl
 
 // PUT PUBLICATION information (authenticated)
 router.put('/publications/person/:personID/selected', auth, ctrlPublicationsData.updatePersonSelectedPub);
+router.put('/publications/person/:personID/author-names', auth, ctrlPublicationsData.updatePersonAuthorNames);
 router.put('/publications/team/:teamID/selected', auth, ctrlPublicationsData.updateTeamSelectedPub);
 
 

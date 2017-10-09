@@ -39,12 +39,12 @@
             'personResponsibles':       23,
             'personPhoto':              24,
             'personSelectedPub':        25,
-            'personPubDetails':         26
+            'personPubDetails':         26,
+            'personAuthorNames':        27
         };
         vm.changePhoto = false;
 
         if (authentication.currentUser() == null) {
-
         } else {
             vm.currentUser = authentication.currentUser();
             var numberCards = Object.keys(vm.forms).length; // the number of cards with "Update" in each tab
@@ -610,6 +610,28 @@
 
                 });
         };
+        vm.submitAuthorNames = function (ind) {
+            vm.updateStatus[ind] = "Updating...";
+            vm.messageType[ind] = 'message-updating';
+            vm.hideMessage[ind] = false;
+            var data = {
+                addAuthorNames: vm.newAuthorNames,
+                delAuthorNames: vm.delAuthorNames
+            };
+            publications.updateAuthorNamesPerson(vm.currentUser.personID,data)
+                .then( function () {
+                    //getPersonData(vm.currentUser.personID, ind);
+                    getPersonData(vm.currentUser.personID, ind);
+                    initializeVariables();
+                },
+                function () {
+                    vm.updateStatus[ind] = "Error!";
+                    vm.messageType[ind] = 'message-error';
+                },
+                function () {}
+                );
+            return false;
+        };
 
         vm.submitSelectedPersonPublications = function (ind) {
             vm.updateStatus[ind] = "Updating...";
@@ -836,6 +858,31 @@
             }
 
         };
+        vm.addAuthorName = function (chip) {
+            for (var el in vm.thisPerson.author_data) {
+                if (typeof vm.thisPerson.author_data[el] === 'string') {
+                    vm.thisPerson.author_data[el] = {};
+                    vm.thisPerson.author_data[el].author_name = chip;
+                    vm.thisPerson.author_data[el].author_name_id = 'new';
+                    vm.newAuthorNames.push(vm.thisPerson.author_data[el]);
+                    break;
+                }
+            }
+        };
+        vm.removeAuthorName = function (chip) {
+            var toRemove = true;
+            for (var el in vm.newAuthorNames) {
+               if (vm.newAuthorNames[el].author_name_id === 'new'
+                        && vm.newAuthorNames[el].author_name === chip.author_name) {
+                    vm.newAuthorNames.splice(el,1);
+                    toRemove = false;
+                    break;
+                }
+            }
+            if (toRemove) vm.delAuthorNames.push(chip);
+
+        };
+
         vm.departmentNames = function (department) {
             var name = '';
             if (department !== undefined) {
@@ -1052,6 +1099,8 @@
             }, true);
         }
         function initializeVariables() {
+            vm.delAuthorNames = [];
+            vm.newAuthorNames = [];
             vm.sortReverse = false;
             vm.sortType = 'year';
             vm.currentPage = 1;
@@ -1821,6 +1870,12 @@
             templateUrl: 'person/professional/person.responsible.html'
         };
     };
+    var personAuthorNames = function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'person/researcher/person.authorNames.html'
+        };
+    };
     var personPublications = function () {
         return {
             restrict: 'E',
@@ -1927,6 +1982,7 @@
         .directive('personProfessional', personProfessional)
         .directive('personResponsible', personResponsible)
         .directive('personPoles', personPoles)
+        .directive('personAuthorNames', personAuthorNames)
         .directive('personPublications', personPublications)
         .directive('personPublicationDetail', personPublicationDetail)
         .directive('personWebsitePhoto', personWebsitePhoto)

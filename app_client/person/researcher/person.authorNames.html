@@ -1,0 +1,32 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Author names</span>
+        </md-card-title-text>
+    </md-card-title>
+    <form flex novalidate name="personAuthorNamesForm"
+        ng-submit="personAuthorNamesForm.$valid && vm.submitAuthorNames(vm.forms['personAuthorNames'])">
+        <md-card-content layout="column" flex>
+            <p class="small-text">
+                Insert all author names used throughout your publications
+            </p>
+            <md-chips ng-model="vm.thisPerson.author_data" name="authorName"
+                    placeholder="Enter another name"
+                    md-on-add="vm.addAuthorName($chip)"
+                    md-on-remove="vm.removeAuthorName($chip)">
+                <md-chip-template>
+                    {{$chip.author_name}}
+                </md-chip-template>
+             </md-chips>
+            <div layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button id="person-researcher-info" type="submit"
+                    class="button-small md-raised md-primary">Update</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personAuthorNames']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['personAuthorNames']]">
+                        {{vm.updateStatus[vm.forms['personAuthorNames']]}}
+                    </span>
+                </div>
+            </div>
+        </md-card-content>
+    </form>
+</md-card>

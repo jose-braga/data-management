@@ -2,10 +2,6 @@
 var managerData = function ($http, authentication) {
     var currentUser = authentication.currentUser();
 
-
-
-    //TODO: change functions below?????????
-
     var allPeopleWithRolesData = function () {
         return $http.get('api/manager/people/all-with-roles',
             {
@@ -54,15 +50,6 @@ var managerData = function ($http, authentication) {
         );
     };
 
-    /*var createPeopleData = function (data) {
-        return $http.post('api/manager/people/all', data,
-            {
-                headers: {Authorization: 'Bearer ' + authentication.getToken()}
-            }
-        );
-    };
-    */
-
     return {
         allPeopleWithRolesData: allPeopleWithRolesData,
         allPeopleNoRolesData: allPeopleNoRolesData,
@@ -70,7 +57,6 @@ var managerData = function ($http, authentication) {
         validatePerson: validatePerson,
         updatePeopleData: updatePeopleData,
         passwordResetByID: passwordResetByID
-        //createPeopleData: createPeopleData
     };
 };
 

@@ -691,8 +691,6 @@ var queryUpdateLabPeople = function (req, res, next, userCity, labs) {
     if (deleteArr.length === 0 && updateArr.length == 0) {
         sendJSONResponse(res, 200, {"status": "No changes or User not authorized", "statusCode": 200});
     } else {
-        // TODO: think if it is useful to add a callback for deleting roles when
-        // the person doesn't not have any lab affiliations
         escapedQuery(querySQL, places, req, res, next);
     }
 };
@@ -889,8 +887,6 @@ var queryUpdateTechPeople = function (req, res, next, userCity, labs) {
     if (deleteArr.length === 0 && updateArr.length == 0) {
         sendJSONResponse(res, 200, {"status": "No changes or User not authorized", "statusCode": 200});
     } else {
-        // TODO: think if it is useful to add a callback for deleting roles when
-        // the person doesn't not have any lab affiliations
         escapedQuery(querySQL, places, req, res, next);
     }
 };
@@ -1086,8 +1082,6 @@ var queryUpdateScManPeople = function (req, res, next, userCity, labs) {
     if (deleteArr.length === 0 && updateArr.length == 0) {
         sendJSONResponse(res, 200, {"status": "No changes or User not authorized", "statusCode": 200});
     } else {
-        // TODO: think if it is useful to add a callback for deleting roles when
-        // the person doesn't not have any lab affiliations
         escapedQuery(querySQL, places, req, res, next);
     }
 };
@@ -1285,8 +1279,6 @@ var queryUpdateAdmPeople = function (req, res, next, userCity, labs) {
     if (deleteArr.length === 0 && updateArr.length == 0) {
         sendJSONResponse(res, 200, {"status": "No changes or User not authorized", "statusCode": 200});
     } else {
-        // TODO: think if it is useful to add a callback for deleting roles when
-        // the person doesn't not have any lab affiliations
         escapedQuery(querySQL, places, req, res, next);
     }
 };
@@ -1930,14 +1922,12 @@ var queryPreRegisterPersonalEmails = function (req, res, next, userID, personID,
 
 var sendEmailsToUsers = function (req, res, next, userID, personID,
                                       active_from,stat, created, changed_by,password) {
-    console.log('https://laqv-ucibio.info/pre-register/'+ req.body.username +
-                        '/' + password)
     if (process.env.NODE_ENV === 'production') {
         var recipients;
         if (req.body.institution_city.city === 'Lisboa') {
             recipients = req.body.personal_email;
         } else if (req.body.institution_city.city === 'Porto') {
-            recipients = req.body.personal_email; // TODO: Change this!!!!
+            recipients = req.body.personal_email;
         }
         let mailOptions = {
             from: '"Admin" <admin@laqv-ucibio.info>', // sender address

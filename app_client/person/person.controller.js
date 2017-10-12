@@ -2,7 +2,6 @@
 /******************************* Controllers **********************************/
     var personCtrl = function ($scope, $timeout, $mdMedia,
                                Upload, personData, publications, authentication) {
-        //TODO: add image utilities
 
         var vm = this;
         vm.toolbarData = {title: 'Please update your information'};

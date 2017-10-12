@@ -458,7 +458,6 @@
                 };
 
                 function getNameFromID(id, type, rID) {
-                    //TODO:  correct for rid = 3 and 4
                     if (type === 'position_id') {
                         if (rID === 1) {
                             for (var p in scope.labPositions) {
@@ -823,7 +822,6 @@
                 };
 
                 function getNameFromID(id, type, rID) {
-                    //TODO:  correct for rid = 3 and 4
                     if (type === 'technician_position_id') {
                         if (rID === 1) {
                             for (var p in scope.labPositions) {
@@ -1186,7 +1184,6 @@
                 };
 
                 function getNameFromID(id, type, rID) {
-                    //TODO:  correct for rid = 3 and 4
                     if (type === 'science_manager_position_id') {
                         if (rID === 1) {
                             for (var p in scope.labPositions) {
@@ -1548,7 +1545,6 @@
                 };
 
                 function getNameFromID(id, type, rID) {
-                    //TODO:  correct for rid = 3 and 4
                     if (type === 'administrative_position_id') {
                         if (rID === 1) {
                             for (var p in scope.labPositions) {

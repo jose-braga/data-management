@@ -59,14 +59,10 @@
 
         var logout = function() {
             $window.localStorage.removeItem('managementApp-token');
-            // TODO: goto initial page and reload  (see below)
-            // $route.reload();
         };
 
         var finishPreRegistration = function() {
             $window.localStorage.removeItem('managementApp-pre-reg-token');
-            // TODO: goto initial page and reload  (see below)
-            // $route.reload();
         };
 
         var isLoggedIn = function() {

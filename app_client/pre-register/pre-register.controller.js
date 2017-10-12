@@ -2,8 +2,6 @@
 /******************************* Controllers **********************************/
     var preRegCtrl = function ($scope,$routeParams,$location, $timeout,
                                Upload, personData, preRegistration, authentication) {
-        //TODO: add more question such as personal emails, ID's, etc
-
         var vm = this;
         vm.isLoggedIn = true;
         vm.toolbarData = {title: 'Pre-registration: submit user data'};

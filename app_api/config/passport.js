@@ -49,13 +49,8 @@ passport.use(
                 return done(err);
             if (rows.length) {
                 return done(null, false,
-                // TODO: previously it was req.flash, the purpose is to send user message
-                // modify !!!!!!!!!!!!!!!!!!!!!!!
                 console.log('signupMessage - That username is already taken.'));
             } else {
-                // TODO: CHECK IF THIS PART IS GOING TO BE CHANGED!!!!!!
-                // if there is no user with that username
-                // create the user
                 var newUserMysql = {
                     username: username,
                     password: userModule.hashPassword(password)
@@ -116,7 +111,6 @@ passport.use(
                     }
                     // all is well, return successful user
                     var row = Object.assign({}, rows[0]);
-                    // TODO: remove these lab_id lines ??????????
                     row['lab_id'] = [];
                     for (var indRow in rows) {
                         row['lab_id'].push(rows[indRow]['lab_id']);

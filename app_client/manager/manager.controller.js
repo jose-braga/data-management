@@ -1,9 +1,5 @@
 (function(){
 
-    //TODO: add 'started' to nuclear info
-    //TODO: redo form on mobile part
-
-
 /******************************* Controllers **********************************/
     var managerCtrl = function ($scope, $timeout, $mdMedia, Upload,
                         personData, teamData, managerData, publications, authentication) {
@@ -2056,7 +2052,6 @@
             for (var num=0; num<vm.totalPagesValidate; num++) {
                 vm.pagesValidate.push(num);
             }
-            //TODO: remove 'personTechLab' ???????
             vm.forms = {
                 'allPeople': 0,
                 'personNuclear': 1,

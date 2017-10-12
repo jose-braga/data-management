@@ -4579,8 +4579,6 @@ module.exports.getLabMembers = function (req, res, next) {
         lab = '';
     }
 
-    // TODO: filter by start/end dates from affiliations
-
     var querySQL = 'SELECT people.id, people.name, people.colloquial_name,' +
                    ' emails.email, phones.phone, phones.extension AS phone_extension,' +
                    ' labs.id AS lab_id, labs.name AS lab_name,' +

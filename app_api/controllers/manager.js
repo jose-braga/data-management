@@ -565,7 +565,6 @@ module.exports.listAllPeopleWithRolesData = function (req, res, next) {
     getUser(req, res, [0, 5, 10, 15],
         function (req, res, username) {
             var places = [];
-            //TODO: To have all data of people retrieve all 'technicians', 'administrative' and 'science_managers'
             var querySQL = 'SELECT people.id AS person_id, people.name AS person_name,' +
                            ' people_institution_city.city_id AS pole_id, institution_city.city AS pole_name,' +
                            ' people_roles.role_id, people_roles.id AS people_roles_id,' +

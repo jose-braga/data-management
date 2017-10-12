@@ -1,5 +1,4 @@
 (function(){
-    // TODO: require a minimum of 8 characters length
 var loginCtrl = function ($scope,$location, authentication) {
     var vm = this;
 

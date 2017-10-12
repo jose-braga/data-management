@@ -8,9 +8,6 @@ var auth = jwt({
 });
 
 
-// TODO: remove verbs from URLs (e.g. 'update', 'delete')
-// TODO: substitute Uppercase in URLs by '-' (administrativeOffices to administrative-offices)
-
 var ctrlPeopleData = require('../controllers/people.js');
 var ctrlTeamData = require('../controllers/team.js');
 var ctrlManagerData = require('../controllers/manager.js');

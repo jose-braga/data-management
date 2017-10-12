@@ -50,14 +50,12 @@
     };
 
      angular.module('managementApp', ['ngMaterial','ngRoute', 'ngMessages','ngMdIcons','ngFileUpload','uiCropper'])
-        /*
+        // comment this config when debugging
         .config(['$compileProvider', function ($compileProvider) {
             $compileProvider.debugInfoEnabled(false);
-            // test lines below
-            //$compileProvider.commentDirectivesEnabled(false);
-            //$compileProvider.cssClassDirectivesEnabled(false);
+            $compileProvider.commentDirectivesEnabled(false);
+            $compileProvider.cssClassDirectivesEnabled(false);
         }])
-        */
         .config(['$routeProvider', '$locationProvider', config])
         .config(function($mdDateLocaleProvider) {
             $mdDateLocaleProvider.formatDate = function(date) {

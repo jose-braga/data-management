@@ -1,6 +1,4 @@
 (function(){
-
-    // TODO: Only information in selected roles will be forwarded to server
 /******************************* Controllers **********************************/
     var registrationCtrl = function ($scope, $timeout, personData, registrationData, authentication) {
         var GLOBAL_MANAGER_PERMISSION = 5;

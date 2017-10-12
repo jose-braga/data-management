@@ -1255,6 +1255,13 @@
                         }
                         vm.currentIDs.push(Object.assign({}, vm.thisPerson.identifications[id]));
                     }
+                    var authors = [];
+                    for (var el in vm.thisPerson.author_data) {
+                        if (vm.thisPerson.author_data[el].author_name_id !== null) {
+                            authors.push(vm.thisPerson.author_data[el]);
+                        }
+                    }
+                    vm.thisPerson.author_data = authors;
                     vm.currentEmergencyContacts = [];
                     for (var id in vm.thisPerson.emergency_contacts) {
                         vm.currentEmergencyContacts.push(Object.assign({}, vm.thisPerson.emergency_contacts[id]));

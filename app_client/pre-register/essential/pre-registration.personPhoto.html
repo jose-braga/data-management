@@ -1,0 +1,39 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Website personal photo</span>
+        </md-card-title-text>
+    </md-card-title>
+    <md-card-content layout="column" flex>
+        <div class="dropzone-container">
+            <div type="file"
+    	        name="imagePerson"
+                ngf-drop
+                ngf-select
+    	        ng-model="vm.imagePersonPre"
+                ngf-pattern="'image/*'"
+                accept="image/*"
+                ngf-max-size="20MB"
+                class="dropzone dropzone-hover">
+                Drop image or click
+            </div>
+        </div>
+        <div layout="column" layout-gt-sm="row">
+            <div class="cropArea show-original">
+                <img hidden ngf-src="vm.imagePersonPre"/>
+                <ui-cropper image="vm.imagePerson"
+                    area-type="rectangle"
+                    area-min-size="10"
+                    aspect-ratio="0.666666"
+                    result-image="vm.imageTemp"
+                    result-image-format="{{vm.personImageType}}"
+                    url-blob="vm.imagePersonCropped"
+                    result-image-size="{w: 200,h: 300}">
+                </ui-cropper>
+            </div>
+            <div class="show-cropped" layout-padding layout-margin>
+                <img ng-src="{{vm.imagePersonCropped}}" />
+            </div>
+        </div>
+    </md-card-content>
+</md-card>

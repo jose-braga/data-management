@@ -5,8 +5,8 @@
 
 
 /******************************* Controllers **********************************/
-    var managerCtrl = function ($scope, $timeout, $mdMedia,
-                        personData, teamData, managerData, authentication) {
+    var managerCtrl = function ($scope, $timeout, $mdMedia, Upload,
+                        personData, teamData, managerData, publications, authentication) {
         var vm = this;
 
         vm.toolbarData = {title: 'Consult and change user data'};
@@ -468,6 +468,28 @@
                 vm.thisPerson.push({});
                 vm.selectedNationalities.push([]);
                 vm.currentIDs.push([]);
+
+                vm.newAuthorNames.push([]);
+                vm.delAuthorNames.push([]);
+
+                vm.hasPhoto.push(false);
+                vm.changePhoto.push(false);
+                vm.imagePersonPre.push('');
+                vm.imagePerson.push('');
+                vm.imagePersonCropped.push('');
+                vm.imageTemp.push('');
+                vm.personImageType.push('');
+                var sizeImagePersonPre = vm.imagePersonPre.length;
+                vm.watchImage.push($scope.$watch(
+                    function () {
+                        return vm.imagePersonPre[sizeImagePersonPre-1]["$ngfBlobUrl"];
+                    },
+                    function(newValue, oldValue, scope) {
+                        vm.imagePerson[sizeImagePersonPre-1] = newValue;
+                        vm.personImageType[sizeImagePersonPre-1] = vm.imagePersonPre[sizeImagePersonPre-1].type;
+                    }, true)
+                );
+
                 vm.currentFinishedDegrees.push([]);
                 vm.initialFinishedDegrees.push([]);
                 vm.currentOngoingDegrees.push([]);
@@ -489,6 +511,25 @@
                 vm.thisPersonValidate.push({});
                 vm.selectedNationalitiesValidate.push([]);
                 vm.currentIDsValidate.push([]);
+
+                vm.hasPhotoValidate.push(false);
+                vm.changePhotoValidate.push(false);
+                vm.imagePersonPreValidate.push('');
+                vm.imagePersonValidate.push('');
+                vm.imagePersonCroppedValidate.push('');
+                vm.imageTempValidate.push('');
+                vm.personImageTypeValidate.push('');
+                var sizeImagePersonPre = vm.imagePersonPreValidate.length;
+                vm.watchImageValidate.push($scope.$watch(
+                    function () {
+                        return vm.imagePersonPreValidate[sizeImagePersonPre-1]["$ngfBlobUrl"];
+                    },
+                    function(newValue, oldValue, scope) {
+                        vm.imagePersonValidate[sizeImagePersonPre-1] = newValue;
+                        vm.personImageTypeValidate[sizeImagePersonPre-1] = vm.imagePersonPreValidate[sizeImagePersonPre-1].type;
+                    }, true)
+                );
+
                 vm.currentFinishedDegreesValidate.push([]);
                 vm.initialFinishedDegreesValidate.push([]);
                 vm.currentOngoingDegreesValidate.push([]);
@@ -502,6 +543,39 @@
                 vm.currentRolesValidate.push([]);
                 vm.currentResponsiblesValidate.push([]);
                 getPersonDataValidate(member.person_id, -1, -1);
+            }
+        };
+        vm.addAuthorName = function (indDetail,chip) {
+            for (var el in vm.thisPerson[indDetail].author_data) {
+                if (typeof vm.thisPerson[indDetail].author_data[el] === 'string') {
+                    vm.thisPerson[indDetail].author_data[el] = {};
+                    vm.thisPerson[indDetail].author_data[el].author_name = chip;
+                    vm.thisPerson[indDetail].author_data[el].author_name_id = 'new';
+                    vm.newAuthorNames[indDetail].push(vm.thisPerson[indDetail].author_data[el]);
+                    break;
+                }
+            }
+        };
+        vm.removeAuthorName = function (indDetail,chip) {
+            var toRemove = true;
+            for (var el in vm.newAuthorNames[indDetail]) {
+               if (vm.newAuthorNames[indDetail][el].author_name_id === 'new'
+                        && vm.newAuthorNames[indDetail][el].author_name === chip.author_name) {
+                    vm.newAuthorNames[indDetail].splice(el,1);
+                    toRemove = false;
+                    break;
+                }
+            }
+            if (toRemove) vm.delAuthorNames[indDetail].push(chip);
+
+        };
+
+
+        vm.changePhotoAction = function (ind, validate) {
+            if (validate !== true) {
+                vm.changePhoto[ind] = true;
+            } else {
+                vm.changePhotoValidate[ind] = true;
             }
         };
 
@@ -693,6 +767,58 @@
                 function () {}
                 );
             return false;
+        };
+        vm.submitPersonPhoto = function (ind, indDetail, validate) {
+            vm.updateStatus[ind] = "Updating...";
+            vm.messageType[ind] = 'message-updating';
+            vm.hideMessage[ind] = false;
+            if (validate !== true) {
+                Upload.urlToBlob(vm.imagePersonCropped[indDetail])
+                    .then(function(blob) {
+                        var croppedImagePre = blob;
+                        var croppedImageFile = new File([croppedImagePre],
+                                vm.imagePersonPre[indDetail].name, {type: vm.personImageType[indDetail]});
+                        var data = {
+                            file: croppedImageFile
+                        };
+                        personData.updatePersonPhoto(vm.thisPerson[indDetail].id,1, data)
+                            .then( function () {
+                                getPersonData(vm.thisPerson[indDetail].id, indDetail, ind);
+                                vm.changePhoto[indDetail] = false;
+                            },
+                            function () {
+                                vm.updateStatus[ind] = "Error!";
+                                vm.messageType[ind] = 'message-error';
+                            },
+                            function () {}
+                            );
+                        return false;
+
+                    });
+            } else {
+                Upload.urlToBlob(vm.imagePersonCroppedValidate[indDetail])
+                    .then(function(blob) {
+                        var croppedImagePre = blob;
+                        var croppedImageFile = new File([croppedImagePre],
+                                vm.imagePersonPreValidate[indDetail].name, {type: vm.personImageTypeValidate[indDetail]});
+                        var data = {
+                            file: croppedImageFile
+                        };
+                        personData.updatePersonPhoto(vm.thisPersonValidate[indDetail].id,1, data)
+                            .then( function () {
+                                getPersonDataValidate(vm.thisPersonValidate[indDetail].id, indDetail, ind);
+                                vm.changePhotoValidate[indDetail] = false;
+                            },
+                            function () {
+                                vm.updateStatus[ind] = "Error!";
+                                vm.messageType[ind] = 'message-error';
+                            },
+                            function () {}
+                            );
+                        return false;
+
+                    });
+            }
         };
         vm.submitNuclearInfo = function (ind, indDetail, datum, validate) {
             vm.updateStatus[ind] = "Updating...";
@@ -1355,6 +1481,7 @@
             };
             managerData.validatePerson(datum.id, data)
                 .then( function () {
+                    vm.watchImageValidate[indDetail]();
                     initializeDetails();
                     getAllPeopleWithRoles();
                     getAllPeopleNoRoles();
@@ -1363,6 +1490,28 @@
                     vm.messageType[ind] = 'message-success';
                     vm.hideMessage[ind] = false;
                     $timeout(function () { vm.hideMessage[ind] = true; }, 1500);
+                },
+                function () {
+                    vm.updateStatus[ind] = "Error!";
+                    vm.messageType[ind] = 'message-error';
+                },
+                function () {}
+                );
+            return false;
+        };
+        vm.submitAuthorNames = function (ind, indDetail) {
+            vm.updateStatus[ind] = "Updating...";
+            vm.messageType[ind] = 'message-updating';
+            vm.hideMessage[ind] = false;
+            var data = {
+                addAuthorNames: vm.newAuthorNames[indDetail],
+                delAuthorNames: vm.delAuthorNames[indDetail]
+            };
+            publications.updateAuthorNamesPerson(vm.thisPerson[indDetail].id,data)
+                .then( function () {
+                    //getPersonData(vm.currentUser.personID, ind);
+                    getPersonData(vm.thisPerson[indDetail].id, indDetail, ind);
+                    initializeVariables(ind,indDetail);
                 },
                 function () {
                     vm.updateStatus[ind] = "Error!";
@@ -1561,6 +1710,12 @@
             }
         };
         vm.closeTabs = function() {
+            for (var el in vm.nameDetails) {
+                vm.watchImage[el]();
+            }
+            for (var el in vm.nameDetailsValidate) {
+                vm.watchImageValidate[el]();
+            }
             initializeDetails();
         };
 
@@ -1787,6 +1942,27 @@
             vm.selectedNationalities = [];
             vm.currentIDs = [];
 
+            vm.newAuthorNames = [];
+            vm.delAuthorNames = [];
+
+            vm.hasPhoto = [];
+            vm.changePhoto = [];
+            vm.imagePersonPre = [];
+            vm.imagePerson = [];
+            vm.imagePersonCropped = [];
+            vm.imageTemp = [];
+            vm.personImageType = [];
+            vm.watchImage = [];
+
+            vm.hasPhotoValidate = [];
+            vm.changePhotoValidate = [];
+            vm.imagePersonPreValidate = [];
+            vm.imagePersonValidate = [];
+            vm.imagePersonCroppedValidate = [];
+            vm.imageTempValidate = [];
+            vm.personImageTypeValidate = [];
+            vm.watchImageValidate = [];
+
             vm.currentFinishedDegrees = [];
             vm.initialFinishedDegrees = [];
             vm.currentOngoingDegrees = [];
@@ -1822,7 +1998,12 @@
             vm.currentProfessionalSituationValidate = [];
             vm.currentResponsiblesValidate = [];
         }
-        function initializeVariables(ind) {
+        function initializeVariables(ind,indDetail) {
+            if (indDetail !== undefined) {
+                vm.delAuthorNames[indDetail] = [];
+                vm.newAuthorNames[indDetail] = [];
+            }
+
             vm.allPeople = [];
             vm.allPeopleNoRoles = [];
             vm.allPeopleValidate = [];
@@ -1932,7 +2113,10 @@
                 'validateResponsibles': 52,
                 'validatePole': 53,
                 'validateUser':54,
-                'personPasswordReset': 55
+                'personPasswordReset': 55,
+                'personPhoto':56,
+                'personAuthorNames': 57,
+                'validatePhoto': 58
             };
 
             if (ind === undefined) {
@@ -1960,6 +2144,9 @@
                     if (vm.thisPerson[el]['birth_date'] !== null) {
                         date = new Date(vm.thisPerson[el]['birth_date']);
                         vm.thisPerson[el]['birth_date'] = date;
+                    }
+                    if (vm.thisPerson[el].pers_photo[0].personal_photo_id !== null) {
+                        vm.hasPhoto[el] = true;
                     }
 
                     vm.thisPerson[el]['active_until'] = processDate(vm.thisPerson[el]['active_until']);
@@ -2112,6 +2299,10 @@
                     vm.thisPersonValidate[el]['birth_date'] = processDate(vm.thisPersonValidate[el]['birth_date']);
                     vm.thisPersonValidate[el]['active_until'] = processDate(vm.thisPersonValidate[el]['active_until']);
                     vm.thisPersonValidate[el]['active_from'] = processDate(vm.thisPersonValidate[el]['active_from']);
+
+                    if (vm.thisPersonValidate[el].pers_photo[0].personal_photo_id !== null) {
+                        vm.hasPhotoValidate[el] = true;
+                    }
 
                     for (var nat in vm.thisPersonValidate[el].nationalities) {
                         vm.selectedNationalitiesValidate[el].push(Object.assign({}, vm.thisPersonValidate[el].nationalities[nat]));
@@ -2653,6 +2844,20 @@
         };
     };
 
+    var managerPersonPhoto = function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'manager/person_details/manager.personPhoto.html'
+        };
+    };
+
+    var managerPersonAuthorNames = function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'manager/person_details/manager.personAuthorNames.html'
+        };
+    };
+
     var validatePerson = function () {
         return {
             restrict: 'E',
@@ -2800,6 +3005,13 @@
         };
     };
 
+    var validatePersonPhoto = function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'manager/validate_details/validate.personPhoto.html'
+        };
+    };
+
 /**************************** Register components *****************************/
     angular
         .module('managementApp')
@@ -2826,6 +3038,8 @@
         .directive('managerPersonResponsibles', managerPersonResponsibles)
         .directive('managerPersonPole', managerPersonPole)
         .directive('managerPersonLeft', managerPersonLeft)
+        .directive('managerPersonPhoto', managerPersonPhoto)
+        .directive('managerPersonAuthorNames', managerPersonAuthorNames)
 
         .directive('listPeopleValidate', listPeopleValidate)
         .directive('validatePerson', validatePerson)
@@ -2849,6 +3063,8 @@
         .directive('validatePersonOngoingDegrees', validatePersonOngoingDegrees)
         .directive('validatePersonResponsibles', validatePersonResponsibles)
         .directive('validatePersonPole', validatePersonPole)
+        .directive('validatePersonPhoto', validatePersonPhoto)
+
         .directive('managerPasswordReset', managerPasswordReset)
 
         .controller('managerCtrl', managerCtrl)

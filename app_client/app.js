@@ -1,9 +1,8 @@
  (function(){
-    // Current version: 1.0.0
+    // Current version: 0.1.1
 
-    // TODO: (v1.1.0) Add "selected" and "full" publications to people data and to team data
-    // TODO: (v1.1.1) Add "photos" and "author names" on Manager view
-    // TODO: (v1.2.0) Add automatic PDF generator
+    // TODO: (v0.1.2) PUBLIC API: Add "selected" and "full" publications to people data and to team
+    // TODO: (v0.2.0) Add automatic PDF generator
 
     // TODO: (future) interface improvement - "Myself" (current affiliations); "Manager" list show only current affiliations
     // TODO: (future) easier administration - Delete user from all tables

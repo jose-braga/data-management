@@ -1,6 +1,7 @@
 (function(){
 /******************************* Controllers **********************************/
-    var preRegCtrl = function ($scope,$routeParams,$location, $timeout, personData, preRegistration, authentication) {
+    var preRegCtrl = function ($scope,$routeParams,$location, $timeout,
+                               Upload, personData, preRegistration, authentication) {
         //TODO: add more question such as personal emails, ID's, etc
 
         var vm = this;
@@ -31,6 +32,7 @@
                 vm.currentUser = authentication.currentPreRegUser();
                 vm.isLoggedIn = authentication.isPreRegistering();
                 getPersonData(vm.currentUser.personID, -1);
+                initializeImages();
                 getDataLists();
             })
             .catch(function(err){
@@ -43,29 +45,49 @@
             vm.updateStatus[ind] = "Updating...";
             vm.messageType[ind] = 'message-updating';
             vm.hideMessage[ind] = false;
+
             var data = vm.thisPerson;
             data['changed_by'] = vm.currentUser.userID;
             data['earliest_date'] = findEarliestDate();
-            preRegistration.addNewPersonData(data)
-                .then(function () {
-                    if (ind > -1) {
-                        vm.updateStatus[ind] = 'A message was sent to a manager.' +
-                        'You will be notified upon successful validation.';
-                        vm.messageType[ind] = 'message-success';
-                        vm.hideMessage[ind] = false;
-                        $timeout(function () {
-                            vm.hideMessage[ind] = true;
-                            $location.path('/');
-                        }, 5000);
-                    }
-                },
-                function () {
-                    vm.updateStatus[ind] = "Error!";
-                    vm.messageType[ind] = 'message-error';
-                },
-                function () {}
-                );
 
+            preRegistration.addNewPersonData(data)
+            .then( function () {
+                if (vm.imagePersonCropped !== '') {
+                    Upload.urlToBlob(vm.imagePersonCropped)
+                    .then(function(blob) {
+                        var croppedImagePre = blob;
+                        var croppedImageFile = new File([croppedImagePre],
+                                vm.imagePersonPre.name, {type: vm.personImageType});
+                        var data = {
+                            file: croppedImageFile
+                        };
+                        preRegistration.updatePersonPhoto(vm.currentUser.personID,1, data)
+                            .then( function () {
+                                getPersonData(vm.currentUser.personID, ind);
+                                vm.changePhoto = false;
+                            });
+                    });
+                }
+            })
+            .then(function () {
+                if (ind > -1) {
+                    vm.updateStatus[ind] = 'A message was sent to a manager.' +
+                    'You will be notified upon successful validation.';
+                    vm.messageType[ind] = 'message-success';
+                    vm.hideMessage[ind] = false;
+                    $timeout(function () {
+                        vm.hideMessage[ind] = true;
+                        $location.path('/');
+                    }, 5000);
+                }
+            },
+            function () {
+                vm.updateStatus[ind] = "Error!";
+                vm.messageType[ind] = 'message-error';
+            },
+            function () {}
+            );
+            return false;
         };
 
         vm.rolePresent = function (roleList, role) {
@@ -463,6 +485,15 @@
                     console.log(err);
                 });
         }
+        function initializeImages() {
+            vm.imagePersonPre = '';
+            vm.imagePerson = '';
+            vm.imagePersonCropped = '';
+            $scope.$watch('vm.imagePersonPre["$ngfBlobUrl"]', function(newValue, oldValue, scope) {
+                vm.imagePerson = newValue;
+                vm.personImageType = vm.imagePersonPre.type;
+            }, true);
+        }
     };
 
 
@@ -501,6 +532,12 @@
         return {
             restrict: 'E',
             templateUrl: 'pre-register/essential/pre-registration.personNuclearInfo.html'
+        };
+    };
+    var preRegistrationPhoto = function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'pre-register/essential/pre-registration.personPhoto.html'
         };
     };
     var preRegistrationPersonRoles = function () {
@@ -560,6 +597,7 @@
 
         .directive('preRegistrationChangePassword', preRegistrationChangePassword)
         .directive('preRegistrationPersonNuclearInfo', preRegistrationPersonNuclearInfo)
+        .directive('preRegistrationPhoto', preRegistrationPhoto)
         .directive('preRegistrationContactInfo', preRegistrationContactInfo)
         .directive('preRegistrationInstitutionalContactsInfo', preRegistrationInstitutionalContactsInfo)
         .directive('preRegistrationIdentifications', preRegistrationIdentifications)

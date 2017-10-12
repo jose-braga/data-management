@@ -11,15 +11,34 @@
 
         var addNewPersonData = function (data) {
             return $http.post('api/pre-registration/data', data,
+                    {
+                        headers: {
+                            Authorization: 'Bearer ' + authentication.getPreRegToken()
+                        }
+                    }
+                );
+        };
+
+        var updatePersonPhoto = function (personID, imageType, data) {
+            var fd = new FormData();
+            fd.append('file', data.file);
+            return $http.post('api/pre-registration/photo/'+ personID + '/'  + imageType, fd,
                 {
-                    headers: {Authorization: 'Bearer ' + authentication.getPreRegToken()}
+                    transformRequest: angular.identity,
+                    headers: {
+                        'Content-Type': undefined,
+                        Authorization: 'Bearer ' + authentication.getPreRegToken()
+
+                    }
                 }
             );
         };
 
         return {
             thisPersonData: thisPersonData,
-            addNewPersonData: addNewPersonData
+            addNewPersonData: addNewPersonData,
+            updatePersonPhoto: updatePersonPhoto
+
         };
     };
 

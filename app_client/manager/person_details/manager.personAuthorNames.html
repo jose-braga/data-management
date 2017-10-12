@@ -4,16 +4,16 @@
             <span class="md-headline">Author names</span>
         </md-card-title-text>
     </md-card-title>
-    <form flex novalidate name="personAuthorNamesForm"
-        ng-submit="personAuthorNamesForm.$valid && vm.submitAuthorNames(vm.forms['personAuthorNames'])">
+    <form flex novalidate name="personAuthorNamesForm[num]"
+        ng-submit="personAuthorNamesForm[num].$valid && vm.submitAuthorNames(vm.forms['personAuthorNames'],vm.selectedIndex-2)">
         <md-card-content layout="column" flex>
             <p class="small-text">
                 Insert all author names variants exactly as they appear in your publications.
             </p>
-            <md-chips ng-model="vm.thisPerson.author_data" name="authorName"
+            <md-chips ng-model="vm.thisPerson[vm.selectedIndex-2].author_data" name="authorName[num]"
                     placeholder="Enter another name"
-                    md-on-add="vm.addAuthorName($chip)"
-                    md-on-remove="vm.removeAuthorName($chip)">
+                    md-on-add="vm.addAuthorName(vm.selectedIndex-2,$chip)"
+                    md-on-remove="vm.removeAuthorName(vm.selectedIndex-2,$chip)">
                 <md-chip-template>
                     {{$chip.author_name}}
                 </md-chip-template>

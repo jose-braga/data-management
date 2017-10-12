@@ -1,0 +1,66 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Website personal photo</span>
+        </md-card-title-text>
+    </md-card-title>
+    <form novalidate flex name="validatePhotoForm[num]"
+        ng-submit="validatePhotoForm[num].$valid && vm.submitPersonPhoto(vm.forms['validatePhoto'],vm.selectedIndexValidate-1, true)">
+        <md-card-content layout="column" flex>
+            <div ng-if="vm.hasPhotoValidate[vm.selectedIndexValidate-1]"
+                    layout="column" layout-gt-sm="row" layout-margin
+                    layout-align="center center">
+                <div>
+                    <img class="personal-photo" ng-src="{{vm.thisPersonValidate[vm.selectedIndexValidate-1].pers_photo[0].image_path}}">
+                </div>
+                <div>
+                    <md-button ng-click="vm.changePhotoAction(vm.selectedIndexValidate-1, true)"
+                        class="button-small md-raised md-primary">Change photo</md-button>
+                </div>
+            </div>
+            <div ng-if="!vm.hasPhotoValidate[vm.selectedIndexValidate-1] || vm.changePhotoValidate[vm.selectedIndexValidate-1]">
+                <p ng-if="vm.changePhotoValidate[vm.selectedIndexValidate-1]">To change image click below, then crop </p>
+                <div class="dropzone-container">
+                <!-- ngf-change="vm.initializeCrop()" -->
+                <div type="file"
+        	        name="imagePersonValidate[vm.selectedIndexValidate-1]"
+                    ngf-drop
+                    ngf-select
+        	        ng-model="vm.imagePersonPreValidate[vm.selectedIndexValidate-1]"
+                    ngf-pattern="'image/*'"
+                    accept="image/*"
+                    ngf-max-size="20MB"
+                    class="dropzone dropzone-hover">
+                    Drop image or click
+                </div>
+            </div>
+                <div layout="column" layout-gt-sm="row">
+                <div class="cropArea show-original">
+                    <img hidden ngf-src="vm.imagePersonPreValidate[vm.selectedIndexValidate-1]"/>
+                    <ui-cropper image="vm.imagePersonValidate[vm.selectedIndexValidate-1]"
+                        area-type="rectangle"
+                        area-min-size="10"
+                        aspect-ratio="0.666666"
+                        result-image="vm.imageTempValidate[vm.selectedIndexValidate-1]"
+                        result-image-format="{{vm.personImageTypeValidate[vm.selectedIndexValidate-1]}}"
+                        url-blob="vm.imagePersonCroppedValidate[vm.selectedIndexValidate-1]"
+                        result-image-size="{w: 200,h: 300}">
+                    </ui-cropper>
+                </div>
+                <div class="show-cropped" layout-padding layout-margin>
+                    <img ng-src="{{vm.imagePersonCroppedValidate[vm.selectedIndexValidate-1]}}" />
+                </div>
+            </div>
+                <div layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button type="submit"
+                    class="button-small md-raised md-primary">Update</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['validatePhoto']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['validatePhoto']]">
+                        {{vm.updateStatus[vm.forms['validatePhoto']]}}
+                    </span>
+                </div>
+            </div>
+            </div>
+        </md-card-content>
+    </form>
+</md-card>

@@ -113,6 +113,7 @@ router.post('/pre-registration', ctrlAuth.preRegistration);
 
 // POST new user data on pre.registration
 router.post('/pre-registration/data', auth, ctrlPreRegistrationData.preRegisterPerson);
+router.post('/pre-registration/photo/:personID/:imageType', auth, ctrlPreRegistrationData.updatePhoto);
 router.get('/pre-registration/people/:personID', auth, ctrlPreRegistrationData.getPersonData);
 
 // API points for authentication

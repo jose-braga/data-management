@@ -1,9 +1,40 @@
+const fs = require('fs-extra');
+var path = require('path');
 var moment = require('moment-timezone');
 var server = require('../models/server');
 var pool = server.pool;
 const nodemailer = require('../controllers/emailer');
 let transporter = nodemailer.transporter;
 var userModule = require('../models/users');
+var multer = require('multer');
+var storage = multer.diskStorage({ //multers disk storage settings
+    destination: function (req, file, callback) {
+        var personID = req.params.personID;
+        var imageType = req.params.imageType;
+        var tempDirectory = 'public/images/people/' + personID + '/' + imageType;
+        fs.ensureDir(tempDirectory)
+            .then(() => {
+                fs.emptyDir(tempDirectory)
+                    .then(() => {
+                        callback(null, tempDirectory);
+                    })
+                    .catch((err) => {
+                        console.log(err);
+                        callback(null, tempDirectory);
+                    });
+            })
+            .catch((err) => {
+                console.log(err);
+                callback(null, tempDirectory);
+            });
+    },
+    filename: function (req, file, callback) {
+        var datetimestamp = momentToDate(moment(), undefined, 'YYYYMMDD_HHmmss');
+        var fileInfo = path.parse(file.originalname);
+        callback(null, fileInfo.name + '-' + datetimestamp + fileInfo.ext);
+    }
+});
+
 
 /**************************** Utility Functions *******************************/
 var escapedQuery = function(querySQL, place, req, res, next) {
@@ -36,7 +67,7 @@ var getUser = function (req, res, next, permissions, callback) {
         pool.query(
             'SELECT * FROM users' +
             ' LEFT JOIN people ON users.id = people.user_id' +
-            ' WHERE users.username = ? AND people.status = 2',
+            ' WHERE users.username = ? AND (people.status = 2 OR people.status = 3)',
             [username],
             function(err, rows){
                 if (err) {
@@ -691,6 +722,93 @@ var queryJobContractDetails = function (req,res, next, userID, personID,job, job
     }
 };
 
+
+
+var queryUpdatePhoto = function (req, res, next, userCity) {
+    var upload = multer({
+        storage: storage,
+    }).single('file');
+    upload(req,res,function(err){
+        if(err){
+             sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+             return;
+        }
+        return queryUpdatePhotoDatabaseGetPrevious(req, res, next, req.file);
+    });
+};
+
+var queryUpdatePhotoDatabaseGetPrevious = function (req, res, next, file) {
+    var personID = req.params.personID;
+    var query = 'SELECT *' +
+                ' FROM personal_photo' +
+                ' WHERE person_id = ? AND photo_type_id = ?;';
+    var places = [personID, 1];
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(query,places,
+            function (err, rowsQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                var action;
+                if (rowsQuery.length > 0) {
+                    action = 'update';
+                } else {
+                    action = 'insert';
+                }
+                return queryUpdatePhotoDatabaseFinal(req, res, next, file, action);
+            }
+        );
+    });
+};
+
+var queryUpdatePhotoDatabaseFinal = function (req, res, next, file, action) {
+    var personID = req.params.personID;
+    var filePath = process.env.PATH_PREFIX + '/' + file.path.replace('public/','');
+    var query;
+    var places;
+    if (action === 'update') {
+        query = 'UPDATE personal_photo' +
+                ' SET photo_type_id = ?,' +
+                ' url = ?' +
+                ' WHERE person_id = ?;';
+        places = [1, filePath, personID];
+    } else {
+        query = 'INSERT INTO personal_photo' +
+                ' (person_id,photo_type_id,url)' +
+                ' VALUES (?,?,?);';
+        places = [personID, 1, filePath];
+    }
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(query,places,
+            function (err, rowsQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                sendJSONResponse(res, 200,
+                    {"status": "success", "statusCode": 200, "count": 1,
+                     "result" : "OK!"});
+            }
+        );
+    });
+};
+
+
+
+
 var queryGetPersonalEmails = function (req,res,next) {
     var personID = req.params.personID;
     var row = {};
@@ -1051,6 +1169,12 @@ var queryGetAdministrativeData = function (req,res,next, personID, row) {
 module.exports.preRegisterPerson = function (req, res, next) {
     getUser(req, res, next, [40], //pre-registered users have always permission level 40
         queryUpdateUser
+    );
+};
+
+module.exports.updatePhoto = function (req, res, next) {
+    getUser(req, res, next, [40], //pre-registered users have always permission level 40
+        queryUpdatePhoto
     );
 };
 

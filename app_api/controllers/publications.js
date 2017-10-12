@@ -136,6 +136,12 @@ var queryPersonPublications = function (req, res, next) {
                     sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                     return;
                 }
+                if(resQuery.length === 0 || resQuery === undefined) {
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 1,
+                        "result" : []});
+                    return;
+                }
                 return queryPublicationDescription(req,res,next,resQuery,0);
             }
         );
@@ -377,25 +383,30 @@ var queryUpdatePersonAuthorNames = function (req, res, next) {
                               ' WHERE id = ?;';
         places.push(del[ind].author_name_id);
     }
-    pool.getConnection(function(err, connection) {
-        if (err) {
-            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
-            return;
-        }
-        connection.query(querySQL,places,
-            function (err, resQuery) {
-                // And done with the connection.
-                connection.release();
-                if (err) {
-                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
-                    return;
-                }
-                sendJSONResponse(res, 200,
-                    {"status": "success", "statusCode": 200, "count": 1,
-                     "result" : "OK!"});
+    if (querySQL !== '') {
+        pool.getConnection(function(err, connection) {
+            if (err) {
+                sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+                return;
             }
-        );
-    });
+            connection.query(querySQL,places,
+                function (err, resQuery) {
+                    // And done with the connection.
+                    connection.release();
+                    if (err) {
+                        sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                        return;
+                    }
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 1,
+                         "result" : "OK!"});
+                }
+            );
+        });
+    } else {
+        sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "message": "No changes"});
+    }
 };
 
 var queryUpdateTeamSelectedPublications = function (req, res, next) {

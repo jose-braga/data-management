@@ -665,8 +665,8 @@ var queryPeopleStartDateUpdate = function (req, res, next, userCity, updated, cr
                    ' VALUES (?,?,?,?,?,?,?,?,?,?,?,?)';
     querySQL = querySQL + '; ';
     places.push(personID,resQuery.user_id,resQuery.name,resQuery.colloquial_name,
-                resQuery.birth_date,resQuery.gender,
-                minDate,resQuery.active_until,1,updated,'U',changed_by);
+                momentToDate(resQuery.birth_date),resQuery.gender,
+                minDate,momentToDate(resQuery.active_until),1,updated,'U',changed_by);
     pool.getConnection(function(err, connection) {
         if (err) {
             sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
@@ -696,8 +696,8 @@ var queryPeopleEndDateUpdate = function (req, res, next, userCity, updated, crea
                      '`active_from`,`active_until`,`status`,`updated`,`operation`,`changed_by`)' +
                    ' VALUES (?,?,?,?,?,?,?,?,?,?,?,?);';
     places.push(personID,resQuery.user_id,resQuery.name,resQuery.colloquial_name,
-                resQuery.birth_date,resQuery.gender,
-                resQuery.active_from,
+                momentToDate(resQuery.birth_date),resQuery.gender,
+                momentToDate(resQuery.active_from),
                 momentToDate(active_until),
                 1,updated,'U',changed_by);
     pool.getConnection(function(err, connection) {
@@ -818,24 +818,29 @@ var queryAffiliationsEndDate = function (req,res,next,updated,created,changed_by
             }
         }
     }
-    pool.getConnection(function(err, connection) {
-        if (err) {
-            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
-            return;
-        }
-        connection.query(querySQL,places,
-            function (err, resQuery) {
-                // And done with the connection.
-                connection.release();
-                if (err) {
-                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
-                    return;
-                }
-                sendJSONResponse(res, 200, { message: 'All done.' });
+    if (places.length > 0) {
+        pool.getConnection(function(err, connection) {
+            if (err) {
+                sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
                 return;
             }
-        );
-    });
+            connection.query(querySQL,places,
+                function (err, resQuery) {
+                    // And done with the connection.
+                    connection.release();
+                    if (err) {
+                        sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                        return;
+                    }
+                    sendJSONResponse(res, 200, { message: 'All done.' });
+                    return;
+                }
+            );
+        });
+    } else {
+        sendJSONResponse(res, 200, { message: 'All done.' });
+        return;
+    }
 };
 /*
 var queryAffiliationTechEndDate = function (req,res,next,updated,created,changed_by) {

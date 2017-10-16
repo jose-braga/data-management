@@ -1,6 +1,5 @@
  (function(){
     // Current version: 0.1.1
-
     // TODO: (v0.1.2) PUBLIC API: Add "selected" and "full" publications to people data and to team
     // TODO: (v0.2.0) Add automatic PDF generator
 

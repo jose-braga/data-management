@@ -1510,6 +1510,49 @@ var queryPreRegisterAddPersonHistory = function (req, res, next, userID, personI
     });
 };
 
+var queryPreRegisterAddRole = function(req, res, next, userID, personID, role, peopleOfficeID,
+                                      active_from,stat, created, changed_by,password,i) {
+    var query = 'INSERT INTO `people_roles`' +
+                      ' (`person_id`,`role_id`)' +
+                      ' SELECT ?,? FROM DUAL' +
+                      ' WHERE NOT EXISTS (' +
+                      ' SELECT * FROM `people_roles` WHERE person_id = ? AND role_id = ?);';
+    var placeholders = [personID,role,personID,role];
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(query, placeholders,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (role === 1) {
+                    return queryPreRegisterAddLabHistory(req, res, next,userID, personID, peopleOfficeID,
+                                          active_from,stat, created, changed_by,password,i);
+                }
+                if (role === 2) {
+                    return queryPreRegisterAddTechnicianHistory(req, res, next,userID, personID, peopleOfficeID,
+                                          active_from,stat, created, changed_by,password,i);
+                }
+                if (role === 3) {
+                    return queryPreRegisterAddScienceManagerHistory(req, res, next,userID, personID, peopleOfficeID,
+                                          active_from,stat, created, changed_by,password,i);
+                }
+                if (role === 4) {
+                    return queryPreRegisterAddAdministrativeHistory(req, res, next,userID, personID, peopleOfficeID,
+                                          active_from,stat, created, changed_by,password,i);
+                }
+            }
+        );
+    });
+
+};
+
 var queryPreRegisterAddLab = function (req, res, next, userID, personID,
                                       active_from,stat, created, changed_by,password,i) {
     var lab_id = req.body.affiliations[i].data.id;
@@ -1521,12 +1564,6 @@ var queryPreRegisterAddLab = function (req, res, next, userID, personID,
                     'VALUES (?,?,?,?,?,?);';
     var placeholders = [personID, lab_id, lab_position_id,
                 dedication, momentToDate(start), momentToDate(end)];
-    query = query + 'INSERT INTO `people_roles`' +
-                          ' (`person_id`,`role_id`)' +
-                          ' SELECT ?,? FROM DUAL' +
-                          ' WHERE NOT EXISTS (' +
-                          'SELECT * FROM `people_roles` WHERE person_id = ? AND role_id = ?);';
-    placeholders.push(personID,1,personID,1);
     pool.getConnection(function(err, connection) {
         if (err) {
             sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
@@ -1541,7 +1578,7 @@ var queryPreRegisterAddLab = function (req, res, next, userID, personID,
                     return;
                 }
                 var peopleOfficeID = resQuery.insertId;
-                return queryPreRegisterAddLabHistory(req, res, next,userID, personID, peopleOfficeID,
+                return queryPreRegisterAddRole(req, res, next,userID, personID, 1, peopleOfficeID,
                                           active_from,stat, created, changed_by,password,i);
             }
         );
@@ -1611,12 +1648,6 @@ var queryPreRegisterAddTechnician = function (req, res, next, userID, personID,
                  ' VALUES (?,?,?,?,?,?);';
     var placeholders = [personID, office_id, office_position_id,
                 dedication, momentToDate(start), momentToDate(end)];
-    query = query + 'INSERT INTO `people_roles`' +
-                          ' (`person_id`,`role_id`)' +
-                          ' SELECT ?,? FROM DUAL' +
-                          ' WHERE NOT EXISTS (' +
-                          'SELECT * FROM `people_roles` WHERE person_id = ? AND role_id = ?);';
-    placeholders.push(personID,2,personID,2);
     pool.getConnection(function(err, connection) {
         if (err) {
             sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
@@ -1631,8 +1662,8 @@ var queryPreRegisterAddTechnician = function (req, res, next, userID, personID,
                     return;
                 }
                 var peopleOfficeID = resQuery.insertId;
-                return queryPreRegisterAddTechnicianHistory(req, res, next, userID, personID, peopleOfficeID,
-                                      active_from,stat, created, changed_by,password,i);
+                return queryPreRegisterAddRole(req, res, next,userID, personID, 2, peopleOfficeID,
+                                          active_from,stat, created, changed_by,password,i);
             }
         );
     });
@@ -1701,12 +1732,6 @@ var queryPreRegisterAddScienceManager = function (req, res, next, userID, person
                  ' VALUES (?,?,?,?,?,?);';
     var placeholders = [personID, office_id, office_position_id,
                 dedication, momentToDate(start), momentToDate(end)];
-    query = query + 'INSERT INTO `people_roles`' +
-                          ' (`person_id`,`role_id`)' +
-                          ' SELECT ?,? FROM DUAL' +
-                          ' WHERE NOT EXISTS (' +
-                          'SELECT * FROM `people_roles` WHERE person_id = ? AND role_id = ?);';
-    placeholders.push(personID,3,personID,3);
     pool.getConnection(function(err, connection) {
         if (err) {
             sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
@@ -1721,8 +1746,8 @@ var queryPreRegisterAddScienceManager = function (req, res, next, userID, person
                     return;
                 }
                 var peopleOfficeID = resQuery.insertId;
-                return queryPreRegisterAddScienceManagerHistory(req, res, next, userID, personID, peopleOfficeID,
-                                      active_from,stat, created, changed_by,password,i);
+                return queryPreRegisterAddRole(req, res, next,userID, personID, 3, peopleOfficeID,
+                                          active_from,stat, created, changed_by,password,i);
             }
         );
     });
@@ -1790,12 +1815,6 @@ var queryPreRegisterAddAdministrative = function (req, res, next, userID, person
                     'VALUES (?,?,?,?,?,?);';
     var placeholders = [personID, office_id, office_position_id,
                 dedication, momentToDate(start), momentToDate(end)];
-    query = query + 'INSERT INTO `people_roles`' +
-                          ' (`person_id`,`role_id`)' +
-                          ' SELECT ?,? FROM DUAL' +
-                          ' WHERE NOT EXISTS (' +
-                          'SELECT * FROM `people_roles` WHERE person_id = ? AND role_id = ?);';
-    placeholders.push(personID,4,personID,4);
     pool.getConnection(function(err, connection) {
         if (err) {
             sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
@@ -1810,8 +1829,8 @@ var queryPreRegisterAddAdministrative = function (req, res, next, userID, person
                     return;
                 }
                 var peopleOfficeID = resQuery.insertId;
-                return queryPreRegisterAddAdministrativeHistory(req, res, next, userID, personID, peopleOfficeID,
-                                      active_from,stat, created, changed_by,password,i);
+                return queryPreRegisterAddRole(req, res, next,userID, personID, 4, peopleOfficeID,
+                                          active_from,stat, created, changed_by,password,i);
             }
         );
     });

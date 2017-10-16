@@ -1960,9 +1960,11 @@
                 function sorter(a,b) {
                     if (scope.sortType === 'year') {
                         if (scope.sortReverse) {
-                            return (a[scope.sortType] ? a[scope.sortType] : 9999) > (b[scope.sortType] ? b[scope.sortType] : 9999);
+                            return (a[scope.sortType] ? String(a[scope.sortType]) : String(9999))
+                                .localeCompare(b[scope.sortType] ? String(b[scope.sortType]) : String(9999));
                         } else {
-                            return (a[scope.sortType] ? a[scope.sortType] : 0) < (b[scope.sortType] ? b[scope.sortType] : 0);
+                            return -(a[scope.sortType] ? String(a[scope.sortType]) : String(2000))
+                                .localeCompare(b[scope.sortType] ? String(b[scope.sortType]) : String(2000));
                         }
                     } else {
                         if (scope.sortReverse) {

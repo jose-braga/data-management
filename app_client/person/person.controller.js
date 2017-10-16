@@ -1074,9 +1074,11 @@
         function sorter(a,b) {
             if (vm.sortType === 'year') {
                 if (vm.sortReverse) {
-                    return (a[vm.sortType] ? a[vm.sortType] : 9999) > (b[vm.sortType] ? b[vm.sortType] : 9999);
+                    return (a[vm.sortType] ? String(a[vm.sortType]) : String(9999))
+                        .localeCompare(b[vm.sortType] ? String(b[vm.sortType]) : String(9999));
                 } else {
-                    return (a[vm.sortType] ? a[vm.sortType] : 0) < (b[vm.sortType] ? b[vm.sortType] : 0);
+                    return -(a[vm.sortType] ? String(a[vm.sortType]) : String(2000))
+                        .localeCompare(b[vm.sortType] ? String(b[vm.sortType]) : String(2000));
                 }
             } else {
                 if (vm.sortReverse) {

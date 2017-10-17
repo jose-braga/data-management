@@ -2155,6 +2155,13 @@
                         vm.thisPerson[el].identifications[id]['card_valid_until'] = processDate(vm.thisPerson[el].identifications[id]['card_valid_until']);
                         vm.currentIDs[el].push(Object.assign({}, vm.thisPerson[el].identifications[id]));
                     }
+                    var authors = [];
+                    for (var id in vm.thisPerson[el].author_data) {
+                        if (vm.thisPerson[el].author_data[id].author_name_id !== null) {
+                            authors.push(vm.thisPerson[el].author_data[id]);
+                        }
+                    }
+                    vm.thisPerson[el].author_data = authors;
 
                     vm.currentEmergencyContacts[el] = [];
                     for (var id in vm.thisPerson[el].emergency_contacts) {

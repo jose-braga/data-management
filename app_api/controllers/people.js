@@ -716,7 +716,7 @@ var queryPeopleEndDateUpdate = function (req, res, next, userCity, updated, crea
                 // affiliation end dates are altered only when active_until is not null
                 // and when active_until is earlier than end date
                 if (active_until !== null) {
-                    return queryAffiliationsEndDate(req,res,next,updated,created,changed_by);
+                    return queryAffiliationsEndDate(req,res,next,updated,created,changed_by, resQuery);
                 } else {
                     sendJSONResponse(res, 200, { message: 'All done.' });
                     return;
@@ -726,7 +726,7 @@ var queryPeopleEndDateUpdate = function (req, res, next, userCity, updated, crea
     });
 };
 
-var queryAffiliationsEndDate = function (req,res,next,updated,created,changed_by) {
+var queryAffiliationsEndDate = function (req,res,next,updated,created,changed_by, resQuery) {
     var personID = req.params.personID;
     var active_until = req.body.active_until;
     var active_until_tz = momentToDate(active_until);
@@ -736,6 +736,7 @@ var queryAffiliationsEndDate = function (req,res,next,updated,created,changed_by
     // department end dates are not affected
     for (var ind in req.body.lab_data) {
         data = req.body.lab_data[ind];
+        //TODO: do the same for the next
         if (active_until !== null) {
             if (data.people_lab_id !== null) {
                 if ((data.lab_start !== null && data.lab_end === null)
@@ -749,9 +750,22 @@ var queryAffiliationsEndDate = function (req,res,next,updated,created,changed_by
                                             '`valid_from`,`valid_until`,`updated`,`operation`,`changed_by`)' +
                                           ' VALUES (?,?,?,?,?,?,?,?,?,?);';
                     places.push(data.people_lab_id,personID,data.lab_id, data.lab_position_id,data.dedication,
-                                data.lab_start,active_until_tz,
+                                momentToDate(data.lab_start),active_until_tz,
+                                updated,'U',changed_by);
+                } else if (data.lab_end === null) {
+                    querySQL = querySQL + 'UPDATE `people_labs` ' +
+                                          'SET `valid_until` = ? ' +
+                                          'WHERE `id` = ?;';
+                    places.push(active_until_tz,data.people_lab_id);
+                    querySQL = querySQL + 'INSERT INTO `people_labs_history`' +
+                                          ' (`people_labs_id`,`person_id`,`lab_id`,`lab_position_id`,`dedication`,'+
+                                            '`valid_from`,`valid_until`,`updated`,`operation`,`changed_by`)' +
+                                          ' VALUES (?,?,?,?,?,?,?,?,?,?);';
+                    places.push(data.people_lab_id,personID,data.lab_id, data.lab_position_id,data.dedication,
+                                momentToDate(data.lab_start),active_until_tz,
                                 updated,'U',changed_by);
                 }
+
             }
         }
     }
@@ -770,7 +784,19 @@ var queryAffiliationsEndDate = function (req,res,next,updated,created,changed_by
                                             '`valid_from`,`valid_until`,`updated`,`operation`,`changed_by`)' +
                                           ' VALUES (?,?,?,?,?,?,?,?,?,?);';
                     places.push(data.tech_id,personID,data.tech_office_id, data.tech_position_id,data.tech_dedication,
-                                data.tech_valid_from, active_until_tz,
+                                momentToDate(data.tech_valid_from), active_until_tz,
+                                updated,'U',changed_by);
+                } else if (data.tech_valid_until === null) {
+                    querySQL = querySQL + 'UPDATE `technicians` ' +
+                                          'SET `valid_until` = ? ' +
+                                          'WHERE `id` = ?;';
+                    places.push(active_until_tz,data.tech_id);
+                    querySQL = querySQL + 'INSERT INTO `technicians_history`' +
+                                          ' (`technician_id`,`person_id`,`technician_office_id`,`technician_position_id`,`dedication`,'+
+                                            '`valid_from`,`valid_until`,`updated`,`operation`,`changed_by`)' +
+                                          ' VALUES (?,?,?,?,?,?,?,?,?,?);';
+                    places.push(data.tech_id,personID,data.tech_office_id, data.tech_position_id,data.tech_dedication,
+                                momentToDate(data.tech_valid_from), active_until_tz,
                                 updated,'U',changed_by);
                 }
             }
@@ -791,7 +817,19 @@ var queryAffiliationsEndDate = function (req,res,next,updated,created,changed_by
                                             '`valid_from`,`valid_until`,`updated`,`operation`,`changed_by`)' +
                                           ' VALUES (?,?,?,?,?,?,?,?,?,?);';
                     places.push(data.sc_man_id,personID,data.sc_man_office_id, data.sc_man_position_id,data.sc_man_dedication,
-                                data.sc_man_valid_from, active_until_tz,
+                                momentToDate(data.sc_man_valid_from), active_until_tz,
+                                updated,'U',changed_by);
+                } else if (data.sc_man_valid_until === null) {
+                    querySQL = querySQL + 'UPDATE `science_managers` ' +
+                                          'SET `valid_until` = ? ' +
+                                          'WHERE `id` = ?;';
+                    places.push(active_until_tz,data.sc_man_id);
+                    querySQL = querySQL + 'INSERT INTO `science_managers_history`' +
+                                          ' (`science_managers_id`,`person_id`,`science_manager_office_id`,`science_manager_position_id`,`dedication`,'+
+                                            '`valid_from`,`valid_until`,`updated`,`operation`,`changed_by`)' +
+                                          ' VALUES (?,?,?,?,?,?,?,?,?,?);';
+                    places.push(data.sc_man_id,personID,data.sc_man_office_id, data.sc_man_position_id,data.sc_man_dedication,
+                                momentToDate(data.sc_man_valid_from), active_until_tz,
                                 updated,'U',changed_by);
                 }
             }
@@ -812,7 +850,19 @@ var queryAffiliationsEndDate = function (req,res,next,updated,created,changed_by
                                             '`valid_from`,`valid_until`,`updated`,`operation`,`changed_by`)' +
                                           ' VALUES (?,?,?,?,?,?,?,?,?,?);';
                     places.push(data.adm_id,personID,data.adm_office_id, data.adm_position_id,data.adm_dedication,
-                                data.adm_valid_from, active_until_tz,
+                                momentToDate(data.adm_valid_from), active_until_tz,
+                                updated,'U',changed_by);
+                } else if (data.adm_valid_until === null) {
+                    querySQL = querySQL + 'UPDATE `people_administrative_offices` ' +
+                                          'SET `valid_until` = ? ' +
+                                          'WHERE `id` = ?;';
+                    places.push(active_until_tz,data.adm_id);
+                    querySQL = querySQL + 'INSERT INTO `people_administrative_offices_history`' +
+                                          ' (`people_administrative_offices_id`,`person_id`,`administrative_office_id`,`administrative_position_id`,`dedication`,'+
+                                            '`valid_from`,`valid_until`,`updated`,`operation`,`changed_by`)' +
+                                          ' VALUES (?,?,?,?,?,?,?,?,?,?);';
+                    places.push(data.adm_id,personID,data.adm_office_id, data.adm_position_id,data.adm_dedication,
+                                momentToDate(data.adm_valid_from), active_until_tz,
                                 updated,'U',changed_by);
                 }
             }

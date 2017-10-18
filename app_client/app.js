@@ -28,11 +28,11 @@
                 controller: 'preRegCtrl',
                 controllerAs: 'vm'
             })
-            /*.when('/unit', {
+            .when('/unit', {
                 templateUrl: 'unit/unit.view.html',
                 controller: 'unitCtrl',
                 controllerAs: 'vm'
-            })*/
+            })
             .when('/manager', {
                 templateUrl: 'manager/manager.view.html',
                 controller: 'managerCtrl',

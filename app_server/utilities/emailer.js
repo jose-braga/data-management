@@ -1,4 +1,4 @@
-require('dotenv').config({path: '../../.env'});
+require('dotenv').config({path: process.env.DOT_ENV_PATH});
 const nodemailer = require('nodemailer');
 
 let transporter = nodemailer.createTransport({

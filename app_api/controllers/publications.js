@@ -107,7 +107,6 @@ function momentToDate(timedate, timezone, timeformat) {
 
 var queryPersonPublications = function (req, res, next) {
     var personID = req.params.personID;
-    var userID = req.body.user_id;
     var querySQL = '';
     var places = [];
     querySQL = querySQL + 'SELECT people_publications.id AS people_publications_id, people_publications.position AS author_position,' +
@@ -446,6 +445,158 @@ var queryUpdateTeamSelectedPublications = function (req, res, next) {
         );
     });
 };
+
+
+/***************************** Public API Person Queries *****************************/
+module.exports.getPublicationInfo = function (req, res, next) {
+    var pubID = req.params.pubID;
+    var querySQL = 'SELECT person_selected_publications.person_id AS person_selected, lab_selected_publications.lab_id AS lab_selected,'+
+                    ' people_publications.person_id, people_labs.lab_id,' +
+                    ' publications.*,' +
+                    ' journals.name AS journal_name, journals.short_name AS journal_short_name, ' +
+                    ' journals.publisher, journals.publisher_city, journals.issn, journals.eissn ' +
+                    'FROM publications' +
+                    ' LEFT JOIN people_publications ON people_publications.publication_id = publications.id' +
+                    ' LEFT JOIN people_labs ON people_publications.person_id = people_labs.person_id' +
+                    ' LEFT JOIN person_selected_publications ON person_selected_publications.publication_id = publications.id' +
+                    ' LEFT JOIN lab_selected_publications ON lab_selected_publications.publication_id = publications.id' +
+                    ' LEFT JOIN journals ON publications.journal_id = journals.id' +
+                    ' WHERE publications.id = ?;';
+    var places = [pubID];
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if(resQuery.length === 0 || resQuery === undefined) {
+                    sendJSONResponse(res, 200,
+                        {"status": "No data returned!", "statusCode": 200, "count": 1,
+                        "result" : []});
+                    return;
+                }
+                var person_selected = [];
+                var lab_selected = [];
+                var person = [];
+                var lab = [];
+                for (var ind in resQuery) {
+                    if (resQuery[ind].person_selected !== null) {person_selected.push(resQuery[ind].person_selected);}
+                    if (resQuery[ind].lab_selected !== null) {lab_selected.push(resQuery[ind].lab_selected);}
+                    if (resQuery[ind].person_id !== null) {person.push(resQuery[ind].person_id);}
+                    if (resQuery[ind].lab_id !== null) {lab.push(resQuery[ind].lab_id);}
+                }
+                resQuery[0].person_selected = person_selected;
+                resQuery[0].lab_selected = lab_selected;
+                resQuery[0].person_id = person;
+                resQuery[0].lab_id = lab;
+                sendJSONResponse(res, 200,
+                    {"status": "success", "statusCode": 200, "count": 1,
+                     "result" : resQuery[0]});
+                return;
+            }
+        );
+    });
+};
+module.exports.getPersonPublicationInfo = function (req, res, next) {
+    var personID = req.params.personID;
+    var querySQL = 'SELECT people_publications.author_type_id,' +
+                    ' person_selected_publications.publication_id AS selected, publications.*,' +
+                    ' journals.name AS journal_name, journals.short_name AS journal_short_name, ' +
+                    ' journals.publisher, journals.publisher_city, journals.issn, journals.eissn ' +
+                    'FROM people_publications' +
+                    ' LEFT JOIN author_types ON people_publications.author_type_id = author_types.id' +
+                    ' LEFT JOIN publications ON people_publications.publication_id = publications.id' +
+                    ' LEFT JOIN person_selected_publications ON person_selected_publications.publication_id = publications.id' +
+                    ' LEFT JOIN journals ON publications.journal_id = journals.id' +
+                    ' WHERE people_publications.person_id = ?;';
+    var places = [personID];
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if(resQuery.length === 0 || resQuery === undefined) {
+                    sendJSONResponse(res, 200,
+                        {"status": "No data returned!", "statusCode": 200, "count": 1,
+                        "result" : []});
+                    return;
+                }
+                for (var ind in resQuery) {
+                    if (resQuery[ind].selected === null) {resQuery[ind].selected = false;}
+                    else if (resQuery[ind].selected !== null) {resQuery[ind].selected = true;}
+                }
+                sendJSONResponse(res, 200,
+                    {"status": "success", "statusCode": 200, "count": resQuery.length,
+                     "result" : resQuery});
+                return;
+            }
+        );
+    });
+};
+module.exports.getLabPublicationInfo = function (req, res, next) {
+    var labID = req.params.labID;
+    var querySQL = 'SELECT lab_selected_publications.publication_id AS selected, publications.*,' +
+                    ' journals.name AS journal_name, journals.short_name AS journal_short_name, ' +
+                    ' journals.publisher, journals.publisher_city, journals.issn, journals.eissn ' +
+                   'FROM people_labs' +
+                   ' LEFT JOIN people_publications ON people_labs.person_id = people_publications.person_id' +
+                   ' LEFT JOIN publications ON people_publications.publication_id = publications.id' +
+                   ' LEFT JOIN lab_selected_publications ON lab_selected_publications.publication_id = publications.id' +
+                   ' LEFT JOIN journals ON publications.journal_id = journals.id' +
+                   ' WHERE people_labs.lab_id = ? AND publications.id IS NOT NULL' +
+                   '       AND ((people_labs.valid_from < makedate(publications.year,1) AND people_labs.valid_until > makedate(publications.year,365))' +
+                   '            OR (people_labs.valid_from < makedate(publications.year,1) AND people_labs.valid_until IS NULL)' +
+                   '            OR (people_labs.valid_from IS NULL AND people_labs.valid_until IS NULL)' +
+                              ')' +
+                   ' GROUP BY publications.id;';
+    var places = [labID];
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if(resQuery.length === 0 || resQuery === undefined) {
+                    sendJSONResponse(res, 200,
+                        {"status": "No data returned!", "statusCode": 200, "count": 1,
+                        "result" : []});
+                    return;
+                }
+                for (var ind in resQuery) {
+                    if (resQuery[ind].selected === null) {resQuery[ind].selected = false;}
+                    else if (resQuery[ind].selected !== null) {resQuery[ind].selected = true;}
+                }
+                sendJSONResponse(res, 200,
+                    {"status": "success", "statusCode": 200, "count": resQuery.length,
+                     "result" : resQuery});
+                return;
+            }
+        );
+    });
+};
+
 
 
 

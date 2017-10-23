@@ -17,12 +17,17 @@ var ctrlRegistrationData = require('../controllers/registration.js');
 var ctrlPreRegistrationData = require('../controllers/pre-registration.js');
 var ctrlAuth = require('../controllers/authentication.js');
 
-/**************************** PUBLIC API ENDPOINTS ****************************/
-// GET search for person name
-router.get('/person', ctrlPeopleData.searchPeople);
-router.get('/labs', ctrlPeopleData.getLabMembers);
+/************************* PUBLIC API ENDPOINTS for v1 ************************/
+// GET for person
+router.get('/v1/person', ctrlPeopleData.searchPeople);
+router.get('/v1/person/:personID', ctrlPeopleData.getPersonInfo);
+router.get('/v1/lab/:labID/members', ctrlPeopleData.getLabMembers);
 // GET lists for several purposes (no need to authenticate)
-router.get('/lists/:listOf', ctrlPeopleData.listOf);
+router.get('/v1/list/:listOf', ctrlPeopleData.listOf);
+// GET search for person name
+router.get('/v1/publication/:pubID', ctrlPublicationsData.getPublicationInfo);
+router.get('/v1/publication/person/:personID', ctrlPublicationsData.getPersonPublicationInfo);
+router.get('/v1/publication/lab/:labID', ctrlPublicationsData.getLabPublicationInfo);
 
 
 /**************************** APP SPECIFIC ENDPOINTS ****************************/

@@ -182,13 +182,6 @@ var compactData =  function(rows, ids, rules) {
             }
         }
         var mergedRow = mergeInfoSinglePerson(toMerge,rules);
-        if (mergedRow.image_type === 1 && mergedRow.image_name !== null) {
-            mergedRow['image_path'] = 'images/people/' + mergedRow.id + '/1/' + mergedRow.image_name;
-        } else {
-            mergedRow['image_path'] = null;
-        }
-        delete mergedRow.image_type;
-        delete mergedRow.image_name;
         compact.push(mergedRow);
     }
     return compact;
@@ -4579,7 +4572,7 @@ var queryUpdatePhotoDatabaseFinal = function (req, res, next, file, action) {
     });
 };
 
-/***************************** Public API Queries *****************************/
+/***************************** Public API Person Queries *****************************/
 module.exports.searchPeople = function (req, res, next) {
     var now = momentToDate(moment());
     var name;
@@ -4594,16 +4587,104 @@ module.exports.searchPeople = function (req, res, next) {
     } else {
         lab = '';
     }
-    name = '%' + name + '%';
-    lab =  '%' + lab + '%';
-    var querySQL = 'SELECT people.id, people.name, people.colloquial_name,' +
+    var querySQL;
+    var places;
+    if (name === '' && lab === '') {
+        sendJSONResponse(res, 200,
+                    {"status": "No information sent!", "statusCode": 200, "count": 1,
+                     "result" : "OK!"});
+        return;
+
+    } else if (name !== '' && lab === '') {
+        name = '%' + name + '%';
+        querySQL = 'SELECT people.id, people.name AS full_name, people.colloquial_name AS name,' +
+                       ' people.active_from, people.active_until,' +
+                       ' emails.email, phones.phone, phones.extension AS phone_extension,' +
+                       ' labs.id AS lab_id, labs.name AS lab_name,' +
+                       ' groups.id AS group_id, groups.name AS group_name,' +
+                       ' units.id AS unit_id, units.name AS unit_name,' +
+                       ' lab_positions.id AS lab_position_id, lab_positions.name_en AS lab_position_name_en, lab_positions.name_pt  AS lab_position_name_pt,' +
+                      ' personal_photo.url AS image_path' +
+                      ' FROM people' +
+                      ' LEFT JOIN emails ON people.id = emails.person_id' +
+                      ' LEFT JOIN phones ON people.id = phones.person_id' +
+                      ' LEFT JOIN people_labs ON people.id = people_labs.person_id' +
+                      ' LEFT JOIN labs ON labs.id = people_labs.lab_id' +
+                      ' LEFT JOIN groups ON groups.id = labs.group_id' +
+                      ' LEFT JOIN units ON units.id = groups.unit_id' +
+                      ' LEFT JOIN lab_positions ON lab_positions.id = people_labs.lab_position_id' +
+                      ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
+                      ' WHERE people.name LIKE ?' +
+                        ' AND (people.active_until > ? OR (people.active_from < ? AND people.active_until IS NULL) OR (people.active_from IS NULL AND people.active_until IS NULL))' +
+                      ';';
+        places = [name,now,now];
+    } else if (name === '' && lab !== '') {
+        lab =  '%' + lab + '%';
+        querySQL = 'SELECT people.id, people.name AS full_name, people.colloquial_name AS name,' +
+                       ' people.active_from, people.active_until,' +
+                       ' emails.email, phones.phone, phones.extension AS phone_extension,' +
+                       ' labs.id AS lab_id, labs.name AS lab_name,' +
+                       ' groups.id AS group_id, groups.name AS group_name,' +
+                       ' units.id AS unit_id, units.name AS unit_name,' +
+                       ' lab_positions.id AS lab_position_id, lab_positions.name_en AS lab_position_name_en, lab_positions.name_pt  AS lab_position_name_pt,' +
+                      ' personal_photo.url AS image_path' +
+                      ' FROM people' +
+                      ' LEFT JOIN emails ON people.id = emails.person_id' +
+                      ' LEFT JOIN phones ON people.id = phones.person_id' +
+                      ' LEFT JOIN people_labs ON people.id = people_labs.person_id' +
+                      ' LEFT JOIN labs ON labs.id = people_labs.lab_id' +
+                      ' LEFT JOIN groups ON groups.id = labs.group_id' +
+                      ' LEFT JOIN units ON units.id = groups.unit_id' +
+                      ' LEFT JOIN lab_positions ON lab_positions.id = people_labs.lab_position_id' +
+                      ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
+                      ' WHERE (labs.name LIKE ?)' +
+                        ' AND (people.active_until > ? OR (people.active_from < ? AND people.active_until IS NULL) OR (people.active_from IS NULL AND people.active_until IS NULL))' +
+                      ';';
+        places = [lab,now,now];
+
+    } else if (name !== '' && lab !== '') {
+        name = '%' + name + '%';
+        lab =  '%' + lab + '%';
+        querySQL = 'SELECT people.id, people.name AS full_name, people.colloquial_name AS name,' +
+                       ' people.active_from, people.active_until,' +
+                       ' emails.email, phones.phone, phones.extension AS phone_extension,' +
+                       ' labs.id AS lab_id, labs.name AS lab_name,' +
+                       ' groups.id AS group_id, groups.name AS group_name,' +
+                       ' units.id AS unit_id, units.name AS unit_name,' +
+                       ' lab_positions.id AS lab_position_id, lab_positions.name_en AS lab_position_name_en, lab_positions.name_pt  AS lab_position_name_pt,' +
+                      ' personal_photo.url AS image_path' +
+                      ' FROM people' +
+                      ' LEFT JOIN emails ON people.id = emails.person_id' +
+                      ' LEFT JOIN phones ON people.id = phones.person_id' +
+                      ' LEFT JOIN people_labs ON people.id = people_labs.person_id' +
+                      ' LEFT JOIN labs ON labs.id = people_labs.lab_id' +
+                      ' LEFT JOIN groups ON groups.id = labs.group_id' +
+                      ' LEFT JOIN units ON units.id = groups.unit_id' +
+                      ' LEFT JOIN lab_positions ON lab_positions.id = people_labs.lab_position_id' +
+                      ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
+                      ' WHERE people.name LIKE ?' +
+                        ' AND (labs.name LIKE ?)' +
+                        ' AND (people.active_until > ? OR (people.active_from < ? AND people.active_until IS NULL) OR (people.active_from IS NULL AND people.active_until IS NULL))' +
+                      ';';
+        places = [name,lab,now,now];
+    }
+    var mergeRules = [
+                      ['lab_data', 'lab_position_id','lab_position_name_en','lab_position_name_pt',
+                       'lab_id','lab_name','group_id','group_name','unit_id', 'unit_name']
+                    ];
+
+    escapedQueryPersonSearch(querySQL, places, mergeRules, req, res, next);
+};
+module.exports.getPersonInfo = function (req, res, next) {
+    var personID = req.params.personID;
+    var querySQL = 'SELECT people.id, people.name AS full_name, people.colloquial_name AS name,' +
+                   ' people.active_from, people.active_until,' +
                    ' emails.email, phones.phone, phones.extension AS phone_extension,' +
                    ' labs.id AS lab_id, labs.name AS lab_name,' +
                    ' groups.id AS group_id, groups.name AS group_name,' +
                    ' units.id AS unit_id, units.name AS unit_name,' +
                    ' lab_positions.id AS lab_position_id, lab_positions.name_en AS lab_position_name_en, lab_positions.name_pt  AS lab_position_name_pt,' +
-
-                  ' personal_photo.photo_type_id AS image_type, personal_photo.url AS image_name' +
+                   ' personal_photo.url AS image_path' +
                   ' FROM people' +
                   ' LEFT JOIN emails ON people.id = emails.person_id' +
                   ' LEFT JOIN phones ON people.id = phones.person_id' +
@@ -4613,11 +4694,8 @@ module.exports.searchPeople = function (req, res, next) {
                   ' LEFT JOIN units ON units.id = groups.unit_id' +
                   ' LEFT JOIN lab_positions ON lab_positions.id = people_labs.lab_position_id' +
                   ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
-                  ' WHERE people.name LIKE ?' +
-                    ' AND (labs.name LIKE ? OR labs.name IS NULL)' +
-                    ' AND (people.active_until > ? OR (people.active_from < ? AND people.active_until IS NULL))' +
-                  ';';
-    var places = [name,lab,now,now];
+                  ' WHERE people.id = ?;';
+    var places = [personID];
     var mergeRules = [
                       ['lab_data', 'lab_position_id','lab_position_name_en','lab_position_name_pt',
                        'lab_id','lab_name','group_id','group_name','unit_id', 'unit_name']
@@ -4627,21 +4705,15 @@ module.exports.searchPeople = function (req, res, next) {
 };
 module.exports.getLabMembers = function (req, res, next) {
     var now = momentToDate(moment());
-    var lab;
-    if (req.query.hasOwnProperty('lab')) {
-        lab = req.query.lab.replace(' ','%');
-    } else {
-        lab = '';
-    }
-
-    var querySQL = 'SELECT people.id, people.name, people.colloquial_name,' +
+    var lab = req.params.labID;
+    var querySQL = 'SELECT people.id, people.name AS full_name, people.colloquial_name AS name,' +
+                   ' people.active_from, people.active_until,' +
                    ' emails.email, phones.phone, phones.extension AS phone_extension,' +
                    ' labs.id AS lab_id, labs.name AS lab_name,' +
                    ' groups.id AS group_id, groups.name AS group_name,' +
                    ' units.id AS unit_id, units.name AS unit_name,' +
                    ' lab_positions.id AS lab_position_id, lab_positions.name_en AS lab_position_name_en, lab_positions.name_pt  AS lab_position_name_pt,' +
-
-                  ' personal_photo.photo_type_id AS image_type, personal_photo.url AS image_name' +
+                  ' personal_photo.url AS image_path' +
                   ' FROM people' +
                   ' LEFT JOIN emails ON people.id = emails.person_id' +
                   ' LEFT JOIN phones ON people.id = phones.person_id' +

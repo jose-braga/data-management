@@ -39,6 +39,7 @@ router.get('/people/all', ctrlPeopleData.listAllPeople); //should come before GE
 
 // GET specific data of a person
 router.get('/people/:personID', auth, ctrlPeopleData.listPersonData);
+router.get('/list/:listOf', ctrlPeopleData.listOf);
 
 // TODO: DELETE all data of a person
 //router.delete('/people/:username', auth, ctrlPeopleData.deletePersonErrorData);

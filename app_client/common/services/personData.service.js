@@ -5,92 +5,92 @@
             return $http.get('api/people/all');
         };
         var allCountries = function () {
-            return $http.get('api/lists/countries');
+            return $http.get('api/list/countries');
         };
         var usernames = function () {
-            return $http.get('api/lists/usernames');
+            return $http.get('api/list/usernames');
         };
         var cardTypes = function () {
-            return $http.get('api/lists/card-types');
+            return $http.get('api/list/card-types');
         };
         var degreeTypes = function () {
-            return $http.get('api/lists/degree-types');
+            return $http.get('api/list/degree-types');
         };
 
         var professionalCategories = function () {
-            return $http.get('api/lists/professional-categories');
+            return $http.get('api/list/professional-categories');
         };
         var professionalSituations = function () {
-            return $http.get('api/lists/professional-situations');
+            return $http.get('api/list/professional-situations');
         };
 
         var fellowshipTypes = function () {
-            return $http.get('api/lists/fellowship-types');
+            return $http.get('api/list/fellowship-types');
         };
         var managementEntities = function () {
-            return $http.get('api/lists/management-entities');
+            return $http.get('api/list/management-entities');
         };
         var fundingAgencies = function () {
-            return $http.get('api/lists/funding-agencies');
+            return $http.get('api/list/funding-agencies');
         };
 
         var institutionCities = function () {
-            return $http.get('api/lists/institution-cities');
+            return $http.get('api/list/institution-cities');
         };
         var units = function () {
-            return $http.get('api/lists/units');
+            return $http.get('api/list/units');
         };
 
         var labs = function () {
-            return $http.get('api/lists/labs');
+            return $http.get('api/list/labs');
         };
         var labPositions = function () {
-            return $http.get('api/lists/lab-positions');
+            return $http.get('api/list/lab-positions');
         };
 
         var administrativeOffices = function () {
-            return $http.get('api/lists/administrative-offices');
+            return $http.get('api/list/administrative-offices');
         };
         var administrativePositions = function () {
-            return $http.get('api/lists/administrative-positions');
+            return $http.get('api/list/administrative-positions');
         };
         var scienceManagementOffices = function () {
-            return $http.get('api/lists/science-management-offices');
+            return $http.get('api/list/science-management-offices');
         };
         var scienceManagementPositions = function () {
-            return $http.get('api/lists/science-management-positions');
+            return $http.get('api/list/science-management-positions');
         };
         var facilities = function () {
-            return $http.get('api/lists/facilities');
+            return $http.get('api/list/facilities');
         };
         var technicianPositions = function () {
-            return $http.get('api/lists/technician-positions');
+            return $http.get('api/list/technician-positions');
         };
 
         var groups = function () {
-            return $http.get('api/lists/groups');
+            return $http.get('api/list/groups');
         };
         var groupPositions = function () {
-            return $http.get('api/lists/group-positions');
+            return $http.get('api/list/group-positions');
         };
         var universities = function () {
-            return $http.get('api/lists/universities');
+            return $http.get('api/list/universities');
         };
         var schools = function () {
-            return $http.get('api/lists/schools');
+            return $http.get('api/list/schools');
         };
         var departments = function () {
-            return $http.get('api/lists/departments');
+            return $http.get('api/list/departments');
         };
         var supervisorTypes = function () {
-            return $http.get('api/lists/supervisor-types');
+            return $http.get('api/list/supervisor-types');
         };
         var roles = function () {
-            return $http.get('api/lists/roles');
+            return $http.get('api/list/roles');
         };
 
         var permissions = function () {
-            return $http.get('api/lists/permissions');
+            return $http.get('api/list/permissions');
         };
 
         var thisPersonData = function (personID) {

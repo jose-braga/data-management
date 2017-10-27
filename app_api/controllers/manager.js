@@ -526,6 +526,45 @@ var queryPasswordReset = function (req, res, next) {
     }
 };
 
+var queryUpdateUserPermissions = function (req, res, next) {
+    var userID = req.body.user_id;
+    var username = req.body.username;
+    var permissions = req.body.permissions;
+    var requesterCities = geographicAccess(req.payload.stat);
+    var querySQL = '';
+    var places = [];
+    if (requesterCities.indexOf(req.body.city_id) !== -1) {
+        querySQL = querySQL + 'UPDATE `users`' +
+                              ' SET username = ?,' +
+                              ' status = ?' +
+                              ' WHERE id = ?;';
+        places.push(username,permissions,userID);
+        pool.getConnection(function(err, connection) {
+            if (err) {
+                sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+                return;
+            }
+            connection.query(querySQL,places,
+                function (err, resQuery) {
+                    // And done with the connection.
+                    connection.release();
+                    if (err) {
+                        sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                        return;
+                    }
+                    sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
+                    return;
+                }
+            );
+        });
+
+    } else {
+        sendJSONResponse(res, 403, { message: 'This user is not authorized to this operation.' });
+        return;
+    }
+};
+
+
 var sendEmailsToUsers = function (req, res, next) {
     if (process.env.NODE_ENV === 'production') {
         if (req.body.personal_email !== null) {
@@ -698,6 +737,14 @@ module.exports.passwordReset = function (req, res, next) {
     getUser(req, res, [0, 5, 10, 15],
         function (req, res, username) {
             queryPasswordReset(req,res,next);
+        }
+    );
+};
+
+module.exports.updateUserPermissions = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15],
+        function (req, res, username) {
+            queryUpdateUserPermissions(req,res,next);
         }
     );
 };

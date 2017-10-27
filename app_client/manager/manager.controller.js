@@ -3,6 +3,7 @@
 /******************************* Controllers **********************************/
     var managerCtrl = function ($scope, $timeout, $mdMedia, Upload,
                         personData, teamData, managerData, publications, authentication) {
+        var GLOBAL_MANAGER_PERMISSION = 5;
         var vm = this;
 
         vm.toolbarData = {title: 'Consult and change user data'};
@@ -156,6 +157,31 @@
             personData.cardTypes()
                 .then(function (response) {
                     vm.cardTypes = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            personData.usernames()
+                .then(function (response) {
+                    vm.usernames = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            personData.permissions()
+                .then(function (response) {
+                    var data = response.data.result;
+                    var newData = [];
+                    if (vm.currentUser.stat > GLOBAL_MANAGER_PERMISSION) {
+                        for (var ind in data) {
+                            if (data[ind].permissions_id >= vm.currentUser.stat) {
+                                newData.push(data[ind]);
+                            }
+                        }
+                        vm.permissions = newData;
+                    } else {
+                        vm.permissions = data;
+                    }
                 })
                 .catch(function (err) {
                     console.log(err);
@@ -755,6 +781,32 @@
             managerData.passwordResetByID(datum.id,data)
                 .then( function () {
                     getPersonData(datum.id, indDetail, ind);
+                },
+                function () {
+                    vm.updateStatus[ind] = "Error!";
+                    vm.messageType[ind] = 'message-error';
+                },
+                function () {}
+                );
+            return false;
+        };
+        vm.submitUserPermissions = function (ind, indDetail, datum, validate) {
+            vm.updateStatus[ind] = "Updating...";
+            vm.messageType[ind] = 'message-updating';
+            vm.hideMessage[ind] = false;
+            var data = {
+                "user_id": datum.user_id,
+                "city_id": datum.institution_city_id,
+                "permissions": datum.permissions,
+                "username": datum.username
+            };
+            managerData.changeUserPermissions(datum.id,data)
+                .then( function () {
+                    if (validate === true) {
+                        getPersonDataValidate(datum.id, indDetail, ind);
+                    } else {
+                        getPersonData(datum.id, indDetail, ind);
+                    }
                 },
                 function () {
                     vm.updateStatus[ind] = "Error!";
@@ -2111,7 +2163,9 @@
                 'personPasswordReset': 55,
                 'personPhoto':56,
                 'personAuthorNames': 57,
-                'validatePhoto': 58
+                'validatePhoto': 58,
+                'personUserPermissions': 59,
+                'validateUserPermissions': 60
             };
 
             if (ind === undefined) {
@@ -2136,6 +2190,7 @@
                 .then(function (response) {
                     var date;
                     vm.thisPerson[el] = response.data.result;
+                    vm.thisPerson[el].originalUsername = vm.thisPerson[el].username;
                     if (vm.thisPerson[el]['birth_date'] !== null) {
                         date = new Date(vm.thisPerson[el]['birth_date']);
                         vm.thisPerson[el]['birth_date'] = date;
@@ -2671,6 +2726,34 @@
 
 /******************************** Directives **********************************/
 
+    var usernameValidateWithoutSelf = function () {
+        return {
+            require: 'ngModel',
+            scope: {
+                usernamesList: "=usernameValidateWithoutSelf"
+            },
+            link: function (scope, elm, attrs, ctrl) {
+                ctrl.$validators.usernameValidate = function(modelValue, viewValue) {
+                    if (viewValue == null) {
+                        ctrl.$setValidity('username', true);
+                        return true;
+                    } else {
+                        for (var ind in scope.usernamesList[0]) {
+                            // if viewValue is equal to original name it should return true
+                            if (viewValue === scope.usernamesList[0][ind]['username']
+                                    && viewValue !== scope.usernamesList[1]) {
+                                ctrl.$setValidity('username', false);
+                                return false;
+                            }
+                        }
+                        ctrl.$setValidity('username', true);
+                        return true;
+                    }
+                };
+            }
+        };
+    };
+
     var allPeoplePresentation = function () {
         return {
             restrict: 'E',
@@ -2696,6 +2779,13 @@
         return {
             restrict: 'E',
             templateUrl: 'manager/person_details/manager.passwordReset.html'
+        };
+    };
+
+    var managerUserPermissions = function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'manager/person_details/manager.personUserPermissions.html'
         };
     };
 
@@ -2864,6 +2954,13 @@
         return {
             restrict: 'E',
             templateUrl: 'manager/validate_details/validate.person.html'
+        };
+    };
+
+    var validateUserPermissions = function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'manager/validate_details/validate.personUserPermissions.html'
         };
     };
 
@@ -3042,6 +3139,7 @@
         .directive('managerPersonLeft', managerPersonLeft)
         .directive('managerPersonPhoto', managerPersonPhoto)
         .directive('managerPersonAuthorNames', managerPersonAuthorNames)
+        .directive('managerUserPermissions', managerUserPermissions)
 
         .directive('listPeopleValidate', listPeopleValidate)
         .directive('validatePerson', validatePerson)
@@ -3066,8 +3164,10 @@
         .directive('validatePersonResponsibles', validatePersonResponsibles)
         .directive('validatePersonPole', validatePersonPole)
         .directive('validatePersonPhoto', validatePersonPhoto)
+        .directive('validateUserPermissions', validateUserPermissions)
 
         .directive('managerPasswordReset', managerPasswordReset)
+        .directive('usernameValidateWithoutSelf', usernameValidateWithoutSelf)
 
         .controller('managerCtrl', managerCtrl)
         ;

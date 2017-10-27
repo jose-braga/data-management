@@ -1,0 +1,38 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">User and permissions</span>
+        </md-card-title-text>
+    </md-card-title>
+    <form novalidate flex name="managerUserPermissionsForm[num]"
+        ng-submit="managerUserPermissionsForm[num].$valid
+        && vm.submitUserPermissions(vm.forms['personUserPermissions'],vm.selectedIndex-2,vm.thisPerson[vm.selectedIndex-2])">
+        <md-card-content layout="column" flex>
+            <md-input-container>
+                <label>Username</label>
+                <input ng-model="vm.thisPerson[vm.selectedIndex-2].username" name="username"
+                    username-validate-without-self="[vm.usernames, vm.thisPerson[vm.selectedIndex-2].originalUsername]">
+                <div ng-messages="managerUserPermissionsForm[num].username.$error">
+                    <div ng-message="username">Username already taken.</div>
+                </div>
+            </md-input-container>
+            <md-input-container>
+                <label>Permissions</label>
+                <md-select ng-model="vm.thisPerson[vm.selectedIndex-2].permissions">
+                <md-option ng-repeat="permission in vm.permissions"
+                        ng-value="permission.permissions_id">{{permission.name_en}} - {{permission.description_en}}
+                </md-option>
+            </md-select>
+            </md-input-container>
+            <div layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button type="submit"
+                    class="button-small md-raised md-warn">Change user</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personUserPermissions']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['personUserPermissions']]">
+                        {{vm.updateStatus[vm.forms['personUserPermissions']]}}
+                    </span>
+                </div>
+            </div>
+        </md-card-content>
+    </form>
+</md-card>

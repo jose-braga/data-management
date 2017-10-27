@@ -3446,7 +3446,7 @@ var queryGetUsername = function (req,res,next, userCity) {
     if ((req.payload.personID !== req.params.personID && hasPermission)
             || req.payload.personID === req.params.personID) {
         var personID = req.params.personID;
-        var query = 'SELECT people.*, users.username ' +
+        var query = 'SELECT people.*, users.username, users.status as permissions ' +
                        ' FROM people' +
                        ' LEFT JOIN users ON people.user_id = users.id' +
                        ' WHERE people.id = ?';

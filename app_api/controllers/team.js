@@ -1941,6 +1941,9 @@ var queryPreRegisterPersonalEmails = function (req, res, next, userID, personID,
 
 var sendEmailsToUsers = function (req, res, next, userID, personID,
                                       active_from,stat, created, changed_by,password) {
+    if (process.env.NODE_ENV !== 'production') {
+        console.log('https://laqv-ucibio.info/pre-register/'+ req.body.username +'/' + password);
+    }
     if (process.env.NODE_ENV === 'production') {
         var recipients;
         if (req.body.institution_city.city === 'Lisboa') {

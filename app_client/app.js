@@ -1,6 +1,5 @@
  (function(){
     // Current version: 1.0.0
-    // TODO: (v1.0.1) PUBLIC API: Add "selected" and "full" publications to people data and to team
 
     // TODO: (future) Add automatic PDF generator
     // TODO: (future) interface improvement - "Myself" (current affiliations); "Manager" list show only current affiliations

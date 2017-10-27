@@ -135,7 +135,7 @@ var queryPersonPublications = function (req, res, next) {
                     sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                     return;
                 }
-                if(resQuery.length === 0 || resQuery === undefined) {
+                if (resQuery.length === 0 || resQuery === undefined) {
                     sendJSONResponse(res, 200,
                         {"status": "success", "statusCode": 200, "count": 1,
                         "result" : []});
@@ -178,6 +178,12 @@ var queryTeamPublications = function (req, res, next) {
                 connection.release();
                 if (err) {
                     sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (resQuery.length === 0 || resQuery === undefined) {
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 1,
+                        "result" : []});
                     return;
                 }
                 return queryPublicationDescription(req,res,next,resQuery,0);

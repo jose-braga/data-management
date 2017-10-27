@@ -1,6 +1,7 @@
 var passport = require('../config/passport');
 var server = require('../models/server');
 var pool = server.pool;
+var moment = require('moment-timezone');
 var userModule = require('../models/users');
 
 /**************************** Utility Functions *******************************/
@@ -34,6 +35,16 @@ var getUser = function (req, res, callback) {
             });
     }
 };
+
+function momentToDate(timedate, timezone, timeformat) {
+    if (timezone === undefined) {
+        timezone = 'Europe/Lisbon';
+    }
+    if (timeformat === undefined) {
+        timeformat = 'YYYY-MM-DD';
+    }
+    return timedate !== null ? moment.tz(timedate,timezone).format(timeformat) : null;
+}
 
 /************************ Controllers for authentication **********************/
 module.exports.login = function(req, res, next) {
@@ -95,10 +106,12 @@ module.exports.changePassword = function(req, res, next) {
             }
             var places = [];
             var querySQL = '';
+            var timeChanged = momentToDate(moment(),undefined,'YYYY-MM-DD HH:mm:ss');
             querySQL = querySQL + 'UPDATE `users`' +
-                                          ' SET `password` = ?' +
+                                          ' SET `password` = ?,' +
+                                          ' `updated` = ?' +
                                           ' WHERE `id` = ?;';
-            places.push(userModule.hashPassword(req.body.newPassword1),row.user_id);
+            places.push(userModule.hashPassword(req.body.newPassword1),timeChanged,row.user_id);
             pool.getConnection(function(err, connection) {
                 if (err) {
                     sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});

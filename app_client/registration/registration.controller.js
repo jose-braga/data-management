@@ -265,7 +265,7 @@
             getDataLists();
         }
         function getDataLists() {
-             personData.usernames()
+            personData.usernames()
                 .then(function (response) {
                     vm.usernames = response.data.result;
                 })
@@ -278,7 +278,7 @@
                     var newData = [];
                     if (vm.currentUser.stat > GLOBAL_MANAGER_PERMISSION) {
                         for (var ind in data) {
-                            if (data[ind].permissions_id > GLOBAL_MANAGER_PERMISSION) {
+                            if (data[ind].permissions_id >= vm.currentUser.stat) {
                                 newData.push(data[ind]);
                             }
                         }
@@ -509,8 +509,8 @@
                     }
                 };
             }
+        };
     };
-};
 
 /**************************** Register components *****************************/
     angular.module('managementApp')

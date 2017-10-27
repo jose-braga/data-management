@@ -1,0 +1,30 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">User permissions</span>
+        </md-card-title-text>
+    </md-card-title>
+    <form novalidate flex name="managerUserPermissionsFormValidate[num]"
+        ng-submit="managerUserPermissionsFormValidate[num].$valid
+        && vm.submitUserPermissions(vm.forms['validateUserPermissions'],vm.selectedIndexValidate-1,vm.thisPersonValidate[vm.selectedIndexValidate-1], true)">
+        <md-card-content layout="column" flex>
+            <md-input-container>
+                <label>Permissions</label>
+                <md-select ng-model="vm.thisPersonValidate[vm.selectedIndexValidate-1].permissions">
+                <md-option ng-repeat="permission in vm.permissions"
+                        ng-value="permission.permissions_id">{{permission.name_en}} - {{permission.description_en}}
+                </md-option>
+            </md-select>
+            </md-input-container>
+            <div layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button type="submit"
+                    class="button-small md-raised md-warn">Change user</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['validateUserPermissions']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['validateUserPermissions']]">
+                        {{vm.updateStatus[vm.forms['validateUserPermissions']]}}
+                    </span>
+                </div>
+            </div>
+        </md-card-content>
+    </form>
+</md-card>

@@ -42,6 +42,14 @@ var managerData = function ($http, authentication) {
         );
     };
 
+    var changeUserPermissions = function (personID, data) {
+        return $http.put('api/manager/people/user-permissions/' + personID, data,
+            {
+                headers: {Authorization: 'Bearer ' + authentication.getToken()}
+            }
+        );
+    };
+
     var updatePeopleData = function (data) {
         return $http.put('api/manager/people/all', data,
             {
@@ -56,7 +64,8 @@ var managerData = function ($http, authentication) {
         allPeopleToValidate: allPeopleToValidate,
         validatePerson: validatePerson,
         updatePeopleData: updatePeopleData,
-        passwordResetByID: passwordResetByID
+        passwordResetByID: passwordResetByID,
+        changeUserPermissions: changeUserPermissions
     };
 };
 

@@ -95,6 +95,7 @@ router.get('/manager/people/validate', auth, ctrlManagerData.listPeopleValidate)
 // PUT (updated) MANAGER information (authenticated)
 router.put('/manager/people/validate/:personID', auth, ctrlManagerData.validatePerson);
 router.put('/manager/people/password-reset/:personID', auth, ctrlManagerData.passwordReset);
+router.put('/manager/people/user-permissions/:personID', auth, ctrlManagerData.updateUserPermissions);
 router.put('/manager/people/all', auth, ctrlManagerData.updateAllPeopleData);
 
 // GET PUBLICATION information (authenticated)

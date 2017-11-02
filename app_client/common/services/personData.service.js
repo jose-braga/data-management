@@ -48,6 +48,10 @@
             return $http.get('api/list/lab-positions');
         };
 
+        var costCenters = function () {
+            return $http.get('api/list/cost-centers');
+        };
+
         var administrativeOffices = function () {
             return $http.get('api/list/administrative-offices');
         };
@@ -159,6 +163,13 @@
         };
         var updateJobsPersonByID = function (personID, data) {
             return $http.put('api/people/jobs/' + personID, data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var updateCostCentersPersonByID = function (personID, data) {
+            return $http.put('api/people/cost-centers/' + personID, data,
                 {
                     headers: {Authorization: 'Bearer ' + authentication.getToken()}
                 }
@@ -294,6 +305,7 @@
             schools: schools,
             universities: universities,
             labPositions: labPositions,
+            costCenters: costCenters,
             administrativeOffices: administrativeOffices,
             administrativePositions: administrativePositions,
             scienceManagementOffices: scienceManagementOffices,
@@ -308,6 +320,7 @@
             updateJobsPersonByID: updateJobsPersonByID,
             updateAffiliationsDepartmentPersonByID: updateAffiliationsDepartmentPersonByID,
             updateAffiliationsLabPersonByID: updateAffiliationsLabPersonByID,
+            updateCostCentersPersonByID: updateCostCentersPersonByID,
             updateTechnicianAffiliationsPersonByID: updateTechnicianAffiliationsPersonByID,
             updateScienceManagerAffiliationsPersonByID: updateScienceManagerAffiliationsPersonByID,
             updateAdministrativeAffiliationsPersonByID: updateAdministrativeAffiliationsPersonByID,

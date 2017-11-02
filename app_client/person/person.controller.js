@@ -39,7 +39,8 @@
             'personPhoto':              24,
             'personSelectedPub':        25,
             'personPubDetails':         26,
-            'personAuthorNames':        27
+            'personAuthorNames':        27,
+            'personCostCenter':         28
         };
         vm.changePhoto = false;
 
@@ -541,6 +542,26 @@
                 );
             return false;
         };
+        vm.submitCostCenters = function (ind) {
+            var thisTab = vm.selectedTab;
+            vm.updateStatus[ind] = "Updating...";
+            vm.messageType[ind] = 'message-updating';
+            vm.hideMessage[ind] = false;
+            var data = processDataRows(vm.currentCostCenters,vm.thisPerson.cost_centers,
+                                  'people_cost_centers_id', 'newCostCenters','updateCostCenters','deleteCostCenters');
+            personData.updateCostCentersPersonByID(vm.currentUser.personID,data)
+                .then( function () {
+                    //getPersonData(vm.currentUser.personID, ind);
+                    getPersonData(vm.currentUser.personID, ind, thisTab);
+                },
+                function () {
+                    vm.updateStatus[ind] = "Error!";
+                    vm.messageType[ind] = 'message-error';
+                },
+                function () {}
+                );
+            return false;
+        };
         vm.submitJobs = function (ind) {
             var thisTab = vm.selectedTab;
             vm.updateStatus[ind] = "Updating...";
@@ -662,6 +683,12 @@
             }
             return false;
         };
+        vm.isPorto = function() {
+            if (vm.thisPerson.institution_city_name === 'Porto') {
+                return true;
+            }
+            return false;
+        };
         vm.changeSituation = function (situation){
             for (var ind in vm.professionalSituations) {
                 if (vm.professionalSituations[ind].id === situation['job_situation_id']) {
@@ -725,6 +752,14 @@
                     current[0]['emergency_id'] = 'new';
                 } else {
                     obj = {emergency_id: 'new', emergency_name: null, emergency_phone: null};
+                    current.push(obj);
+                }
+            } else if (type === 'costCenters') {
+                if (current.length == 1 && current[0]['people_cost_centers_id'] === null) {
+                    current[0]['people_cost_centers_id'] = 'new';
+                } else {
+                    obj = {people_cost_centers_id: 'new', cost_center_id: null,
+                           short_name: null, name: null, valid_from: null, valid_until: null};
                     current.push(obj);
                 }
             } else if (type === 'finishedDegrees') {
@@ -1314,6 +1349,12 @@
                         vm.thisPerson.lab_data[id]['lab_end'] = processDate(vm.thisPerson.lab_data[id]['lab_end']);
                         vm.currentAffiliationsLab.push(Object.assign({}, vm.thisPerson.lab_data[id]));
                     }
+                    vm.currentCostCenters = [];
+                    for (var id in vm.thisPerson.cost_centers) {
+                        vm.thisPerson.cost_centers[id]['valid_from'] = processDate(vm.thisPerson.cost_centers[id]['valid_from']);
+                        vm.thisPerson.cost_centers[id]['valid_until'] = processDate(vm.thisPerson.cost_centers[id]['valid_until']);
+                        vm.currentCostCenters.push(Object.assign({}, vm.thisPerson.cost_centers[id]));
+                    }
                     vm.currentTechnicianAffiliations = [];
                     for (var id in vm.thisPerson.technician_offices) {
                         vm.thisPerson.technician_offices[id]['tech_valid_from'] = processDate(vm.thisPerson.technician_offices[id]['tech_valid_from']);
@@ -1461,6 +1502,13 @@
             personData.labPositions()
                 .then(function (response) {
                     vm.labPositions = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            personData.costCenters()
+                .then(function (response) {
+                    vm.costCenters = response.data.result;
                 })
                 .catch(function (err) {
                     console.log(err);
@@ -1818,6 +1866,12 @@
             templateUrl: 'person/researcher/person.researcherInfo.html'
         };
     };
+    var personCostCenter = function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'person/researcher/person.costCenter.html'
+        };
+    };
     var personTechnicianInfo = function () {
         return {
             restrict: 'E',
@@ -1978,6 +2032,7 @@
         .directive('personIdentificationsInfo', personIdentificationsInfo)
         .directive('personNuclearInfo', personNuclearInfo)
         .directive('personResearcherInfo', personResearcherInfo)
+        .directive('personCostCenter', personCostCenter)
         .directive('personTechnicianInfo', personTechnicianInfo)
         .directive('personTechnicianAffiliation', personTechnicianAffiliation)
         .directive('personScManagerInfo', personScManagerInfo)

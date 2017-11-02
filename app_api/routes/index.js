@@ -39,6 +39,7 @@ router.get('/people/all', ctrlPeopleData.listAllPeople); //should come before GE
 
 // GET specific data of a person
 router.get('/people/:personID', auth, ctrlPeopleData.listPersonData);
+// Unauthenticated lists if data
 router.get('/list/:listOf', ctrlPeopleData.listOf);
 
 // TODO: DELETE all data of a person
@@ -59,6 +60,7 @@ router.put('/people/technician-affiliations/:personID', auth, ctrlPeopleData.upd
 router.put('/people/science-manager-affiliations/:personID', auth, ctrlPeopleData.updateScienceManagerAffiliationsPerson);
 router.put('/people/administrative-affiliations/:personID', auth, ctrlPeopleData.updateAdministrativeAffiliationsPerson);
 router.put('/people/department-affiliations/:personID', auth, ctrlPeopleData.updateAffiliationsDepartmentPerson);
+router.put('/people/cost-centers/:personID', auth, ctrlPeopleData.updateCostCentersPerson);
 router.put('/people/researcher-info/:personID', auth, ctrlPeopleData.updateResearcherInfoPerson);
 router.put('/people/technician-info/:personID', auth, ctrlPeopleData.updateTechnicianInfoPerson);
 router.put('/people/science-manager-info/:personID', auth, ctrlPeopleData.updateScienceManagerInfoPerson);

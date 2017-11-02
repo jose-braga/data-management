@@ -57,6 +57,8 @@
                         <div layout-xs="column" layout="row" layout-padding>
                             <div flex-xs flex-gt-xs="50" layout="column">
                                 <person-researcher-info></person-researcher-info>
+                                <!-- TODO: below only for Port -->
+                                <person-cost-center ng-if="vm.isPorto()"></person-cost-center>
                             </div>
                             <div flex-xs flex-gt-xs="50" layout="column">
                                 <person-affiliation-lab></person-affiliation-lab>

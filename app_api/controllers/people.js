@@ -405,7 +405,7 @@ function joinResponses(row, newRows, newKey, i, newSubRows, newSubKey) {
             return row;
         }
     } else {
-        // this will OK only if each row of newRows is different
+        // this will be OK only if each row of newRows is different
         for (var ind in newRows) {
             Object.assign(row,newRows[ind]);
         }
@@ -3001,6 +3001,70 @@ var queryIdentificationsInfoPerson = function (req, res, next, userCity) {
 
 };
 
+var queryCostCentersPerson = function (req, res, next, userCity) {
+    var hasPermission = getGeoPermissions(req, userCity);
+    if ((req.payload.personID !== req.params.personID && hasPermission)
+            || req.payload.personID === req.params.personID) {
+        // data to be added/updated/deleted to resource
+        var personID = req.params.personID;
+        var updateCCs = req.body.updateCostCenters;
+        var newCCs = req.body.newCostCenters;
+        var deleteCCs = req.body.deleteCostCenters;
+        var places = [];
+        var querySQL = '';
+        if (updateCCs.length > 0) {
+            for (var ind in updateCCs) {
+                updateCCs[ind].valid_from = momentToDate(updateCCs[ind].valid_from);
+                updateCCs[ind].valid_until = momentToDate(updateCCs[ind].valid_until);
+                querySQL = querySQL + 'UPDATE `people_cost_centers`' +
+                                      ' SET `cost_center_id` = ?,' +
+                                      ' `valid_from` = ?,' +
+                                      ' `valid_until` = ?' +
+                                      ' WHERE `id` = ?';
+                querySQL = querySQL + '; ';
+                places.push(updateCCs[ind].cost_center_id,
+                            updateCCs[ind].valid_from,
+                            updateCCs[ind].valid_until,
+                            updateCCs[ind].people_cost_centers_id);
+            }
+        }
+        if (newCCs.length > 0) {
+            for (var ind in newCCs) {
+                newCCs[ind].valid_from = momentToDate(newCCs[ind].valid_from);
+                newCCs[ind].valid_until = momentToDate(newCCs[ind].valid_until);
+
+                querySQL = querySQL + 'INSERT INTO `people_cost_centers` (`person_id`,`cost_center_id`, `valid_from`, `valid_until` )' +
+                                      ' VALUES (?, ?, ?, ?)';
+                querySQL = querySQL + '; ';
+                places.push(personID,
+                            newCCs[ind].cost_center_id,
+                            newCCs[ind].valid_from,
+                            newCCs[ind].valid_until);
+            }
+        }
+        if (deleteCCs.length > 0) {
+            for (var ind in deleteCCs) {
+                querySQL = querySQL + 'DELETE FROM `people_cost_centers`' +
+                                      ' WHERE id=?';
+                querySQL = querySQL + '; ';
+                places.push(deleteCCs[ind].people_cost_centers_id);
+            }
+        }
+        if (updateCCs.length === 0
+            && newCCs.length === 0
+            && deleteCCs.length === 0) {
+            sendJSONResponse(res, 200, { message: 'No changes.' });
+        } else {
+            escapedQuery(querySQL, places, req, res, next);
+        }
+    } else {
+        sendJSONResponse(res, 403, { message: 'This user is not authorized to this operation.' });
+    }
+};
+
+
+
+
 var queryInstitutionalContactsPerson = function (req, res, next, userCity) {
     var hasPermission = getGeoPermissions(req, userCity);
     if ((req.payload.personID !== req.params.personID && hasPermission)
@@ -4083,6 +4147,35 @@ var queryGetResearcherData = function (req,res,next, personID, row) {
                     return;
                 }
                 row = joinResponses(row,rowsQuery, 'researcher_data');
+                return queryGetCostCenters(req,res,next, personID, row);
+            }
+        );
+    });
+};
+
+var queryGetCostCenters = function (req, res, next, personID, row) {
+    var query = 'SELECT people_cost_centers.id AS people_cost_centers_id,' +
+                ' people_cost_centers.cost_center_id,' +
+                ' cost_centers.short_name, cost_centers.name,' +
+                ' people_cost_centers.valid_from, people_cost_centers.valid_until' +
+                ' FROM people_cost_centers' +
+                ' LEFT JOIN cost_centers ON people_cost_centers.cost_center_id = cost_centers.id' +
+                ' WHERE people_cost_centers.person_id = ?;';
+    var places = [personID];
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(query,places,
+            function (err, rowsQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                row = joinResponses(row,rowsQuery, 'cost_centers');
                 return queryGetTechnicianAffiliation(req,res,next, personID, row);
             }
         );
@@ -4818,6 +4911,13 @@ module.exports.listOf = function (req, res, next) {
         querySQL = 'SELECT lab_positions.id AS lab_position_id, lab_positions.name_en' +
                    ' FROM lab_positions;';
         getQueryResponse(querySQL, req, res, next);
+    } else if (listOf === 'cost-centers') {
+        querySQL = 'SELECT cost_centers.*, ' +
+                   'units.name AS unit_name, institution_city.city AS pole_name' +
+                   ' FROM cost_centers' +
+                   ' LEFT JOIN units ON cost_centers.unit_id = units.id' +
+                   ' LEFT JOIN institution_city ON cost_centers.pole_id = institution_city.id;';
+        getQueryResponse(querySQL, req, res, next);
     } else if (listOf === 'group-positions') {
         querySQL = 'SELECT groups_positions.id AS group_position_id, groups_positions.name_en' +
                    ' FROM groups_positions;';
@@ -5005,6 +5105,14 @@ module.exports.updateJobsPerson = function (req, res, next) {
     getUserPermitSelf(req, res, [0, 5, 10, 15],
         function (req, res, username) {
             getLocationJobs(req, res, next);
+        }
+    );
+};
+
+module.exports.updateCostCentersPerson = function (req, res, next) {
+    getUserPermitSelf(req, res, [0, 5, 10, 15, 20, 30, 40],
+        function (req, res, username) {
+            getLocation(req, res, next, queryCostCentersPerson);
         }
     );
 };

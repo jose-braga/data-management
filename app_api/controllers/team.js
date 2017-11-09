@@ -540,6 +540,7 @@ var queryPeopleStartDateGetRow = function (req,res,next, personID, dates, update
 };
 
 var queryPeopleUpdateStartDate = function (req,res,next, personID, resQuery, minDate, updateArr, deleteArr, updated, i, type) {
+    console.log('here!!!')
     var querySQL = 'UPDATE `people`' +
                    ' SET `active_from` = ?' +
                    ' WHERE `id` = ?;';
@@ -562,7 +563,7 @@ var queryPeopleUpdateStartDate = function (req,res,next, personID, resQuery, min
                 // And done with the connection.
                 connection.release();
                 if (err) {
-                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    sendJSONResponse(res, 400, {"status": "error","aqui": "1", "statusCode": 400, "error" : err.stack});
                     return;
                 }
                 var data;

@@ -5,6 +5,7 @@
         </md-card-title-text>
     </md-card-title>
     <md-card-content layout="column">
+        {{vm.updateLabPerson}}
         <form flex novalidate name="allPeopleForm"
                 ng-submit="allPeopleForm.$valid && vm.submitAllPeople()">
             <div layout="row">
@@ -94,16 +95,16 @@
                             <div class="question"><span class="highlight">Lab:</span></div>
                             <div class="answer">
                                 <md-input-container class="select-container select-no-margin card-type">
-                                    <md-select ng-model="member.lab_id"
-                                            md-on-close="vm.changeLab(member.lab_id, member.row_id)"
+                                    <md-select ng-model="member.lab_row"
+                                            md-on-close="vm.changeLab(member.lab_row, member.row_id)"
                                             aria-label="labs"
                                             name="member_labs[memberNum]">
                                         <div class="scrollable">
-                                            <md-optgroup ng-repeat="unit in vm.units" label="{{unit.name}}" class="large-optgroup">
+                                            <md-optgroup ng-repeat="unit in vm.units" label="{{unit.short_name}}" class="large-optgroup">
                                                 <md-optgroup flex-offset="5" ng-repeat="group in vm.groups | filter: {unit_id: unit.id}"
                                                              label="{{group.name}}">
-                                                    <md-option ng-repeat="lab in vm.labs | filter: {group_id: group.group_id, unit_id: unit.id}:strict"
-                                                               ng-value="lab.lab_id">{{lab.name}}
+                                                    <md-option ng-repeat="lab in vm.labs | filter: {group_id: group.group_id, unit_id: unit.id}:true"
+                                                               ng-value="lab.lab_row">{{vm.labNames(lab)}}
                                                     </md-option>
                                                 </md-optgroup>
                                             </md-optgroup>
@@ -384,16 +385,16 @@
                             <td>
                                 <md-input-container ng-if="member.role_id==1"
                                         class="select-container select-no-margin card-type">
-                                    <md-select ng-model="member.lab_id"
+                                    <md-select ng-model="member.lab_row"
                                             md-on-close="vm.changeLab(member.lab_id, member.row_id)"
                                             aria-label="labs-offices"
                                             name="member_labs[memberNum]">
                                         <div class="scrollable">
-                                            <md-optgroup ng-repeat="unit in vm.units" label="{{unit.name}}" class="large-optgroup">
+                                            <md-optgroup ng-repeat="unit in vm.units" label="{{unit.short_name}}" class="large-optgroup">
                                                 <md-optgroup flex-offset="5" ng-repeat="group in vm.groups | filter: {unit_id: unit.id}"
                                                              label="{{group.name}}">
-                                                    <md-option ng-repeat="lab in vm.labs | filter: {group_id: group.group_id, unit_id: unit.id}:strict"
-                                                               ng-value="lab.lab_id">{{lab.name}}
+                                                    <md-option ng-repeat="lab in vm.labs | filter: {group_id: group.group_id, unit_id: unit.id}:true"
+                                                               ng-value="lab.lab_row">{{vm.labNames(lab)}}
                                                     </md-option>
                                                 </md-optgroup>
                                             </md-optgroup>
@@ -517,6 +518,8 @@
                                     <md-datepicker md-current-view="year" ng-model="member.valid_from"
                                             ng-change="vm.updateDataSubmit(member.row_id,vm.currPeople[memberNum],'updateLabPerson', [])"
                                             name="member_startDate[memberNum]"
+                                            md-min-date="member.labs_groups_valid_from"
+                                            md-max-date="member.labs_groups_valid_until"
                                             md-placeholder="Enter date" md-hide-icons="calendar"></md-datepicker>
                                 </md-input-container>
                                 <md-input-container class="input-no-margin simple-input" ng-if="member.role_id==2">
@@ -543,6 +546,8 @@
                                     <md-datepicker md-current-view="year" ng-model="member.valid_until"
                                             ng-change="vm.updateDataSubmit(member.row_id,vm.currPeople[memberNum],'updateLabPerson', [])"
                                             name="member_endDate[memberNum]"
+                                            md-min-date="member.labs_groups_valid_from"
+                                            md-max-date="member.labs_groups_valid_until"
                                             md-placeholder="Enter date" md-hide-icons="calendar"></md-datepicker>
                                 </md-input-container>
                                 <md-input-container class="input-no-margin simple-input" ng-if="member.role_id==2">

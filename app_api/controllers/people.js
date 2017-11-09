@@ -413,6 +413,250 @@ function joinResponses(row, newRows, newKey, i, newSubRows, newSubKey) {
     }
 }
 
+function filterLabTimes(rows) {
+    // lab_start is when person started in the lab
+    // lab_end is when person left the lab
+
+    // lab_opened => when lab was inaugurated
+    // lab_closed => when lab ceased
+    // labs_groups_valid_from => when lab entered a group
+    // labs_groups_valid_until => when lab left a group
+
+    // 1. back-end - lab, group and units times must be defined consistently
+    // 2. front-end - lab_start cannot be less than lab_opened, lab_end cannot be more than lab_closed
+    var filteredRows = [];
+    for (var ind in rows) {
+        var overlap = timeOverlap(rows[ind].lab_start,rows[ind].lab_end,
+            rows[ind].labs_groups_valid_from,rows[ind].labs_groups_valid_until);
+        if (overlap) {
+            rows[ind].lab_start = overlap[0];
+            rows[ind].lab_end = overlap[1];
+            filteredRows.push(rows[ind]);
+        }
+    }
+    return filteredRows;
+}
+
+function timeOverlap(d1_start,d1_end, d2_start, d2_end) {
+    // returns false if no overlap
+    // else returns [startoverlap,endoverlap]
+    // null in start time is assumed to be -Inf
+    // null in end time is assumed to be +Inf
+    var startOverlap;
+    var endOverlap;
+    if (d1_start !== null) {
+        if (d1_end !== null) {
+            if (d2_start !== null) {
+                if (d2_end !== null) {
+                    if (moment(d1_start).isSameOrAfter(moment(d2_end))
+                        || moment(d1_end).isSameOrBefore(moment(d2_start))) {
+                        return false;
+                    } else {
+                        // there's overlap
+                        if (moment(d1_start).isAfter(moment(d2_start))) {
+                            startOverlap = d1_start;
+                        } else {
+                            startOverlap = d2_start;
+                        }
+                        if (moment(d1_end).isBefore(moment(d2_end))) {
+                            endOverlap = d1_end;
+                        } else {
+                            endOverlap = d2_end;
+                        }
+                        return [startOverlap,endOverlap];
+                    }
+                } else {
+                    if (moment(d1_end).isSameOrBefore(moment(d2_start))) {
+                        return false;
+                    } else {
+                        // there's overlap
+                        if (moment(d1_start).isAfter(moment(d2_start))) {
+                            startOverlap = d1_start;
+                        } else {
+                            startOverlap = d2_start;
+                        }
+                        endOverlap = d1_end;
+                        return [startOverlap,endOverlap];
+                    }
+                }
+            } else {
+                // d2_start is null
+                if (d2_end !== null) {
+                    if (moment(d1_start).isSameOrAfter(moment(d2_end))) {
+                        return false;
+                    } else {
+                        // there's overlap
+                        startOverlap = d1_start;
+                        endOverlap = d1_end;
+                        if (moment(d1_end).isBefore(moment(d2_end))) {
+
+                        } else {
+                            endOverlap = d2_end;
+                        }
+                        return [startOverlap,endOverlap];
+                    }
+                } else {
+                    // there's overlap
+                    startOverlap = d1_start;
+                    endOverlap = d1_end;
+                    return [startOverlap,endOverlap];
+                }
+            }
+        } else {
+            // d1_end is null
+            if (d2_start !== null) {
+                if (d2_end !== null) {
+                    if (moment(d1_start).isSameOrAfter(moment(d2_end))) {
+                        return false;
+                    } else {
+                        // there's overlap
+                        if (moment(d1_start).isAfter(moment(d2_start))) {
+                            startOverlap = d1_start;
+                        } else {
+                            startOverlap = d2_start;
+                        }
+                        if (moment(d1_end).isBefore(moment(d2_end))) {
+                            endOverlap = d1_end;
+                        } else {
+                            endOverlap = d2_end;
+                        }
+                        return [startOverlap,endOverlap];
+                    }
+                } else {
+                    if (moment(d1_end).isSameOrBefore(moment(d2_start))) {
+                        return false;
+                    } else {
+                        // there's overlap
+                        if (moment(d1_start).isAfter(moment(d2_start))) {
+                            startOverlap = d1_start;
+                        } else {
+                            startOverlap = d2_start;
+                        }
+                        endOverlap = d1_end;
+                        return [startOverlap,endOverlap];
+                    }
+                }
+            } else {
+                // d2_start is null
+                if (d2_end !== null) {
+                    if (moment(d1_start).isSameOrAfter(moment(d2_end))) {
+                        return false;
+                    } else {
+                        // there's overlap
+                        startOverlap = d1_start;
+                        if (moment(d1_end).isBefore(moment(d2_end))) {
+                            endOverlap = d1_end;
+                        } else {
+                            endOverlap = d2_end;
+                        }
+                        return [startOverlap,endOverlap];
+                    }
+                } else {
+                    // there's overlap
+                    startOverlap = d1_start;
+                    endOverlap = d1_end;
+                    return [startOverlap,endOverlap];
+                }
+            }
+        }
+    } else {
+        // d1_start is null
+        if (d1_end !== null) {
+            if (d2_start !== null) {
+                if (d2_end !== null) {
+                    if (moment(d1_end).isSameOrBefore(moment(d2_start))) {
+                        return false;
+                    } else {
+                        // there's overlap
+                        startOverlap = d2_start;
+                        if (moment(d1_end).isBefore(moment(d2_end))) {
+                            endOverlap = d1_end;
+                        } else {
+                            endOverlap = d2_end;
+                        }
+                        return [startOverlap,endOverlap];
+                    }
+                } else {
+                    if (moment(d1_end).isSameOrBefore(moment(d2_start))) {
+                        return false;
+                    } else {
+                        // there's overlap
+                        startOverlap = d2_start;
+                        endOverlap = d1_end;
+                        return [startOverlap,endOverlap];
+                    }
+                }
+            } else {
+                // d2_start is null
+                if (d2_end !== null) {
+                    // there's overlap
+                    startOverlap = d1_start; // yes it's null
+                    if (moment(d1_end).isBefore(moment(d2_end))) {
+                        endOverlap = d1_end;
+                    } else {
+                        endOverlap = d2_end;
+                    }
+                    return [startOverlap,endOverlap];
+                } else {
+                    // there's overlap
+                    startOverlap = d1_start;
+                    endOverlap = d1_end;
+                    return [startOverlap,endOverlap];
+                }
+            }
+        } else {
+            // d1_end is null
+            startOverlap = d2_start; //even if it is null
+            endOverlap = d2_end; //even if it is null
+            return [startOverlap,endOverlap];
+        }
+    }
+}
+
+function joinLabs(rows) {
+    var indToExclude = [];
+    var newRows = [];
+    for (var ind in rows) {
+        if (indToExclude.indexOf(ind) === -1) {
+            var labObj = {
+                lab_id: rows[ind].lab_id,
+                lab: rows[ind].lab,
+                lab_short_name: rows[ind].lab_short_name,
+                lab_opened: rows[ind].lab_opened,
+                lab_closed: rows[ind].lab_closed,
+                lab_history: [{
+                    group_id: rows[ind].group_id,
+                    group_name: rows[ind].group_name,
+                    labs_groups_valid_from: rows[ind].labs_groups_valid_from,
+                    labs_groups_valid_until: rows[ind].labs_groups_valid_until,
+                    unit_id: rows[ind].unit_id,
+                    unit: rows[ind].unit,
+                    unit_full_name: rows[ind].unit_full_name
+                }]
+            };
+            indToExclude.push(ind);
+            var currID = rows[ind].lab_id;
+            for (var ind2 in rows) {
+                if (ind2 > ind && indToExclude.indexOf(ind2) === -1) {
+                    if (rows[ind2].lab_id === currID) {
+                        indToExclude.push(ind2);
+                        labObj.lab_history.push({
+                            group_id: rows[ind2].group_id,
+                            group_name: rows[ind2].group_name,
+                            labs_groups_valid_from: rows[ind2].labs_groups_valid_from,
+                            labs_groups_valid_until: rows[ind2].labs_groups_valid_until,
+                            unit_id: rows[ind2].unit_id,
+                            unit: rows[ind2].unit,
+                            unit_full_name: rows[ind2].unit_full_name
+                        });
+                    }
+                }
+            }
+            newRows.push(labObj);
+        }
+    }
+    return newRows;
+}
 
 /***************************** Query Functions ********************************/
 
@@ -3062,9 +3306,6 @@ var queryCostCentersPerson = function (req, res, next, userCity) {
     }
 };
 
-
-
-
 var queryInstitutionalContactsPerson = function (req, res, next, userCity) {
     var hasPermission = getGeoPermissions(req, userCity);
     if ((req.payload.personID !== req.params.personID && hasPermission)
@@ -4062,17 +4303,23 @@ var queryGetJobs = function (req,res,next, personID, row) {
 
 var queryGetLabs = function (req,res,next, personID, row) {
     var query = 'SELECT labs.id AS lab_id,' +
-                ' labs.name AS lab,' +
+                ' labs.name AS lab, labs.short_name AS lab_short_name,' +
                 ' people_labs.id AS people_lab_id, people_labs.valid_from AS lab_start, people_labs.valid_until AS lab_end,' +
                 ' people_labs.dedication, lab_positions.id AS lab_position_id, lab_positions.name_en AS lab_position,' +
-                ' groups.id AS group_id, groups.name AS group_name,' +
-                ' units.id AS unit_id, units.name AS unit' +
+                ' labs.started AS lab_opened, labs.finished AS lab_closed,' +
+                ' labs_groups.valid_from AS labs_groups_valid_from, labs_groups.valid_until AS labs_groups_valid_until,' +
+                ' groups.id AS group_id, groups.name AS group_name, groups.started AS group_opened, groups.finished AS group_closed,' +
+                ' groups_units.valid_from AS groups_units_valid_from, groups_units.valid_until AS groups_units_valid_until,' +
+                ' units.id AS unit_id, units.name AS unit_full_name, units.short_name AS unit,' +
+                ' units.started AS unit_opened, units.finished AS unit_closed' +
                 ' FROM people' +
                 ' LEFT JOIN people_labs ON people.id = people_labs.person_id' +
                 ' LEFT JOIN labs ON people_labs.lab_id = labs.id' +
+                ' LEFT JOIN labs_groups ON labs_groups.lab_id = labs.id' +
+                ' LEFT JOIN groups ON labs_groups.group_id = groups.id' +
+                ' LEFT JOIN groups_units ON groups_units.group_id = groups.id' +
+                ' LEFT JOIN units ON groups_units.unit_id = units.id' +
                 ' LEFT JOIN lab_positions ON people_labs.lab_position_id = lab_positions.id' +
-                ' LEFT JOIN groups ON labs.group_id = groups.id' +
-                ' LEFT JOIN units ON groups.unit_id = units.id' +
                 ' WHERE people.id = ?;';
     var places = [personID];
     pool.getConnection(function(err, connection) {
@@ -4088,6 +4335,7 @@ var queryGetLabs = function (req,res,next, personID, row) {
                     sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                     return;
                 }
+                rowsQuery = filterLabTimes(rowsQuery);
                 row = joinResponses(row,rowsQuery, 'lab_data');
                 return queryGetRoles(req,res,next, personID, row);
             }
@@ -4881,14 +5129,45 @@ module.exports.listOf = function (req, res, next) {
         querySQL = 'SELECT * FROM units;';
         getQueryResponse(querySQL, req, res, next);
     } else if (listOf === 'groups') {
-        querySQL = 'SELECT groups.id AS group_id, groups.name, groups.started, groups.finished, groups.unit_id FROM groups;';
+        querySQL = 'SELECT groups.id AS group_id, groups.name, groups.short_name AS group_short_name, ' +
+                   ' groups.started, groups.finished, ' +
+                   ' units.id AS unit_id, units.short_name AS unit, units.name AS unit_full_name' +
+                   ' FROM groups' +
+                   ' LEFT JOIN groups_units ON groups_units.group_id = groups.id' +
+                   ' LEFT JOIN units ON groups_units.unit_id = units.id;';
         getQueryResponse(querySQL, req, res, next);
     } else if (listOf === 'labs') {
-        querySQL = 'SELECT labs.id AS lab_id, labs.name AS lab, labs.group_id, groups.name AS group_name, labs.name, labs.started, labs.finished, groups.unit_id, units.name AS unit' +
+        querySQL = 'SELECT labs.id AS lab_id, labs.name AS lab, labs.short_name AS lab_short_name,' +
+                   ' labs.started AS lab_opened, labs.finished AS lab_closed, ' +
+                   ' labs_groups.valid_from AS labs_groups_valid_from, labs_groups.valid_until AS labs_groups_valid_until,' +
+                   ' groups.id AS group_id, groups.name AS group_name, groups.short_name AS group_short_name,' +
+                   ' units.id AS unit_id, units.short_name AS unit, units.name AS unit_full_name' +
                    ' FROM labs' +
-                   ' LEFT JOIN groups ON labs.group_id = groups.id' +
-                   ' LEFT JOIN units ON groups.unit_id = units.id;';
-        getQueryResponse(querySQL, req, res, next);
+                   ' LEFT JOIN labs_groups ON labs_groups.lab_id = labs.id' +
+                   ' LEFT JOIN groups ON labs_groups.group_id = groups.id' +
+                   ' LEFT JOIN groups_units ON groups_units.group_id = groups.id' +
+                   ' LEFT JOIN units ON groups_units.unit_id = units.id;';
+        pool.getConnection(function(err, connection) {
+            if (err) {
+                sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+                return;
+            }
+            connection.query(querySQL,
+                function (err, rowsQuery) {
+                    // And done with the connection.
+                    connection.release();
+                    if (err) {
+                        sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                        return;
+                    }
+                    rowsQuery = joinLabs(rowsQuery);
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": rowsQuery.length,
+                          "result" : rowsQuery});
+                    return;
+                }
+            );
+        });
     } else if (listOf === 'administrative-offices') {
         querySQL = 'SELECT * FROM administrative_offices;';
         getQueryResponse(querySQL, req, res, next);

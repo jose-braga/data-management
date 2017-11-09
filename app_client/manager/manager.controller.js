@@ -100,7 +100,31 @@
                 });
             personData.labs()
                 .then(function (response) {
-                    vm.labs = response.data.result;
+                    var res = response.data.result;
+                    // expands results
+                    vm.labs = [];
+                    var labRow = 0;
+                    for (var ind in res) {
+                        for (var indHist in res[ind].lab_history) {
+                            labRow++;
+                            vm.labs.push({
+                                lab_row: labRow,
+                                lab_id: res[ind].lab_id,
+                                lab: res[ind].lab,
+                                lab_opened: res[ind].lab_opened,
+                                lab_closed: res[ind].lab_closed,
+                                group_id: res[ind].lab_history[indHist].group_id,
+                                group_name: res[ind].lab_history[indHist].group_name,
+                                labs_groups_valid_from: res[ind].lab_history[indHist].labs_groups_valid_from,
+                                labs_groups_valid_until: res[ind].lab_history[indHist].labs_groups_valid_until,
+                                unit_id: res[ind].lab_history[indHist].unit_id
+                            });
+                        }
+                    }
+                    getAllPeopleWithRoles();
+                    getAllPeopleNoRoles();
+                    getAllPeopleToValidate();
+
                 })
                 .catch(function (err) {
                     console.log(err);
@@ -193,9 +217,6 @@
                 .catch(function (err) {
                     console.log(err);
                 });
-            getAllPeopleWithRoles();
-            getAllPeopleNoRoles();
-            getAllPeopleToValidate();
         }
 
         vm.roleName = function (rID) {
@@ -233,21 +254,31 @@
         vm.changeLab = function (lab, rowID) {
             // only change "update array"
             for (var el in vm.currPeople) {
-                if (vm.currPeople[el]['row_id'] === rowID) {
+                if (vm.currPeople[el]['row_id'] == rowID) {
                     var num = el;
                     break;
                 }
             }
             //finds group_id associated with new lab
             for (var l in vm.labs) {
-                if (vm.labs[l]['lab_id'] === lab) {
+                if (vm.labs[l]['lab_row'] == lab) {
+                    var newLab = vm.labs[l]['lab_id'];
                     var newGroup = vm.labs[l]['group_id'];
                     var newUnit = vm.labs[l]['unit_id'];
+                    vm.currPeople[num]['lab_id'] = newLab;
                     vm.currPeople[num]['group_id'] = newGroup;
                     vm.currPeople[num]['unit_id'] = newUnit;
                     vm.updateDataSubmit(rowID,vm.currPeople[num],'updateLabPerson', []);
                 }
             }
+        };
+        vm.labNames = function(lab) {
+            //console.log(lab)
+            if (lab !== undefined) {
+                var name = lab.lab + '@' + lab.group_name;
+                return name;
+            }
+            return '';
         };
         vm.changeSituation = function (situation){
             for (var ind in vm.professionalSituations) {
@@ -423,9 +454,17 @@
                         date = new Date(vm.selectedPeople[member]['valid_from']);
                         vm.selectedPeople[member]['valid_from'] = date;
                     }
+                    if (vm.selectedPeople[member]['labs_groups_valid_from'] !== null) {
+                        date = new Date(vm.selectedPeople[member]['labs_groups_valid_from']);
+                        vm.selectedPeople[member]['labs_groups_valid_from'] = date;
+                    }
                     if (vm.selectedPeople[member]['valid_until'] !== null) {
                         date = new Date(vm.selectedPeople[member]['valid_until']);
                         vm.selectedPeople[member]['valid_until'] = date;
+                    }
+                    if (vm.selectedPeople[member]['labs_groups_valid_until'] !== null) {
+                        date = new Date(vm.selectedPeople[member]['labs_groups_valid_until']);
+                        vm.selectedPeople[member]['labs_groups_valid_until'] = date;
                     }
                     vm.currPeople.push(Object.assign({}, vm.selectedPeople[member]));
                 }
@@ -476,6 +515,7 @@
                 vm.currPeopleValidate.push(Object.assign({}, vm.selectedPeopleValidate[member]));
             }
         };
+
         vm.sortColumn = function(colName, noRoles) {
             if (noRoles === undefined) {
                 noRoles = false;
@@ -2515,6 +2555,16 @@
                             rowID++;
                             var newData = response.data.result[index][indIn];
                             newData['row_id'] = rowID;
+                            if (index == 0) {
+                                // for researchers
+                                for (var el in vm.labs) {
+                                    if (vm.labs[el].lab_id === newData.lab_id
+                                        && vm.labs[el].group_id === newData.group_id) {
+                                        newData['lab_row'] = vm.labs[el].lab_row;
+                                        break;
+                                    }
+                                }
+                            }
                             vm.allPeople.push(newData);
                         }
                     }

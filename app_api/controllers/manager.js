@@ -238,6 +238,206 @@ function momentToDate(timedate, timezone, timeformat) {
     return timedate !== null ? moment.tz(timedate,timezone).format(timeformat) : null;
 }
 
+function filterLabTimes(rows) {
+    // lab_start is when person started in the lab
+    // lab_end is when person left the lab
+
+    // lab_opened => when lab was inaugurated
+    // lab_closed => when lab ceased
+    // labs_groups_valid_from => when lab entered a group
+    // labs_groups_valid_until => when lab left a group
+
+    // 1. back-end - lab, group and units times must be defined consistently
+    // 2. front-end - lab_start cannot be less than lab_opened, lab_end cannot be more than lab_closed
+    var filteredRows = [];
+    for (var ind in rows) {
+        var overlap = timeOverlap(rows[ind].valid_from,rows[ind].valid_until,
+            rows[ind].labs_groups_valid_from,rows[ind].labs_groups_valid_until);
+        if (overlap) {
+            rows[ind].valid_from = overlap[0];
+            rows[ind].valid_until = overlap[1];
+            filteredRows.push(rows[ind]);
+        }
+    }
+    return filteredRows;
+}
+
+function timeOverlap(d1_start,d1_end, d2_start, d2_end) {
+    // returns false if no overlap
+    // else returns [startoverlap,endoverlap]
+    // null in start time is assumed to be -Inf
+    // null in end time is assumed to be +Inf
+    var startOverlap;
+    var endOverlap;
+    if (d1_start !== null) {
+        if (d1_end !== null) {
+            if (d2_start !== null) {
+                if (d2_end !== null) {
+                    if (moment(d1_start).isSameOrAfter(moment(d2_end))
+                        || moment(d1_end).isSameOrBefore(moment(d2_start))) {
+                        return false;
+                    } else {
+                        // there's overlap
+                        if (moment(d1_start).isAfter(moment(d2_start))) {
+                            startOverlap = d1_start;
+                        } else {
+                            startOverlap = d2_start;
+                        }
+                        if (moment(d1_end).isBefore(moment(d2_end))) {
+                            endOverlap = d1_end;
+                        } else {
+                            endOverlap = d2_end;
+                        }
+                        return [startOverlap,endOverlap];
+                    }
+                } else {
+                    if (moment(d1_end).isSameOrBefore(moment(d2_start))) {
+                        return false;
+                    } else {
+                        // there's overlap
+                        if (moment(d1_start).isAfter(moment(d2_start))) {
+                            startOverlap = d1_start;
+                        } else {
+                            startOverlap = d2_start;
+                        }
+                        endOverlap = d1_end;
+                        return [startOverlap,endOverlap];
+                    }
+                }
+            } else {
+                // d2_start is null
+                if (d2_end !== null) {
+                    if (moment(d1_start).isSameOrAfter(moment(d2_end))) {
+                        return false;
+                    } else {
+                        // there's overlap
+                        startOverlap = d1_start;
+                        endOverlap = d1_end;
+                        if (moment(d1_end).isBefore(moment(d2_end))) {
+
+                        } else {
+                            endOverlap = d2_end;
+                        }
+                        return [startOverlap,endOverlap];
+                    }
+                } else {
+                    // there's overlap
+                    startOverlap = d1_start;
+                    endOverlap = d1_end;
+                    return [startOverlap,endOverlap];
+                }
+            }
+        } else {
+            // d1_end is null
+            if (d2_start !== null) {
+                if (d2_end !== null) {
+                    if (moment(d1_start).isSameOrAfter(moment(d2_end))) {
+                        return false;
+                    } else {
+                        // there's overlap
+                        if (moment(d1_start).isAfter(moment(d2_start))) {
+                            startOverlap = d1_start;
+                        } else {
+                            startOverlap = d2_start;
+                        }
+                        if (moment(d1_end).isBefore(moment(d2_end))) {
+                            endOverlap = d1_end;
+                        } else {
+                            endOverlap = d2_end;
+                        }
+                        return [startOverlap,endOverlap];
+                    }
+                } else {
+                    if (moment(d1_end).isSameOrBefore(moment(d2_start))) {
+                        return false;
+                    } else {
+                        // there's overlap
+                        if (moment(d1_start).isAfter(moment(d2_start))) {
+                            startOverlap = d1_start;
+                        } else {
+                            startOverlap = d2_start;
+                        }
+                        endOverlap = d1_end;
+                        return [startOverlap,endOverlap];
+                    }
+                }
+            } else {
+                // d2_start is null
+                if (d2_end !== null) {
+                    if (moment(d1_start).isSameOrAfter(moment(d2_end))) {
+                        return false;
+                    } else {
+                        // there's overlap
+                        startOverlap = d1_start;
+                        if (moment(d1_end).isBefore(moment(d2_end))) {
+                            endOverlap = d1_end;
+                        } else {
+                            endOverlap = d2_end;
+                        }
+                        return [startOverlap,endOverlap];
+                    }
+                } else {
+                    // there's overlap
+                    startOverlap = d1_start;
+                    endOverlap = d1_end;
+                    return [startOverlap,endOverlap];
+                }
+            }
+        }
+    } else {
+        // d1_start is null
+        if (d1_end !== null) {
+            if (d2_start !== null) {
+                if (d2_end !== null) {
+                    if (moment(d1_end).isSameOrBefore(moment(d2_start))) {
+                        return false;
+                    } else {
+                        // there's overlap
+                        startOverlap = d2_start;
+                        if (moment(d1_end).isBefore(moment(d2_end))) {
+                            endOverlap = d1_end;
+                        } else {
+                            endOverlap = d2_end;
+                        }
+                        return [startOverlap,endOverlap];
+                    }
+                } else {
+                    if (moment(d1_end).isSameOrBefore(moment(d2_start))) {
+                        return false;
+                    } else {
+                        // there's overlap
+                        startOverlap = d2_start;
+                        endOverlap = d1_end;
+                        return [startOverlap,endOverlap];
+                    }
+                }
+            } else {
+                // d2_start is null
+                if (d2_end !== null) {
+                    // there's overlap
+                    startOverlap = d1_start; // yes it's null
+                    if (moment(d1_end).isBefore(moment(d2_end))) {
+                        endOverlap = d1_end;
+                    } else {
+                        endOverlap = d2_end;
+                    }
+                    return [startOverlap,endOverlap];
+                } else {
+                    // there's overlap
+                    startOverlap = d1_start;
+                    endOverlap = d1_end;
+                    return [startOverlap,endOverlap];
+                }
+            }
+        } else {
+            // d1_end is null
+            startOverlap = d2_start; //even if it is null
+            endOverlap = d2_end; //even if it is null
+            return [startOverlap,endOverlap];
+        }
+    }
+}
+
 /***************************** Query Functions ********************************/
 
 var queryUpdateAllPeopleData = function (req, res, next, personIDs, userCity) {
@@ -597,6 +797,87 @@ var sendEmailsToUsers = function (req, res, next) {
     return;
 };
 
+/*******************************************************************************/
+
+var listAllPeopleWithRolesDataRemaining = function (req,res,next, data) {
+    var querySQL = 'SELECT people.id AS person_id, people.name AS person_name,' +
+                   ' people_institution_city.city_id AS pole_id, institution_city.city AS pole_name,' +
+                   ' people_roles.role_id, people_roles.id AS people_roles_id,' +
+                   ' technicians.technician_office_id, technician_offices.name_en AS lab,' +
+                   ' technicians.valid_from AS valid_from, technicians.valid_until AS valid_until,' +
+                   ' technicians.dedication AS dedication,' +
+                   ' technicians.technician_position_id AS position_id,' +
+                   ' technicians.id AS technicians_id ' +
+                   ' FROM people' +
+                    ' LEFT JOIN people_institution_city ON people_institution_city.person_id = people.id' +
+                    ' LEFT JOIN institution_city ON people_institution_city.city_id = institution_city.id' +
+                    ' LEFT JOIN people_roles ON people_roles.person_id = people.id' +
+                    ' LEFT JOIN technicians ON technicians.person_id = people.id' +
+                    ' LEFT JOIN technician_offices ON technicians.technician_office_id = technician_offices.id' +
+                   ' WHERE people.status = 1' + ' AND ' + 'people_roles.role_id = ' + rolesObj['technical'] +
+                   ' ORDER BY people.name';
+    querySQL = querySQL + '; ';
+    querySQL = querySQL + 'SELECT people.id AS person_id, people.name AS person_name,' +
+                   ' people_institution_city.city_id AS pole_id, institution_city.city AS pole_name,' +
+                   ' people_roles.role_id, people_roles.id AS people_roles_id,' +
+                   ' science_managers.science_manager_office_id, science_manager_offices.name_en AS lab,' +
+                   ' science_managers.valid_from AS valid_from, science_managers.valid_until AS valid_until,' +
+                   ' science_managers.dedication AS dedication,' +
+                   ' science_managers.science_manager_position_id AS position_id,' +
+                   ' science_managers.id AS science_managers_id ' +
+                   ' FROM people' +
+                    ' LEFT JOIN people_institution_city ON people_institution_city.person_id = people.id' +
+                    ' LEFT JOIN institution_city ON people_institution_city.city_id = institution_city.id' +
+                    ' LEFT JOIN people_roles ON people_roles.person_id = people.id' +
+                    ' LEFT JOIN science_managers ON science_managers.person_id = people.id' +
+                    ' LEFT JOIN science_manager_offices ON science_managers.science_manager_office_id = science_manager_offices.id' +
+                   ' WHERE people.status = 1' + ' AND ' + 'people_roles.role_id = ' + rolesObj['scienceManagement'] +
+                   ' ORDER BY people.name';
+    querySQL = querySQL + '; ';
+    querySQL = querySQL + 'SELECT people.id AS person_id, people.name AS person_name,' +
+                   ' people_institution_city.city_id AS pole_id, institution_city.city AS pole_name,' +
+                   ' people_roles.role_id, people_roles.id AS people_roles_id,' +
+                   ' people_administrative_offices.administrative_office_id, administrative_offices.name_en AS lab,' +
+                   ' people_administrative_offices.valid_from AS valid_from, people_administrative_offices.valid_until AS valid_until,' +
+                   ' people_administrative_offices.dedication AS dedication,' +
+                   ' people_administrative_offices.administrative_position_id AS position_id,' +
+                   ' people_administrative_offices.id AS people_administrative_offices_id ' +
+                   ' FROM people' +
+                    ' LEFT JOIN people_institution_city ON people_institution_city.person_id = people.id' +
+                    ' LEFT JOIN institution_city ON people_institution_city.city_id = institution_city.id' +
+                    ' LEFT JOIN people_roles ON people_roles.person_id = people.id' +
+                    ' LEFT JOIN people_administrative_offices ON people_administrative_offices.person_id = people.id' +
+                    ' LEFT JOIN administrative_offices ON people_administrative_offices.administrative_office_id = administrative_offices.id' +
+                   ' WHERE people.status = 1' + ' AND ' + 'people_roles.role_id = ' + rolesObj['administrative'] +
+                   ' ORDER BY people.name';
+    querySQL = querySQL + '; ';
+    var places = [];
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, rowsQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                var result = [];
+                result.push(data);
+                for (var el in rowsQuery) {
+                    result.push(rowsQuery[el]);
+                }
+                sendJSONResponse(res, 200,
+                    {"status": "success", "statusCode": 200, "count": result.length,
+                     "result" : result});
+            }
+        );
+    });
+
+};
 
 /******************** Call SQL Generators after Validations *******************/
 
@@ -607,9 +888,12 @@ module.exports.listAllPeopleWithRolesData = function (req, res, next) {
             var querySQL = 'SELECT people.id AS person_id, people.name AS person_name,' +
                            ' people_institution_city.city_id AS pole_id, institution_city.city AS pole_name,' +
                            ' people_roles.role_id, people_roles.id AS people_roles_id,' +
-                           ' people_labs.lab_id, people_labs.valid_from AS valid_from, labs.name AS lab,' +
+                           ' people_labs.lab_id,' +
+                           ' labs.name AS lab,' +
+                           ' labs.started AS lab_opened, labs.finished AS lab_closed,' +
+                           ' labs_groups.valid_from AS labs_groups_valid_from, labs_groups.valid_until AS labs_groups_valid_until,' +
                            ' people_labs.dedication AS dedication,' +
-                           ' people_labs.valid_until AS valid_until,' +
+                           ' people_labs.valid_from AS valid_from, people_labs.valid_until AS valid_until,' +
                            ' people_labs.lab_position_id AS position_id,' +
                            ' people_labs.id AS people_labs_id,' +
                            ' groups.id AS group_id,' +
@@ -620,64 +904,34 @@ module.exports.listAllPeopleWithRolesData = function (req, res, next) {
                             ' LEFT JOIN people_roles ON people_roles.person_id = people.id' +
                             ' LEFT JOIN people_labs ON people_labs.person_id = people.id' +
                             ' LEFT JOIN labs ON people_labs.lab_id = labs.id' +
-                            ' LEFT JOIN groups ON labs.group_id = groups.id' +
-                            ' LEFT JOIN units ON groups.unit_id = units.id' +
+                            ' LEFT JOIN labs_groups ON labs_groups.lab_id = labs.id' +
+                            ' LEFT JOIN groups ON labs_groups.group_id = groups.id' +
+                            ' LEFT JOIN groups_units ON groups_units.group_id = groups.id' +
+                            ' LEFT JOIN units ON groups_units.unit_id = units.id' +
                            ' WHERE people.status = 1' + ' AND ' + 'people_roles.role_id = ' + rolesObj['scientific'] +
                            ' ORDER BY people.name';
             querySQL = querySQL + '; ';
-            var querySQL = querySQL + 'SELECT people.id AS person_id, people.name AS person_name,' +
-                           ' people_institution_city.city_id AS pole_id, institution_city.city AS pole_name,' +
-                           ' people_roles.role_id, people_roles.id AS people_roles_id,' +
-                           ' technicians.technician_office_id, technician_offices.name_en AS lab,' +
-                           ' technicians.valid_from AS valid_from, technicians.valid_until AS valid_until,' +
-                           ' technicians.dedication AS dedication,' +
-                           ' technicians.technician_position_id AS position_id,' +
-                           ' technicians.id AS technicians_id ' +
-                           ' FROM people' +
-                            ' LEFT JOIN people_institution_city ON people_institution_city.person_id = people.id' +
-                            ' LEFT JOIN institution_city ON people_institution_city.city_id = institution_city.id' +
-                            ' LEFT JOIN people_roles ON people_roles.person_id = people.id' +
-                            ' LEFT JOIN technicians ON technicians.person_id = people.id' +
-                            ' LEFT JOIN technician_offices ON technicians.technician_office_id = technician_offices.id' +
-                           ' WHERE people.status = 1' + ' AND ' + 'people_roles.role_id = ' + rolesObj['technical'] +
-                           ' ORDER BY people.name';
-            querySQL = querySQL + '; ';
-            var querySQL = querySQL + 'SELECT people.id AS person_id, people.name AS person_name,' +
-                           ' people_institution_city.city_id AS pole_id, institution_city.city AS pole_name,' +
-                           ' people_roles.role_id, people_roles.id AS people_roles_id,' +
-                           ' science_managers.science_manager_office_id, science_manager_offices.name_en AS lab,' +
-                           ' science_managers.valid_from AS valid_from, science_managers.valid_until AS valid_until,' +
-                           ' science_managers.dedication AS dedication,' +
-                           ' science_managers.science_manager_position_id AS position_id,' +
-                           ' science_managers.id AS science_managers_id ' +
-                           ' FROM people' +
-                            ' LEFT JOIN people_institution_city ON people_institution_city.person_id = people.id' +
-                            ' LEFT JOIN institution_city ON people_institution_city.city_id = institution_city.id' +
-                            ' LEFT JOIN people_roles ON people_roles.person_id = people.id' +
-                            ' LEFT JOIN science_managers ON science_managers.person_id = people.id' +
-                            ' LEFT JOIN science_manager_offices ON science_managers.science_manager_office_id = science_manager_offices.id' +
-                           ' WHERE people.status = 1' + ' AND ' + 'people_roles.role_id = ' + rolesObj['scienceManagement'] +
-                           ' ORDER BY people.name';
-            querySQL = querySQL + '; ';
-            var querySQL = querySQL + 'SELECT people.id AS person_id, people.name AS person_name,' +
-                           ' people_institution_city.city_id AS pole_id, institution_city.city AS pole_name,' +
-                           ' people_roles.role_id, people_roles.id AS people_roles_id,' +
-                           ' people_administrative_offices.administrative_office_id, administrative_offices.name_en AS lab,' +
-                           ' people_administrative_offices.valid_from AS valid_from, people_administrative_offices.valid_until AS valid_until,' +
-                           ' people_administrative_offices.dedication AS dedication,' +
-                           ' people_administrative_offices.administrative_position_id AS position_id,' +
-                           ' people_administrative_offices.id AS people_administrative_offices_id ' +
-                           ' FROM people' +
-                            ' LEFT JOIN people_institution_city ON people_institution_city.person_id = people.id' +
-                            ' LEFT JOIN institution_city ON people_institution_city.city_id = institution_city.id' +
-                            ' LEFT JOIN people_roles ON people_roles.person_id = people.id' +
-                            ' LEFT JOIN people_administrative_offices ON people_administrative_offices.person_id = people.id' +
-                            ' LEFT JOIN administrative_offices ON people_administrative_offices.administrative_office_id = administrative_offices.id' +
-                           ' WHERE people.status = 1' + ' AND ' + 'people_roles.role_id = ' + rolesObj['administrative'] +
-                           ' ORDER BY people.name';
-            querySQL = querySQL + '; ';
-            //places.push(teamID);
-            escapedQuery(querySQL, places, req, res, next);
+            pool.getConnection(function(err, connection) {
+                if (err) {
+                    sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+                    return;
+                }
+                connection.query(querySQL,places,
+                    function (err, rowsQuery) {
+                        // And done with the connection.
+                        connection.release();
+                        if (err) {
+                            sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                            return;
+                        }
+                        for (var ind in rowsQuery) {
+
+                        }
+                        rowsQuery = filterLabTimes(rowsQuery);
+                        return listAllPeopleWithRolesDataRemaining(req,res,next, rowsQuery);
+                    }
+                );
+            });
         }
     );
 };

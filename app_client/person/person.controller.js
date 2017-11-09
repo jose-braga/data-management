@@ -357,6 +357,116 @@
             vm.updateStatus[ind] = "Updating...";
             vm.messageType[ind] = 'message-updating';
             vm.hideMessage[ind] = false;
+            // gets affiliations refering to the same people_lab row
+            // and join contiguous
+            var linesToSkip = [];
+            var samePeopleLab = [];
+            for (var el in vm.currentAffiliationsLab) {
+                var addPairs = false;
+                if (linesToSkip.indexOf(el) == -1) {
+                    var currPairing = [el];
+                    linesToSkip.push(el);
+                }
+                for (var el2 in vm.currentAffiliationsLab) {
+                    if (el2 > el
+                        && linesToSkip.indexOf(el2) == -1
+                        && vm.currentAffiliationsLab[el].people_lab_id == vm.currentAffiliationsLab[el2].people_lab_id) {
+                        addPairs = true;
+                        linesToSkip.push(el2);
+                        currPairing.push(el2);
+                    }
+                }
+                if (addPairs) samePeopleLab.push(currPairing);
+            }
+            // for each pair searches contiguous durations
+            var elementsToRemove = [];
+            for (var pair in samePeopleLab) {
+                var contiguous = [];
+                var nonContiguous = [];
+                for (var el in samePeopleLab[pair]) {
+                    for (var el2 in samePeopleLab[pair]) {
+                        if (el2 > el
+                            &&
+                            (moment(vm.currentAffiliationsLab[samePeopleLab[pair][el]].lab_start)
+                                .subtract(1,'days')
+                                .isSame(moment(vm.currentAffiliationsLab[samePeopleLab[pair][el2]].lab_end))
+                                ||
+                            moment(vm.currentAffiliationsLab[samePeopleLab[pair][el]].lab_end)
+                                .add(1,'days')
+                                .isSame(moment(vm.currentAffiliationsLab[samePeopleLab[pair][el2]].lab_start)))) {
+                            contiguous.push([samePeopleLab[pair][el],samePeopleLab[pair][el2]]);
+                        }
+                    }
+                }
+                contiguous = contiguous.reduce(function(a, b) {return a.concat(b);},[]);
+                for (var el in samePeopleLab[pair]) {
+                    if (contiguous.indexOf(samePeopleLab[pair][el]) === -1) {
+                        nonContiguous.push(samePeopleLab[pair][el]);
+                    }
+                }
+                for (var el in contiguous) {
+                    // finds minimum of start times and maximum of end times
+                    var minTime;
+                    if (el === 0) {
+                        if (vm.currentAffiliationsLab[contiguous[el]].lab_start !== null) {
+                            minTime = moment(vm.currentAffiliationsLab[contiguous[el]].lab_start);
+                        } else {
+                            minTime = null;
+                            break;
+                        }
+                    } else {
+                        if (vm.currentAffiliationsLab[contiguous[el]].lab_start !== null) {
+                            if(moment(vm.currentAffiliationsLab[contiguous[el]].lab_start)
+                                    .isBefore(minTime)) {
+                                minTime = moment(vm.currentAffiliationsLab[contiguous[el]].lab_start);
+                            }
+                        } else {
+                            minTime = null;
+                            break;
+                        }
+                    }
+                }
+                for (var el in contiguous) {
+                    // finds minimum of start times and maximum of end times
+                    var maxTime;
+                    if (el === 0) {
+                        if (vm.currentAffiliationsLab[contiguous[el]].lab_end !== null) {
+                            maxTime = moment(vm.currentAffiliationsLab[contiguous[el]].lab_end);
+                        } else {
+                            maxTime = null;
+                            break;
+                        }
+                    } else {
+                        if (vm.currentAffiliationsLab[contiguous[el]].lab_end !== null) {
+                            if(moment(vm.currentAffiliationsLab[contiguous[el]].lab_end)
+                                    .isAfter(maxTime)) {
+                                maxTime = moment(vm.currentAffiliationsLab[contiguous[el]].lab_end);
+                            }
+                        } else {
+                            maxTime = null;
+                            break;
+                        }
+                    }
+                }
+                for (var el = contiguous.length -1; el>=0; el--) {
+                    // changes first row of affiliation and removes following
+                    if (el === 0) {
+                        vm.currentAffiliationsLab[contiguous[el]].lab_start = momentToDate(minTime);
+                        vm.currentAffiliationsLab[contiguous[el]].lab_end = momentToDate(maxTime);
+                    } else {
+                        elementsToRemove.push(contiguous[el]);
+                    }
+                }
+                for (var el in nonContiguous) {
+                    vm.currentAffiliationsLab[nonContiguous[el]].people_lab_id = 'new';
+                }
+            }
+            elementsToRemove.sort(function(a, b) {
+                        return a - b;
+                    });
+            for (var el = elementsToRemove.length -1; el>=0; el--) {
+                vm.currentAffiliationsLab.splice(elementsToRemove[el],1);
+            }
             var data = processDataRows(vm.currentAffiliationsLab,vm.thisPerson.lab_data,
                                   'people_lab_id', 'newAffiliationsLab','updateAffiliationsLab','deleteAffiliationsLab');
             data['changed_by'] = vm.currentUser.userID;
@@ -689,6 +799,20 @@
             }
             return false;
         };
+        vm.labNames = function(lab) {
+            if (lab !== undefined) {
+                var name = lab.lab;
+                if (processDate(lab.lab_opened) !== null && processDate(lab.lab_closed) === null) {
+                    name = name + ' (started ' + momentToDate(lab.lab_opened) + ')';
+                } else if (processDate(lab.lab_opened) === null && processDate(lab.lab_closed) !== null) {
+                    name = name + ' (closed ' + momentToDate(lab.lab_closed) + ')';
+                } else if (processDate(lab.lab_opened) !== null && processDate(lab.lab_closed) !== null) {
+                    name = name + ' (from ' + momentToDate(lab.lab_opened) + ' to ' + momentToDate(lab.lab_closed) + ')';
+                }
+                return name;
+            }
+            return '';
+        };
         vm.changeSituation = function (situation){
             for (var ind in vm.professionalSituations) {
                 if (vm.professionalSituations[ind].id === situation['job_situation_id']) {
@@ -726,11 +850,17 @@
             }
             return true;
         };
-        vm.updateOnSelect = function (arrObj, source, num, keyID, keyUpd){
+        vm.updateOnSelect = function (arrObj, source, num, keyID, keyUpd) {
             for (var el in source) {
-                if(source[el][keyID] === arrObj[num][keyID]) {
+                if (source[el][keyID] === arrObj[num][keyID]) {
                     for (var indKey in keyUpd) {
-                        arrObj[num][keyUpd[indKey]] = source[el][keyUpd[indKey]];
+                        if (keyUpd[indKey] === 'lab_opened') {
+                            arrObj[num][keyUpd[indKey]] = processDate(source[el]['started']);
+                        } else if (keyUpd[indKey] === 'lab_closed') {
+                            arrObj[num][keyUpd[indKey]] = processDate(source[el]['finished']);
+                        } else {
+                            arrObj[num][keyUpd[indKey]] = source[el][keyUpd[indKey]];
+                        }
                     }
                 }
             }
@@ -810,7 +940,7 @@
                     current[0]['people_lab_id'] = 'new';
                 } else {
                     obj = {people_lab_id: 'new', lab_id: null, lab: null, dedication: null, lab_position: null,
-                           lab_position_id: null, group_id: null, group_name: null, lab_start: null, lab_end: null,
+                           lab_position_id: null, lab_opened: null, lab_closed: null, group_id: null, group_name: null, lab_start: null, lab_end: null,
                            unit_id: null, unit: null};
                     current.push(obj);
                 }
@@ -1343,12 +1473,19 @@
                     }
                     vm.initialFinishedDegrees = JSON.parse(JSON.stringify(vm.currentFinishedDegrees));
                     vm.initialOngoingDegrees = JSON.parse(JSON.stringify(vm.currentOngoingDegrees));
+
                     vm.currentAffiliationsLab = [];
                     for (var id in vm.thisPerson.lab_data) {
                         vm.thisPerson.lab_data[id]['lab_start'] = processDate(vm.thisPerson.lab_data[id]['lab_start']);
                         vm.thisPerson.lab_data[id]['lab_end'] = processDate(vm.thisPerson.lab_data[id]['lab_end']);
+                        vm.thisPerson.lab_data[id]['labs_groups_valid_from'] = processDate(vm.thisPerson.lab_data[id]['labs_groups_valid_from']);
+                        vm.thisPerson.lab_data[id]['labs_groups_valid_until'] = processDate(vm.thisPerson.lab_data[id]['labs_groups_valid_until']);
+                        vm.thisPerson.lab_data[id]['lab_opened'] = processDate(vm.thisPerson.lab_data[id]['lab_opened']);
+                        vm.thisPerson.lab_data[id]['lab_closed'] = processDate(vm.thisPerson.lab_data[id]['lab_closed']);
                         vm.currentAffiliationsLab.push(Object.assign({}, vm.thisPerson.lab_data[id]));
                     }
+
+
                     vm.currentCostCenters = [];
                     for (var id in vm.thisPerson.cost_centers) {
                         vm.thisPerson.cost_centers[id]['valid_from'] = processDate(vm.thisPerson.cost_centers[id]['valid_from']);

@@ -9,7 +9,7 @@
         <toolbar-row></toolbar-row>
         <md-tabs md-dynamic-height md-border-bottom>
             <md-tab ng-if="vm.show('labs')" ng-repeat="lab in vm.personLab"
-                    label={{lab.lab}}>
+                    label={{lab.lab}}@{{lab.group_name}}>
                 <md-content>
                     <div layout="row" layout-padding>
                         <team-people-lab-presentation data-lab="{{lab.lab_id}}" flex>

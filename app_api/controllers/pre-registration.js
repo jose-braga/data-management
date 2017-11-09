@@ -127,6 +127,207 @@ function joinResponses(row, newRows, newKey, i, newSubRows, newSubKey) {
     }
 }
 
+function filterLabTimes(rows) {
+    // lab_start is when person started in the lab
+    // lab_end is when person left the lab
+
+    // lab_opened => when lab was inaugurated
+    // lab_closed => when lab ceased
+    // labs_groups_valid_from => when lab entered a group
+    // labs_groups_valid_until => when lab left a group
+
+    // 1. back-end - lab, group and units times must be defined consistently
+    // 2. front-end - lab_start cannot be less than lab_opened, lab_end cannot be more than lab_closed
+    var filteredRows = [];
+    for (var ind in rows) {
+        var overlap = timeOverlap(rows[ind].lab_start,rows[ind].lab_end,
+            rows[ind].labs_groups_valid_from,rows[ind].labs_groups_valid_until);
+        if (overlap) {
+            rows[ind].lab_start = overlap[0];
+            rows[ind].lab_end = overlap[1];
+            filteredRows.push(rows[ind]);
+        }
+    }
+    return filteredRows;
+}
+
+function timeOverlap(d1_start,d1_end, d2_start, d2_end) {
+    // returns false if no overlap
+    // else returns [startoverlap,endoverlap]
+    // null in start time is assumed to be -Inf
+    // null in end time is assumed to be +Inf
+    var startOverlap;
+    var endOverlap;
+    if (d1_start !== null) {
+        if (d1_end !== null) {
+            if (d2_start !== null) {
+                if (d2_end !== null) {
+                    if (moment(d1_start).isSameOrAfter(moment(d2_end))
+                        || moment(d1_end).isSameOrBefore(moment(d2_start))) {
+                        return false;
+                    } else {
+                        // there's overlap
+                        if (moment(d1_start).isAfter(moment(d2_start))) {
+                            startOverlap = d1_start;
+                        } else {
+                            startOverlap = d2_start;
+                        }
+                        if (moment(d1_end).isBefore(moment(d2_end))) {
+                            endOverlap = d1_end;
+                        } else {
+                            endOverlap = d2_end;
+                        }
+                        return [startOverlap,endOverlap];
+                    }
+                } else {
+                    if (moment(d1_end).isSameOrBefore(moment(d2_start))) {
+                        return false;
+                    } else {
+                        // there's overlap
+                        if (moment(d1_start).isAfter(moment(d2_start))) {
+                            startOverlap = d1_start;
+                        } else {
+                            startOverlap = d2_start;
+                        }
+                        endOverlap = d1_end;
+                        return [startOverlap,endOverlap];
+                    }
+                }
+            } else {
+                // d2_start is null
+                if (d2_end !== null) {
+                    if (moment(d1_start).isSameOrAfter(moment(d2_end))) {
+                        return false;
+                    } else {
+                        // there's overlap
+                        startOverlap = d1_start;
+                        endOverlap = d1_end;
+                        if (moment(d1_end).isBefore(moment(d2_end))) {
+
+                        } else {
+                            endOverlap = d2_end;
+                        }
+                        return [startOverlap,endOverlap];
+                    }
+                } else {
+                    // there's overlap
+                    startOverlap = d1_start;
+                    endOverlap = d1_end;
+                    return [startOverlap,endOverlap];
+                }
+            }
+        } else {
+            // d1_end is null
+            if (d2_start !== null) {
+                if (d2_end !== null) {
+                    if (moment(d1_start).isSameOrAfter(moment(d2_end))) {
+                        return false;
+                    } else {
+                        // there's overlap
+                        if (moment(d1_start).isAfter(moment(d2_start))) {
+                            startOverlap = d1_start;
+                        } else {
+                            startOverlap = d2_start;
+                        }
+                        if (moment(d1_end).isBefore(moment(d2_end))) {
+                            endOverlap = d1_end;
+                        } else {
+                            endOverlap = d2_end;
+                        }
+                        return [startOverlap,endOverlap];
+                    }
+                } else {
+                    if (moment(d1_end).isSameOrBefore(moment(d2_start))) {
+                        return false;
+                    } else {
+                        // there's overlap
+                        if (moment(d1_start).isAfter(moment(d2_start))) {
+                            startOverlap = d1_start;
+                        } else {
+                            startOverlap = d2_start;
+                        }
+                        endOverlap = d1_end;
+                        return [startOverlap,endOverlap];
+                    }
+                }
+            } else {
+                // d2_start is null
+                if (d2_end !== null) {
+                    if (moment(d1_start).isSameOrAfter(moment(d2_end))) {
+                        return false;
+                    } else {
+                        // there's overlap
+                        startOverlap = d1_start;
+                        if (moment(d1_end).isBefore(moment(d2_end))) {
+                            endOverlap = d1_end;
+                        } else {
+                            endOverlap = d2_end;
+                        }
+                        return [startOverlap,endOverlap];
+                    }
+                } else {
+                    // there's overlap
+                    startOverlap = d1_start;
+                    endOverlap = d1_end;
+                    return [startOverlap,endOverlap];
+                }
+            }
+        }
+    } else {
+        // d1_start is null
+        if (d1_end !== null) {
+            if (d2_start !== null) {
+                if (d2_end !== null) {
+                    if (moment(d1_end).isSameOrBefore(moment(d2_start))) {
+                        return false;
+                    } else {
+                        // there's overlap
+                        startOverlap = d2_start;
+                        if (moment(d1_end).isBefore(moment(d2_end))) {
+                            endOverlap = d1_end;
+                        } else {
+                            endOverlap = d2_end;
+                        }
+                        return [startOverlap,endOverlap];
+                    }
+                } else {
+                    if (moment(d1_end).isSameOrBefore(moment(d2_start))) {
+                        return false;
+                    } else {
+                        // there's overlap
+                        startOverlap = d2_start;
+                        endOverlap = d1_end;
+                        return [startOverlap,endOverlap];
+                    }
+                }
+            } else {
+                // d2_start is null
+                if (d2_end !== null) {
+                    // there's overlap
+                    startOverlap = d1_start; // yes it's null
+                    if (moment(d1_end).isBefore(moment(d2_end))) {
+                        endOverlap = d1_end;
+                    } else {
+                        endOverlap = d2_end;
+                    }
+                    return [startOverlap,endOverlap];
+                } else {
+                    // there's overlap
+                    startOverlap = d1_start;
+                    endOverlap = d1_end;
+                    return [startOverlap,endOverlap];
+                }
+            }
+        } else {
+            // d1_end is null
+            startOverlap = d2_start; //even if it is null
+            endOverlap = d2_end; //even if it is null
+            return [startOverlap,endOverlap];
+        }
+    }
+}
+
+
 /***************************** Query Functions ********************************/
 
 var queryUpdateUser = function (req, res, next) {
@@ -925,14 +1126,20 @@ var queryGetLabs = function (req,res,next, personID, row) {
                 ' labs.name AS lab,' +
                 ' people_labs.id AS people_lab_id, people_labs.valid_from AS lab_start, people_labs.valid_until AS lab_end,' +
                 ' people_labs.dedication, lab_positions.id AS lab_position_id, lab_positions.name_en AS lab_position,' +
-                ' groups.id AS group_id, groups.name AS group_name,' +
-                ' units.id AS unit_id, units.name AS unit' +
+                ' labs.started AS lab_opened, labs.finished AS lab_closed,' +
+                ' labs_groups.valid_from AS labs_groups_valid_from, labs_groups.valid_until AS labs_groups_valid_until,' +
+                ' groups.id AS group_id, groups.name AS group_name, groups.started AS group_opened, groups.finished AS group_closed,' +
+                ' groups_units.valid_from AS groups_units_valid_from, groups_units.valid_until AS groups_units_valid_until,' +
+                ' units.id AS unit_id, units.name AS unit_full_name, units.short_name AS unit,' +
+                ' units.started AS unit_opened, units.finished AS unit_closed' +
                 ' FROM people' +
                 ' LEFT JOIN people_labs ON people.id = people_labs.person_id' +
                 ' LEFT JOIN labs ON people_labs.lab_id = labs.id' +
+                ' LEFT JOIN labs_groups ON labs_groups.lab_id = labs.id' +
+                ' LEFT JOIN groups ON labs_groups.group_id = groups.id' +
+                ' LEFT JOIN groups_units ON groups_units.group_id = groups.id' +
+                ' LEFT JOIN units ON groups_units.unit_id = units.id' +
                 ' LEFT JOIN lab_positions ON people_labs.lab_position_id = lab_positions.id' +
-                ' LEFT JOIN groups ON labs.group_id = groups.id' +
-                ' LEFT JOIN units ON groups.unit_id = units.id' +
                 ' WHERE people.id = ?;';
     var places = [personID];
     pool.getConnection(function(err, connection) {
@@ -948,6 +1155,7 @@ var queryGetLabs = function (req,res,next, personID, row) {
                     sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                     return;
                 }
+                rowsQuery = filterLabTimes(rowsQuery);
                 row = joinResponses(row,rowsQuery, 'lab_data');
                 return queryGetResearcherData(req,res,next, personID, row);
             }

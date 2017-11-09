@@ -11,7 +11,7 @@
                         ng-controller="LabSelectCtrl as laboratory">
                         <label>Lab</label>
                         <md-select required ng-model="vm.currentAffiliationsLabValidate[vm.selectedIndexValidate-1][numLab].lab_id"
-                            md-on-close="vm.updateOnSelect(vm.currentAffiliationsLabValidate[vm.selectedIndexValidate-1],vm.labs,numLab,'lab_id', ['lab','group_id','group_name','unit_id','unit'])"
+                            md-on-close="vm.updateOnSelect(vm.currentAffiliationsLabValidate[vm.selectedIndexValidate-1],vm.labs,numLab,'lab_id', ['lab','lab_opened','lab_closed','group_opened','group_closed','group_id','group_name','unit_id','unit'])"
                             md-container-class="correct-overflow" name="affLab_id[numLab]">
                             <div class="anchored">
                                 <md-select-header class="select-search-header">
@@ -22,7 +22,7 @@
                             </div>
                                 <md-optgroup class="scrollable" label="laboratories">
                                     <md-option ng-repeat="lab in vm.labs | filter:laboratory.searchTerm"
-                                        ng-value="lab.lab_id">{{lab.name}}</md-option>
+                                        ng-value="lab.lab_id">{{vm.labNames(lab)}}</md-option>
                                 </md-optgroup>
                         </md-select>
                     </md-input-container>
@@ -57,11 +57,16 @@
                     <md-input-container class="input-row-longer">
                         <label>Start</label>
                         <md-datepicker md-current-view="year" required ng-model="vm.currentAffiliationsLabValidate[vm.selectedIndexValidate-1][numLab].lab_start"
+                                md-min-date="vm.currentAffiliationsLabValidate[vm.selectedIndex-2][numLab].labs_groups_valid_from"
+                                md-max-date="vm.currentAffiliationsLabValidate[vm.selectedIndex-2][numLab].labs_groups_valid_until"
                                 name="affLab_start[numLab]" md-placeholder="Enter date"></md-datepicker>
                     </md-input-container>
                     <md-input-container class="input-row-longer">
                         <label>End</label>
                         <md-datepicker md-current-view="year" ng-model="vm.currentAffiliationsLabValidate[vm.selectedIndexValidate-1][numLab].lab_end"
+                                md-min-date="vm.currentAffiliationsLabValidate[vm.selectedIndex-2][numLab].labs_groups_valid_from"
+                                md-max-date="vm.currentAffiliationsLabValidate[vm.selectedIndex-2][numLab].labs_groups_valid_until"
+
                                 name="affLab_end[numLab]" md-placeholder="Enter date"></md-datepicker>
                     </md-input-container>
                     <div layout="row" layout-align="start center">

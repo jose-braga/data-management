@@ -36,7 +36,7 @@
                         ng-controller="LabSelectCtrl as laboratory">
                         <label>Lab</label>
                         <md-select disabled ng-model="vm.thisPerson.lab_data[num].lab_id"
-                            md-on-close="vm.updateOnSelect(vm.thisPerson.lab_data,vm.labs,num,'lab_id', ['lab','group_id','group_name','unit_id','unit'])"
+                            md-on-close="vm.updateOnSelect(vm.thisPerson.lab_data,vm.labs,num,'lab_id', ['lab','lab_opened','lab_closed','group_opened','group_closed','group_id','group_name','unit_id','unit'])"
                             md-container-class="correct-overflow" name="affLab_id[num]">
                             <div class="anchored">
                                 <md-select-header class="select-search-header">
@@ -47,7 +47,7 @@
                             </div>
                                 <md-optgroup class="scrollable" label="laboratories">
                                     <md-option ng-repeat="lab in vm.labs | filter: {name: laboratory.searchTerm}"
-                                        ng-value="lab.lab_id">{{lab.name}}</md-option>
+                                        ng-value="lab.lab_id">{{vm.labNames(lab)}}</md-option>
                                 </md-optgroup>
                         </md-select>
                     </md-input-container>

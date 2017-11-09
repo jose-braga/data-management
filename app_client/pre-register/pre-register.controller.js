@@ -206,6 +206,14 @@
             }
             return name;
         };
+        vm.labNames = function(lab) {
+            //console.log(lab)
+            if (lab !== undefined) {
+                var name = lab.lab + '@' + lab.group_name;
+                return name;
+            }
+            return '';
+        };
 
         /* Auxiliary functions */
         function findEarliestDate(){
@@ -278,6 +286,10 @@
                     for (var id in vm.thisPerson.lab_data) {
                         vm.thisPerson.lab_data[id]['lab_start'] = processDate(vm.thisPerson.lab_data[id]['lab_start']);
                         vm.thisPerson.lab_data[id]['lab_end'] = processDate(vm.thisPerson.lab_data[id]['lab_end']);
+                        vm.thisPerson.lab_data[id]['labs_groups_valid_from'] = processDate(vm.thisPerson.lab_data[id]['labs_groups_valid_from']);
+                        vm.thisPerson.lab_data[id]['labs_groups_valid_until'] = processDate(vm.thisPerson.lab_data[id]['labs_groups_valid_until']);
+                        vm.thisPerson.lab_data[id]['lab_opened'] = processDate(vm.thisPerson.lab_data[id]['lab_opened']);
+                        vm.thisPerson.lab_data[id]['lab_closed'] = processDate(vm.thisPerson.lab_data[id]['lab_closed']);
                     }
                     for (var id in vm.thisPerson.technician_offices) {
                         vm.thisPerson.technician_offices[id]['tech_valid_from'] = processDate(vm.thisPerson.technician_offices[id]['tech_valid_from']);

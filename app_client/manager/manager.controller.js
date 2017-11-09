@@ -2344,6 +2344,10 @@
                     for (var id in vm.thisPerson[el].lab_data) {
                         vm.thisPerson[el].lab_data[id]['lab_start'] = processDate(vm.thisPerson[el].lab_data[id]['lab_start']);
                         vm.thisPerson[el].lab_data[id]['lab_end'] = processDate(vm.thisPerson[el].lab_data[id]['lab_end']);
+                        vm.thisPerson[el].lab_data[id]['labs_groups_valid_from'] = processDate(vm.thisPerson[el].lab_data[id]['labs_groups_valid_from']);
+                        vm.thisPerson[el].lab_data[id]['labs_groups_valid_until'] = processDate(vm.thisPerson[el].lab_data[id]['labs_groups_valid_until']);
+                        vm.thisPerson[el].lab_data[id]['lab_opened'] = processDate(vm.thisPerson[el].lab_data[id]['lab_opened']);
+                        vm.thisPerson[el].lab_data[id]['lab_closed'] = processDate(vm.thisPerson[el].lab_data[id]['lab_closed']);
                         vm.currentAffiliationsLab[el].push(Object.assign({}, vm.thisPerson[el].lab_data[id]));
                     }
 
@@ -2470,6 +2474,11 @@
                     for (var id in vm.thisPersonValidate[el].lab_data) {
                         vm.thisPersonValidate[el].lab_data[id]['lab_start'] = processDate(vm.thisPersonValidate[el].lab_data[id]['lab_start']);
                         vm.thisPersonValidate[el].lab_data[id]['lab_end'] = processDate(vm.thisPersonValidate[el].lab_data[id]['lab_end']);
+                        vm.thisPersonValidate[el].lab_data[id]['labs_groups_valid_from'] = processDate(vm.thisPersonValidate[el].lab_data[id]['labs_groups_valid_from']);
+                        vm.thisPersonValidate[el].lab_data[id]['labs_groups_valid_until'] = processDate(vm.thisPersonValidate[el].lab_data[id]['labs_groups_valid_until']);
+                        vm.thisPersonValidate[el].lab_data[id]['lab_opened'] = processDate(vm.thisPersonValidate[el].lab_data[id]['lab_opened']);
+                        vm.thisPersonValidate[el].lab_data[id]['lab_closed'] = processDate(vm.thisPersonValidate[el].lab_data[id]['lab_closed']);
+
                         vm.currentAffiliationsLabValidate[el].push(Object.assign({}, vm.thisPersonValidate[el].lab_data[id]));
                     }
                     vm.currentAffiliationsTechValidate[el] = [];

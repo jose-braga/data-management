@@ -540,19 +540,26 @@ var queryPeopleStartDateGetRow = function (req,res,next, personID, dates, update
 };
 
 var queryPeopleUpdateStartDate = function (req,res,next, personID, resQuery, minDate, updateArr, deleteArr, updated, i, type) {
-    console.log('here!!!')
-    var querySQL = 'UPDATE `people`' +
-                   ' SET `active_from` = ?' +
-                   ' WHERE `id` = ?;';
-    var places = [momentToDate(minDate),personID];
-    querySQL = querySQL + 'INSERT INTO `people_history`' +
-                   ' (`person_id`,`user_id`,`name`,`colloquial_name`,`birth_date`,`gender`,' +
-                     '`active_from`,`active_until`,`status`,`updated`,`operation`,`changed_by`)' +
-                   ' VALUES (?,?,?,?,?,?,?,?,?,?,?,?)';
-    querySQL = querySQL + '; ';
-    places.push(personID,resQuery.user_id,resQuery.name,resQuery.colloquial_name,
-                resQuery.birth_date,resQuery.gender,
-                momentToDate(minDate),resQuery.active_until,1,updated,'U',req.body.changed_by);
+    var querySQL;
+    var places;
+    if (isNaN(minDate)) {
+        querySQL = 'SELECT * FROM `people`' +
+                       ' WHERE `id` = ?;';
+        places = [personID];
+    } else {
+        querySQL = 'UPDATE `people`' +
+                       ' SET `active_from` = ?' +
+                       ' WHERE `id` = ?;';
+        places = [momentToDate(minDate),personID];
+        querySQL = querySQL + 'INSERT INTO `people_history`' +
+                       ' (`person_id`,`user_id`,`name`,`colloquial_name`,`birth_date`,`gender`,' +
+                         '`active_from`,`active_until`,`status`,`updated`,`operation`,`changed_by`)' +
+                       ' VALUES (?,?,?,?,?,?,?,?,?,?,?,?)';
+        querySQL = querySQL + '; ';
+        places.push(personID,resQuery.user_id,resQuery.name,resQuery.colloquial_name,
+                    resQuery.birth_date,resQuery.gender,
+                    momentToDate(minDate),resQuery.active_until,1,updated,'U',req.body.changed_by);
+    }
     pool.getConnection(function(err, connection) {
         if (err) {
             sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
@@ -563,7 +570,7 @@ var queryPeopleUpdateStartDate = function (req,res,next, personID, resQuery, min
                 // And done with the connection.
                 connection.release();
                 if (err) {
-                    sendJSONResponse(res, 400, {"status": "error","aqui": "1", "statusCode": 400, "error" : err.stack});
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                     return;
                 }
                 var data;

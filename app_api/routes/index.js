@@ -78,13 +78,13 @@ router.delete('/people/role/:role/:personID', auth, ctrlPeopleData.deleteRolePer
 // TODO: listLabData is a dummy function right now
 router.get('/labs/:teamID', auth, ctrlTeamData.listLabData);
 
-router.get('/labs/:teamID/people', auth, ctrlTeamData.listLabPeopleData);
+router.get('/labs/:groupID/:teamID/people', auth, ctrlTeamData.listLabPeopleData);
 router.get('/facilities/:teamID/people', auth, ctrlTeamData.listTechPeopleData);
 router.get('/science-management-offices/:teamID/people', auth, ctrlTeamData.listScManPeopleData);
 router.get('/administrative-offices/:teamID/people', auth, ctrlTeamData.listAdmPeopleData);
 
 // PUT (Update) TEAM information (authenticated)
-router.put('/team/people-lab/:teamID', auth, ctrlTeamData.updateLabPeople);
+router.put('/team/people-lab/:groupID/:teamID', auth, ctrlTeamData.updateLabPeople);
 router.put('/team/people-technician/:teamID', auth, ctrlTeamData.updateTechPeople);
 router.put('/team/people-science-manager/:teamID', auth, ctrlTeamData.updateScManPeople);
 router.put('/team/people-administrative/:teamID', auth, ctrlTeamData.updateAdmPeople);
@@ -102,12 +102,12 @@ router.put('/manager/people/all', auth, ctrlManagerData.updateAllPeopleData);
 
 // GET PUBLICATION information (authenticated)
 router.get('/publications/person/:personID', auth, ctrlPublicationsData.listPersonPublications);
-router.get('/publications/team/:teamID', auth, ctrlPublicationsData.listTeamPublications);
+router.get('/publications/team/:groupID/:teamID', auth, ctrlPublicationsData.listTeamPublications);
 
 // PUT PUBLICATION information (authenticated)
 router.put('/publications/person/:personID/selected', auth, ctrlPublicationsData.updatePersonSelectedPub);
 router.put('/publications/person/:personID/author-names', auth, ctrlPublicationsData.updatePersonAuthorNames);
-router.put('/publications/team/:teamID/selected', auth, ctrlPublicationsData.updateTeamSelectedPub);
+router.put('/publications/team/:groupID/:teamID/selected', auth, ctrlPublicationsData.updateTeamSelectedPub);
 
 
 

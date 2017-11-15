@@ -21,7 +21,7 @@
         }
 
         if (nav.currentUser !== null) {
-            var permissionsManagerPage = [0, 5, 10, 15];
+            var permissionsManagerPage = [0, 5, 10, 15, 16];
             if (permissionsManagerPage.indexOf(nav.currentUser.stat) !== -1) {
                 nav.showManager = true;
             } else {

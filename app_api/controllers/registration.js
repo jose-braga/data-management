@@ -4,25 +4,13 @@ var pool = server.pool;
 const nodemailer = require('../controllers/emailer');
 let transporter = nodemailer.transporter;
 var userModule = require('../models/users');
+var permissions = require('../config/permissions');
 
 /**************************** Utility Functions *******************************/
-var geographicAccess = function (stat) {
-    var accessTable = {
-        0: [1,2],   // admin
-        5: [1,2],   // super-manager
-        10: [1],    // Lisbon manager
-        15: [2],    // Porto manager
-        20: [1,2],  // unit level (only a few functionalities)
-        30: [1,2],  // team level
-        40: [1,2],
-        1000: []    // no access
-    };
-    return accessTable[stat];
-};
 
 var getLocation = function(req, res, next) {
     // gets city associated with resource (person) to be altered
-    var requesterCities = geographicAccess(req.payload.stat);
+    var requesterCities = permissions.geographicAccess(req.payload.stat);
     var newUserInstitutionCity = req.body.institution_city.id;
     if (requesterCities.indexOf(newUserInstitutionCity) !== -1) {
         return queryAddUser(req,res,next);
@@ -109,21 +97,7 @@ var sendJSONResponse = function(res, status, content) {
     res.status(status);
     res.json(content);
 };
-/*
-function findEarliestDate(arr) {
-    var earliest = moment('9999-12-31');
-    for (var indArr in arr) {
-        for (var indEl in arr[indArr]) {
-            if (arr[indArr][indEl].start !== null) {
-                if (moment(arr[indArr][indEl].start).isBefore(earliest)) {
-                    earliest = arr[indArr][indEl].start;
-                }
-            }
-        }
-    }
-    return earliest;
-}
-*/
+
 function momentToDate(timedate, timezone, timeformat) {
     if (timezone === undefined) {
         timezone = 'Europe/Lisbon';
@@ -364,7 +338,7 @@ var queryAddLabHistory = function (req, res, next,userID, personID, officeID, da
                 }
                 if (i + 1 < req.body.researcher_data.affiliation_lab.length) {
                     var lab = req.body.researcher_data.affiliation_lab[i+1];
-                    return queryAddLab(req,res,next,userID,personID,lab,i+1,query,places,created,changed_by);
+                    return queryAddLab(req,res,next,userID,personID,lab,i+1,querySQL,places,created,changed_by);
                 } else {
                     return queryAddResearcher(req,res,next,userID,personID, querySQL, places,created,changed_by);
                 }
@@ -494,7 +468,7 @@ var queryAddTechnicianHistory = function (req, res, next,userID, personID, offic
                 }
                 if (i + 1 < req.body.technician_data.office.length) {
                     var office = req.body.technician_data.office[i+1];
-                    return queryAddTechnician(req,res,next,userID,personID,office,i+1,query,places,created,changed_by);
+                    return queryAddTechnician(req,res,next,userID,personID,office,i+1,querySQL,places,created,changed_by);
                 } else {
                     return queryAddRole(req,res,next,userID,personID,'technician', querySQL, places,created,changed_by);
                 }
@@ -554,7 +528,7 @@ var queryAddScienceManagerHistory = function (req, res, next,userID, personID, o
                 }
                 if (i + 1 < req.body.science_manager_data.office.length) {
                     var office = req.body.science_manager_data.office[i+1];
-                    return queryAddScienceManager(req,res,next,userID,personID,office,i+1,query,places,created,changed_by);
+                    return queryAddScienceManager(req,res,next,userID,personID,office,i+1,querySQL,places,created,changed_by);
                 } else {
                     return queryAddRole(req,res,next,userID,personID,'scienceManager', querySQL, places,created,changed_by);
                 }
@@ -614,7 +588,7 @@ var queryAddAdministrativeHistory = function (req, res, next,userID, personID, o
                 }
                 if (i + 1 < req.body.administrative_data.office.length) {
                     var office = req.body.administrative_data.office[i+1];
-                    return queryAddAdministrative(req,res,next,userID,personID,office,i+1,query,places,created,changed_by);
+                    return queryAddAdministrative(req,res,next,userID,personID,office,i+1,querySQL,places,created,changed_by);
                 } else {
                     return queryAddRole(req,res,next,userID,personID,'administrative', querySQL, places,created,changed_by);
                 }
@@ -714,6 +688,8 @@ var queryAddRemainingInfo = function (req, res, next, userID, personID, querySQL
                     momentToDate(responsibles[ind].valid_from),
                     momentToDate(responsibles[ind].valid_until));
     }
+
+
     //nationalities
     for (var ind in nationalities) {
         querySQL = querySQL +
@@ -975,7 +951,7 @@ var queryAddUser = function (req, res, next) {
 /******************** Call SQL Generators after Validations *******************/
 
 module.exports.addPerson = function (req, res, next) {
-    getUser(req, res, [0, 5, 10, 15],
+    getUser(req, res, [0, 5, 10, 15, 16],
         function (req, res, username) {
             getLocation(req, res, next);
         }

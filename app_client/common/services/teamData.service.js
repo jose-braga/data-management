@@ -1,8 +1,8 @@
 (function(){
 var teamData = function ($http, authentication) {
     var currentUser = authentication.currentUser();
-    var thisLabPeopleData = function (teamID) {
-        return $http.get('api/labs/' + teamID + '/people/',
+    var thisLabPeopleData = function (groupID, teamID) {
+        return $http.get('api/labs/' + groupID + '/' + teamID + '/people/',
             {
                 headers: {Authorization: 'Bearer ' + authentication.getToken()}
             }
@@ -30,8 +30,8 @@ var teamData = function ($http, authentication) {
         );
     };
 
-    var updateLabPeopleTeamByID = function (teamID, data) {
-        return $http.put('api/team/people-lab/' + teamID, data,
+    var updateLabPeopleTeamByID = function (groupID, teamID, data) {
+        return $http.put('api/team/people-lab/' + groupID + '/' + teamID, data,
             {
                 headers: {Authorization: 'Bearer ' + authentication.getToken()}
             }

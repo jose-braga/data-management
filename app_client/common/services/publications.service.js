@@ -9,8 +9,8 @@
             );
         };
 
-        var thisTeamPublications = function (teamID) {
-            return $http.get('api/publications/team/' + teamID,
+        var thisTeamPublications = function (groupID, teamID) {
+            return $http.get('api/publications/team/' + groupID + '/' + teamID,
                 {
                     headers: {Authorization: 'Bearer ' + authentication.getToken()}
                 }
@@ -25,8 +25,8 @@
             );
         };
 
-        var updateTeamSelectedPublications = function (teamID, data) {
-            return $http.put('api/publications/team/' + teamID + '/selected', data,
+        var updateTeamSelectedPublications = function (groupID, teamID, data) {
+            return $http.put('api/publications/team/' + groupID + '/' + teamID + '/selected', data,
                 {
                     headers: {Authorization: 'Bearer ' + authentication.getToken()}
                 }

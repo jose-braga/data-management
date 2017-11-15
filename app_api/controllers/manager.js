@@ -4,6 +4,7 @@ var pool = server.pool;
 const nodemailer = require('../controllers/emailer');
 let transporter = nodemailer.transporter;
 var userModule = require('../models/users');
+var permissions = require('../config/permissions');
 
 /**************************** Utility Functions *******************************/
 
@@ -14,26 +15,12 @@ var rolesObj = {
     'administrative': 4
 };
 
-var geographicAccess = function (stat) {
-    var accessTable = {
-        0: [1,2],   // admin
-        5: [1,2],   // super-manager
-        10: [1],    // Lisbon manager
-        15: [2],    // Porto manager
-        20: [1,2],  // unit level (only a few functionalities)
-        30: [1,2],  // team level
-        40: [1,2],
-        1000: []    // no access
-    };
-    return accessTable[stat];
-};
-
 var getLocation = function(req, res, next, callback) {
     // gets cities associated with resources (person in lab) to be altered
     var personIDs = [];
     var arr = req.body.deleteNeverMember;
     for (var ind in arr) {
-        personIDs.push(arr[ind]);
+        personIDs.push(arr[ind]['id']);
     }
     arr = req.body.updateLabPerson;
     for (var ind in arr) {
@@ -51,7 +38,6 @@ var getLocation = function(req, res, next, callback) {
     for (var ind in arr) {
         personIDs.push(arr[ind]['person_id']);
     }
-
 
     // get geographical location of resource
     var queryLocation = 'SELECT person_id,city_id FROM people_institution_city WHERE';
@@ -78,9 +64,9 @@ var getLocation = function(req, res, next, callback) {
             });
         });
     } else {
-        //sendJSONResponse(res, 304, {"status": "no changes or empty query", "statusCode": 304});
-        //return;
-        return callback(req,res,next, personIDs, []);
+        sendJSONResponse(res, 304, {"status": "no changes or not authorized", "statusCode": 304});
+        return;
+        //return callback(req,res,next, personIDs, []);
     }
 
 };
@@ -206,7 +192,7 @@ var getUser = function (req, res, permissions, callback) {
 function getGeoPermissions(req, userCity) {
     var geoPermissions = [];
     var requesterStatus = req.payload.stat;
-    var citiesPermissions = geographicAccess(requesterStatus);
+    var citiesPermissions = permissions.geographicAccess(requesterStatus);
 
     for (var ind in userCity) {
         if (citiesPermissions.indexOf(userCity[ind].city_id) !== -1) {
@@ -236,6 +222,22 @@ function momentToDate(timedate, timezone, timeformat) {
         timeformat = 'YYYY-MM-DD';
     }
     return timedate !== null ? moment.tz(timedate,timezone).format(timeformat) : null;
+}
+
+function findEarliestDate(dates) {
+    if (dates.length > 0) {
+        var minDate = moment(dates[0]);
+        for (var ind in dates) {
+            if (dates[ind] !== null) {
+                if (moment(dates[ind]).isBefore(minDate)) {
+                    minDate = moment(dates[ind]);
+                }
+            }
+        }
+        return minDate;
+    } else {
+        return null;
+    }
 }
 
 function filterLabTimes(rows) {
@@ -441,6 +443,7 @@ function timeOverlap(d1_start,d1_end, d2_start, d2_end) {
 /***************************** Query Functions ********************************/
 
 var queryUpdateAllPeopleData = function (req, res, next, personIDs, userCity) {
+    var updated = moment.tz('Europe/Lisbon').format('YYYY-MM-DD HH:mm:ss');
     var permissionsGeo = getGeoPermissions(req, userCity);
 
     var updateLabArrPre = req.body.updateLabPerson;
@@ -456,6 +459,7 @@ var queryUpdateAllPeopleData = function (req, res, next, personIDs, userCity) {
     var deleteNeverMemberArr = [];
 
     var hasPermissionGeo;
+    var data;
     for (var ind in updateLabArrPre) {
         hasPermissionGeo = false;
         for (var indGeoPerm in permissionsGeo) {
@@ -518,114 +522,48 @@ var queryUpdateAllPeopleData = function (req, res, next, personIDs, userCity) {
     for (var ind in deleteNeverMemberArrPre) {
         hasPermissionGeo = false;
         for (var indGeoPerm in permissionsGeo) {
-            if (deleteNeverMemberArrPre[ind] === permissionsGeo[indGeoPerm]['person_id']
+            if (deleteNeverMemberArrPre[ind]['id'] === permissionsGeo[indGeoPerm]['person_id']
                     && permissionsGeo[indGeoPerm]['permission']) {
                 hasPermissionGeo = true;
             }
         }
-        if ((req.payload.personID !== deleteNeverMemberArrPre[ind]
+        if ((req.payload.personID !== deleteNeverMemberArrPre[ind]['id']
                     && hasPermissionGeo)
-             || req.payload.personID === deleteNeverMemberArrPre[ind]) {
+             || req.payload.personID === deleteNeverMemberArrPre[ind]['id']) {
             deleteNeverMemberArr.push(deleteNeverMemberArrPre[ind]);
         }
     }
-    var places = [];
-    var querySQL = '';
-
     if (updateLabArr.length > 0) {
-        for (var ind in updateLabArr) {
-            updateLabArr[ind].valid_from = momentToDate(updateLabArr[ind].valid_from);
-            updateLabArr[ind].valid_until = momentToDate(updateLabArr[ind].valid_until);
-            querySQL = querySQL + 'UPDATE `people_labs`' +
-                              ' SET `lab_id` = ?,' +
-                              ' `lab_position_id` = ?,' +
-                              ' `dedication` = ?,' +
-                              ' `valid_from` = ?,' +
-                              ' `valid_until` = ?' +
-                              ' WHERE `id` = ?';
-            querySQL = querySQL + '; ';
-            places.push(updateLabArr[ind].lab_id,
-                    updateLabArr[ind].position_id,
-                    updateLabArr[ind].dedication,
-                    updateLabArr[ind].valid_from,
-                    updateLabArr[ind].valid_until,
-                    updateLabArr[ind].people_labs_id);
-        }
+        data = updateLabArr[0];
+        return queryUpdateLab(req, res, next,
+                            updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+                            updated, data, 0,-1,-1,-1,-1);
     }
-
     if (updateTechArr.length > 0) {
-        for (var ind in updateTechArr) {
-            updateTechArr[ind].valid_from = momentToDate(updateTechArr[ind].valid_from);
-            updateTechArr[ind].valid_until = momentToDate(updateTechArr[ind].valid_until);
-            querySQL = querySQL + 'UPDATE `technicians`' +
-                              ' SET `technician_office_id` = ?,' +
-                              ' `technician_position_id` = ?,' +
-                              ' `dedication` = ?,' +
-                              ' `valid_from` = ?,' +
-                              ' `valid_until` = ?' +
-                              ' WHERE `id` = ?';
-            querySQL = querySQL + '; ';
-            places.push(updateTechArr[ind].technician_office_id,
-                    updateTechArr[ind].position_id,
-                    updateTechArr[ind].dedication,
-                    updateTechArr[ind].valid_from,
-                    updateTechArr[ind].valid_until,
-                    updateTechArr[ind].technicians_id);
-        }
-    }
+        data = updateTechArr[0];
+        return queryUpdateTech(req, res, next,
+                            updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+                            updated, data, 0,0,-1,-1,-1);
 
+    }
     if (updateManageArr.length > 0) {
-        for (var ind in updateManageArr) {
-            updateManageArr[ind].valid_from = momentToDate(updateManageArr[ind].valid_from);
-            updateManageArr[ind].valid_until = momentToDate(updateManageArr[ind].valid_until);
-            querySQL = querySQL + 'UPDATE `science_managers`' +
-                              ' SET `science_manager_office_id` = ?,' +
-                              ' `science_manager_position_id` = ?,' +
-                              ' `dedication` = ?,' +
-                              ' `valid_from` = ?,' +
-                              ' `valid_until` = ?' +
-                              ' WHERE `id` = ?';
-            querySQL = querySQL + '; ';
-            places.push(updateManageArr[ind].science_manager_office_id,
-                    updateManageArr[ind].position_id,
-                    updateManageArr[ind].dedication,
-                    updateManageArr[ind].valid_from,
-                    updateManageArr[ind].valid_until,
-                    updateManageArr[ind].science_managers_id);
-        }
+        data = updateManageArr[0];
+        return queryUpdateScMan(req, res, next,
+                            updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+                            updated, data, 0,0, 0,-1,-1);
     }
-
     if (updateAdmArr.length > 0) {
-        for (var ind in updateAdmArr) {
-            updateAdmArr[ind].valid_from = momentToDate(updateAdmArr[ind].valid_from);
-            updateAdmArr[ind].valid_until = momentToDate(updateAdmArr[ind].valid_until);
-            querySQL = querySQL + 'UPDATE `people_administrative_offices`' +
-                              ' SET `administrative_office_id` = ?,' +
-                              ' `administrative_position_id` = ?,' +
-                              ' `dedication` = ?,' +
-                              ' `valid_from` = ?,' +
-                              ' `valid_until` = ?' +
-                              ' WHERE `id` = ?';
-            querySQL = querySQL + '; ';
-            places.push(updateAdmArr[ind].administrative_office_id,
-                    updateAdmArr[ind].position_id,
-                    updateAdmArr[ind].dedication,
-                    updateAdmArr[ind].valid_from,
-                    updateAdmArr[ind].valid_until,
-                    updateAdmArr[ind].people_administrative_offices_id);
-        }
+        data = updateAdmArr[0];
+        return queryUpdateAdm(req, res, next,
+                            updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+                            updated, data, 0,0, 0,0,-1);
     }
-
     if (deleteNeverMemberArr.length > 0) {
-        for (var ind in deleteNeverMemberArr) {
-            querySQL = querySQL + 'UPDATE `people`' +
-                                  ' SET `status` = ?' +
-                                  ' WHERE `id`=?';
-            querySQL = querySQL + '; ';
-            places.push(0, deleteNeverMemberArr[ind]);
-        }
+        data = deleteNeverMemberArr[0];
+        return queryDeleteNeverMember(req, res, next,
+                            updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+                            updated, data, 0,0, 0,0,0);
     }
-
     if (updateLabArr.length === 0
         && updateTechArr.length === 0
         && updateManageArr.length === 0
@@ -634,10 +572,659 @@ var queryUpdateAllPeopleData = function (req, res, next, personIDs, userCity) {
         sendJSONResponse(res, 304,
                 {"status": "No changes or User not authorized",
                 "statusCode": 304});
-    } else {
-        escapedQuery(querySQL, places, req, res, next);
     }
 };
+
+var queryUpdateLab = function (req, res, next,
+                        updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+                        updated, data, iLab,iTech,iMan,iAdm,iDel) {
+    var places = [];
+    var querySQL = '';
+    data.valid_from = momentToDate(data.valid_from);
+    data.valid_until = momentToDate(data.valid_until);
+    querySQL = querySQL + 'UPDATE `people_labs`' +
+                      ' SET `lab_id` = ?,' +
+                      ' `lab_position_id` = ?,' +
+                      ' `dedication` = ?,' +
+                      ' `valid_from` = ?,' +
+                      ' `valid_until` = ?' +
+                      ' WHERE `id` = ?';
+    querySQL = querySQL + '; ';
+    places.push(data.lab_id,
+            data.position_id,
+            data.dedication,
+            data.valid_from,
+            data.valid_until,
+            data.people_labs_id);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                var peopleOfficeID = data.people_labs_id;
+                return queryUpdateLabHistory(req, res, next, peopleOfficeID,
+                                updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+                                updated, data, iLab,iTech,iMan,iAdm,iDel);
+            }
+        );
+    });
+
+};
+
+var queryUpdateLabHistory = function (req, res, next, peopleOfficeID,
+                        updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+                        updated, data, iLab,iTech,iMan,iAdm,iDel) {
+    data.valid_from = momentToDate(data.valid_from);
+    data.valid_until = momentToDate(data.valid_until);
+    var changed_by = req.body.changed_by;
+    var personID = data.person_id;
+    var query = 'INSERT INTO `people_labs_history`' +
+                  ' (`people_labs_id`,`person_id`,`lab_id`,`lab_position_id`,`dedication`,'+
+                    '`valid_from`,`valid_until`,`updated`,`operation`,`changed_by`)' +
+                  ' VALUES (?,?,?,?,?,?,?,?,?,?);';
+    var places = [peopleOfficeID,personID, data.lab_id,
+                data.position_id,data.dedication,
+                data.valid_from,data.valid_until,
+                updated,'U',changed_by];
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(query,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                //checks remaining affiliations and finds earliest date
+                return queryGetLabs(req,res,next,personID,[],
+                            updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+                            updated, iLab,iTech,iMan,iAdm,iDel,'lab update');
+            }
+        );
+    });
+};
+
+var queryUpdateTech = function (req, res, next,
+                        updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+                        updated, data, iLab,iTech,iMan,iAdm,iDel) {
+    var places = [];
+    var querySQL = '';
+    data.valid_from = momentToDate(data.valid_from);
+    data.valid_until = momentToDate(data.valid_until);
+    querySQL = querySQL + 'UPDATE `technicians`' +
+                          ' SET `technician_office_id` = ?,' +
+                          ' `technician_position_id` = ?,' +
+                          ' `dedication` = ?,' +
+                          ' `valid_from` = ?,' +
+                          ' `valid_until` = ?' +
+                          ' WHERE `id` = ?';
+    querySQL = querySQL + '; ';
+    places.push(data.technician_office_id,
+                data.position_id,
+                data.dedication,
+                data.valid_from,
+                data.valid_until,
+                data.technicians_id);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                var peopleOfficeID = data.technicians_id;
+                return queryUpdateTechHistory(req, res, next, peopleOfficeID,
+                                updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+                                updated, data, iLab,iTech,iMan,iAdm,iDel);
+            }
+        );
+    });
+};
+
+var queryUpdateTechHistory = function (req, res, next, peopleOfficeID,
+                        updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+                        updated, data, iLab,iTech,iMan,iAdm,iDel) {
+    data.valid_from = momentToDate(data.valid_from);
+    data.valid_until = momentToDate(data.valid_until);
+    var changed_by = req.body.changed_by;
+    var personID = data.person_id;
+    var query = 'INSERT INTO `technicians_history`' +
+                  ' (`technician_id`,`person_id`,`technician_office_id`,`technician_position_id`,`dedication`,'+
+                    '`valid_from`,`valid_until`,`updated`,`operation`,`changed_by`)' +
+                  ' VALUES (?,?,?,?,?,?,?,?,?,?);';
+    var places = [peopleOfficeID,personID, data.technician_office_id,
+                data.technician_position_id,data.dedication,
+                data.valid_from,data.valid_until,
+                updated,'U',changed_by];
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(query,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                //checks remaining affiliations and finds earliest date
+                return queryGetLabs(req,res,next,personID,[],
+                        updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+                            updated, iLab,iTech,iMan,iAdm,iDel,'technician update');
+            }
+        );
+    });
+};
+
+
+var queryUpdateScMan = function (req, res, next,
+                        updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+                        updated, data, iLab,iTech,iMan,iAdm,iDel) {
+    var places = [];
+    var querySQL = '';
+    data.valid_from = momentToDate(data.valid_from);
+    data.valid_until = momentToDate(data.valid_until);
+    querySQL = querySQL + 'UPDATE `science_managers`' +
+                              ' SET `science_manager_office_id` = ?,' +
+                              ' `science_manager_position_id` = ?,' +
+                              ' `dedication` = ?,' +
+                              ' `valid_from` = ?,' +
+                              ' `valid_until` = ?' +
+                              ' WHERE `id` = ?';
+    querySQL = querySQL + '; ';
+    places.push(data.science_manager_office_id,
+                data.position_id,
+                data.dedication,
+                data.valid_from,
+                data.valid_until,
+                data.science_managers_id);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                var peopleOfficeID = data.science_managers_id;
+                return queryUpdateScManHistory(req, res, next, peopleOfficeID,
+                                updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+                                updated, data, iLab,iTech,iMan,iAdm,iDel);
+            }
+        );
+    });
+};
+
+
+var queryUpdateScManHistory = function (req, res, next, peopleOfficeID,
+                        updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+                        updated, data, iLab,iTech,iMan,iAdm,iDel) {
+    data.valid_from = momentToDate(data.valid_from);
+    data.valid_until = momentToDate(data.valid_until);
+    var changed_by = req.body.changed_by;
+    var personID = data.person_id;
+    var query = 'INSERT INTO `science_managers_history`' +
+                  ' (`science_managers_id`,`person_id`,`science_manager_office_id`,`science_manager_position_id`,`dedication`,'+
+                    '`valid_from`,`valid_until`,`updated`,`operation`,`changed_by`)' +
+                  ' VALUES (?,?,?,?,?,?,?,?,?,?);';
+    var places = [peopleOfficeID,personID, data.science_manager_office_id,
+                data.science_manager_position_id,data.dedication,
+                data.valid_from,data.valid_until,
+                updated,'U',changed_by];
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(query,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                //checks remaining affiliations and finds earliest date
+                return queryGetLabs(req,res,next,personID,[],
+                        updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+                            updated, iLab,iTech,iMan,iAdm,iDel,'scMan update');
+            }
+        );
+    });
+};
+
+var queryUpdateAdm = function (req, res, next,
+                        updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+                        updated, data, iLab,iTech,iMan,iAdm,iDel) {
+    var places = [];
+    var querySQL = '';
+    data.valid_from = momentToDate(data.valid_from);
+    data.valid_until = momentToDate(data.valid_until);
+    querySQL = querySQL + 'UPDATE `people_administrative_offices`' +
+                              ' SET `administrative_office_id` = ?,' +
+                              ' `administrative_position_id` = ?,' +
+                              ' `dedication` = ?,' +
+                              ' `valid_from` = ?,' +
+                              ' `valid_until` = ?' +
+                              ' WHERE `id` = ?';
+    querySQL = querySQL + '; ';
+    places.push(data.administrative_office_id,
+                data.position_id,
+                data.dedication,
+                data.valid_from,
+                data.valid_until,
+                data.people_administrative_offices_id);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                var peopleOfficeID = data.people_administrative_offices_id;
+                return queryUpdateAdmHistory(req, res, next, peopleOfficeID,
+                                updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+                                updated, data, iLab,iTech,iMan,iAdm,iDel);
+            }
+        );
+    });
+};
+
+var queryUpdateAdmHistory = function (req, res, next, peopleOfficeID,
+                        updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+                        updated, data, iLab,iTech,iMan,iAdm,iDel ) {
+    data.valid_from = momentToDate(data.valid_from);
+    data.valid_until = momentToDate(data.valid_until);
+    var changed_by = req.body.changed_by;
+    var personID = data.person_id;
+    var query = 'INSERT INTO `people_administrative_offices_history`' +
+                  ' (`people_administrative_offices_id`,`person_id`,`administrative_office_id`,`administrative_position_id`,`dedication`,'+
+                    '`valid_from`,`valid_until`,`updated`,`operation`,`changed_by`)' +
+                  ' VALUES (?,?,?,?,?,?,?,?,?,?);';
+    var places = [peopleOfficeID,personID, data.administrative_office_id,
+                data.administrative_position_id,data.dedication,
+                data.valid_from,data.valid_until,
+                updated,'U',changed_by];
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(query,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                //checks remaining affiliations and finds earliest date
+                return queryGetLabs(req,res,next,personID,[],
+                            updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+                            updated, iLab,iTech,iMan,iAdm,iDel,'administrative update');
+            }
+        );
+    });
+};
+
+
+var queryGetLabs = function (req,res,next, personID, dates,
+                updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+                updated, iLab,iTech,iMan,iAdm,iDel, type) {
+    var query = 'SELECT *' +
+                ' FROM people_labs' +
+                ' WHERE person_id = ?;';
+    var places = [personID];
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(query,places,
+            function (err, rowsQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                for (var ind in rowsQuery) {
+                    dates.push(rowsQuery[ind].valid_from);
+                }
+                return queryGetTechnicianAffiliation(req,res,next, personID, dates,
+                            updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+                            updated,iLab,iTech,iMan,iAdm,iDel,type);
+            }
+        );
+    });
+};
+
+var queryGetTechnicianAffiliation = function (req,res,next, personID, dates,
+            updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+            updated, iLab,iTech,iMan,iAdm,iDel, type) {
+    var query = 'SELECT *' +
+                ' FROM technicians' +
+                ' WHERE person_id = ?;';
+    var places = [personID];
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(query,places,
+            function (err, rowsQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                for (var ind in rowsQuery) {
+                    dates.push(rowsQuery[ind].valid_from);
+                }
+                return queryGetScienceManagerAffiliation(req,res,next, personID, dates,
+                        updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+                        updated,iLab,iTech,iMan,iAdm,iDel,type);
+            }
+        );
+    });
+};
+
+var queryGetScienceManagerAffiliation = function (req,res,next, personID, dates,
+            updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+            updated, iLab,iTech,iMan,iAdm,iDel, type) {
+    var query = 'SELECT *' +
+                ' FROM science_managers' +
+                ' WHERE person_id = ?;';
+    var places = [personID];
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(query,places,
+            function (err, rowsQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                for (var ind in rowsQuery) {
+                    dates.push(rowsQuery[ind].valid_from);
+                }
+                return queryGetAdministrativeAffiliation(req,res,next, personID, dates,
+                        updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+                        updated,iLab,iTech,iMan,iAdm,iDel,type);
+            }
+        );
+    });
+};
+
+var queryGetAdministrativeAffiliation = function (req,res,next, personID, dates,
+                updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+                updated, iLab,iTech,iMan,iAdm,iDel, type) {
+    var query = 'SELECT *' +
+                ' FROM people_administrative_offices' +
+                ' WHERE person_id = ?;';
+    var places = [personID];
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(query,places,
+            function (err, rowsQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                for (var ind in rowsQuery) {
+                    dates.push(rowsQuery[ind].valid_from);
+                }
+                return queryGetDepartments(req,res,next, personID, dates,
+                    updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+                    updated,iLab,iTech,iMan,iAdm,iDel,type);
+            }
+        );
+    });
+};
+
+var queryGetDepartments = function (req,res,next, personID, dates,
+            updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+            updated, iLab,iTech,iMan,iAdm,iDel, type) {
+    var query = 'SELECT *' +
+                ' FROM people_departments' +
+                ' WHERE person_id = ?;';
+    var places = [personID];
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(query,places,
+            function (err, rowsQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                for (var ind in rowsQuery) {
+                    dates.push(rowsQuery[ind].valid_from);
+                }
+                return queryPeopleStartDateGetRow(req,res,next, personID, dates,
+                    updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+                    updated,iLab,iTech,iMan,iAdm,iDel,type);
+            }
+        );
+    });
+};
+
+var queryPeopleStartDateGetRow = function (req,res,next, personID, dates,
+            updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+            updated, iLab,iTech,iMan,iAdm,iDel, type) {
+    var querySQL = 'SELECT * from `people` WHERE id = ?;';
+    var places = [personID];
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                var minDate = findEarliestDate(dates);
+                var data;
+                if (moment(resQuery[0].active_from).isSame(minDate)) {
+                    if (iLab + 1 < updateLabArr.length) {
+                        data = updateLabArr[iLab+1];
+                        return queryUpdateLab(req, res, next,
+                                updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+                                updated, data, iLab+1,iTech,iMan,iAdm,iDel);
+                    } else if (iTech + 1 < updateTechArr.length) {
+                        data = updateTechArr[iTech+1];
+                        return queryUpdateTech(req, res, next, updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+                                updated, data, iLab,iTech+1,iMan,iAdm,iDel);
+                    } else if (iMan + 1 < updateManageArr.length) {
+                        data = updateManageArr[iMan+1];
+                        return queryUpdateScMan(req, res, next, updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+                                updated, data, iLab,iTech,iMan+1,iAdm,iDel);
+                    }  else if (iAdm + 1 < updateAdmArr.length) {
+                        data = updateAdmArr[iAdm+1];
+                        return queryUpdateScMan(req, res, next, updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+                                updated, data, iLab,iTech,iMan,iAdm+1,iDel);
+                    } else if (iDel + 1 < deleteNeverMemberArr.length) {
+                        data = deleteNeverMemberArr[iDel+1];
+                        return queryDeleteNeverMember(req, res, next, updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+                                updated, data, iLab,iTech,iMan,iAdm,iDel+1);
+                    } else {
+                        sendJSONResponse(res, 200, { message: 'All done.' });
+                        return;
+                    }
+                } else {
+                    return queryPeopleUpdateStartDate(req,res,next, personID, resQuery[0],minDate,
+                            updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+                            updated, iLab,iTech,iMan,iAdm,iDel,type);
+                }
+            }
+        );
+    });
+};
+
+var queryPeopleUpdateStartDate = function (req,res,next, personID, resQuery, minDate,
+            updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+            updated, iLab,iTech,iMan,iAdm,iDel, type) {
+    var querySQL;
+    var places;
+    if (isNaN(minDate)) {
+        querySQL = 'SELECT * FROM `people`' +
+                       ' WHERE `id` = ?;';
+        places = [personID];
+    } else {
+        querySQL = 'UPDATE `people`' +
+                       ' SET `active_from` = ?' +
+                       ' WHERE `id` = ?;';
+        places = [momentToDate(minDate),personID];
+        querySQL = querySQL + 'INSERT INTO `people_history`' +
+                       ' (`person_id`,`user_id`,`name`,`colloquial_name`,`birth_date`,`gender`,' +
+                         '`active_from`,`active_until`,`status`,`updated`,`operation`,`changed_by`)' +
+                       ' VALUES (?,?,?,?,?,?,?,?,?,?,?,?)';
+        querySQL = querySQL + '; ';
+        places.push(personID,resQuery.user_id,resQuery.name,resQuery.colloquial_name,
+                    resQuery.birth_date,resQuery.gender,
+                    momentToDate(minDate),resQuery.active_until,1,updated,'U',req.body.changed_by);
+    }
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                var data;
+                if (iLab + 1 < updateLabArr.length) {
+                    data = updateLabArr[iLab+1];
+                    return queryUpdateLab(req, res, next,
+                            updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+                            updated, data, iLab+1,iTech,iMan,iAdm,iDel);
+                } else if (iTech + 1 < updateTechArr.length) {
+                    data = updateTechArr[iTech+1];
+                    return queryUpdateTech(req, res, next, updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+                            updated, data, iLab,iTech+1,iMan,iAdm,iDel);
+                } else if (iMan + 1 < updateManageArr.length) {
+                    data = updateManageArr[iMan+1];
+                    return queryUpdateScMan(req, res, next, updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+                            updated, data, iLab,iTech,iMan+1,iAdm,iDel);
+                }  else if (iAdm + 1 < updateAdmArr.length) {
+                    data = updateAdmArr[iAdm+1];
+                    return queryUpdateScMan(req, res, next, updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+                            updated, data, iLab,iTech,iMan,iAdm+1,iDel);
+                } else if (iDel + 1 < deleteNeverMemberArr.length) {
+                    data = deleteNeverMemberArr[iDel+1];
+                    return queryDeleteNeverMember(req, res, next, updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+                            updated, data, iLab,iTech,iMan,iAdm,iDel+1);
+                } else {
+                    sendJSONResponse(res, 200, { message: 'All done.' });
+                    return;
+                }
+            }
+        );
+    });
+};
+
+
+var queryDeleteNeverMember  = function (req, res, next,
+                        updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+                        updated, data, iLab,iTech,iMan,iAdm,iDel) {
+    var places = [];
+    var querySQL = '';
+    querySQL = querySQL + 'UPDATE `people`' +
+                          ' SET `status` = ?' +
+                          ' WHERE `id`=?';
+    querySQL = querySQL + '; ';
+    places.push(0, data.id);
+    querySQL = querySQL + 'INSERT INTO `people_history`' +
+                       ' (`person_id`,`user_id`,`name`,`colloquial_name`,`birth_date`,`gender`,' +
+                         '`active_from`,`active_until`,`status`,`updated`,`operation`,`changed_by`)' +
+                       ' VALUES (?,?,?,?,?,?,?,?,?,?,?,?)';
+    querySQL = querySQL + '; ';
+    // the person is not truly deleted, only the status isn updated
+    places.push(data.id,data.user_id,data.name,data.colloquial_name,
+                    momentToDate(data.birth_date),data.gender,
+                    momentToDate(data.active_from),momentToDate(data.active_until),
+                    0,updated,'U',req.body.changed_by);
+
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (iDel + 1 < deleteNeverMemberArr.length) {
+                    data = deleteNeverMemberArr[iDel+1];
+                    return queryDeleteNeverMember(req, res, next, updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
+                            updated, data, iLab,iTech,iMan,iAdm,iDel+1);
+                } else {
+                    sendJSONResponse(res, 200, { message: 'All done.' });
+                    return;
+                }
+            }
+        );
+    });
+};
+
 
 var queryValidatePerson = function (req, res, next) {
     var personID = req.params.personID;
@@ -650,7 +1237,7 @@ var queryValidatePerson = function (req, res, next) {
     var active_until = momentToDate(req.body.active_until);
     var changed_by = req.body.changed_by;
     var updated = momentToDate(moment(),undefined,'YYYY-MM-DD HH:mm:ss');
-    var requesterCities = geographicAccess(req.payload.stat);
+    var requesterCities = permissions.geographicAccess(req.payload.stat);
     var querySQL = '';
     var places = [];
     if (requesterCities.indexOf(req.body.city_id) !== -1) {
@@ -693,7 +1280,7 @@ var queryPasswordReset = function (req, res, next) {
     var userID = req.body.user_id;
     var password = req.body.password;
     var hashedPassword = userModule.hashPassword(password);
-    var requesterCities = geographicAccess(req.payload.stat);
+    var requesterCities = permissions.geographicAccess(req.payload.stat);
     var querySQL = '';
     var places = [];
     if (requesterCities.indexOf(req.body.city_id) !== -1) {
@@ -730,7 +1317,7 @@ var queryUpdateUserPermissions = function (req, res, next) {
     var userID = req.body.user_id;
     var username = req.body.username;
     var permissions = req.body.permissions;
-    var requesterCities = geographicAccess(req.payload.stat);
+    var requesterCities = permissions.geographicAccess(req.payload.stat);
     var querySQL = '';
     var places = [];
     if (requesterCities.indexOf(req.body.city_id) !== -1) {
@@ -882,7 +1469,7 @@ var listAllPeopleWithRolesDataRemaining = function (req,res,next, data) {
 /******************** Call SQL Generators after Validations *******************/
 
 module.exports.listAllPeopleWithRolesData = function (req, res, next) {
-    getUser(req, res, [0, 5, 10, 15],
+    getUser(req, res, [0, 5, 10, 15, 16],
         function (req, res, username) {
             var places = [];
             var querySQL = 'SELECT people.id AS person_id, people.name AS person_name,' +
@@ -937,7 +1524,7 @@ module.exports.listAllPeopleWithRolesData = function (req, res, next) {
 };
 
 module.exports.listAllPeopleNoRolesData = function (req, res, next) {
-    getUser(req, res, [0, 5, 10, 15],
+    getUser(req, res, [0, 5, 10, 15, 16],
         function (req, res, username) {
             var places = [];
             var querySQL = 'SELECT people.id AS person_id, people.name AS person_name,' +
@@ -955,7 +1542,7 @@ module.exports.listAllPeopleNoRolesData = function (req, res, next) {
 };
 
 module.exports.listPeopleValidate = function (req, res, next) {
-    getUser(req, res, [0, 5, 10, 15],
+    getUser(req, res, [0, 5, 10, 15, 16],
         function (req, res, username) {
             var places = [];
             var querySQL = 'SELECT people.id AS person_id, people.name AS person_name,' +
@@ -972,7 +1559,7 @@ module.exports.listPeopleValidate = function (req, res, next) {
 };
 
 module.exports.updateAllPeopleData = function (req, res, next) {
-    getUser(req, res, [0, 5, 10, 15],
+    getUser(req, res, [0, 5, 10, 15, 16],
         function (req, res, username) {
             getLocation(req, res, next, queryUpdateAllPeopleData);
         }
@@ -980,7 +1567,7 @@ module.exports.updateAllPeopleData = function (req, res, next) {
 };
 
 module.exports.validatePerson = function (req, res, next) {
-    getUser(req, res, [0, 5, 10, 15],
+    getUser(req, res, [0, 5, 10, 15, 16],
         function (req, res, username) {
             queryValidatePerson(req,res,next);
         }
@@ -988,7 +1575,7 @@ module.exports.validatePerson = function (req, res, next) {
 };
 
 module.exports.passwordReset = function (req, res, next) {
-    getUser(req, res, [0, 5, 10, 15],
+    getUser(req, res, [0, 5, 10, 15, 16],
         function (req, res, username) {
             queryPasswordReset(req,res,next);
         }
@@ -996,7 +1583,7 @@ module.exports.passwordReset = function (req, res, next) {
 };
 
 module.exports.updateUserPermissions = function (req, res, next) {
-    getUser(req, res, [0, 5, 10, 15],
+    getUser(req, res, [0, 5, 10, 15, 16],
         function (req, res, username) {
             queryUpdateUserPermissions(req,res,next);
         }

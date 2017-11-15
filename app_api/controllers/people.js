@@ -4,6 +4,7 @@ var path = require('path');
 var moment = require('moment-timezone');
 var server = require('../models/server');
 var pool = server.pool;
+var permissions = require('../config/permissions');
 
 var multer = require('multer');
 var storage = multer.diskStorage({ //multers disk storage settings
@@ -35,19 +36,6 @@ var storage = multer.diskStorage({ //multers disk storage settings
 });
 
 /**************************** Utility Functions *******************************/
-var geographicAccess = function (stat) {
-    var accessTable = {
-        0: [1,2],   // admin
-        5: [1,2],   // super-manager
-        10: [1],    // Lisbon manager
-        15: [2],    // Porto manager
-        20: [1,2],  // unit level (only a few functionalities)
-        30: [1,2],  // team level
-        40: [1,2],
-        1000: []    // no access
-    };
-    return accessTable[stat];
-};
 
 var sendJSONResponse = function(res, status, content) {
     res.status(status);
@@ -376,7 +364,7 @@ var getUserPermitSelf = function (req, res, permissions, callback) {
 
 function getGeoPermissions(req, userCity) {
     var requesterStatus = req.payload.stat;
-    var citiesPermissions = geographicAccess(requesterStatus);
+    var citiesPermissions = permissions.geographicAccess(requesterStatus);
     for (var ind in userCity) {
         if (citiesPermissions.indexOf(userCity[ind].city_id) !== -1) {
             return true;
@@ -429,6 +417,7 @@ function filterLabTimes(rows) {
         var overlap = timeOverlap(rows[ind].lab_start,rows[ind].lab_end,
             rows[ind].labs_groups_valid_from,rows[ind].labs_groups_valid_until);
         if (overlap) {
+            // TODO: momentToDate???
             rows[ind].lab_start = overlap[0];
             rows[ind].lab_end = overlap[1];
             filteredRows.push(rows[ind]);
@@ -5236,7 +5225,7 @@ module.exports.listAllPeople = function (req, res, next) {
 };
 
 module.exports.updateIdentificationsInfoPerson = function (req, res, next) {
-    getUserPermitSelf(req, res, [0, 5, 10, 15],
+    getUserPermitSelf(req, res, [0, 5, 10, 15, 16],
         function (req, res, username) {
             getLocation(req, res, next, queryIdentificationsInfoPerson);
         }
@@ -5244,7 +5233,7 @@ module.exports.updateIdentificationsInfoPerson = function (req, res, next) {
 };
 
 module.exports.updateEmergencyContactsPerson = function (req, res, next) {
-    getUserPermitSelf(req, res, [0, 5, 10, 15],
+    getUserPermitSelf(req, res, [0, 5, 10, 15, 16],
         function (req, res, username) {
             getLocation(req, res, next, queryEmergencyContactsPerson);
         }
@@ -5252,7 +5241,7 @@ module.exports.updateEmergencyContactsPerson = function (req, res, next) {
 };
 
 module.exports.updateFinishedDegreesPerson = function (req, res, next) {
-    getUserPermitSelf(req, res, [0, 5, 10, 15, 20, 30],
+    getUserPermitSelf(req, res, [0, 5, 10, 15, 16, 20, 30],
         function (req, res, username) {
             getLocation(req, res, next, queryFinishedDegreesPerson);
         }
@@ -5261,7 +5250,7 @@ module.exports.updateFinishedDegreesPerson = function (req, res, next) {
 
 module.exports.updateContactInfoPerson = function (req, res, next) {
     // TODO: prepare to hold more personal phones...
-    getUserPermitSelf(req, res, [0, 5, 10, 15],
+    getUserPermitSelf(req, res, [0, 5, 10, 15, 16],
         function (req, res, username) {
             getLocation(req, res, next, queryContactInfoPerson);
         }
@@ -5269,7 +5258,7 @@ module.exports.updateContactInfoPerson = function (req, res, next) {
 };
 
 module.exports.updateNuclearInfoPerson = function (req, res, next) {
-    getUserPermitSelf(req, res, [0, 5, 10, 15],
+    getUserPermitSelf(req, res, [0, 5, 10, 15, 16],
         function (req, res, username) {
             getLocation(req, res, next, queryNuclearInfoPerson);
         }
@@ -5277,7 +5266,7 @@ module.exports.updateNuclearInfoPerson = function (req, res, next) {
 };
 
 module.exports.updateInstitutionCityPerson = function (req, res, next) {
-    getUserPermitSelf(req, res, [0, 5, 10, 15],
+    getUserPermitSelf(req, res, [0, 5, 10, 15, 16],
         function (req, res, username) {
             getLocation(req, res, next, queryInstitutionCityPerson);
         }
@@ -5285,7 +5274,7 @@ module.exports.updateInstitutionCityPerson = function (req, res, next) {
 };
 
 module.exports.updateInstitutionalContactsPerson = function (req, res, next) {
-    getUserPermitSelf(req, res, [0, 5, 10, 15],
+    getUserPermitSelf(req, res, [0, 5, 10, 15, 16],
         function (req, res, username) {
             getLocation(req, res, next, queryInstitutionalContactsPerson);
         }
@@ -5293,7 +5282,7 @@ module.exports.updateInstitutionalContactsPerson = function (req, res, next) {
 };
 
 module.exports.updateOngoingDegreesPerson = function (req, res, next) {
-    getUserPermitSelf(req, res, [0, 5, 10, 15, 20, 30],
+    getUserPermitSelf(req, res, [0, 5, 10, 15, 16, 20, 30],
         function (req, res, username) {
             getLocation(req, res, next, queryOngoingDegreesPerson);
         }
@@ -5301,7 +5290,7 @@ module.exports.updateOngoingDegreesPerson = function (req, res, next) {
 };
 
 module.exports.updateResearcherInfoPerson = function (req, res, next) {
-    getUserPermitSelf(req, res, [0, 5, 10, 15, 20, 30],
+    getUserPermitSelf(req, res, [0, 5, 10, 15, 16, 20, 30],
         function (req, res, username) {
             getLocation(req, res, next,queryResearcherInfoPerson);
         }
@@ -5309,7 +5298,7 @@ module.exports.updateResearcherInfoPerson = function (req, res, next) {
 };
 
 module.exports.updateTechnicianInfoPerson = function (req, res, next) {
-    getUserPermitSelf(req, res, [0, 5, 10, 15, 20, 30],
+    getUserPermitSelf(req, res, [0, 5, 10, 15, 16, 20, 30],
         function (req, res, username) {
             getLocation(req, res, next, queryTechnicianInfoPerson);
         }
@@ -5317,7 +5306,7 @@ module.exports.updateTechnicianInfoPerson = function (req, res, next) {
 };
 
 module.exports.updateScienceManagerInfoPerson = function (req, res, next) {
-    getUserPermitSelf(req, res, [0, 5, 10, 15, 20, 30],
+    getUserPermitSelf(req, res, [0, 5, 10, 15, 16, 20, 30],
         function (req, res, username) {
             getLocation(req, res, next, queryScienceManagerInfoPerson);
         }
@@ -5325,7 +5314,7 @@ module.exports.updateScienceManagerInfoPerson = function (req, res, next) {
 };
 
 module.exports.updateAdministrativeInfoPerson = function (req, res, next) {
-    getUserPermitSelf(req, res, [0, 5, 10, 15, 20, 30],
+    getUserPermitSelf(req, res, [0, 5, 10, 15, 16, 20, 30],
         function (req, res, username) {
             getLocation(req, res, next, queryAdministrativeInfoPerson);
         }
@@ -5333,7 +5322,7 @@ module.exports.updateAdministrativeInfoPerson = function (req, res, next) {
 };
 
 module.exports.updateAffiliationsDepartmentPerson = function (req, res, next) {
-    getUserPermitSelf(req, res, [0, 5, 10, 15],
+    getUserPermitSelf(req, res, [0, 5, 10, 15, 16],
         function (req, res, username) {
             getLocation(req, res, next, queryAffiliationsDepartmentPerson);
         }
@@ -5349,7 +5338,7 @@ module.exports.updateAffiliationsLabPerson = function (req, res, next) {
 };
 
 module.exports.updateTechnicianAffiliationsPerson = function (req, res, next) {
-    getUserPermitSelf(req, res, [0, 5, 10, 15, 20, 30],
+    getUserPermitSelf(req, res, [0, 5, 10, 15, 16, 20, 30],
         function (req, res, username) {
             getLocation(req, res, next, queryTechnicianAffiliationsPerson);
         }
@@ -5357,7 +5346,7 @@ module.exports.updateTechnicianAffiliationsPerson = function (req, res, next) {
 };
 
 module.exports.updateScienceManagerAffiliationsPerson = function (req, res, next) {
-    getUserPermitSelf(req, res, [0, 5, 10, 15, 20, 30],
+    getUserPermitSelf(req, res, [0, 5, 10, 15, 16, 20, 30],
         function (req, res, username) {
             getLocation(req, res, next, queryScienceManagerAffiliationsPerson);
         }
@@ -5365,7 +5354,7 @@ module.exports.updateScienceManagerAffiliationsPerson = function (req, res, next
 };
 
 module.exports.updateAdministrativeAffiliationsPerson = function (req, res, next) {
-    getUserPermitSelf(req, res, [0, 5, 10, 15, 20, 30],
+    getUserPermitSelf(req, res, [0, 5, 10, 15, 16, 20, 30],
         function (req, res, username) {
             getLocation(req, res, next, queryAdministrativeAffiliationsPerson);
         }
@@ -5373,7 +5362,7 @@ module.exports.updateAdministrativeAffiliationsPerson = function (req, res, next
 };
 
 module.exports.updatePersonLeft = function (req, res, next) {
-    getUser(req, res, [0, 5, 10, 15, 20, 30],
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
         function (req, res, username) {
             getLocation(req, res, next, queryPersonLeft);
         }
@@ -5381,7 +5370,7 @@ module.exports.updatePersonLeft = function (req, res, next) {
 };
 
 module.exports.updateJobsPerson = function (req, res, next) {
-    getUserPermitSelf(req, res, [0, 5, 10, 15],
+    getUserPermitSelf(req, res, [0, 5, 10, 15, 16],
         function (req, res, username) {
             getLocationJobs(req, res, next);
         }
@@ -5389,7 +5378,7 @@ module.exports.updateJobsPerson = function (req, res, next) {
 };
 
 module.exports.updateCostCentersPerson = function (req, res, next) {
-    getUserPermitSelf(req, res, [0, 5, 10, 15, 20, 30, 40],
+    getUserPermitSelf(req, res, [0, 5, 10, 15, 16, 20, 30, 40],
         function (req, res, username) {
             getLocation(req, res, next, queryCostCentersPerson);
         }
@@ -5397,7 +5386,7 @@ module.exports.updateCostCentersPerson = function (req, res, next) {
 };
 
 module.exports.updatePhoto = function (req, res, next) {
-    getUserPermitSelf(req, res, [0, 5, 10, 15],
+    getUserPermitSelf(req, res, [0, 5, 10, 15, 16],
         function (req, res, username) {
             getLocation(req, res, next, queryUpdatePhoto);
         }
@@ -5405,7 +5394,7 @@ module.exports.updatePhoto = function (req, res, next) {
 };
 
 module.exports.updateResponsiblesPerson = function (req, res, next) {
-    getUserPermitSelf(req, res, [0, 5, 10, 15],
+    getUserPermitSelf(req, res, [0, 5, 10, 15, 16],
         function (req, res, username) {
             getLocation(req, res, next, queryResponsibles);
         }
@@ -5413,7 +5402,7 @@ module.exports.updateResponsiblesPerson = function (req, res, next) {
 };
 
 module.exports.deleteRolePerson = function (req, res, next) {
-    getUser(req, res, [0, 5, 10, 15],
+    getUser(req, res, [0, 5, 10, 15, 16],
         function (req, res, username) {
             getLocation(req, res, next, queryDeleteRolePerson);
         }
@@ -5421,7 +5410,7 @@ module.exports.deleteRolePerson = function (req, res, next) {
 };
 
 module.exports.listPersonData = function (req, res, next) {
-    getUser(req, res, [0, 5, 10, 15, 20, 30, 40],
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30, 40],
         function (req, res, username) {
             getLocation(req, res, next, queryGetUsername);
         }

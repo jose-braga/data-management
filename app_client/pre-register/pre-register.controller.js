@@ -206,14 +206,6 @@
             }
             return name;
         };
-        vm.labNames = function(lab) {
-            //console.log(lab)
-            if (lab !== undefined) {
-                var name = lab.lab + '@' + lab.group_name;
-                return name;
-            }
-            return '';
-        };
 
         /* Auxiliary functions */
         function findEarliestDate(){

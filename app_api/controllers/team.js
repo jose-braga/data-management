@@ -4,23 +4,11 @@ var pool = server.pool;
 const nodemailer = require('../controllers/emailer');
 let transporter = nodemailer.transporter;
 var userModule = require('../models/users');
+var permissions = require('../config/permissions');
 
 var MANAGER_PERMISSION_LEVEL = 15;
 
 /**************************** Utility Functions *******************************/
-var geographicAccess = function (stat) {
-    var accessTable = {
-        0: [1,2],   // admin
-        5: [1,2],   // super-manager
-        10: [1],    // Lisbon manager
-        15: [2],    // Porto manager
-        20: [1,2],  // unit level (only a few functionalities)
-        30: [1,2],  // team level
-        40: [1,2],
-        1000: []    // no access
-    };
-    return accessTable[stat];
-};
 
 var getLocation = function(req, res, next, callback, type) {
     // gets cities associated with resources (person in lab) to be altered
@@ -282,7 +270,7 @@ var getUser = function (req, res, permissions, callback) {
 function getGeoPermissions(req, userCity) {
     var geoPermissions = [];
     var requesterStatus = req.payload.stat;
-    var citiesPermissions = geographicAccess(requesterStatus);
+    var citiesPermissions = permissions.geographicAccess(requesterStatus);
     for (var ind in userCity) {
         if (citiesPermissions.indexOf(userCity[ind].city_id) !== -1) {
             geoPermissions.push(
@@ -372,6 +360,207 @@ var make_password = function(n, a) {
   var index = (Math.random() * (a.length - 1)).toFixed(0);
   return n > 0 ? a[index] + make_password(n - 1, a) : '';
 };
+
+function filterLabTimes(rows) {
+    // lab_start is when person started in the lab
+    // lab_end is when person left the lab
+
+    // lab_opened => when lab was inaugurated
+    // lab_closed => when lab ceased
+    // labs_groups_valid_from => when lab entered a group
+    // labs_groups_valid_until => when lab left a group
+
+    // 1. back-end - lab, group and units times must be defined consistently
+    // 2. front-end - lab_start cannot be less than lab_opened, lab_end cannot be more than lab_closed
+    var filteredRows = [];
+    for (var ind in rows) {
+        var overlap = timeOverlap(rows[ind].valid_from,rows[ind].valid_until,
+            rows[ind].labs_groups_valid_from,rows[ind].labs_groups_valid_until);
+        if (overlap) {
+            // TODO: momentToDate???
+            rows[ind].valid_from = overlap[0];
+            rows[ind].valid_until = overlap[1];
+            filteredRows.push(rows[ind]);
+        }
+    }
+    return filteredRows;
+}
+
+function timeOverlap(d1_start,d1_end, d2_start, d2_end) {
+    // returns false if no overlap
+    // else returns [startoverlap,endoverlap]
+    // null in start time is assumed to be -Inf
+    // null in end time is assumed to be +Inf
+    var startOverlap;
+    var endOverlap;
+    if (d1_start !== null) {
+        if (d1_end !== null) {
+            if (d2_start !== null) {
+                if (d2_end !== null) {
+                    if (moment(d1_start).isSameOrAfter(moment(d2_end))
+                        || moment(d1_end).isSameOrBefore(moment(d2_start))) {
+                        return false;
+                    } else {
+                        // there's overlap
+                        if (moment(d1_start).isAfter(moment(d2_start))) {
+                            startOverlap = d1_start;
+                        } else {
+                            startOverlap = d2_start;
+                        }
+                        if (moment(d1_end).isBefore(moment(d2_end))) {
+                            endOverlap = d1_end;
+                        } else {
+                            endOverlap = d2_end;
+                        }
+                        return [startOverlap,endOverlap];
+                    }
+                } else {
+                    if (moment(d1_end).isSameOrBefore(moment(d2_start))) {
+                        return false;
+                    } else {
+                        // there's overlap
+                        if (moment(d1_start).isAfter(moment(d2_start))) {
+                            startOverlap = d1_start;
+                        } else {
+                            startOverlap = d2_start;
+                        }
+                        endOverlap = d1_end;
+                        return [startOverlap,endOverlap];
+                    }
+                }
+            } else {
+                // d2_start is null
+                if (d2_end !== null) {
+                    if (moment(d1_start).isSameOrAfter(moment(d2_end))) {
+                        return false;
+                    } else {
+                        // there's overlap
+                        startOverlap = d1_start;
+                        endOverlap = d1_end;
+                        if (moment(d1_end).isBefore(moment(d2_end))) {
+
+                        } else {
+                            endOverlap = d2_end;
+                        }
+                        return [startOverlap,endOverlap];
+                    }
+                } else {
+                    // there's overlap
+                    startOverlap = d1_start;
+                    endOverlap = d1_end;
+                    return [startOverlap,endOverlap];
+                }
+            }
+        } else {
+            // d1_end is null
+            if (d2_start !== null) {
+                if (d2_end !== null) {
+                    if (moment(d1_start).isSameOrAfter(moment(d2_end))) {
+                        return false;
+                    } else {
+                        // there's overlap
+                        if (moment(d1_start).isAfter(moment(d2_start))) {
+                            startOverlap = d1_start;
+                        } else {
+                            startOverlap = d2_start;
+                        }
+                        if (moment(d1_end).isBefore(moment(d2_end))) {
+                            endOverlap = d1_end;
+                        } else {
+                            endOverlap = d2_end;
+                        }
+                        return [startOverlap,endOverlap];
+                    }
+                } else {
+                    if (moment(d1_end).isSameOrBefore(moment(d2_start))) {
+                        return false;
+                    } else {
+                        // there's overlap
+                        if (moment(d1_start).isAfter(moment(d2_start))) {
+                            startOverlap = d1_start;
+                        } else {
+                            startOverlap = d2_start;
+                        }
+                        endOverlap = d1_end;
+                        return [startOverlap,endOverlap];
+                    }
+                }
+            } else {
+                // d2_start is null
+                if (d2_end !== null) {
+                    if (moment(d1_start).isSameOrAfter(moment(d2_end))) {
+                        return false;
+                    } else {
+                        // there's overlap
+                        startOverlap = d1_start;
+                        if (moment(d1_end).isBefore(moment(d2_end))) {
+                            endOverlap = d1_end;
+                        } else {
+                            endOverlap = d2_end;
+                        }
+                        return [startOverlap,endOverlap];
+                    }
+                } else {
+                    // there's overlap
+                    startOverlap = d1_start;
+                    endOverlap = d1_end;
+                    return [startOverlap,endOverlap];
+                }
+            }
+        }
+    } else {
+        // d1_start is null
+        if (d1_end !== null) {
+            if (d2_start !== null) {
+                if (d2_end !== null) {
+                    if (moment(d1_end).isSameOrBefore(moment(d2_start))) {
+                        return false;
+                    } else {
+                        // there's overlap
+                        startOverlap = d2_start;
+                        if (moment(d1_end).isBefore(moment(d2_end))) {
+                            endOverlap = d1_end;
+                        } else {
+                            endOverlap = d2_end;
+                        }
+                        return [startOverlap,endOverlap];
+                    }
+                } else {
+                    if (moment(d1_end).isSameOrBefore(moment(d2_start))) {
+                        return false;
+                    } else {
+                        // there's overlap
+                        startOverlap = d2_start;
+                        endOverlap = d1_end;
+                        return [startOverlap,endOverlap];
+                    }
+                }
+            } else {
+                // d2_start is null
+                if (d2_end !== null) {
+                    // there's overlap
+                    startOverlap = d1_start; // yes it's null
+                    if (moment(d1_end).isBefore(moment(d2_end))) {
+                        endOverlap = d1_end;
+                    } else {
+                        endOverlap = d2_end;
+                    }
+                    return [startOverlap,endOverlap];
+                } else {
+                    // there's overlap
+                    startOverlap = d1_start;
+                    endOverlap = d1_end;
+                    return [startOverlap,endOverlap];
+                }
+            }
+        } else {
+            // d1_end is null
+            startOverlap = d2_start; //even if it is null
+            endOverlap = d2_end; //even if it is null
+            return [startOverlap,endOverlap];
+        }
+    }
+}
 
 /***************************** Query Functions ********************************/
 
@@ -511,6 +700,7 @@ var queryGetDepartments = function (req,res,next, personID, dates, updateArr, de
 };
 
 var queryPeopleStartDateGetRow = function (req,res,next, personID, dates, updateArr, deleteArr, updated, i, type) {
+    console.log('8')
     var querySQL = 'SELECT * from `people` WHERE id = ?;';
     var places = [personID];
     pool.getConnection(function(err, connection) {
@@ -527,10 +717,61 @@ var queryPeopleStartDateGetRow = function (req,res,next, personID, dates, update
                     return;
                 }
                 var minDate = findEarliestDate(dates);
-
+                var data
                 if (moment(resQuery[0].active_from).isSame(minDate)) {
-                    sendJSONResponse(res, 200, {"status": "OK!", "statusCode": 200});
-                    return;
+                    if (type.indexOf('update') !== -1) {
+                        if (i + 1 < updateArr.length) {
+                            data = updateArr[i+1];
+                            if (type.indexOf('lab') !== -1) {
+                                return queryUpdateLab(req, res, next, updateArr, deleteArr, updated, data, i+1);
+                            }
+                            if (type.indexOf('technician') !== -1) {
+                                return queryUpdateTech(req, res, next, updateArr, deleteArr, updated, data, i+1);
+                            }
+                            if (type.indexOf('scMan') !== -1) {
+                                return queryUpdateScMan(req, res, next, updateArr, deleteArr, updated, data, i+1);
+                            }
+                            if (type.indexOf('administrative') !== -1) {
+                                return queryUpdateAdm(req, res, next, updateArr, deleteArr, updated, data, i+1);
+                            }
+                        } else if (deleteArr.length > 0) {
+                            data = deleteArr[0];
+                            if (type.indexOf('lab') !== -1) {
+                                return queryDeleteLab(req, res, next, updateArr, deleteArr, updated, data, 0);
+                            }
+                            if (type.indexOf('technician') !== -1) {
+                                return queryDeleteTech(req, res, next, updateArr, deleteArr, updated, data, 0);
+                            }
+                            if (type.indexOf('scMan') !== -1) {
+                                return queryDeleteScMan(req, res, next, updateArr, deleteArr, updated, data, 0);
+                            }
+                            if (type.indexOf('administrative') !== -1) {
+                                return queryDeleteAdm(req, res, next, updateArr, deleteArr, updated, data, 0);
+                            }
+                        } else {
+                            sendJSONResponse(res, 200, { message: 'All done.' });
+                            return;
+                        }
+                    } else if (type.indexOf('delete') !== -1){
+                        if (i + 1 < deleteArr.length) {
+                            data = deleteArr[i+1];
+                            if (type.indexOf('lab') !== -1) {
+                                return queryDeleteLab(req, res, next, updateArr, deleteArr, updated, data, i+1);
+                            }
+                            if (type.indexOf('technician') !== -1) {
+                                return queryDeleteTech(req, res, next, updateArr, deleteArr, updated, data, i+1);
+                            }
+                            if (type.indexOf('scMan') !== -1) {
+                                return queryDeleteScMan(req, res, next, updateArr, deleteArr, updated, data, i+1);
+                            }
+                            if (type.indexOf('administrative') !== -1) {
+                                return queryDeleteScMan(req, res, next, updateArr, deleteArr, updated, data, i+1);
+                            }
+                        } else {
+                            sendJSONResponse(res, 200, { message: 'All done.' });
+                            return;
+                        }
+                    }
                 } else {
                     return queryPeopleUpdateStartDate(req,res,next, personID, resQuery[0],minDate, updateArr, deleteArr, updated,i,type);
                 }
@@ -1992,24 +2233,51 @@ module.exports.listLabData = function (req, res, next) {
 };
 
 module.exports.listLabPeopleData = function (req, res, next) {
-    getUser(req, res, [0, 5, 10, 15, 20, 30],
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
         function (req, res, username) {
             var teamID = req.params.teamID;
+            var groupID = req.params.groupID;
             var places = [];
-            var querySQL = 'SELECT people_labs.*, people.name AS person_name ' +
+            var querySQL = 'SELECT people_labs.*, people.name AS person_name, ' +
+                           ' labs.started AS lab_opened, labs.finished AS lab_closed,' +
+                           ' labs_groups.valid_from AS labs_groups_valid_from, labs_groups.valid_until AS labs_groups_valid_until,' +
+                           ' groups.id AS group_id, groups.name AS group_name' +
                            ' FROM people_labs' +
                            ' LEFT JOIN people ON people_labs.person_id = people.id' +
-                           ' WHERE lab_id = ? AND people.status = 1' +
+                           ' LEFT JOIN labs ON people_labs.lab_id = labs.id' +
+                           ' LEFT JOIN labs_groups ON labs_groups.lab_id = labs.id' +
+                           ' LEFT JOIN groups ON labs_groups.group_id = groups.id' +
+                           ' WHERE labs_groups.group_id = ? AND labs_groups.lab_id = ? AND people.status = 1' +
                            ' ORDER BY people.name';
             querySQL = querySQL + '; ';
-            places.push(teamID);
-            escapedQuery(querySQL, places, req, res, next);
+            places.push(groupID, teamID);
+            pool.getConnection(function(err, connection) {
+                if (err) {
+                    sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+                    return;
+                }
+                connection.query(querySQL,places,
+                    function (err, rowsQuery) {
+                        // And done with the connection.
+                        connection.release();
+                        if (err) {
+                            sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                            return;
+                        }
+                        rowsQuery = filterLabTimes(rowsQuery);
+                        sendJSONResponse(res, 200,
+                            {"status": "success", "statusCode": 200, "count": rowsQuery.length,
+                             "result" : rowsQuery});
+                        return;
+                    }
+                );
+            });
         }
     );
 };
 
 module.exports.listTechPeopleData = function (req, res, next) {
-    getUser(req, res, [0, 5, 10, 15, 20, 30],
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
         function (req, res, username) {
             var teamID = req.params.teamID;
             var places = [];
@@ -2026,7 +2294,7 @@ module.exports.listTechPeopleData = function (req, res, next) {
 };
 
 module.exports.listScManPeopleData = function (req, res, next) {
-    getUser(req, res, [0, 5, 10, 15, 20, 30],
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
         function (req, res, username) {
             var teamID = req.params.teamID;
             var places = [];
@@ -2043,7 +2311,7 @@ module.exports.listScManPeopleData = function (req, res, next) {
 };
 
 module.exports.listAdmPeopleData = function (req, res, next) {
-    getUser(req, res, [0, 5, 10, 15, 20, 30],
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
         function (req, res, username) {
             var teamID = req.params.teamID;
             var places = [];
@@ -2062,7 +2330,7 @@ module.exports.listAdmPeopleData = function (req, res, next) {
 module.exports.updateLabPeople = function (req, res, next) {
     // managers can change data based on their geographical location
     // lab leaders (or their lab managers) can only change
-    getUser(req, res, [0, 5, 10, 15, 20, 30],
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
         function (req, res, username) {
             getLocation(req, res, next, getTeam);
         }
@@ -2072,7 +2340,7 @@ module.exports.updateLabPeople = function (req, res, next) {
 module.exports.updateTechPeople = function (req, res, next) {
     // managers can change data based on their geographical location
     // lab leaders (or their lab managers) can only change
-    getUser(req, res, [0, 5, 10, 15, 20, 30],
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
         function (req, res, username) {
             getLocation(req, res, next, getTechTeam, 'technician');
         }
@@ -2081,7 +2349,7 @@ module.exports.updateTechPeople = function (req, res, next) {
 
 module.exports.updateScManPeople = function (req, res, next) {
     // managers can change data based on their geographical location
-    getUser(req, res, [0, 5, 10, 15, 20, 30],
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
         function (req, res, username) {
             getLocation(req, res, next, getScManTeam, 'scienceManager');
         }
@@ -2090,7 +2358,7 @@ module.exports.updateScManPeople = function (req, res, next) {
 
 module.exports.updateAdmPeople = function (req, res, next) {
     // managers can change data based on their geographical location
-    getUser(req, res, [0, 5, 10, 15, 20, 30],
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
         function (req, res, username) {
             getLocation(req, res, next, getAdmTeam, 'administrative');
         }
@@ -2099,7 +2367,7 @@ module.exports.updateAdmPeople = function (req, res, next) {
 
 module.exports.preRegister = function (req, res, next) {
     // managers can change data based on their geographical location
-    getUser(req, res, [0, 5, 10, 15, 20, 30],
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
         function (req, res, username) {
             queryPreRegisterAddUser(req,res,next);
         }

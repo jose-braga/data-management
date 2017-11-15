@@ -1,6 +1,10 @@
  (function(){
     // Current version: 1.0.0
 
+    // TODO: Change API documentation
+    // TODO: create help pages
+    // TODO: Integrate with ORCID
+
     // TODO: (future) Add automatic PDF generator
     // TODO: (future) interface improvement - "Myself" (current affiliations); "Manager" list show only current affiliations
     // TODO: (future) easier administration - Delete user from all tables

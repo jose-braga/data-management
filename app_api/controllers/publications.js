@@ -149,24 +149,20 @@ var queryPersonPublications = function (req, res, next) {
 
 var queryTeamPublications = function (req, res, next) {
     var teamID = req.params.teamID;
+    var groupID = req.params.groupID;
     var querySQL = '';
     var places = [];
     // should only select papers that have been published while in te lab
+    // papers published during the year the person entered or left the lab will count
     querySQL = querySQL + 'SELECT lab_selected_publications.publication_id AS selected, publications.*,' +
                                 ' journals.name AS journal_name, journals.short_name AS journal_short_name, ' +
                                 ' journals.publisher, journals.publisher_city, journals.issn, journals.eissn ' +
-                          'FROM people_labs' +
-                          ' LEFT JOIN people_publications ON people_labs.person_id = people_publications.person_id' +
-                          ' LEFT JOIN publications ON people_publications.publication_id = publications.id' +
+                          'FROM labs_publications' +
+                          ' LEFT JOIN publications ON labs_publications.publication_id = publications.id' +
                           ' LEFT JOIN lab_selected_publications ON lab_selected_publications.publication_id = publications.id' +
                           ' LEFT JOIN journals ON publications.journal_id = journals.id' +
-                          ' WHERE people_labs.lab_id = ? AND publications.id IS NOT NULL' +
-                          '       AND ((people_labs.valid_from < makedate(publications.year,1) AND people_labs.valid_until > makedate(publications.year,365))' +
-                          '            OR (people_labs.valid_from < makedate(publications.year,1) AND people_labs.valid_until IS NULL)' +
-                          '            OR (people_labs.valid_from IS NULL AND people_labs.valid_until IS NULL)' +
-                                     ')' +
-                          ' GROUP BY publications.id;';
-    places.push(teamID);
+                          ' WHERE labs_publications.group_id = ? AND labs_publications.lab_id = ?;';
+    places.push(groupID, teamID);
     pool.getConnection(function(err, connection) {
         if (err) {
             sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
@@ -416,20 +412,21 @@ var queryUpdatePersonAuthorNames = function (req, res, next) {
 
 var queryUpdateTeamSelectedPublications = function (req, res, next) {
     var teamID = req.params.teamID;
+    var groupID = req.params.groupID;
     var add = req.body.addSelectedPub;
     var del = req.body.delSelectedPub;
     var querySQL = '';
     var places = [];
     for (var ind in add) {
         querySQL = querySQL + 'INSERT INTO lab_selected_publications' +
-                              ' (lab_id,publication_id)' +
-                              ' VALUES (?,?);';
-        places.push(teamID,add[ind].id);
+                              ' (group_id,lab_id,publication_id)' +
+                              ' VALUES (?,?,?);';
+        places.push(groupID,teamID,add[ind].id);
     }
     for (var ind in del) {
         querySQL = querySQL + 'DELETE FROM lab_selected_publications' +
-                              ' WHERE lab_id = ? AND publication_id = ?;';
-        places.push(teamID,del[ind].id);
+                              ' WHERE groupID = ? AND lab_id = ? AND publication_id = ?;';
+        places.push(groupID, teamID,del[ind].id);
     }
     pool.getConnection(function(err, connection) {
         if (err) {
@@ -609,7 +606,7 @@ module.exports.getLabPublicationInfo = function (req, res, next) {
 /******************** Call SQL Generators after Validations *******************/
 
 module.exports.listPersonPublications = function (req, res, next) {
-    getUser(req, res, [0, 5, 10, 15],
+    getUser(req, res, [0, 5, 10, 15, 16],
         function (req, res, username) {
             queryPersonPublications(req,res,next);
         }
@@ -617,7 +614,7 @@ module.exports.listPersonPublications = function (req, res, next) {
 };
 
 module.exports.listTeamPublications = function (req, res, next) {
-    getUser(req, res, [0, 5, 10, 15, 20, 30],
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
         function (req, res, username) {
             queryTeamPublications(req,res,next);
         }
@@ -625,7 +622,7 @@ module.exports.listTeamPublications = function (req, res, next) {
 };
 
 module.exports.updatePersonSelectedPub = function (req, res, next) {
-    getUser(req, res, [0, 5, 10, 15],
+    getUser(req, res, [0, 5, 10, 15, 16],
         function (req, res, username) {
             queryUpdatePersonSelectedPublications(req,res,next);
         }
@@ -633,7 +630,7 @@ module.exports.updatePersonSelectedPub = function (req, res, next) {
 };
 
 module.exports.updatePersonAuthorNames = function (req, res, next) {
-    getUser(req, res, [0, 5, 10, 15],
+    getUser(req, res, [0, 5, 10, 15, 16],
         function (req, res, username) {
             queryUpdatePersonAuthorNames(req,res,next);
         }
@@ -641,7 +638,7 @@ module.exports.updatePersonAuthorNames = function (req, res, next) {
 };
 
 module.exports.updateTeamSelectedPub = function (req, res, next) {
-    getUser(req, res, [0, 5, 10, 15,20,30],
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
         function (req, res, username) {
             queryUpdateTeamSelectedPublications(req,res,next);
         }

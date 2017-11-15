@@ -357,117 +357,40 @@
             vm.updateStatus[ind] = "Updating...";
             vm.messageType[ind] = 'message-updating';
             vm.hideMessage[ind] = false;
-            // gets affiliations refering to the same people_lab row
-            // and join contiguous
-            var linesToSkip = [];
-            var samePeopleLab = [];
+
+            // for each affiliation check overlaps with lab history
+            // generating a DB line for each overlap
+            var submitAffiliations = [];
+
             for (var el in vm.currentAffiliationsLab) {
-                var addPairs = false;
-                if (linesToSkip.indexOf(el) == -1) {
-                    var currPairing = [el];
-                    linesToSkip.push(el);
-                }
-                for (var el2 in vm.currentAffiliationsLab) {
-                    if (el2 > el
-                        && linesToSkip.indexOf(el2) == -1
-                        && vm.currentAffiliationsLab[el].people_lab_id == vm.currentAffiliationsLab[el2].people_lab_id) {
-                        addPairs = true;
-                        linesToSkip.push(el2);
-                        currPairing.push(el2);
+                // find the lab data to which this affiliation refers to
+                for (var elLab in vm.labs) {
+                    if (vm.labs[elLab].lab_id === vm.currentAffiliationsLab[el].lab_id) {
+                        var indLab = elLab;
+                        break;
                     }
                 }
-                if (addPairs) samePeopleLab.push(currPairing);
-            }
-            // for each pair searches contiguous durations
-            var elementsToRemove = [];
-            for (var pair in samePeopleLab) {
-                var contiguous = [];
-                var nonContiguous = [];
-                for (var el in samePeopleLab[pair]) {
-                    for (var el2 in samePeopleLab[pair]) {
-                        if (el2 > el
-                            &&
-                            (moment(vm.currentAffiliationsLab[samePeopleLab[pair][el]].lab_start)
-                                .subtract(1,'days')
-                                .isSame(moment(vm.currentAffiliationsLab[samePeopleLab[pair][el2]].lab_end))
-                                ||
-                            moment(vm.currentAffiliationsLab[samePeopleLab[pair][el]].lab_end)
-                                .add(1,'days')
-                                .isSame(moment(vm.currentAffiliationsLab[samePeopleLab[pair][el2]].lab_start)))) {
-                            contiguous.push([samePeopleLab[pair][el],samePeopleLab[pair][el2]]);
-                        }
-                    }
-                }
-                contiguous = contiguous.reduce(function(a, b) {return a.concat(b);},[]);
-                for (var el in samePeopleLab[pair]) {
-                    if (contiguous.indexOf(samePeopleLab[pair][el]) === -1) {
-                        nonContiguous.push(samePeopleLab[pair][el]);
-                    }
-                }
-                for (var el in contiguous) {
-                    // finds minimum of start times and maximum of end times
-                    var minTime;
-                    if (el === 0) {
-                        if (vm.currentAffiliationsLab[contiguous[el]].lab_start !== null) {
-                            minTime = moment(vm.currentAffiliationsLab[contiguous[el]].lab_start);
+                var addedFirstHistory = false;
+                for (var elHist in vm.labs[indLab].lab_history) {
+                    var overlap = timeOverlap(vm.currentAffiliationsLab[el].lab_start,
+                                              vm.currentAffiliationsLab[el].lab_end,
+                                              vm.labs[indLab].lab_history[elHist].labs_groups_valid_from,
+                                              vm.labs[indLab].lab_history[elHist].labs_groups_valid_until);
+                    if (overlap) {
+                        var thisData = Object.assign({},vm.currentAffiliationsLab[el]);
+                        thisData.lab_start = overlap[0];
+                        thisData.lab_end = overlap[1];
+                        if (addedFirstHistory){
+                            thisData.people_lab_id = 'new';
+                            submitAffiliations.push(thisData);
                         } else {
-                            minTime = null;
-                            break;
-                        }
-                    } else {
-                        if (vm.currentAffiliationsLab[contiguous[el]].lab_start !== null) {
-                            if(moment(vm.currentAffiliationsLab[contiguous[el]].lab_start)
-                                    .isBefore(minTime)) {
-                                minTime = moment(vm.currentAffiliationsLab[contiguous[el]].lab_start);
-                            }
-                        } else {
-                            minTime = null;
-                            break;
+                            addedFirstHistory = true;
+                            submitAffiliations.push(thisData);
                         }
                     }
-                }
-                for (var el in contiguous) {
-                    // finds minimum of start times and maximum of end times
-                    var maxTime;
-                    if (el === 0) {
-                        if (vm.currentAffiliationsLab[contiguous[el]].lab_end !== null) {
-                            maxTime = moment(vm.currentAffiliationsLab[contiguous[el]].lab_end);
-                        } else {
-                            maxTime = null;
-                            break;
-                        }
-                    } else {
-                        if (vm.currentAffiliationsLab[contiguous[el]].lab_end !== null) {
-                            if(moment(vm.currentAffiliationsLab[contiguous[el]].lab_end)
-                                    .isAfter(maxTime)) {
-                                maxTime = moment(vm.currentAffiliationsLab[contiguous[el]].lab_end);
-                            }
-                        } else {
-                            maxTime = null;
-                            break;
-                        }
-                    }
-                }
-                for (var el = contiguous.length -1; el>=0; el--) {
-                    // changes first row of affiliation and removes following
-                    if (el === 0) {
-                        vm.currentAffiliationsLab[contiguous[el]].lab_start = momentToDate(minTime);
-                        vm.currentAffiliationsLab[contiguous[el]].lab_end = momentToDate(maxTime);
-                    } else {
-                        elementsToRemove.push(contiguous[el]);
-                    }
-                }
-                for (var el in nonContiguous) {
-                    vm.currentAffiliationsLab[nonContiguous[el]].people_lab_id = 'new';
                 }
             }
-            elementsToRemove.sort(function(a, b) {
-                        return a - b;
-                    });
-            for (var el = elementsToRemove.length -1; el>=0; el--) {
-                vm.currentAffiliationsLab.splice(elementsToRemove[el],1);
-            }
-            var data = processDataRows(vm.currentAffiliationsLab,vm.thisPerson.lab_data,
+            var data = processDataRows(submitAffiliations,vm.thisPerson.lab_data,
                                   'people_lab_id', 'newAffiliationsLab','updateAffiliationsLab','deleteAffiliationsLab');
             data['changed_by'] = vm.currentUser.userID;
             // finds earliest date in department and lab/techn/... affiliation
@@ -1287,6 +1210,181 @@
         }
 
         /* Auxiliary functions */
+        function timeOverlap(d1_start,d1_end, d2_start, d2_end) {
+            // returns false if no overlap
+            // else returns [startoverlap,endoverlap]
+            // null in start time is assumed to be -Inf
+            // null in end time is assumed to be +Inf
+            var startOverlap;
+            var endOverlap;
+            if (d1_start !== null) {
+                if (d1_end !== null) {
+                    if (d2_start !== null) {
+                        if (d2_end !== null) {
+                            if (moment(d1_start).isSameOrAfter(moment(d2_end))
+                                || moment(d1_end).isSameOrBefore(moment(d2_start))) {
+                                return false;
+                            } else {
+                                // there's overlap
+                                if (moment(d1_start).isAfter(moment(d2_start))) {
+                                    startOverlap = d1_start;
+                                } else {
+                                    startOverlap = d2_start;
+                                }
+                                if (moment(d1_end).isBefore(moment(d2_end))) {
+                                    endOverlap = d1_end;
+                                } else {
+                                    endOverlap = d2_end;
+                                }
+                                return [startOverlap,endOverlap];
+                            }
+                        } else {
+                            if (moment(d1_end).isSameOrBefore(moment(d2_start))) {
+                                return false;
+                            } else {
+                                // there's overlap
+                                if (moment(d1_start).isAfter(moment(d2_start))) {
+                                    startOverlap = d1_start;
+                                } else {
+                                    startOverlap = d2_start;
+                                }
+                                endOverlap = d1_end;
+                                return [startOverlap,endOverlap];
+                            }
+                        }
+                    } else {
+                        // d2_start is null
+                        if (d2_end !== null) {
+                            if (moment(d1_start).isSameOrAfter(moment(d2_end))) {
+                                return false;
+                            } else {
+                                // there's overlap
+                                startOverlap = d1_start;
+                                endOverlap = d1_end;
+                                if (moment(d1_end).isBefore(moment(d2_end))) {
+
+                                } else {
+                                    endOverlap = d2_end;
+                                }
+                                return [startOverlap,endOverlap];
+                            }
+                        } else {
+                            // there's overlap
+                            startOverlap = d1_start;
+                            endOverlap = d1_end;
+                            return [startOverlap,endOverlap];
+                        }
+                    }
+                } else {
+                    // d1_end is null
+                    if (d2_start !== null) {
+                        if (d2_end !== null) {
+                            if (moment(d1_start).isSameOrAfter(moment(d2_end))) {
+                                return false;
+                            } else {
+                                // there's overlap
+                                if (moment(d1_start).isAfter(moment(d2_start))) {
+                                    startOverlap = d1_start;
+                                } else {
+                                    startOverlap = d2_start;
+                                }
+                                if (moment(d1_end).isBefore(moment(d2_end))) {
+                                    endOverlap = d1_end;
+                                } else {
+                                    endOverlap = d2_end;
+                                }
+                                return [startOverlap,endOverlap];
+                            }
+                        } else {
+                            if (moment(d1_end).isSameOrBefore(moment(d2_start))) {
+                                return false;
+                            } else {
+                                // there's overlap
+                                if (moment(d1_start).isAfter(moment(d2_start))) {
+                                    startOverlap = d1_start;
+                                } else {
+                                    startOverlap = d2_start;
+                                }
+                                endOverlap = d1_end;
+                                return [startOverlap,endOverlap];
+                            }
+                        }
+                    } else {
+                        // d2_start is null
+                        if (d2_end !== null) {
+                            if (moment(d1_start).isSameOrAfter(moment(d2_end))) {
+                                return false;
+                            } else {
+                                // there's overlap
+                                startOverlap = d1_start;
+                                if (moment(d1_end).isBefore(moment(d2_end))) {
+                                    endOverlap = d1_end;
+                                } else {
+                                    endOverlap = d2_end;
+                                }
+                                return [startOverlap,endOverlap];
+                            }
+                        } else {
+                            // there's overlap
+                            startOverlap = d1_start;
+                            endOverlap = d1_end;
+                            return [startOverlap,endOverlap];
+                        }
+                    }
+                }
+            } else {
+                // d1_start is null
+                if (d1_end !== null) {
+                    if (d2_start !== null) {
+                        if (d2_end !== null) {
+                            if (moment(d1_end).isSameOrBefore(moment(d2_start))) {
+                                return false;
+                            } else {
+                                // there's overlap
+                                startOverlap = d2_start;
+                                if (moment(d1_end).isBefore(moment(d2_end))) {
+                                    endOverlap = d1_end;
+                                } else {
+                                    endOverlap = d2_end;
+                                }
+                                return [startOverlap,endOverlap];
+                            }
+                        } else {
+                            if (moment(d1_end).isSameOrBefore(moment(d2_start))) {
+                                return false;
+                            } else {
+                                // there's overlap
+                                startOverlap = d2_start;
+                                endOverlap = d1_end;
+                                return [startOverlap,endOverlap];
+                            }
+                        }
+                    } else {
+                        // d2_start is null
+                        if (d2_end !== null) {
+                            // there's overlap
+                            startOverlap = d1_start; // yes it's null
+                            if (moment(d1_end).isBefore(moment(d2_end))) {
+                                endOverlap = d1_end;
+                            } else {
+                                endOverlap = d2_end;
+                            }
+                            return [startOverlap,endOverlap];
+                        } else {
+                            // there's overlap
+                            startOverlap = d1_start;
+                            endOverlap = d1_end;
+                            return [startOverlap,endOverlap];
+                        }
+                    }
+                } else {
+                    // d1_end is null
+                    startOverlap = d2_start; //even if it is null
+                    endOverlap = d2_end; //even if it is null
+                    return [startOverlap,endOverlap];
+                }
+            }
+        }
         function findEarliestDate(thisPerson, data, type){
             var dates = [];
             var minDate;

@@ -12,7 +12,10 @@
                     label={{lab.lab}}@{{lab.group_name}}>
                 <md-content>
                     <div layout="row" layout-padding>
-                        <team-people-lab-presentation data-lab="{{lab.lab_id}}" flex>
+                        <team-people-lab-presentation
+                            data-lab="{{lab.lab_id}}"
+                            data-group="{{lab.group_id}}"
+                        flex>
                         </team-people-lab-presentation>
                     </div>
                 </md-content>
@@ -23,7 +26,10 @@
                     <md-tab label='List'>
                         <md-content>
                             <div layout="row" layout-padding>
-                                <team-lab-publications data-lab="{{lab.lab_id}}" flex>
+                                <team-lab-publications
+                                    data-lab="{{lab.lab_id}}"
+                                    data-group="{{lab.group_id}}"
+                                flex>
                                 </team-lab-publications>
                             </div>
                         </md-content>

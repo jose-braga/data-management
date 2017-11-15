@@ -115,8 +115,8 @@
                                 lab_closed: res[ind].lab_closed,
                                 group_id: res[ind].lab_history[indHist].group_id,
                                 group_name: res[ind].lab_history[indHist].group_name,
-                                labs_groups_valid_from: res[ind].lab_history[indHist].labs_groups_valid_from,
-                                labs_groups_valid_until: res[ind].lab_history[indHist].labs_groups_valid_until,
+                                labs_groups_valid_from: processDate(res[ind].lab_history[indHist].labs_groups_valid_from),
+                                labs_groups_valid_until: processDate(res[ind].lab_history[indHist].labs_groups_valid_until),
                                 unit_id: res[ind].lab_history[indHist].unit_id
                             });
                         }
@@ -349,11 +349,11 @@
                 // defining page contents
                 vm.selectedPeopleNoRoles = vm.selectedPeopleNoRoles.sort(sorter);
                 vm.currPeopleNoRoles = [];
-                var date;
                 for (var member = (vm.currentPageNoRoles - 1) * vm.pageSizeNoRoles;
                         member < vm.currentPageNoRoles * vm.pageSizeNoRoles
                         && member < vm.totalFromSearchNoRoles;
                         member++) {
+
                     vm.currPeopleNoRoles.push(Object.assign({}, vm.selectedPeopleNoRoles[member]));
                 }
 
@@ -446,26 +446,13 @@
                 // defining page contents
                 vm.selectedPeople = vm.selectedPeople.sort(sorter);
                 vm.currPeople = [];
-                var date;
                 for (var member = (vm.currentPage - 1) * vm.pageSize;
                         member < vm.currentPage * vm.pageSize && member < vm.totalFromSearch;
                         member++) {
-                    if (vm.selectedPeople[member]['valid_from'] !== null) {
-                        date = new Date(vm.selectedPeople[member]['valid_from']);
-                        vm.selectedPeople[member]['valid_from'] = date;
-                    }
-                    if (vm.selectedPeople[member]['labs_groups_valid_from'] !== null) {
-                        date = new Date(vm.selectedPeople[member]['labs_groups_valid_from']);
-                        vm.selectedPeople[member]['labs_groups_valid_from'] = date;
-                    }
-                    if (vm.selectedPeople[member]['valid_until'] !== null) {
-                        date = new Date(vm.selectedPeople[member]['valid_until']);
-                        vm.selectedPeople[member]['valid_until'] = date;
-                    }
-                    if (vm.selectedPeople[member]['labs_groups_valid_until'] !== null) {
-                        date = new Date(vm.selectedPeople[member]['labs_groups_valid_until']);
-                        vm.selectedPeople[member]['labs_groups_valid_until'] = date;
-                    }
+                    vm.selectedPeople[member]['valid_from'] = processDate(vm.selectedPeople[member]['valid_from']);
+                    vm.selectedPeople[member]['labs_groups_valid_from'] = processDate(vm.selectedPeople[member]['labs_groups_valid_from']);
+                    vm.selectedPeople[member]['valid_until'] = processDate(vm.selectedPeople[member]['valid_until']);
+                    vm.selectedPeople[member]['labs_groups_valid_until'] = processDate(vm.selectedPeople[member]['labs_groups_valid_until']);
                     vm.currPeople.push(Object.assign({}, vm.selectedPeople[member]));
                 }
             }
@@ -640,7 +627,6 @@
 
         };
 
-
         vm.changePhotoAction = function (ind, validate) {
             if (validate !== true) {
                 vm.changePhoto[ind] = true;
@@ -787,11 +773,12 @@
                 updateTechPerson: vm.updateTechPerson,
                 updateManagePerson: vm.updateManagePerson,
                 updateAdmPerson: vm.updateAdmPerson,
-                deleteNeverMember: vm.deleteNeverMember
+                deleteNeverMember: vm.deleteNeverMember,
+                changed_by: vm.currentUser.userID
             };
-
             managerData.updatePeopleData(data)
                 .then(function () {
+                        vm.currPeople = [];
                         getAllPeopleWithRoles(ind);
                         initializeDetails();
                         initializeVariables(ind);
@@ -1655,15 +1642,22 @@
             var result = window.confirm('Are you sure this person was never a member of the organization?' +
                 '\n\nThis will come into force only if, afterwards, you press the "Update" button.');
             if (result) {
-                vm.deleteNeverMember.push(personID);
-                vm.newPersonList = [];
-                for (var el in vm.allPeople) {
-                    if (vm.allPeople[el]['person_id'] !== personID) {
-                        vm.newPersonList.push(vm.allPeople[el]);
-                    }
-                }
-                vm.allPeople = vm.newPersonList;
-                vm.renderPeople();
+                vm.currPeople = [];
+                personData.thisPersonData(personID)
+                    .then(function (response) {
+                        vm.deleteNeverMember.push(response.data.result);
+                        vm.newPersonList = [];
+                        for (var el in vm.allPeople) {
+                            if (vm.allPeople[el]['person_id'] !== personID) {
+                                vm.newPersonList.push(vm.allPeople[el]);
+                            }
+                        }
+                        vm.allPeople = vm.newPersonList;
+                        vm.renderPeople();
+                    })
+                    .catch(function (err) {
+                        console.log(err);
+                    });
             }
         };
         vm.removeRows2 = function (current, ind) {
@@ -2564,8 +2558,13 @@
                             rowID++;
                             var newData = response.data.result[index][indIn];
                             newData['row_id'] = rowID;
+
                             if (index == 0) {
                                 // for researchers
+                                newData.valid_from = processDate(newData.valid_from,undefined,'YYYY-MM-DD')
+                                newData.valid_until = processDate(newData.valid_until,undefined,'YYYY-MM-DD')
+                                newData.labs_groups_valid_from = processDate(newData.labs_groups_valid_from,undefined,'YYYY-MM-DD')
+                                newData.labs_groups_valid_until = processDate(newData.labs_groups_valid_until,undefined,'YYYY-MM-DD')
                                 for (var el in vm.labs) {
                                     if (vm.labs[el].lab_id === newData.lab_id
                                         && vm.labs[el].group_id === newData.group_id) {

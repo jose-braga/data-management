@@ -121,13 +121,13 @@
                 var stat = currentUser().stat;
                 var permit;
                 if (page === 'team') {
-                    permit = [0, 5, 10, 15, 20, 30];
+                    permit = [0, 5, 10, 15, 16, 20, 30];
                 } else if (page === 'unit') {
-                    permit = [0, 5, 10, 15, 20];
+                    permit = [0, 5, 10, 15, 16, 20];
                 } else if (page === 'manager') {
-                    permit = [0, 5, 10, 15];
+                    permit = [0, 5, 10, 15, 16];
                 } else if (page === 'registration') {
-                    permit = [0, 5, 10, 15];
+                    permit = [0, 5, 10, 15, 16];
                 } else if (page === 'admin') {
                     permit = [0];
                 }

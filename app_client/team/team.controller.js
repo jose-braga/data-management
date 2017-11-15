@@ -62,6 +62,31 @@
             vm.messageType[ind] = 'message-updating';
             vm.hideMessage[ind] = false;
             var data = vm.newPerson;
+
+            var submitAffiliations = []
+            for (var el in vm.newPerson.affiliations) {
+                // find the lab data to which this affiliation refers to
+                for (var elLab in vm.labs) {
+                    if (vm.labs[elLab].lab_id === vm.newPerson.affiliations[el].data.id) {
+                        var indLab = elLab;
+                        break;
+                    }
+                }
+                for (var elHist in vm.labs[indLab].lab_history) {
+                    var overlap = timeOverlap(vm.newPerson.affiliations[el].start,
+                                              vm.newPerson.affiliations[el].end,
+                                              vm.labs[indLab].lab_history[elHist].labs_groups_valid_from,
+                                              vm.labs[indLab].lab_history[elHist].labs_groups_valid_until);
+                    if (overlap) {
+                        var thisData = Object.assign({},vm.newPerson.affiliations[el]);
+
+                        thisData.start = processDate(overlap[0]);
+                        thisData.end = processDate(overlap[1]);
+                        submitAffiliations.push(thisData);
+                    }
+                }
+            }
+            vm.newPerson.affiliations = submitAffiliations;
             data['changed_by'] = vm.currentUser.userID;
             data['earliest_date'] = findEarliestDate();
             teamData.preRegisterMember(data)
@@ -81,6 +106,15 @@
                 },
                 function () {}
                 );
+        };
+        vm.labNames = function(office) {
+            if (office !== undefined) {
+                if (office.people_labs_id !== null) {
+                    return office.name + '@' + office.group_name;
+                }
+                return office.name;
+            }
+            return '';
         };
         function findEarliestDate(){
             var dates = [];
@@ -116,7 +150,11 @@
                         if (vm.personLab[ind].people_lab_id !== null) {
                             officeData['id'] = vm.personLab[ind]['lab_id'];
                             officeData['name'] = vm.personLab[ind]['lab'];
+                            officeData['group_id'] = vm.personLab[ind]['group_id'];
+                            officeData['group_name'] = vm.personLab[ind]['group_name'];
                             officeData['type'] = 'lab';
+                            officeData['labs_groups_valid_from'] = processDate(vm.personLab[ind]['labs_groups_valid_from']);
+                            officeData['labs_groups_valid_until'] = processDate(vm.personLab[ind]['labs_groups_valid_until']);
                             vm.affiliationsList.push(officeData);
                         }
                     }
@@ -151,6 +189,12 @@
                 .catch(function (err) {
                     console.log(err);
                 });
+        }
+        function processDate (date) {
+            if (date !== null) {
+                date = new Date(date);
+            }
+            return date;
         }
         function getDataLists() {
              personData.usernames()
@@ -261,6 +305,181 @@
             }
             getDataLists();
         }
+        function timeOverlap(d1_start,d1_end, d2_start, d2_end) {
+            // returns false if no overlap
+            // else returns [startoverlap,endoverlap]
+            // null in start time is assumed to be -Inf
+            // null in end time is assumed to be +Inf
+            var startOverlap;
+            var endOverlap;
+            if (d1_start !== null) {
+                if (d1_end !== null) {
+                    if (d2_start !== null) {
+                        if (d2_end !== null) {
+                            if (moment(d1_start).isSameOrAfter(moment(d2_end))
+                                || moment(d1_end).isSameOrBefore(moment(d2_start))) {
+                                return false;
+                            } else {
+                                // there's overlap
+                                if (moment(d1_start).isAfter(moment(d2_start))) {
+                                    startOverlap = d1_start;
+                                } else {
+                                    startOverlap = d2_start;
+                                }
+                                if (moment(d1_end).isBefore(moment(d2_end))) {
+                                    endOverlap = d1_end;
+                                } else {
+                                    endOverlap = d2_end;
+                                }
+                                return [startOverlap,endOverlap];
+                            }
+                        } else {
+                            if (moment(d1_end).isSameOrBefore(moment(d2_start))) {
+                                return false;
+                            } else {
+                                // there's overlap
+                                if (moment(d1_start).isAfter(moment(d2_start))) {
+                                    startOverlap = d1_start;
+                                } else {
+                                    startOverlap = d2_start;
+                                }
+                                endOverlap = d1_end;
+                                return [startOverlap,endOverlap];
+                            }
+                        }
+                    } else {
+                        // d2_start is null
+                        if (d2_end !== null) {
+                            if (moment(d1_start).isSameOrAfter(moment(d2_end))) {
+                                return false;
+                            } else {
+                                // there's overlap
+                                startOverlap = d1_start;
+                                endOverlap = d1_end;
+                                if (moment(d1_end).isBefore(moment(d2_end))) {
+
+                                } else {
+                                    endOverlap = d2_end;
+                                }
+                                return [startOverlap,endOverlap];
+                            }
+                        } else {
+                            // there's overlap
+                            startOverlap = d1_start;
+                            endOverlap = d1_end;
+                            return [startOverlap,endOverlap];
+                        }
+                    }
+                } else {
+                    // d1_end is null
+                    if (d2_start !== null) {
+                        if (d2_end !== null) {
+                            if (moment(d1_start).isSameOrAfter(moment(d2_end))) {
+                                return false;
+                            } else {
+                                // there's overlap
+                                if (moment(d1_start).isAfter(moment(d2_start))) {
+                                    startOverlap = d1_start;
+                                } else {
+                                    startOverlap = d2_start;
+                                }
+                                if (moment(d1_end).isBefore(moment(d2_end))) {
+                                    endOverlap = d1_end;
+                                } else {
+                                    endOverlap = d2_end;
+                                }
+                                return [startOverlap,endOverlap];
+                            }
+                        } else {
+                            if (moment(d1_end).isSameOrBefore(moment(d2_start))) {
+                                return false;
+                            } else {
+                                // there's overlap
+                                if (moment(d1_start).isAfter(moment(d2_start))) {
+                                    startOverlap = d1_start;
+                                } else {
+                                    startOverlap = d2_start;
+                                }
+                                endOverlap = d1_end;
+                                return [startOverlap,endOverlap];
+                            }
+                        }
+                    } else {
+                        // d2_start is null
+                        if (d2_end !== null) {
+                            if (moment(d1_start).isSameOrAfter(moment(d2_end))) {
+                                return false;
+                            } else {
+                                // there's overlap
+                                startOverlap = d1_start;
+                                if (moment(d1_end).isBefore(moment(d2_end))) {
+                                    endOverlap = d1_end;
+                                } else {
+                                    endOverlap = d2_end;
+                                }
+                                return [startOverlap,endOverlap];
+                            }
+                        } else {
+                            // there's overlap
+                            startOverlap = d1_start;
+                            endOverlap = d1_end;
+                            return [startOverlap,endOverlap];
+                        }
+                    }
+                }
+            } else {
+                // d1_start is null
+                if (d1_end !== null) {
+                    if (d2_start !== null) {
+                        if (d2_end !== null) {
+                            if (moment(d1_end).isSameOrBefore(moment(d2_start))) {
+                                return false;
+                            } else {
+                                // there's overlap
+                                startOverlap = d2_start;
+                                if (moment(d1_end).isBefore(moment(d2_end))) {
+                                    endOverlap = d1_end;
+                                } else {
+                                    endOverlap = d2_end;
+                                }
+                                return [startOverlap,endOverlap];
+                            }
+                        } else {
+                            if (moment(d1_end).isSameOrBefore(moment(d2_start))) {
+                                return false;
+                            } else {
+                                // there's overlap
+                                startOverlap = d2_start;
+                                endOverlap = d1_end;
+                                return [startOverlap,endOverlap];
+                            }
+                        }
+                    } else {
+                        // d2_start is null
+                        if (d2_end !== null) {
+                            // there's overlap
+                            startOverlap = d1_start; // yes it's null
+                            if (moment(d1_end).isBefore(moment(d2_end))) {
+                                endOverlap = d1_end;
+                            } else {
+                                endOverlap = d2_end;
+                            }
+                            return [startOverlap,endOverlap];
+                        } else {
+                            // there's overlap
+                            startOverlap = d1_start;
+                            endOverlap = d1_end;
+                            return [startOverlap,endOverlap];
+                        }
+                    }
+                } else {
+                    // d1_end is null
+                    startOverlap = d2_start; //even if it is null
+                    endOverlap = d2_end; //even if it is null
+                    return [startOverlap,endOverlap];
+                }
+            }
+        }
     };
 
     /******************************** Directives **********************************/
@@ -292,7 +511,8 @@
         return {
             restrict: 'E',
             scope: {
-                lab: '@'
+                lab: '@',
+                group: '@'
             },
             templateUrl: 'team/members/team.peopleLab.html',
             link:
@@ -397,7 +617,7 @@
                         deleteLabPerson: scope.deleteNeverMember
                     };
                     data['changed_by'] = scope.currentUser.userID;
-                    teamData.updateLabPeopleTeamByID(scope.lab,data)
+                    teamData.updateLabPeopleTeamByID(scope.group,scope.lab,data)
                         .then( function () {
                             getPersonLabs(ind);
                             scope.renderPeople('new');
@@ -487,9 +707,10 @@
                     }
                 }
                 function getPersonLabs(ind) {
-                    teamData.thisLabPeopleData(scope.lab)
+                    teamData.thisLabPeopleData(scope.group, scope.lab)
                         .then(function (response) {
-                            scope.team = response.data.result;
+                            scope.team = response.data.result; // includes people when lab was in other group
+
                             scope.currentTeamMembers = [];
                             scope.incompletionCounter = 0;
                             for (var member in scope.team) {
@@ -498,6 +719,8 @@
                                 if (scope.team[member]['valid_from'] === null) scope.incompletionCounter++;
                                 scope.team[member]['valid_from'] = processDate(scope.team[member]['valid_from']);
                                 scope.team[member]['valid_until'] = processDate(scope.team[member]['valid_until']);
+                                scope.team[member]['labs_groups_valid_from'] = processDate(scope.team[member]['labs_groups_valid_from']);
+                                scope.team[member]['labs_groups_valid_until'] = processDate(scope.team[member]['labs_groups_valid_until']);
                                 scope.currentTeamMembers.push(Object.assign({}, scope.team[member]));
 
                             }
@@ -564,6 +787,181 @@
                         } else {
                             return (a[scope.sortType] ? a[scope.sortType] : '')
                                 .localeCompare(b[scope.sortType] ? b[scope.sortType] : '');
+                        }
+                    }
+                }
+                function timeOverlap(d1_start,d1_end, d2_start, d2_end) {
+                    // returns false if no overlap
+                    // else returns [startoverlap,endoverlap]
+                    // null in start time is assumed to be -Inf
+                    // null in end time is assumed to be +Inf
+                    var startOverlap;
+                    var endOverlap;
+                    if (d1_start !== null) {
+                        if (d1_end !== null) {
+                            if (d2_start !== null) {
+                                if (d2_end !== null) {
+                                    if (moment(d1_start).isSameOrAfter(moment(d2_end))
+                                        || moment(d1_end).isSameOrBefore(moment(d2_start))) {
+                                        return false;
+                                    } else {
+                                        // there's overlap
+                                        if (moment(d1_start).isAfter(moment(d2_start))) {
+                                            startOverlap = d1_start;
+                                        } else {
+                                            startOverlap = d2_start;
+                                        }
+                                        if (moment(d1_end).isBefore(moment(d2_end))) {
+                                            endOverlap = d1_end;
+                                        } else {
+                                            endOverlap = d2_end;
+                                        }
+                                        return [startOverlap,endOverlap];
+                                    }
+                                } else {
+                                    if (moment(d1_end).isSameOrBefore(moment(d2_start))) {
+                                        return false;
+                                    } else {
+                                        // there's overlap
+                                        if (moment(d1_start).isAfter(moment(d2_start))) {
+                                            startOverlap = d1_start;
+                                        } else {
+                                            startOverlap = d2_start;
+                                        }
+                                        endOverlap = d1_end;
+                                        return [startOverlap,endOverlap];
+                                    }
+                                }
+                            } else {
+                                // d2_start is null
+                                if (d2_end !== null) {
+                                    if (moment(d1_start).isSameOrAfter(moment(d2_end))) {
+                                        return false;
+                                    } else {
+                                        // there's overlap
+                                        startOverlap = d1_start;
+                                        endOverlap = d1_end;
+                                        if (moment(d1_end).isBefore(moment(d2_end))) {
+
+                                        } else {
+                                            endOverlap = d2_end;
+                                        }
+                                        return [startOverlap,endOverlap];
+                                    }
+                                } else {
+                                    // there's overlap
+                                    startOverlap = d1_start;
+                                    endOverlap = d1_end;
+                                    return [startOverlap,endOverlap];
+                                }
+                            }
+                        } else {
+                            // d1_end is null
+                            if (d2_start !== null) {
+                                if (d2_end !== null) {
+                                    if (moment(d1_start).isSameOrAfter(moment(d2_end))) {
+                                        return false;
+                                    } else {
+                                        // there's overlap
+                                        if (moment(d1_start).isAfter(moment(d2_start))) {
+                                            startOverlap = d1_start;
+                                        } else {
+                                            startOverlap = d2_start;
+                                        }
+                                        if (moment(d1_end).isBefore(moment(d2_end))) {
+                                            endOverlap = d1_end;
+                                        } else {
+                                            endOverlap = d2_end;
+                                        }
+                                        return [startOverlap,endOverlap];
+                                    }
+                                } else {
+                                    if (moment(d1_end).isSameOrBefore(moment(d2_start))) {
+                                        return false;
+                                    } else {
+                                        // there's overlap
+                                        if (moment(d1_start).isAfter(moment(d2_start))) {
+                                            startOverlap = d1_start;
+                                        } else {
+                                            startOverlap = d2_start;
+                                        }
+                                        endOverlap = d1_end;
+                                        return [startOverlap,endOverlap];
+                                    }
+                                }
+                            } else {
+                                // d2_start is null
+                                if (d2_end !== null) {
+                                    if (moment(d1_start).isSameOrAfter(moment(d2_end))) {
+                                        return false;
+                                    } else {
+                                        // there's overlap
+                                        startOverlap = d1_start;
+                                        if (moment(d1_end).isBefore(moment(d2_end))) {
+                                            endOverlap = d1_end;
+                                        } else {
+                                            endOverlap = d2_end;
+                                        }
+                                        return [startOverlap,endOverlap];
+                                    }
+                                } else {
+                                    // there's overlap
+                                    startOverlap = d1_start;
+                                    endOverlap = d1_end;
+                                    return [startOverlap,endOverlap];
+                                }
+                            }
+                        }
+                    } else {
+                        // d1_start is null
+                        if (d1_end !== null) {
+                            if (d2_start !== null) {
+                                if (d2_end !== null) {
+                                    if (moment(d1_end).isSameOrBefore(moment(d2_start))) {
+                                        return false;
+                                    } else {
+                                        // there's overlap
+                                        startOverlap = d2_start;
+                                        if (moment(d1_end).isBefore(moment(d2_end))) {
+                                            endOverlap = d1_end;
+                                        } else {
+                                            endOverlap = d2_end;
+                                        }
+                                        return [startOverlap,endOverlap];
+                                    }
+                                } else {
+                                    if (moment(d1_end).isSameOrBefore(moment(d2_start))) {
+                                        return false;
+                                    } else {
+                                        // there's overlap
+                                        startOverlap = d2_start;
+                                        endOverlap = d1_end;
+                                        return [startOverlap,endOverlap];
+                                    }
+                                }
+                            } else {
+                                // d2_start is null
+                                if (d2_end !== null) {
+                                    // there's overlap
+                                    startOverlap = d1_start; // yes it's null
+                                    if (moment(d1_end).isBefore(moment(d2_end))) {
+                                        endOverlap = d1_end;
+                                    } else {
+                                        endOverlap = d2_end;
+                                    }
+                                    return [startOverlap,endOverlap];
+                                } else {
+                                    // there's overlap
+                                    startOverlap = d1_start;
+                                    endOverlap = d1_end;
+                                    return [startOverlap,endOverlap];
+                                }
+                            }
+                        } else {
+                            // d1_end is null
+                            startOverlap = d2_start; //even if it is null
+                            endOverlap = d2_end; //even if it is null
+                            return [startOverlap,endOverlap];
                         }
                     }
                 }
@@ -1743,7 +2141,8 @@
         return {
             restrict: 'E',
             scope: {
-                lab: '@'
+                lab: '@',
+                group: '@'
             },
             templateUrl: 'team/publications/team.labPublications.html',
             link:
@@ -1901,7 +2300,7 @@
                     scope.messageType[ind] = 'message-updating';
                     scope.hideMessage[ind] = false;
                     var data = processSelectedPub(scope.teamPublications,scope.originalTeamPublications);
-                    publications.updateTeamSelectedPublications(scope.lab,data)
+                    publications.updateTeamSelectedPublications(scope.group,scope.lab,data)
                         .then( function () {
                             getPublications();
                             if (ind > -1) {
@@ -1921,7 +2320,7 @@
                 };
 
                 function getPublications() {
-                    publications.thisTeamPublications(scope.lab)
+                    publications.thisTeamPublications(scope.group, scope.lab)
                         .then(function (response) {
                             scope.teamPublications = response.data.result;
                             for (var ind in scope.teamPublications) {

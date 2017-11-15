@@ -61,6 +61,8 @@
                                 <md-input-container class="input-no-margin">
                                     <md-datepicker md-current-view="year" ng-model="member.valid_from"
                                             ng-change="updateDataSubmit(member.id,currPeople[memberNum],'updateLabPerson', [])"
+                                            md-min-date="currPeople[memberNum].labs_groups_valid_from"
+                                            md-max-date="currPeople[memberNum].labs_groups_valid_until"
                                             name="member_startDate[memberNum]"
                                             md-placeholder="Enter date" md-hide-icons="calendar"></md-datepicker>
                                 </md-input-container>
@@ -72,6 +74,8 @@
                                 <md-input-container class="input-row input-no-margin">
                                     <md-datepicker md-current-view="year" ng-model="member.valid_until"
                                             ng-change="updateDataSubmit(member.id,currPeople[memberNum],'updateLabPerson', [])"
+                                            md-min-date="currPeople[memberNum].labs_groups_valid_from"
+                                            md-max-date="currPeople[memberNum].labs_groups_valid_until"
                                             name="member_endDate[memberNum]"
                                             md-placeholder="Enter date" md-hide-icons="calendar"></md-datepicker>
                                 </md-input-container>
@@ -157,6 +161,8 @@
                                 <md-input-container class="input-no-margin simple-input">
                                     <md-datepicker md-current-view="year" ng-model="member.valid_from"
                                             ng-change="updateDataSubmit(member.id,currPeople[memberNum],'updateLabPerson', [])"
+                                            md-min-date="currPeople[memberNum].labs_groups_valid_from"
+                                            md-max-date="currPeople[memberNum].labs_groups_valid_until"
                                             name="member_startDate[memberNum]"
                                             md-placeholder="Enter date" md-hide-icons="calendar"></md-datepicker>
                                 </md-input-container>
@@ -165,6 +171,8 @@
                                 <md-input-container class="input-no-margin simple-input">
                                     <md-datepicker md-current-view="year" ng-model="member.valid_until"
                                             ng-change="updateDataSubmit(member.id,currPeople[memberNum],'updateLabPerson', [])"
+                                            md-min-date="currPeople[memberNum].labs_groups_valid_from"
+                                            md-max-date="currPeople[memberNum].labs_groups_valid_until"
                                             name="member_endDate[memberNum]"
                                             md-placeholder="Enter date" md-hide-icons="calendar"></md-datepicker>
                                 </md-input-container>

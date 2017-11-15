@@ -22,7 +22,7 @@
                             </div>
                                 <md-optgroup class="scrollable" label="laboratories">
                                     <md-option ng-repeat="lab in vm.labs | filter:laboratory.searchTerm"
-                                        ng-value="lab.lab_id">{{vm.labNames(lab)}}</md-option>
+                                        ng-value="lab.lab_id">{{lab.lab}}</md-option>
                                 </md-optgroup>
                         </md-select>
                     </md-input-container>

@@ -5,6 +5,7 @@
         </md-card-title-text>
     </md-card-title>
     <md-card-content layout="column" flex>
+        {{vm.newPerson.affiliations[0].data}}
         <div ng-repeat="(num,affLab) in vm.newPerson.affiliations track by $index"
                     layout="column">
             <fieldset class="spacer">
@@ -15,7 +16,7 @@
                         <md-select required ng-model="vm.newPerson.affiliations[num].data"
                                 md-container-class="correct-overflow" name="affLab_id[num]">
                             <md-option ng-repeat="off in vm.affiliationsList"
-                                    ng-value="off">{{off.name}}</md-option>
+                                    ng-value="off">{{vm.labNames(off)}}</md-option>
                         </md-select>
                     </md-input-container>
                 </div>
@@ -58,12 +59,15 @@
                     <md-input-container class="input-row-longer">
                         <label>Start</label>
                         <md-datepicker md-current-view="year" required ng-model="vm.newPerson.affiliations[num].start"
+                                md-min-date="vm.newPerson.affiliations[num].data.labs_groups_valid_from"
+                                md-max-date="vm.newPerson.affiliations[num].data.labs_groups_valid_until"
                                 name="affLab_start[num]" md-placeholder="Enter date"></md-datepicker>
                     </md-input-container>
                     <md-input-container class="input-row-longer">
                         <label>End</label>
                         <md-datepicker md-current-view="year" ng-model="vm.newPerson.affiliations[num].end"
-                                md-min-date="vm.newPerson.affiliations[num].start"
+                                md-min-date="vm.newPerson.affiliations[num].data.labs_groups_valid_from"
+                                md-max-date="vm.newPerson.affiliations[num].data.labs_groups_valid_until"
                                 name="affLab_end[num]" md-placeholder="Enter date"></md-datepicker>
                     </md-input-container>
                     <div layout="row" layout-align="start center">

@@ -40,11 +40,11 @@
                         <ui-cropper image="vm.imagePerson"
                             area-type="rectangle"
                             area-min-size="10"
-                            aspect-ratio="0.666666"
+                            aspect-ratio="vm.aspectRatio"
                             result-image="vm.imageTemp"
                             result-image-format="{{vm.personImageType}}"
                             url-blob="vm.imagePersonCropped"
-                            result-image-size="{w: 200,h: 300}">
+                            result-image-size="vm.photoSize">
                         </ui-cropper>
                     </div>
                     <div class="show-cropped" layout-padding layout-margin>

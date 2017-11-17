@@ -11,6 +11,9 @@
             password: $routeParams.password
         };
 
+        vm.photoSize = {w: 196, h: 196};
+        vm.aspectRatio = (vm.photoSize.w*1.0)/(vm.photoSize.h*1.0);
+
         vm.forms = {
             'preRegisterSubmit':            0
         };

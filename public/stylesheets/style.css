@@ -300,3 +300,32 @@ md-select-menu ._md .scrollable{
   height: 300;
   width: 200;
 }
+
+.help {
+  height: auto;
+  width: 70%;
+}
+
+.help.small {
+  height: auto;
+  width: 50%;
+}
+
+.help.svg {
+  height: auto;
+  max-width: 634px;
+  min-width: 300px;
+}
+
+.help.smaller {
+  height: auto;
+  width: 10%;
+}
+
+ul.help-list li{
+  margin-bottom: 10px;
+}
+
+.warning {
+  color: red;
+}

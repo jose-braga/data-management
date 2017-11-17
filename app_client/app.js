@@ -1,8 +1,8 @@
  (function(){
     // Current version: 1.0.0
 
-    // TODO: Change API documentation
-    // TODO: create help pages
+    // TODO: Make bugs spreadsheet warn on changes
+    // TODO: Adapt API to changes, change API documentation
     // TODO: Integrate with ORCID
 
     // TODO: (future) Add automatic PDF generator
@@ -44,6 +44,11 @@
             .when('/registration', {
                 templateUrl: 'registration/registration.view.html',
                 controller: 'registrationCtrl',
+                controllerAs: 'vm'
+            })
+            .when('/help', {
+                templateUrl: 'help/help.view.html',
+                controller: 'helpCtrl',
                 controllerAs: 'vm'
             })
             .otherwise({redirectTo: '/'});

@@ -43,6 +43,8 @@
             'personCostCenter':         28
         };
         vm.changePhoto = false;
+        vm.photoSize = {w: 196, h: 196};
+        vm.aspectRatio = (vm.photoSize.w*1.0)/(vm.photoSize.h*1.0);
 
         if (authentication.currentUser() == null) {
         } else {

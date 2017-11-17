@@ -9,6 +9,9 @@
         vm.toolbarData = {title: 'Consult and change user data'};
         vm.isLoggedIn = authentication.isLoggedIn();
 
+        vm.photoSize = {w: 196, h: 196};
+        vm.aspectRatio = (vm.photoSize.w*1.0)/(vm.photoSize.h*1.0);
+
         // initialize variables
         initializeDetails();
         initializeVariables();

@@ -453,14 +453,16 @@ var queryUpdateTeamSelectedPublications = function (req, res, next) {
 /***************************** Public API Person Queries *****************************/
 module.exports.getPublicationInfo = function (req, res, next) {
     var pubID = req.params.pubID;
-    var querySQL = 'SELECT person_selected_publications.person_id AS person_selected, lab_selected_publications.lab_id AS lab_selected,'+
-                    ' people_publications.person_id, people_labs.lab_id,' +
+    var querySQL = 'SELECT person_selected_publications.person_id AS person_selected,' +
+                    ' lab_selected_publications.lab_id AS lab_selected,'+
+                    ' people_publications.person_id,' +
+                    ' labs_publications.lab_id,' +
                     ' publications.*,' +
                     ' journals.name AS journal_name, journals.short_name AS journal_short_name, ' +
                     ' journals.publisher, journals.publisher_city, journals.issn, journals.eissn ' +
                     'FROM publications' +
                     ' LEFT JOIN people_publications ON people_publications.publication_id = publications.id' +
-                    ' LEFT JOIN people_labs ON people_publications.person_id = people_labs.person_id' +
+                    ' LEFT JOIN labs_publications ON labs_publications.publication_id = publications.id' +
                     ' LEFT JOIN person_selected_publications ON person_selected_publications.publication_id = publications.id' +
                     ' LEFT JOIN lab_selected_publications ON lab_selected_publications.publication_id = publications.id' +
                     ' LEFT JOIN journals ON publications.journal_id = journals.id' +
@@ -490,10 +492,19 @@ module.exports.getPublicationInfo = function (req, res, next) {
                 var person = [];
                 var lab = [];
                 for (var ind in resQuery) {
-                    if (resQuery[ind].person_selected !== null) {person_selected.push(resQuery[ind].person_selected);}
-                    if (resQuery[ind].lab_selected !== null) {lab_selected.push(resQuery[ind].lab_selected);}
-                    if (resQuery[ind].person_id !== null) {person.push(resQuery[ind].person_id);}
-                    if (resQuery[ind].lab_id !== null) {lab.push(resQuery[ind].lab_id);}
+                    if (resQuery[ind].person_selected !== null) {
+                        if (person_selected.indexOf(resQuery[ind].person_selected) === -1) {person_selected.push(resQuery[ind].person_selected);}
+                    }
+                    if (resQuery[ind].lab_selected !== null) {
+                        if (lab_selected.indexOf(resQuery[ind].lab_selected) === -1) {lab_selected.push(resQuery[ind].lab_selected);}
+                    }
+                    if (resQuery[ind].person_id !== null) {
+                        if (person.indexOf(resQuery[ind].person_id) === -1) {person.push(resQuery[ind].person_id);}
+                    }
+                    if (resQuery[ind].lab_id !== null) {
+                        if (lab.indexOf(resQuery[ind].lab_id) === -1) {lab.push(resQuery[ind].lab_id);}
+                    }
+
                 }
                 resQuery[0].person_selected = person_selected;
                 resQuery[0].lab_selected = lab_selected;
@@ -553,21 +564,16 @@ module.exports.getPersonPublicationInfo = function (req, res, next) {
 };
 module.exports.getLabPublicationInfo = function (req, res, next) {
     var labID = req.params.labID;
+    var groupID = req.params.groupID;
     var querySQL = 'SELECT lab_selected_publications.publication_id AS selected, publications.*,' +
                     ' journals.name AS journal_name, journals.short_name AS journal_short_name, ' +
                     ' journals.publisher, journals.publisher_city, journals.issn, journals.eissn ' +
-                   'FROM people_labs' +
-                   ' LEFT JOIN people_publications ON people_labs.person_id = people_publications.person_id' +
-                   ' LEFT JOIN publications ON people_publications.publication_id = publications.id' +
-                   ' LEFT JOIN lab_selected_publications ON lab_selected_publications.publication_id = publications.id' +
-                   ' LEFT JOIN journals ON publications.journal_id = journals.id' +
-                   ' WHERE people_labs.lab_id = ? AND publications.id IS NOT NULL' +
-                   '       AND ((people_labs.valid_from < makedate(publications.year,1) AND people_labs.valid_until > makedate(publications.year,365))' +
-                   '            OR (people_labs.valid_from < makedate(publications.year,1) AND people_labs.valid_until IS NULL)' +
-                   '            OR (people_labs.valid_from IS NULL AND people_labs.valid_until IS NULL)' +
-                              ')' +
-                   ' GROUP BY publications.id;';
-    var places = [labID];
+                    'FROM labs_publications' +
+                    ' LEFT JOIN publications ON labs_publications.publication_id = publications.id' +
+                    ' LEFT JOIN lab_selected_publications ON lab_selected_publications.publication_id = publications.id' +
+                    ' LEFT JOIN journals ON publications.journal_id = journals.id' +
+                    ' WHERE labs_publications.group_id = ? AND labs_publications.lab_id = ?;';
+    var places = [groupID,labID];
     pool.getConnection(function(err, connection) {
         if (err) {
             sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});

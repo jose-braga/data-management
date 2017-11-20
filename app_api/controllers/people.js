@@ -288,6 +288,7 @@ var escapedQueryPersonSearch = function(querySQL, place, rules, req, res, next) 
                 sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                 return;
             }
+            rows = filterLabTimes(rows);
             var uniquePersons = uniqueIDs(rows,'id');
             var rowsProcessed = compactData(rows,uniquePersons, rules);
             sendJSONResponse(res, 200,
@@ -4930,7 +4931,9 @@ module.exports.searchPeople = function (req, res, next) {
         querySQL = 'SELECT people.id, people.name AS full_name, people.colloquial_name AS name,' +
                        ' people.active_from, people.active_until,' +
                        ' emails.email, phones.phone, phones.extension AS phone_extension,' +
+                       ' people_labs.valid_from AS lab_start, people_labs.valid_until AS lab_end,' +
                        ' labs.id AS lab_id, labs.name AS lab_name,' +
+                       ' labs_groups.valid_from AS labs_groups_valid_from, labs_groups.valid_until AS labs_groups_valid_until,' +
                        ' groups.id AS group_id, groups.name AS group_name,' +
                        ' units.id AS unit_id, units.name AS unit_name,' +
                        ' lab_positions.id AS lab_position_id, lab_positions.name_en AS lab_position_name_en, lab_positions.name_pt  AS lab_position_name_pt,' +
@@ -4940,8 +4943,10 @@ module.exports.searchPeople = function (req, res, next) {
                       ' LEFT JOIN phones ON people.id = phones.person_id' +
                       ' LEFT JOIN people_labs ON people.id = people_labs.person_id' +
                       ' LEFT JOIN labs ON labs.id = people_labs.lab_id' +
-                      ' LEFT JOIN groups ON groups.id = labs.group_id' +
-                      ' LEFT JOIN units ON units.id = groups.unit_id' +
+                      ' LEFT JOIN labs_groups ON labs_groups.lab_id = labs.id' +
+                      ' LEFT JOIN groups ON labs_groups.group_id = groups.id' +
+                      ' LEFT JOIN groups_units ON groups_units.group_id = groups.id' +
+                      ' LEFT JOIN units ON groups_units.unit_id = units.id' +
                       ' LEFT JOIN lab_positions ON lab_positions.id = people_labs.lab_position_id' +
                       ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
                       ' WHERE people.name LIKE ?' +
@@ -4953,7 +4958,9 @@ module.exports.searchPeople = function (req, res, next) {
         querySQL = 'SELECT people.id, people.name AS full_name, people.colloquial_name AS name,' +
                        ' people.active_from, people.active_until,' +
                        ' emails.email, phones.phone, phones.extension AS phone_extension,' +
+                       ' people_labs.valid_from AS lab_start, people_labs.valid_until AS lab_end,' +
                        ' labs.id AS lab_id, labs.name AS lab_name,' +
+                       ' labs_groups.valid_from AS labs_groups_valid_from, labs_groups.valid_until AS labs_groups_valid_until,' +
                        ' groups.id AS group_id, groups.name AS group_name,' +
                        ' units.id AS unit_id, units.name AS unit_name,' +
                        ' lab_positions.id AS lab_position_id, lab_positions.name_en AS lab_position_name_en, lab_positions.name_pt  AS lab_position_name_pt,' +
@@ -4963,8 +4970,10 @@ module.exports.searchPeople = function (req, res, next) {
                       ' LEFT JOIN phones ON people.id = phones.person_id' +
                       ' LEFT JOIN people_labs ON people.id = people_labs.person_id' +
                       ' LEFT JOIN labs ON labs.id = people_labs.lab_id' +
-                      ' LEFT JOIN groups ON groups.id = labs.group_id' +
-                      ' LEFT JOIN units ON units.id = groups.unit_id' +
+                      ' LEFT JOIN labs_groups ON labs_groups.lab_id = labs.id' +
+                      ' LEFT JOIN groups ON labs_groups.group_id = groups.id' +
+                      ' LEFT JOIN groups_units ON groups_units.group_id = groups.id' +
+                      ' LEFT JOIN units ON groups_units.unit_id = units.id' +
                       ' LEFT JOIN lab_positions ON lab_positions.id = people_labs.lab_position_id' +
                       ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
                       ' WHERE (labs.name LIKE ?)' +
@@ -4978,7 +4987,9 @@ module.exports.searchPeople = function (req, res, next) {
         querySQL = 'SELECT people.id, people.name AS full_name, people.colloquial_name AS name,' +
                        ' people.active_from, people.active_until,' +
                        ' emails.email, phones.phone, phones.extension AS phone_extension,' +
+                       ' people_labs.valid_from AS lab_start, people_labs.valid_until AS lab_end,' +
                        ' labs.id AS lab_id, labs.name AS lab_name,' +
+                       ' labs_groups.valid_from AS labs_groups_valid_from, labs_groups.valid_until AS labs_groups_valid_until,' +
                        ' groups.id AS group_id, groups.name AS group_name,' +
                        ' units.id AS unit_id, units.name AS unit_name,' +
                        ' lab_positions.id AS lab_position_id, lab_positions.name_en AS lab_position_name_en, lab_positions.name_pt  AS lab_position_name_pt,' +
@@ -4988,8 +4999,10 @@ module.exports.searchPeople = function (req, res, next) {
                       ' LEFT JOIN phones ON people.id = phones.person_id' +
                       ' LEFT JOIN people_labs ON people.id = people_labs.person_id' +
                       ' LEFT JOIN labs ON labs.id = people_labs.lab_id' +
-                      ' LEFT JOIN groups ON groups.id = labs.group_id' +
-                      ' LEFT JOIN units ON units.id = groups.unit_id' +
+                      ' LEFT JOIN labs_groups ON labs_groups.lab_id = labs.id' +
+                      ' LEFT JOIN groups ON labs_groups.group_id = groups.id' +
+                      ' LEFT JOIN groups_units ON groups_units.group_id = groups.id' +
+                      ' LEFT JOIN units ON groups_units.unit_id = units.id' +
                       ' LEFT JOIN lab_positions ON lab_positions.id = people_labs.lab_position_id' +
                       ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
                       ' WHERE people.name LIKE ?' +
@@ -4999,8 +5012,8 @@ module.exports.searchPeople = function (req, res, next) {
         places = [name,lab,now,now];
     }
     var mergeRules = [
-                      ['lab_data', 'lab_position_id','lab_position_name_en','lab_position_name_pt',
-                       'lab_id','lab_name','group_id','group_name','unit_id', 'unit_name']
+                      ['lab_data', 'lab_start', 'lab_end', 'lab_position_id','lab_position_name_en','lab_position_name_pt',
+                       'lab_id','lab_name','labs_groups_valid_from','labs_groups_valid_until','group_id','group_name','unit_id', 'unit_name']
                     ];
 
     escapedQueryPersonSearch(querySQL, places, mergeRules, req, res, next);
@@ -5010,7 +5023,9 @@ module.exports.getPersonInfo = function (req, res, next) {
     var querySQL = 'SELECT people.id, people.name AS full_name, people.colloquial_name AS name,' +
                    ' people.active_from, people.active_until,' +
                    ' emails.email, phones.phone, phones.extension AS phone_extension,' +
+                   ' people_labs.valid_from AS lab_start, people_labs.valid_until AS lab_end,' +
                    ' labs.id AS lab_id, labs.name AS lab_name,' +
+                   ' labs_groups.valid_from AS labs_groups_valid_from, labs_groups.valid_until AS labs_groups_valid_until,' +
                    ' groups.id AS group_id, groups.name AS group_name,' +
                    ' units.id AS unit_id, units.name AS unit_name,' +
                    ' lab_positions.id AS lab_position_id, lab_positions.name_en AS lab_position_name_en, lab_positions.name_pt  AS lab_position_name_pt,' +
@@ -5020,15 +5035,17 @@ module.exports.getPersonInfo = function (req, res, next) {
                   ' LEFT JOIN phones ON people.id = phones.person_id' +
                   ' LEFT JOIN people_labs ON people.id = people_labs.person_id' +
                   ' LEFT JOIN labs ON labs.id = people_labs.lab_id' +
-                  ' LEFT JOIN groups ON groups.id = labs.group_id' +
-                  ' LEFT JOIN units ON units.id = groups.unit_id' +
+                  ' LEFT JOIN labs_groups ON labs_groups.lab_id = labs.id' +
+                  ' LEFT JOIN groups ON labs_groups.group_id = groups.id' +
+                  ' LEFT JOIN groups_units ON groups_units.group_id = groups.id' +
+                  ' LEFT JOIN units ON groups_units.unit_id = units.id' +
                   ' LEFT JOIN lab_positions ON lab_positions.id = people_labs.lab_position_id' +
                   ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
                   ' WHERE people.id = ?;';
     var places = [personID];
     var mergeRules = [
-                      ['lab_data', 'lab_position_id','lab_position_name_en','lab_position_name_pt',
-                       'lab_id','lab_name','group_id','group_name','unit_id', 'unit_name']
+                      ['lab_data', 'lab_start', 'lab_end', 'lab_position_id','lab_position_name_en','lab_position_name_pt',
+                       'lab_id','lab_name','labs_groups_valid_from','labs_groups_valid_until','group_id','group_name','unit_id', 'unit_name']
                     ];
 
     escapedQueryPersonSearch(querySQL, places, mergeRules, req, res, next);
@@ -5036,10 +5053,13 @@ module.exports.getPersonInfo = function (req, res, next) {
 module.exports.getLabMembers = function (req, res, next) {
     var now = momentToDate(moment());
     var lab = req.params.labID;
+    var group = req.params.groupID;
     var querySQL = 'SELECT people.id, people.name AS full_name, people.colloquial_name AS name,' +
                    ' people.active_from, people.active_until,' +
                    ' emails.email, phones.phone, phones.extension AS phone_extension,' +
+                   ' people_labs.valid_from AS lab_start, people_labs.valid_until AS lab_end,' +
                    ' labs.id AS lab_id, labs.name AS lab_name,' +
+                   ' labs_groups.valid_from AS labs_groups_valid_from, labs_groups.valid_until AS labs_groups_valid_until,' +
                    ' groups.id AS group_id, groups.name AS group_name,' +
                    ' units.id AS unit_id, units.name AS unit_name,' +
                    ' lab_positions.id AS lab_position_id, lab_positions.name_en AS lab_position_name_en, lab_positions.name_pt  AS lab_position_name_pt,' +
@@ -5049,19 +5069,20 @@ module.exports.getLabMembers = function (req, res, next) {
                   ' LEFT JOIN phones ON people.id = phones.person_id' +
                   ' LEFT JOIN people_labs ON people.id = people_labs.person_id' +
                   ' LEFT JOIN labs ON labs.id = people_labs.lab_id' +
-                  ' LEFT JOIN groups ON groups.id = labs.group_id' +
-                  ' LEFT JOIN units ON units.id = groups.unit_id' +
+                  ' LEFT JOIN labs_groups ON labs_groups.lab_id = labs.id' +
+                  ' LEFT JOIN groups ON labs_groups.group_id = groups.id' +
+                  ' LEFT JOIN groups_units ON groups_units.group_id = groups.id' +
+                  ' LEFT JOIN units ON groups_units.unit_id = units.id' +
                   ' LEFT JOIN lab_positions ON lab_positions.id = people_labs.lab_position_id' +
                   ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
-                  ' WHERE labs.id = ?' +
-                    ' AND (people.active_until > ? OR (people.active_from < ? AND people.active_until IS NULL))' +
+                  ' WHERE labs.id = ? AND groups.id = ?' +
+                  ' AND (people.active_until > ? OR (people.active_from < ? AND people.active_until IS NULL) OR (people.active_from IS NULL AND people.active_until IS NULL))' +
                   ';';
-    var places = [lab,now,now];
+    var places = [lab,group,now,now];
     var mergeRules = [
-                      ['lab_data', 'lab_position_id','lab_position_name_en','lab_position_name_pt',
-                       'lab_id','lab_name','group_id','group_name','unit_id', 'unit_name']
+                      ['lab_data', 'lab_start', 'lab_end', 'lab_position_id','lab_position_name_en','lab_position_name_pt',
+                       'lab_id','lab_name','labs_groups_valid_from','labs_groups_valid_until','group_id','group_name','unit_id', 'unit_name']
                     ];
-
     escapedQueryPersonSearch(querySQL, places, mergeRules, req, res, next);
 };
 module.exports.listOf = function (req, res, next) {

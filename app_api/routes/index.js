@@ -21,13 +21,13 @@ var ctrlAuth = require('../controllers/authentication.js');
 // GET for person
 router.get('/v1/person', ctrlPeopleData.searchPeople);
 router.get('/v1/person/:personID', ctrlPeopleData.getPersonInfo);
-router.get('/v1/lab/:labID/members', ctrlPeopleData.getLabMembers);
+router.get('/v1/group/:groupID/lab/:labID/members', ctrlPeopleData.getLabMembers);
 // GET lists for several purposes (no need to authenticate)
 router.get('/v1/list/:listOf', ctrlPeopleData.listOf);
 // GET search for person name
 router.get('/v1/publication/:pubID', ctrlPublicationsData.getPublicationInfo);
 router.get('/v1/publication/person/:personID', ctrlPublicationsData.getPersonPublicationInfo);
-router.get('/v1/publication/lab/:labID', ctrlPublicationsData.getLabPublicationInfo);
+router.get('/v1/publication/group/:groupID/lab/:labID', ctrlPublicationsData.getLabPublicationInfo);
 
 
 /**************************** APP SPECIFIC ENDPOINTS ****************************/

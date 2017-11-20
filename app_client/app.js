@@ -1,10 +1,9 @@
  (function(){
     // Current version: 1.0.0
 
-    // TODO: Make bugs spreadsheet warn on changes
-    // TODO: Adapt API to changes, change API documentation
-    // TODO: Integrate with ORCID
+    // TODO: Integrate with ORCID, make changes in publications view (add publications)
 
+    // TODO (nice to have): Make bugs spreadsheet warn on changes
     // TODO: (future) Add automatic PDF generator
     // TODO: (future) interface improvement - "Myself" (current affiliations); "Manager" list show only current affiliations
     // TODO: (future) easier administration - Delete user from all tables

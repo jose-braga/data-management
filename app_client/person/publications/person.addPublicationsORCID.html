@@ -23,40 +23,38 @@
                 ng-submit="personAddORCIDPublicationsForm.$valid && vm.submitAddORCIDPublications(vm.forms['personORCIDAdd'])">
             <div class="small-screens" layout="column" ng-if="!vm.showTable()">
                 <div class="search-header spacer-top space-left">
-                    <span>Search results</span>
+                    <span>ORCID results</span>
                 </div>
-                <div ng-repeat="(pubNum,publication) in vm.filteredAllPublications track by $index">
+                <div ng-repeat="(pubNum,publication) in vm.allORCIDPublications track by $index">
                     <div layout="column">
                         <div layout="row" layout-align=" center">
                             <div class="question"><span class="highlight">Title:</span></div>
                             <div class="answer"><span>{{publication.title}}</span></div>
                         </div>
                         <div layout="row" layout-align=" center">
-                            <div class="question"><span class="highlight">Authors:</span></div>
-                            <div class="answer"><span>{{publication.authors_raw}}</span></div>
-                        </div>
-                        <div layout="row" layout-align=" center">
-                            <div class="question"><span class="highlight">Journal:</span></div>
-                            <div class="answer"><span>{{publication.journal_short_name}}</span></div>
+                            <div class="question"><span class="highlight">DOI:</span></div>
+                            <div class="answer"><span><a href="https://doi.org/{{publication.doi}}"
+                                    target="_blank">{{publication.doi}}
+                                </a></span></div>
                         </div>
                         <div layout="row" layout-align=" center">
                             <div class="question"><span class="highlight">Year:</span></div>
                             <div class="answer"><span>{{publication.year}}</span></div>
                         </div>
                         <div layout="row">
-                            <md-button ng-click="vm.addPublicationPerson(publication)"
-                                    aria-label="Remove publication"
+                            <md-button ng-click="vm.showDetailsORCID(publication)"
+                                    aria-label="Details ORCID publication"
                                     class="md-icon-button interaction-button">
-                                <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                                <md-icon md-svg-src="images/icons/description_24px.svg"></md-icon>
                             </md-button>
                         </div>
                     </div>
                     <md-divider ng-if="!vm.showTable()"></md-divider>
                 </div>
                 <div class="search-header spacer-top space-left">
-                    <span>To be added to your publications</span>
+                    <span>Selected publication details</span>
                 </div>
-                <div ng-repeat="(pubNum,publication) in vm.addPublications track by $index">
+                <div ng-repeat="(pubNum,publication) in vm.publicationDetailsORCID track by $index">
                     <div layout="column">
                         <div layout="row" layout-align=" center">
                             <div class="question"><span class="highlight">Title:</span></div>
@@ -68,11 +66,105 @@
                         </div>
                         <div layout="row" layout-align=" center">
                             <div class="question"><span class="highlight">Journal:</span></div>
-                            <div class="answer"><span>{{publication.journal_short_name}}</span></div>
+                            <div class="answer"><span>{{publication.journal_name}}</span></div>
+                        </div>
+                        <div layout="row" layout-align=" center">
+                            <div class="question"><span class="highlight">Vol/Num/Pages:</span></div>
+                            <div class="answer"><span>{{publication.volume}},{{publication.number}},{{publication.pages}}</span></div>
                         </div>
                         <div layout="row" layout-align=" center">
                             <div class="question"><span class="highlight">Year:</span></div>
                             <div class="answer"><span>{{publication.year}}</span></div>
+                        </div>
+                        <div layout="row">
+                            <div class="question"><span class="highlight">Doc. type:</span></div>
+                            <div class="answer">
+                                <span>
+                                    <md-input-container class="select-container select-no-margin card-type">
+                                        <md-select multiple ng-model="publication.publication_type_id"
+                                                aria-label="publication type"
+                                                name="publication_orcid_publication_type[pubNum]">
+                                            <div class="scrollable">
+                                                <md-option ng-repeat="type in vm.publicationTypes"
+                                                        ng-value="type.id">{{type.name_en}}</md-option>
+                                            </div>
+                                        </md-select>
+                                    </md-input-container>
+                                </span>
+                            </div>
+                        </div>
+                        <div layout="row">
+                            <div class="question"><span class="highlight">I am:</span></div>
+                            <div class="answer">
+                                <span><md-input-container class="select-container select-no-margin card-type">
+                                    <md-select ng-model="publication.author_type_id"
+                                                aria-label="author type"
+                                                name="publication_author_type[pubNum]">
+                                            <div class="scrollable">
+                                                <md-option ng-repeat="type in vm.authorTypes" ng-value="type.id">{{type.name_en}} author</md-option>
+                                            </div>
+                                        </md-select>
+                                    </md-input-container>
+                                </span>
+                            </div>
+                        </div>
+                        <div layout="row">
+                            <div class="question"><span class="highlight">Author rank:</span></div>
+                            <div class="answer">
+                                <span><md-input-container class="input-no-margin">
+                                        <input ng-model="publication.position"
+                                            aria-label="dedication"
+                                            name="publication_position[pubNum]"
+                                            integer-validate>
+                                    </md-input-container>
+                                </span>
+                            </div>
+                        </div>
+                        <md-button ng-click="vm.addORCIDDatabase(publication)"
+                                        aria-label="Add database"
+                                        class="md-icon-button interaction-button">
+                                    <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                                </md-button>
+                    </div>
+                    <md-divider ng-if="!vm.showTable()"></md-divider>
+                </div>
+                <div class="search-header spacer-top space-left">
+                    <span>Publications to be added to LAQV/UCIBIO database</span>
+                </div>
+                <div ng-repeat="(pubNum,publication) in vm.addPublicationsORCID track by $index">
+                    <div layout="column">
+                        <div layout="row" layout-align=" center">
+                            <div class="question"><span class="highlight">Title:</span></div>
+                            <div class="answer"><span>{{publication.title}}</span></div>
+                        </div>
+                        <div layout="row" layout-align=" center">
+                            <div class="question"><span class="highlight">Authors:</span></div>
+                            <div class="answer"><span>{{publication.authors_raw}}</span></div>
+                        </div>
+                        <div layout="row" layout-align=" center">
+                            <div class="question"><span class="highlight">Journal:</span></div>
+                            <div class="answer"><span>{{publication.journal_name}}</span></div>
+                        </div>
+                        <div layout="row" layout-align=" center">
+                            <div class="question"><span class="highlight">Year:</span></div>
+                            <div class="answer"><span>{{publication.year}}</span></div>
+                        </div>
+                        <div layout="row">
+                            <div class="question"><span class="highlight">Doc. type:</span></div>
+                            <div class="answer">
+                                <span>
+                                    <md-input-container class="select-container select-no-margin card-type">
+                                        <md-select multiple ng-model="publication.publication_type_id"
+                                                aria-label="publication type"
+                                                name="publication_orcid_publication_type[pubNum]">
+                                            <div class="scrollable">
+                                                <md-option ng-repeat="type in vm.publicationTypes"
+                                                        ng-value="type.id">{{type.name_en}}</md-option>
+                                            </div>
+                                        </md-select>
+                                    </md-input-container>
+                                </span>
+                            </div>
                         </div>
                         <div layout="row">
                             <div class="question"><span class="highlight">I am:</span></div>

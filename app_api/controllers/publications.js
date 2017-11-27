@@ -1,11 +1,8 @@
 var moment = require('moment-timezone');
 var server = require('../models/server');
 var pool = server.pool;
-/*
-const nodemailer = require('../controllers/emailer');
-let transporter = nodemailer.transporter;
-var userModule = require('../models/users');
-*/
+var levenshtein = require('fast-levenshtein');
+
 
 /**************************** Utility Functions *******************************/
 var sendJSONResponse = function(res, status, content) {
@@ -104,6 +101,42 @@ function momentToDate(timedate, timezone, timeformat) {
 }
 
 /***************************** Query Functions ********************************/
+
+var queryAllPublications = function (req, res, next) {
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'SELECT publications.*,' +
+                                ' journals.name AS journal_name, journals.short_name AS journal_short_name, ' +
+                                ' journals.publisher, journals.publisher_city, journals.issn, journals.eissn' +
+                          ' FROM publications' +
+                          ' LEFT JOIN journals ON publications.journal_id = journals.id;';
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (resQuery.length === 0 || resQuery === undefined) {
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 1,
+                        "result" : []});
+                    return;
+                }
+                sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": resQuery.length,
+                        "result" : resQuery});
+                return;
+            }
+        );
+    });
+};
 
 var queryPersonPublications = function (req, res, next) {
     var personID = req.params.personID;
@@ -449,6 +482,299 @@ var queryUpdateTeamSelectedPublications = function (req, res, next) {
     });
 };
 
+var queryDeletePublicationsPerson = function (req, res, next) {
+    var personID = req.params.personID;
+    var del = req.body.deletePublications;
+    var querySQL = '';
+    var places = [];
+    for (var ind in del) {
+        querySQL = querySQL + 'DELETE FROM people_publications' +
+                              ' WHERE id = ?;';
+        places.push(del[ind].people_publications_id);
+    }
+    for (var ind in del) {
+        querySQL = querySQL + 'DELETE FROM person_selected_publications' +
+                              ' WHERE person_id = ? AND publication_id = ?;';
+        places.push(personID,del[ind].id);
+    }
+    if (querySQL !== '') {
+        pool.getConnection(function(err, connection) {
+            if (err) {
+                sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+                return;
+            }
+            connection.query(querySQL,places,
+                function (err, resQuery) {
+                    // And done with the connection.
+                    connection.release();
+                    if (err) {
+                        sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                        return;
+                    }
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 1,
+                         "result" : "OK!"});
+                }
+            );
+        });
+    } else {
+        sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "message": "No changes"});
+    }
+};
+
+var queryAddPublicationsPerson = function (req, res, next) {
+    var personID = req.params.personID;
+    var add = req.body.addPublications;
+    var querySQL = '';
+    var places = [];
+    for (var ind in add) {
+        querySQL = querySQL + 'INSERT INTO people_publications (person_id,publication_id, author_type_id, position)' +
+                              ' VALUES (?,?,?,?);';
+        places.push(personID, add[ind].id, add[ind].author_type_id, add[ind].position);
+    }
+    if (querySQL !== '') {
+        pool.getConnection(function(err, connection) {
+            if (err) {
+                sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+                return;
+            }
+            connection.query(querySQL,places,
+                function (err, resQuery) {
+                    // And done with the connection.
+                    connection.release();
+                    if (err) {
+                        sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                        return;
+                    }
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 1,
+                         "result" : "OK!"});
+                }
+            );
+        });
+    } else {
+        sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "message": "No changes"});
+    }
+};
+
+var queryORCIDGetJournalID = function (req, res, next,i) {
+    // NOTE: position and year are strings, must be converted to int?
+    var add = req.body.addPublications;
+    var querySQL = '';
+    var places = [];
+    var journal_name = add[i].journal_name
+                                 .toLowerCase()
+                                 .replace(/[:;,\-\(\)\.]/g, ' ')
+                                 .replace(/[\s\s]/g, ' ');
+    var journal_name_search = '%' + journal_name.replace(/\s/g, '%') + '%';
+
+    querySQL = querySQL + 'SELECT id, name, short_name from journals ' +
+                          ' WHERE name LIKE ? OR short_name LIKE ?;';
+    places.push(journal_name_search,journal_name_search);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (resQuery.length === 0) {
+                    // journal name not found, add to journal list
+                    return queryORCIDInsertNewJournal(req,res,next,i, add[i].journal_name);
+                }
+                if (resQuery.length === 1) {
+                    // only 1 journal found, get its identity
+                    return queryORCIDInsertPublication(req,res,next,i,resQuery[0].id);
+                }
+                if (resQuery.length > 1) {
+                    // several journals found, get the most similar
+                    var minDistance, minInd;
+                    for (var ind in resQuery) {
+                        var distance = levenshtein.get(resQuery[ind].name.toLowerCase(), journal_name);
+                        if (ind === 0 || distance < minDistance) {
+                            minDistance = distance;
+                            minInd = ind;
+                        }
+                    }
+                    return queryORCIDInsertPublication(req,res,next,i,resQuery[minInd].id);
+                }
+            }
+        );
+    });
+};
+
+var queryORCIDInsertNewJournal = function (req, res, next,i, journal_name) {
+    var querySQL = '';
+    var places = [];
+    // journal information from ORCID is scarce so we use journal name = short_name
+    querySQL = querySQL + 'INSERT INTO journals (name, short_name) ' +
+                          ' VALUES (?,?);';
+    places.push(journal_name,journal_name);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                var journalID = resQuery.insertId;
+                return queryORCIDInsertPublication(req,res,next,i,journalID);
+            }
+        );
+    });
+};
+
+var queryORCIDInsertPublication = function (req, res, next,i, journalID) {
+    var add = req.body.addPublications;
+    var querySQL = '';
+    var places = [];
+    var numberAuthors = add[i].authors_raw.split(';').length;
+    var pageStart = null;
+    var pageEnd = null;
+    if (add[i].pages !== null) {
+        if (add[i].pages.indexOf('-') !== -1) {
+            var pageArray = add[i].pages.split('-');
+            pageStart = pageArray[0];
+            pageEnd = pageArray[1];
+        } else {
+            pageStart = add[i].pages;
+        }
+    }
+    var volume = null;
+    if (add[i].volume !== null && add[i].number !== null) {
+        volume = add[i].volume + '(' + add[i].number + ')';
+    } else {
+        volume = add[i].volume;
+    }
+    var date = null;
+    var month;
+    if (add[i].month !== null) {
+        if (isNaN(+add[i].month)) {
+            month = moment().month(add[i].month).format('MMM');
+        } else {
+            month = moment().month(parseInt(add[i].month,10) - 1).format('MMM');
+        }
+        if (add[i].day !== null) {
+            date = month + ' ' + add[i].day;
+        } else {
+            date = month;
+        }
+    }
+    querySQL = querySQL + 'INSERT INTO  publications' +
+                ' (authors_raw,number_authors,title,year,journal_id,volume,page_start,page_end,publication_date,doi)' +
+                          ' VALUES (?,?,?,?,?,?,?,?,?,?);';
+    places.push(add[i].authors_raw,numberAuthors,add[i].title,add[i].year,
+                journalID,volume,pageStart,pageEnd, date, add[i].doi);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                var pubID = resQuery.insertId;
+                console.log(add[i].publication_type_id)
+                if (add[i].publication_type_id !== null && add[i].publication_type_id !== undefined) {
+                    if (add[i].publication_type_id.length > 0) {
+                        return queryORCIDInsertPublicationDescription(req,res,next,i, pubID);
+                    } else {
+                        return queryORCIDInsertPeoplePublications(req,res,next,i, pubID);
+                    }
+                } else {
+                    return queryORCIDInsertPeoplePublications(req,res,next,i, pubID);
+                }
+            }
+        );
+    });
+};
+
+var queryORCIDInsertPublicationDescription = function (req, res, next, i, pubID) {
+    var add = req.body.addPublications;
+    var querySQL = '';
+    var places = [];
+    for (var ind in add[i].publication_type_id) {
+        querySQL = querySQL + 'INSERT INTO publication_descriptions (publication_id, publication_type) ' +
+                              ' VALUES (?,?);';
+        places.push(pubID, add[i].publication_type_id[ind]);
+    }
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                return queryORCIDInsertPeoplePublications(req,res,next,i, pubID);
+            }
+        );
+    });
+};
+
+var queryORCIDInsertPeoplePublications = function (req, res, next, i, pubID) {
+    var add = req.body.addPublications;
+    var personID = req.params.personID;
+    var querySQL = '';
+    var places = [];
+    // journal information from ORCID is scarce so we use journal name = short_name
+    querySQL = querySQL + 'INSERT INTO people_publications (person_id, publication_id,author_type_id, position) ' +
+                          ' VALUES (?,?,?,?);';
+    places.push(personID,pubID, add[i].author_type_id, add[i].position);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (i+1<add.length) {
+                    return queryORCIDGetJournalID(req,res,next,i+1);
+                } else {
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 1,
+                         "result" : "all done"});
+                }
+            }
+        );
+    });
+};
+
+/*
+
+
+*/
+
 
 /***************************** Public API Person Queries *****************************/
 module.exports.getPublicationInfo = function (req, res, next) {
@@ -611,6 +937,14 @@ module.exports.getLabPublicationInfo = function (req, res, next) {
 
 /******************** Call SQL Generators after Validations *******************/
 
+module.exports.listAllPublications = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16],
+        function (req, res, username) {
+            queryAllPublications(req,res,next);
+        }
+    );
+};
+
 module.exports.listPersonPublications = function (req, res, next) {
     getUser(req, res, [0, 5, 10, 15, 16],
         function (req, res, username) {
@@ -639,6 +973,30 @@ module.exports.updatePersonAuthorNames = function (req, res, next) {
     getUser(req, res, [0, 5, 10, 15, 16],
         function (req, res, username) {
             queryUpdatePersonAuthorNames(req,res,next);
+        }
+    );
+};
+
+module.exports.deletePublicationsPerson = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16],
+        function (req, res, username) {
+            queryDeletePublicationsPerson(req,res,next);
+        }
+    );
+};
+
+module.exports.addPublicationsPerson = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16],
+        function (req, res, username) {
+            queryAddPublicationsPerson(req,res,next);
+        }
+    );
+};
+
+module.exports.addORCIDPublicationsPerson = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16],
+        function (req, res, username) {
+            queryORCIDGetJournalID(req,res,next,0);
         }
     );
 };

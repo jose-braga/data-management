@@ -101,12 +101,16 @@ router.put('/manager/people/user-permissions/:personID', auth, ctrlManagerData.u
 router.put('/manager/people/all', auth, ctrlManagerData.updateAllPeopleData);
 
 // GET PUBLICATION information (authenticated)
+router.get('/publications/all', auth, ctrlPublicationsData.listAllPublications);
 router.get('/publications/person/:personID', auth, ctrlPublicationsData.listPersonPublications);
 router.get('/publications/team/:groupID/:teamID', auth, ctrlPublicationsData.listTeamPublications);
 
 // PUT PUBLICATION information (authenticated)
 router.put('/publications/person/:personID/selected', auth, ctrlPublicationsData.updatePersonSelectedPub);
 router.put('/publications/person/:personID/author-names', auth, ctrlPublicationsData.updatePersonAuthorNames);
+router.put('/publications/person/:personID/delete', auth, ctrlPublicationsData.deletePublicationsPerson);
+router.put('/publications/person/:personID/add', auth, ctrlPublicationsData.addPublicationsPerson);
+router.put('/publications/person/:personID/add-orcid', auth, ctrlPublicationsData.addORCIDPublicationsPerson);
 router.put('/publications/team/:groupID/:teamID/selected', auth, ctrlPublicationsData.updateTeamSelectedPub);
 
 

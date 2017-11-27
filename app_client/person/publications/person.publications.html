@@ -57,6 +57,11 @@
                                         class="md-icon-button interaction-button">
                                 <md-icon md-svg-src="images/icons/description_24px.svg"></md-icon>
                             </md-button>
+                            <md-button ng-click="vm.removePublication(publication)"
+                                        aria-label="Remove publication"
+                                        class="md-icon-button interaction-button">
+                                <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
+                            </md-button>
                         </div>
                     </div>
                     <md-divider ng-if="!vm.showTable()"></md-divider>
@@ -115,6 +120,11 @@
                                             class="md-icon-button interaction-button">
                                     <md-icon md-svg-src="images/icons/description_24px.svg"></md-icon>
                                 </md-button>
+                                <md-button ng-click="vm.removePublication(publication)"
+                                            aria-label="Remove publication"
+                                            class="md-icon-button interaction-button">
+                                    <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
+                                </md-button>
                             </td>
                         </tr>
                     </tbody>
@@ -144,11 +154,18 @@
                 </md-input-container>
             </div>
             <div layout="column" layout-gt-sm="row" layout-align="none center">
-                <md-button id="team-people-lab" type="submit"
+                <md-button type="submit"
                     class="button-small md-raised md-primary">Update "Selected"</md-button>
                 <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personSelectedPub']]">
                     <span class="message" ng-class="vm.messageType[vm.forms['personSelectedPub']]">
                         {{vm.updateStatus[vm.forms['personSelectedPub']]}}
+                    </span>
+                </div>
+                <md-button ng-click="vm.submitPublicationRemoval(vm.forms['personPubRemove'])"
+                    class="button-small md-raised md-primary">Confirm removal</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personPubRemove']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['personPubRemove']]">
+                        {{vm.updateStatus[vm.forms['personPubRemove']]}}
                     </span>
                 </div>
                 <md-button class="button-small md-raised md-warn"

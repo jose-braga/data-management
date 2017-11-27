@@ -4909,11 +4909,14 @@ module.exports.searchPeople = function (req, res, next) {
     var name;
     var lab;
     if (req.query.hasOwnProperty('name')) {
+        // TODO: change to REGEX global to replace all
         name = req.query.name.replace(' ','%');
     } else {
+        // TODO: change to REGEX global to replace all
         name = '';
     }
     if (req.query.hasOwnProperty('lab')) {
+        // TODO: change to REGEX global to replace all
         lab = req.query.lab.replace(' ','%');
     } else {
         lab = '';
@@ -5220,6 +5223,12 @@ module.exports.listOf = function (req, res, next) {
         getQueryResponse(querySQL, req, res, next);
     } else if (listOf === 'usernames') {
         querySQL = 'SELECT username FROM users;';
+        getQueryResponse(querySQL, req, res, next);
+    } else if (listOf === 'author-types') {
+        querySQL = 'SELECT * FROM author_types;';
+        getQueryResponse(querySQL, req, res, next);
+    } else if (listOf === 'publication-types') {
+        querySQL = 'SELECT * FROM publication_types;';
         getQueryResponse(querySQL, req, res, next);
     } else {
         var errorNum = 404;

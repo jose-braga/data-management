@@ -92,6 +92,13 @@
         var roles = function () {
             return $http.get('api/list/roles');
         };
+        var authorTypes = function () {
+            return $http.get('api/list/author-types');
+        };
+
+        var publicationTypes = function () {
+            return $http.get('api/list/publication-types');
+        };
 
         var permissions = function () {
             return $http.get('api/list/permissions');
@@ -315,6 +322,8 @@
             groupPositions: groupPositions,
             supervisorTypes: supervisorTypes,
             roles: roles,
+            authorTypes: authorTypes,
+            publicationTypes: publicationTypes,
             permissions: permissions,
             updateInstitutionCityPersonByID: updateInstitutionCityPersonByID,
             updateJobsPersonByID: updateJobsPersonByID,

@@ -251,6 +251,46 @@ md-select-menu ._md .scrollable{
   width: 5%;
 }
 
+.publications-add-db .large-contents-wide {
+  width: 35%;
+}
+
+.publications-add-db .large-contents-narrow {
+  width: 25%;
+}
+
+.publications-add-db .standard-width {
+  width: 15%;
+}
+
+.publications-add-db .small-width {
+  width: 10%;
+}
+
+.publications-add-db .smaller-width {
+  width: 5%;
+}
+
+.publications-orcid .large-contents-wide {
+  width: 30%;
+}
+
+.publications-orcid .large-contents-narrow {
+  width: 20%;
+}
+
+.publications-orcid .standard-width {
+  width: 15%;
+}
+
+.publications-orcid .small-width {
+  width: 10%;
+}
+
+.publications-orcid .smaller-width {
+  width: 5%;
+}
+
 .publication-details {
   width: 50%;
 }
@@ -272,6 +312,18 @@ md-select-menu ._md .scrollable{
 .publication-spacer:nth-child(even) {
   background-color: #f5f5f5;
 }
+
+.search-header {
+  background-color: #eeeeee;
+  height: 30px;
+}
+
+.search-header span {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+
 .dropzone-container {
   margin-bottom: 20px;
 }

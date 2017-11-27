@@ -1,5 +1,16 @@
 (function(){
     var publications = function ($http, authentication) {
+        var orcid_base_url = 'https://pub.orcid.org';
+        var orcid_version = 'v2.0';
+        var orcid_headers = {"Accept": "application/json"};
+
+        var allPublications = function () {
+            return $http.get('api/publications/all/',
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
 
         var thisPersonPublications = function (personID) {
             return $http.get('api/publications/person/' + personID,
@@ -41,13 +52,63 @@
             );
         };
 
+        var removePublicationsPerson = function (personID, data) {
+            return $http.put('api/publications/person/' + personID + '/delete', data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+
+        var addPublicationsPerson = function (personID, data) {
+            return $http.put('api/publications/person/' + personID + '/add', data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+
+        var getORCIDPublicationsPerson = function (orcid) {
+            return $http.get(orcid_base_url + '/' + orcid_version + '/' + orcid + '/works',
+                {
+                    headers: orcid_headers
+                });
+        };
+
+        var getORCIDDetailsPublication = function (path) {
+            return $http.get(orcid_base_url + '/' + orcid_version + path,
+                {
+                    headers: orcid_headers
+                });
+        };
+
+        var addORCIDPublicationsPerson = function (personID, data) {
+            return $http.put('api/publications/person/' + personID + '/add-orcid', data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+
+        var removePublicationsTeam = function (personID, data) {
+
+        };
+
+
 
         return {
+            allPublications: allPublications,
             thisPersonPublications: thisPersonPublications,
             thisTeamPublications: thisTeamPublications,
             updateSelectedPublications: updateSelectedPublications,
             updateTeamSelectedPublications: updateTeamSelectedPublications,
-            updateAuthorNamesPerson: updateAuthorNamesPerson
+            updateAuthorNamesPerson: updateAuthorNamesPerson,
+            removePublicationsPerson: removePublicationsPerson,
+            addPublicationsPerson: addPublicationsPerson,
+            getORCIDPublicationsPerson: getORCIDPublicationsPerson,
+            getORCIDDetailsPublication: getORCIDDetailsPublication,
+            addORCIDPublicationsPerson: addORCIDPublicationsPerson,
+            removePublicationsTeam: removePublicationsTeam
         };
     };
 

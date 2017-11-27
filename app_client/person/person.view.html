@@ -127,11 +127,11 @@
                             </div>
                         </md-content>
                     </md-tab>
-                    <md-tab label='Add'>
+                    <md-tab label='Add' md-on-select="vm.getAllPublications()">
                         <md-content>
-                            <div layout="row" layout-padding>
-                                Under construction, to add publications contact developer (josebraga@fct.unl.pt)
-                                <!-- <person-publications></person-publications> -->
+                            <div layout-padding>
+                                <person-add-publications></person-add-publications>
+                                <person-add-publications-orcid></person-add-publications-orcid>
                             </div>
                         </md-content>
                     </md-tab>

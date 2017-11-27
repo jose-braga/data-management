@@ -40,11 +40,17 @@
             'personSelectedPub':        25,
             'personPubDetails':         26,
             'personAuthorNames':        27,
-            'personCostCenter':         28
+            'personCostCenter':         28,
+            'personPubRemove':          29,
+            'personPubAdd':             30,
+            'personORCIDAdd':           31
+
         };
         vm.changePhoto = false;
         vm.photoSize = {w: 196, h: 196};
         vm.aspectRatio = (vm.photoSize.w*1.0)/(vm.photoSize.h*1.0);
+
+        vm.progressORCID = false;
 
         if (authentication.currentUser() == null) {
         } else {
@@ -688,30 +694,6 @@
             return false;
         };
 
-        vm.submitSelectedPersonPublications = function (ind) {
-            vm.updateStatus[ind] = "Updating...";
-            vm.messageType[ind] = 'message-updating';
-            vm.hideMessage[ind] = false;
-            var data = processSelectedPub(vm.personPublications,vm.originalPersonPublications);
-            publications.updateSelectedPublications(vm.currentUser.personID,data)
-                .then( function () {
-                    getPublications();
-                    if (ind > -1) {
-                        vm.updateStatus[ind] = "Updated!";
-                        vm.messageType[ind] = 'message-success';
-                        vm.hideMessage[ind] = false;
-                        $timeout(function () { vm.hideMessage[ind] = true; }, 1500);
-                    }
-                },
-                function () {
-                    vm.updateStatus[ind] = "Error!";
-                    vm.messageType[ind] = 'message-error';
-                },
-                function () {}
-                );
-            return false;
-        };
-
         vm.isRole = function (role, currRoles) {
             for (var el in currRoles) {
                 if (currRoles[el].name_en === role) return true;
@@ -790,7 +772,7 @@
                 }
             }
         };
-        vm.removeRows = function (current, ind) {
+        vm.currentFinishedDegrees = function (current, ind) {
             current.splice(ind,1);
         };
         vm.addRows = function (current,type) {
@@ -994,6 +976,234 @@
         };
 
         /* For managing publications */
+        vm.submitSelectedPersonPublications = function (ind) {
+            vm.updateStatus[ind] = "Updating...";
+            vm.messageType[ind] = 'message-updating';
+            vm.hideMessage[ind] = false;
+            var data = processSelectedPub(vm.personPublications,vm.originalPersonPublications);
+            publications.updateSelectedPublications(vm.currentUser.personID,data)
+                .then( function () {
+                    getPublications();
+                    if (ind > -1) {
+                        vm.updateStatus[ind] = "Updated!";
+                        vm.messageType[ind] = 'message-success';
+                        vm.hideMessage[ind] = false;
+                        $timeout(function () { vm.hideMessage[ind] = true; }, 1500);
+                    }
+                },
+                function () {
+                    vm.updateStatus[ind] = "Error!";
+                    vm.messageType[ind] = 'message-error';
+                },
+                function () {}
+                );
+            return false;
+        };
+        vm.submitPublicationRemoval = function(ind) {
+            if (vm.deletePublications.length > 0) {
+                alert("This won't remove the publications from the database." +
+                  "\nIt will simply remove your connection to these publications" +
+                  "\n (e.g. you are not the author, published while on another institution).");
+                vm.updateStatus[ind] = "Updating...";
+                vm.messageType[ind] = 'message-updating';
+                vm.hideMessage[ind] = false;
+                var data = {deletePublications: vm.deletePublications};
+                publications.removePublicationsPerson(vm.currentUser.personID,data)
+                    .then( function () {
+                        initializeDetails();
+                        getPublications(ind);
+                    },
+                    function () {
+                        vm.updateStatus[ind] = "Error!";
+                        vm.messageType[ind] = 'message-error';
+                    },
+                    function () {}
+                    );
+            }
+            return false;
+
+        };
+        vm.submitAddPublications = function(ind) {
+            if (vm.addPublications.length > 0) {
+                vm.updateStatus[ind] = "Updating...";
+                vm.messageType[ind] = 'message-updating';
+                vm.hideMessage[ind] = false;
+                var data = {addPublications: vm.addPublications};
+                publications.addPublicationsPerson(vm.currentUser.personID,data)
+                    .then( function () {
+                        vm.updateStatus[ind] = "Updated!";
+                        vm.messageType[ind] = 'message-success';
+                        vm.hideMessage[ind] = false;
+                        $timeout(function () { vm.hideMessage[ind] = true; }, 1500);
+                        getPublications(-1);
+                    },
+                    function () {
+                        vm.updateStatus[ind] = "Error!";
+                        vm.messageType[ind] = 'message-error';
+                    },
+                    function () {}
+                    );
+            }
+            return false;
+        };
+        vm.submitAddORCIDPublications = function(ind) {
+            if (vm.addPublicationsORCID.length > 0) {
+                vm.updateStatus[ind] = "Updating...";
+                vm.messageType[ind] = 'message-updating';
+                vm.hideMessage[ind] = false;
+                var data = {addPublications: vm.addPublicationsORCID};
+                publications.addORCIDPublicationsPerson(vm.currentUser.personID,data)
+                    .then( function () {
+                        vm.updateStatus[ind] = "Updated!";
+                        vm.messageType[ind] = 'message-success';
+                        vm.hideMessage[ind] = false;
+                        $timeout(function () { vm.hideMessage[ind] = true; }, 1500);
+                        getPublications(-1);
+                    },
+                    function () {
+                        vm.updateStatus[ind] = "Error!";
+                        vm.messageType[ind] = 'message-error';
+                    },
+                    function () {}
+                    );
+            }
+            return false;
+        };
+        vm.connectORCID = function() {
+            vm.progressORCID = true;
+            var orcid;
+            if (vm.thisPerson.researcher_data[0].ORCID !== null) {
+                orcid = vm.thisPerson.researcher_data[0].ORCID;
+            } else if (vm.thisPerson.technician_data[0].ORCID !== null) {
+                orcid = vm.thisPerson.technician_data[0].ORCID;
+            } else if (vm.thisPerson.science_manager_data[0].ORCID !== null) {
+                orcid = vm.thisPerson.science_manager_data[0].ORCID;
+            } else {
+                orcid = null;
+            }
+            if (orcid === null) {
+                alert('Please insert your ORCID in your role data');
+            } else {
+                publications.getORCIDPublicationsPerson(orcid)
+                .then(function (response) {
+                    var data = response.data.group;
+                    vm.allORCIDPublicationsPrior = readORCIDData(data);
+                    vm.allORCIDPublications = removeExistingORCID(vm.allORCIDPublicationsPrior,vm.allPublicationsPrior);
+                    vm.progressORCID = false;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            }
+        };
+        vm.showDetailsORCID = function (pub) {
+            publications.getORCIDDetailsPublication(pub.path)
+                .then(function (response) {
+                    processDetailsORCID(pub,response.data);
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+
+        };
+
+        vm.addPublicationPerson = function(publication) {
+            var found = false;
+            for (var ind in vm.addPublications) {
+                if (vm.addPublications[ind].id === publication.id)
+                {
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                vm.addPublications.push(publication);
+            }
+
+        };
+        vm.addORCIDDatabase = function(publication) {
+            var found = false;
+            for (var ind in vm.addPublicationsORCID) {
+                if (vm.addPublicationsORCID[ind].doi !== null) {
+                    if (vm.addPublicationsORCID[ind].doi === publication.doi)
+                    {
+                        found = true;
+                        break;
+                    }
+                } else {
+                    if (vm.addPublicationsORCID[ind].title === publication.title)
+                    {
+                        found = true;
+                        break;
+                    }
+                }
+            }
+            if (!found) {
+                vm.addPublicationsORCID.push(publication);
+            }
+
+        };
+        vm.getSearchResults = function(title, authors) {
+            if (title === undefined) title = '';
+            if (authors === undefined) authors = '';
+            title = title.toLowerCase();
+            authors = authors.toLowerCase();
+            vm.filteredAllPublications = [];
+            if (title.length > 3 || authors.length > 3) {
+                var titleSplit = title
+                                    .split(' ');
+                var authorsSplit = authors
+                                    .split(' ');
+                for (var ind in vm.allPublications) {
+                    var pubTitle = vm.allPublications[ind].title.toLowerCase();
+                    var pubAuthors = vm.allPublications[ind].authors_raw.toLowerCase();
+                    var selectByTitle = false;
+                    var selectByAuthors = false;
+                    var countTitle = 0;
+                    var countAuthors = 0;
+                    for (var indTitle in titleSplit) {
+                        if (pubTitle.indexOf(titleSplit[indTitle]) !== -1) countTitle++;
+                    }
+                    if (countTitle === titleSplit.length) selectByTitle = true;
+                    for (var indAut in authorsSplit) {
+                        if (pubAuthors.indexOf(authorsSplit[indAut]) !== -1) countAuthors++;
+                    }
+                    if (countAuthors === authorsSplit.length) selectByAuthors = true;
+                    if (selectByTitle && selectByAuthors) {
+                        vm.filteredAllPublications.push(vm.allPublications[ind]);
+                    }
+                }
+            }
+        };
+        vm.getAllPublications = function() {
+            vm.progressORCID = false;
+            vm.addPublications = [];
+
+            vm.allORCIDPublications = [];
+            vm.publicationDetailsORCID = [];
+            vm.addPublicationsORCID = [];
+
+            vm.allPublicationsSearchTitle = '';
+            vm.allPublicationsSearchAuthors = '';
+            publications.allPublications()
+                .then(function (response) {
+                    vm.allPublicationsPrior = response.data.result;
+                    vm.allPublications = [];
+                    for (var ind in vm.allPublicationsPrior) {
+                        var found = false;
+                        for (var indMine in vm.personPublications) {
+                            if (vm.allPublicationsPrior[ind].id === vm.personPublications[indMine].id) {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found) vm.allPublications.push(vm.allPublicationsPrior[ind]);
+                    }
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+        };
         vm.showTable = function () {
             return $mdMedia('min-width: 1440px');
         };
@@ -1009,7 +1219,7 @@
             }
             vm.renderPublications('new');
         };
-        vm.renderPublications = function (str, ind) {
+        vm.renderPublications = function (str) {
             if (str === 'new') {
                 vm.currentPage = 1;
             }
@@ -1142,19 +1352,39 @@
             } catch(e) { if(typeof console != 'undefined') console.log(e, wbout); }
         };
 
-        function getPublications() {
+        vm.removePublication = function(publication) {
+            for(var ind in vm.personPublications){
+                if (vm.personPublications[ind].people_publications_id === publication.people_publications_id) {
+                    vm.personPublications.splice(ind,1);
+                    vm.deletePublications.push(publication);
+                    break;
+                }
+            }
+            vm.renderPublications('');
+        };
+
+        function getPublications(ind) {
             publications.thisPersonPublications(vm.currentUser.personID)
                 .then(function (response) {
                     vm.personPublications = response.data.result;
-                    for (var ind in vm.personPublications) {
-                        if (vm.personPublications[ind].selected !== null) {
-                            vm.personPublications[ind].selected = true;
+                    for (var el in vm.personPublications) {
+                        if (vm.personPublications[el].selected !== null) {
+                            vm.personPublications[el].selected = true;
                         } else {
-                            vm.personPublications[ind].selected = false;
+                            vm.personPublications[el].selected = false;
                         }
                     }
                     vm.originalPersonPublications = JSON.parse(JSON.stringify(vm.personPublications));
                     initializeVariables();
+                    if (ind > -1) {
+                        vm.updateStatus[ind] = "Updated!";
+                        vm.messageType[ind] = 'message-success';
+                        vm.hideMessage[ind] = false;
+                        $timeout(function () { vm.hideMessage[ind] = true; }, 1500);
+                    } else if (ind === -1) {
+                        vm.getSearchResults('','');
+                        vm.getAllPublications();
+                    }
                 })
                 .catch(function (err) {
                     console.log(err);
@@ -1190,6 +1420,7 @@
             }, true);
         }
         function initializeVariables() {
+            vm.deletePublications = [];
             vm.delAuthorNames = [];
             vm.newAuthorNames = [];
             vm.sortReverse = false;
@@ -1209,6 +1440,188 @@
         function initializeDetails() {
             vm.pubTitles = [];
             vm.thisPublication = [];
+        }
+        function readORCIDData(data) {
+            var publications = [];
+            for (var ind in data) {
+                var info = data[ind]['work-summary'][0];
+                var pub = {};
+                var title = null;
+                if (info.hasOwnProperty('title')) {
+                    if (info['title'] !== null && info.title.hasOwnProperty('title')) {
+                        if (info.title.title.hasOwnProperty('value')) {
+                            title = info.title.title.value;
+                        }
+                    }
+                }
+                pub.title = title;
+                var doi = null;
+                if (info.hasOwnProperty('external-ids')) {
+                    if (info['external-ids'] !== null) {
+                        if (info['external-ids'].hasOwnProperty('external-id')) {
+                            for (var indExt in info['external-ids']['external-id']) {
+                                if (info['external-ids']['external-id'][indExt]['external-id-type'] === 'doi') {
+                                    doi = info['external-ids']['external-id'][indExt]['external-id-value'];
+                                }
+                            }
+                        }
+                    }
+                }
+                pub.doi = doi;
+                var year = null;
+                var month = null;
+                var day = null;
+                if (info.hasOwnProperty('publication-date')) {
+                    if (info['publication-date'] !== null) {
+                        if (info['publication-date'].hasOwnProperty('year')) {
+                            if (info['publication-date']['year'] !== null) {
+                                if (info['publication-date']['year'].hasOwnProperty('value')) {
+                                    year = info['publication-date']['year']['value'];
+                                }
+                            }
+                        }
+                        if (info['publication-date'].hasOwnProperty('month')) {
+                            if (info['publication-date']['month'] !== null) {
+                                if (info['publication-date']['month'].hasOwnProperty('value')) {
+                                    month = info['publication-date']['month']['value'];
+                                }
+                            }
+                        }
+                        if (info['publication-date'].hasOwnProperty('day')) {
+                            if (info['publication-date']['day'] !== null) {
+                                if (info['publication-date']['day'].hasOwnProperty('value')) {
+                                    day = info['publication-date']['day']['value'];
+                                }
+                            }
+                        }
+                    }
+                }
+                pub.year = year;
+                pub.month = month;
+                pub.day = day;
+                var path = null; // variable that holds the link to the publication details
+                if (info.hasOwnProperty('path')) {
+                    path = info.path;
+                }
+                pub.path = path;
+                pub.detailProgress = false;
+                publications.push(pub);
+            }
+            return publications;
+        }
+        function processDetailsORCID(pub, data) {
+            var journal = null;
+            if (data.hasOwnProperty('journal-title')) {
+                if (data['journal-title'] !== null && data['journal-title'].hasOwnProperty('value')) {
+                    journal = data['journal-title']['value'];
+                }
+            }
+            journal = journal.replace(/&amp;/g,'&');
+            pub.journal_name = journal;
+            var contributors = [];
+            if (data.hasOwnProperty('contributors')) {
+                if (data['contributors'] !== null && data['contributors'].hasOwnProperty('contributor')) {
+                    for (var ind in data.contributors.contributor) {
+                        if (data.contributors.contributor[ind].hasOwnProperty('credit-name')) {
+                            if (data.contributors.contributor[ind]['credit-name'] !== null
+                                && data.contributors.contributor[ind]['credit-name'].hasOwnProperty('value')) {
+                                if (data.contributors.contributor[ind]['credit-name'].value !== null) {
+                                    contributors.push(data.contributors.contributor[ind]['credit-name'].value);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            var volume = null;
+            var number = null; //this is used by some journals
+            var pages = null;
+            var authors = null;
+            if (data.hasOwnProperty('citation')) {
+                //from this we can get authors, volume, pages
+                if (data.citation !== null && data.citation.hasOwnProperty('citation-type')) {
+                    if (data.citation['citation-type'] === 'BIBTEX') {
+                        if (data.citation['citation-value'] !== null) {
+                            var vol = data.citation['citation-value'].match(/volume = {(.*?)}/);
+                            if (vol !== null) volume = vol[1];
+                            var num = data.citation['citation-value'].match(/number = {(.*?)}/);
+                            if (num !== null) number = num[1];
+                            var pg = data.citation['citation-value'].match(/pages = {(.*?)}/);
+                            if (pg !== null) pages = pg[1];
+                            var aut = data.citation['citation-value'].match(/author = {(.*?)}/);
+                            if (aut !== null) authors = aut[1];
+                        }
+                    } else {
+                        alert(data.citation['citation-type']);
+                    }
+                }
+            }
+            pub.volume = volume;
+            pub.number = number;
+            pub.pages = pages;
+            if (contributors.length ===0) {
+                pub.authors_raw = authors;
+            } else {
+                var strAuthors = '';
+                for (var ind in contributors) {
+                    if (ind > 0) strAuthors = strAuthors + '; ';
+                    strAuthors = strAuthors + contributors[ind];
+                }
+                pub.authors_raw = strAuthors
+                            .replace(/\.\s/g, '')
+                            .replace(/\./g, '');
+            }
+            vm.publicationDetailsORCID.push(pub);
+        }
+        function removeExistingORCID(dataORCID, dataDB) {
+            var publications = [];
+            var titleORCID, titleDB;
+            for (var ind in dataORCID) {
+                var found = false;
+                for (var indDB in dataDB) {
+                    // first DOI is compared, if there is no DOI then compares title
+                    if (dataORCID[ind].doi !== null) {
+                        if (dataDB[indDB].doi !== null) {
+                            if (dataORCID[ind].doi.toLowerCase() == dataDB[indDB].doi.toLowerCase()) {
+                                // already in database => skip
+                                found = true;
+                                break;
+                            }
+                        } else {
+                            titleORCID = dataORCID[ind].title
+                                    .toLowerCase()
+                                    .replace(/[\-;,:]/g,'');
+                            titleDB = dataDB[indDB].title
+                                    .toLowerCase()
+                                    .replace(/[\-;,:]/g,'');
+                            // compare titles
+                            if (titleORCID == titleDB) {
+                                // already in database => skip
+                                found = true;
+                                break;
+                            }
+                        }
+                    } else {
+                        // compare titles
+                        titleORCID = dataORCID[ind].title
+                                .toLowerCase()
+                                .replace(/[\-;,:]/g,'');
+                        titleDB = dataDB[indDB].title
+                                .toLowerCase()
+                                .replace(/[\-;,:]/g,'');
+                        // compare titles
+                        if (titleORCID == titleDB) {
+                            // already in database => skip
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                if (!found) {
+                    publications.push(dataORCID[ind]);
+                }
+            }
+            return publications;
         }
 
         /* Auxiliary functions */
@@ -1813,6 +2226,20 @@
                 .catch(function (err) {
                     console.log(err);
                 });
+            personData.authorTypes()
+                .then(function (response) {
+                    vm.authorTypes = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            personData.publicationTypes()
+                .then(function (response) {
+                    vm.publicationTypes = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
         }
         function processNationalities() {
             var newNationalities = [];
@@ -2187,6 +2614,18 @@
             templateUrl: 'person/publications/person.publicationDetail.html'
         };
     };
+    var personAddPublications = function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'person/publications/person.addPublications.html'
+        };
+    };
+    var personAddPublicationsOrcid = function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'person/publications/person.addPublicationsORCID.html'
+        };
+    };
     var personWebsitePhoto = function () {
         return {
             restrict: 'E',
@@ -2258,6 +2697,36 @@
             }
         };
     };
+    var integerValidate = function () {
+        return {
+            require: 'ngModel',
+            link: function (scope, elm, attrs, ctrl) {
+                var filterInt = function(value) {
+                    if (/^(\-|\+)?([0-9]+|Infinity)$/.test(value)) {
+                        return Number(value);
+                    }
+                    return NaN;
+                };
+                ctrl.$validators.integerValidate = function(modelValue, viewValue) {
+                    if (viewValue == null) {
+                        ctrl.$setValidity('integer', true);
+                        return true;
+                    } else {
+                        if (isNaN(filterInt(viewValue))) {
+                            ctrl.$setValidity('integer', false);
+                            return false;
+                        } else if (filterInt(viewValue)<=0) {
+                            ctrl.$setValidity('integer', false);
+                            return false;
+                        } else {
+                            ctrl.$setValidity('integer', true);
+                            return true;
+                        }
+                    }
+                };
+            }
+        };
+    };
 
 /**************************** Register components *****************************/
     angular.module('managementApp')
@@ -2284,11 +2753,14 @@
         .directive('personPoles', personPoles)
         .directive('personAuthorNames', personAuthorNames)
         .directive('personPublications', personPublications)
+        .directive('personAddPublications', personAddPublications)
+        .directive('personAddPublicationsOrcid', personAddPublicationsOrcid)
         .directive('personPublicationDetail', personPublicationDetail)
         .directive('personWebsitePhoto', personWebsitePhoto)
 
         .directive('postalCodeValidate', postalCodeValidate)
         .directive('dedicationValidate', dedicationValidate)
+        .directive('integerValidate', integerValidate)
 
         .controller('personCtrl',  personCtrl)
         .controller('CountrySelectCtrl', CountrySelectCtrl)

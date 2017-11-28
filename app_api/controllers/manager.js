@@ -1316,7 +1316,7 @@ var queryPasswordReset = function (req, res, next) {
 var queryUpdateUserPermissions = function (req, res, next) {
     var userID = req.body.user_id;
     var username = req.body.username;
-    var permissions = req.body.permissions;
+    var permission = req.body.permissions;
     var requesterCities = permissions.geographicAccess(req.payload.stat);
     var querySQL = '';
     var places = [];
@@ -1325,7 +1325,7 @@ var queryUpdateUserPermissions = function (req, res, next) {
                               ' SET username = ?,' +
                               ' status = ?' +
                               ' WHERE id = ?;';
-        places.push(username,permissions,userID);
+        places.push(username,permission,userID);
         pool.getConnection(function(err, connection) {
             if (err) {
                 sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});

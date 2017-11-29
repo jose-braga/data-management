@@ -1390,6 +1390,7 @@ var listAllPeopleWithRolesDataRemaining = function (req,res,next, data) {
     var querySQL = 'SELECT people.id AS person_id, people.name AS person_name,' +
                    ' people_institution_city.city_id AS pole_id, institution_city.city AS pole_name,' +
                    ' people_roles.role_id, people_roles.id AS people_roles_id,' +
+                   ' technicians_info.association_key, technicians_info.ORCID,' +
                    ' technicians.technician_office_id, technician_offices.name_en AS lab,' +
                    ' technicians.valid_from AS valid_from, technicians.valid_until AS valid_until,' +
                    ' technicians.dedication AS dedication,' +
@@ -1400,6 +1401,7 @@ var listAllPeopleWithRolesDataRemaining = function (req,res,next, data) {
                     ' LEFT JOIN institution_city ON people_institution_city.city_id = institution_city.id' +
                     ' LEFT JOIN people_roles ON people_roles.person_id = people.id' +
                     ' LEFT JOIN technicians ON technicians.person_id = people.id' +
+                    ' LEFT JOIN technicians_info ON technicians_info.person_id = people.id' +
                     ' LEFT JOIN technician_offices ON technicians.technician_office_id = technician_offices.id' +
                    ' WHERE people.status = 1' + ' AND ' + 'people_roles.role_id = ' + rolesObj['technical'] +
                    ' ORDER BY people.name';
@@ -1407,6 +1409,7 @@ var listAllPeopleWithRolesDataRemaining = function (req,res,next, data) {
     querySQL = querySQL + 'SELECT people.id AS person_id, people.name AS person_name,' +
                    ' people_institution_city.city_id AS pole_id, institution_city.city AS pole_name,' +
                    ' people_roles.role_id, people_roles.id AS people_roles_id,' +
+                   ' science_managers_info.association_key, science_managers_info.ORCID,' +
                    ' science_managers.science_manager_office_id, science_manager_offices.name_en AS lab,' +
                    ' science_managers.valid_from AS valid_from, science_managers.valid_until AS valid_until,' +
                    ' science_managers.dedication AS dedication,' +
@@ -1417,6 +1420,7 @@ var listAllPeopleWithRolesDataRemaining = function (req,res,next, data) {
                     ' LEFT JOIN institution_city ON people_institution_city.city_id = institution_city.id' +
                     ' LEFT JOIN people_roles ON people_roles.person_id = people.id' +
                     ' LEFT JOIN science_managers ON science_managers.person_id = people.id' +
+                    ' LEFT JOIN science_managers_info ON science_managers_info.person_id = people.id' +
                     ' LEFT JOIN science_manager_offices ON science_managers.science_manager_office_id = science_manager_offices.id' +
                    ' WHERE people.status = 1' + ' AND ' + 'people_roles.role_id = ' + rolesObj['scienceManagement'] +
                    ' ORDER BY people.name';
@@ -1424,6 +1428,7 @@ var listAllPeopleWithRolesDataRemaining = function (req,res,next, data) {
     querySQL = querySQL + 'SELECT people.id AS person_id, people.name AS person_name,' +
                    ' people_institution_city.city_id AS pole_id, institution_city.city AS pole_name,' +
                    ' people_roles.role_id, people_roles.id AS people_roles_id,' +
+                   ' administrative_info.association_key, NULL AS ORCID,' +
                    ' people_administrative_offices.administrative_office_id, administrative_offices.name_en AS lab,' +
                    ' people_administrative_offices.valid_from AS valid_from, people_administrative_offices.valid_until AS valid_until,' +
                    ' people_administrative_offices.dedication AS dedication,' +
@@ -1434,6 +1439,7 @@ var listAllPeopleWithRolesDataRemaining = function (req,res,next, data) {
                     ' LEFT JOIN institution_city ON people_institution_city.city_id = institution_city.id' +
                     ' LEFT JOIN people_roles ON people_roles.person_id = people.id' +
                     ' LEFT JOIN people_administrative_offices ON people_administrative_offices.person_id = people.id' +
+                    ' LEFT JOIN administrative_info ON administrative_info.person_id = people.id' +
                     ' LEFT JOIN administrative_offices ON people_administrative_offices.administrative_office_id = administrative_offices.id' +
                    ' WHERE people.status = 1' + ' AND ' + 'people_roles.role_id = ' + rolesObj['administrative'] +
                    ' ORDER BY people.name';
@@ -1475,6 +1481,7 @@ module.exports.listAllPeopleWithRolesData = function (req, res, next) {
             var querySQL = 'SELECT people.id AS person_id, people.name AS person_name,' +
                            ' people_institution_city.city_id AS pole_id, institution_city.city AS pole_name,' +
                            ' people_roles.role_id, people_roles.id AS people_roles_id,' +
+                           ' researchers.association_key, researchers.ORCID,' +
                            ' people_labs.lab_id,' +
                            ' labs.name AS lab,' +
                            ' labs.started AS lab_opened, labs.finished AS lab_closed,' +
@@ -1490,6 +1497,7 @@ module.exports.listAllPeopleWithRolesData = function (req, res, next) {
                             ' LEFT JOIN institution_city ON people_institution_city.city_id = institution_city.id' +
                             ' LEFT JOIN people_roles ON people_roles.person_id = people.id' +
                             ' LEFT JOIN people_labs ON people_labs.person_id = people.id' +
+                            ' LEFT JOIN researchers ON researchers.person_id = people.id' +
                             ' LEFT JOIN labs ON people_labs.lab_id = labs.id' +
                             ' LEFT JOIN labs_groups ON labs_groups.lab_id = labs.id' +
                             ' LEFT JOIN groups ON labs_groups.group_id = groups.id' +

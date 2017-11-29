@@ -2810,12 +2810,14 @@
                 for (var el in arrObj) {
                     data.push({
                         "Person Name": arrObj[el]['person_name'],
+                        "Key": arrObj[el]['association_key'],
                         "Position": getPosition(arrObj[el]['position_id'], arrObj[el]['role_id']),
                         "Dedication": arrObj[el]['dedication'],
                         "Lab": arrObj[el]['lab'],
                         "Group": getGroup(arrObj[el]['group_id'], arrObj[el]['role_id']),
                         "Unit": getUnit(arrObj[el]['unit_id'], arrObj[el]['role_id']),
                         "Pole": arrObj[el]['pole_name'],
+                        "ORCID": arrObj[el]['ORCID'],
                         "Started": momentToDate(arrObj[el]['valid_from']),
                         "Ended": momentToDate(arrObj[el]['valid_until'])
                     });

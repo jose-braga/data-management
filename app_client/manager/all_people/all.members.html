@@ -83,6 +83,10 @@
                             <div class="answer"><span>{{member.person_name}}</span></div>
                         </div>
                         <div layout="row" layout-align=" center">
+                            <div class="question"><span class="highlight">A. key:</span></div>
+                            <div class="answer"><span>{{member.association_key}}</span></div>
+                        </div>
+                        <div layout="row" layout-align=" center">
                             <div class="question"><span class="highlight">City:</span></div>
                             <div class="answer"><span>{{member.pole_name}}</span></div>
                         </div>
@@ -242,6 +246,10 @@
                             </div>
                         </div>
                         <div layout="row" layout-align=" center">
+                            <div class="question"><span class="highlight">ORCID:</span></div>
+                            <div class="answer"><span>{{member.ORCID}}</span></div>
+                        </div>
+                        <div layout="row" layout-align=" center">
                             <div class="question"><span class="highlight">Started:</span></div>
                             <div class="answer">
                                 <md-input-container class="input-no-margin simple-input" ng-if="member.role_id==1">
@@ -326,6 +334,9 @@
                                 <ng-md-icon ng-if="vm.sortReverse  && vm.sortType=='person_name'"
                                         icon="arrow_upwards" size="12"></ng-md-icon>
                             </th>
+                            <th>
+                                <a>A. key</a>
+                            </th>
                             <th class="larger-column">
                                 <a ng-click="vm.sortColumn('pole_name')">City</a>
                                 <ng-md-icon ng-if="!vm.sortReverse && vm.sortType=='pole_name'"
@@ -358,6 +369,9 @@
                                 <ng-md-icon ng-if="vm.sortReverse  && vm.sortType=='dedication'"
                                         icon="arrow_upwards" size="12"></ng-md-icon>
                             </th>
+                            <th>
+                                <a>ORCID</a>
+                            </th>
                             <th><a ng-click="vm.sortColumn('valid_from')">Started</a>
                                 <ng-md-icon ng-if="!vm.sortReverse && vm.sortType=='valid_from'"
                                         icon="arrow_downward" size="12"></ng-md-icon>
@@ -377,6 +391,7 @@
                     <tbody>
                         <tr ng-repeat="(memberNum,member) in vm.currPeople track by $index">
                             <td>{{member.person_name}}</td>
+                            <td>{{member.association_key}}</td>
                             <td><span class="space-left">{{member.pole_name}}</span></td>
                             <td>
                                 {{vm.roleName(member.role_id)}}
@@ -512,6 +527,7 @@
                                         name="member_dedication[memberNum]" dedication-validate>
                                 </md-input-container>
                             </td>
+                            <td>{{member.ORCID}}</td>
                             <td>
                                 <md-input-container class="input-no-margin simple-input" ng-if="member.role_id==1">
                                     <md-datepicker md-current-view="year" ng-model="member.valid_from"

@@ -619,6 +619,8 @@
                     data['changed_by'] = scope.currentUser.userID;
                     teamData.updateLabPeopleTeamByID(scope.group,scope.lab,data)
                         .then( function () {
+                            scope.updateLabPerson = [];
+                            scope.deleteNeverMember = [];
                             getPersonLabs(ind);
                             scope.renderPeople('new');
                         },
@@ -1023,9 +1025,11 @@
                         for (var el in arrObj) {
                             data.push({
                                 "Person Name": arrObj[el]['person_name'],
+                                "Assoc. Key": arrObj[el]['association_key'],
                                 "Position": getPosition(arrObj[el]['lab_position_id']),
                                 "Dedication": arrObj[el]['dedication'],
                                 "Office": getOffice(arrObj[el]['lab_id']),
+                                "ORCID": arrObj[el]['ORCID'],
                                 "Started": momentToDate(arrObj[el]['valid_from']),
                                 "Ended": momentToDate(arrObj[el]['valid_until'])
                             });
@@ -1161,6 +1165,8 @@
                     data['changed_by'] = scope.currentUser.userID;
                     teamData.updateTechPeopleTeamByID(scope.office,data)
                         .then( function () {
+                            scope.updateOfficePerson = [];
+                            scope.deleteNeverMember = [];
                             getPersonOfficeTeam(ind);
                             scope.renderPeople('new');
                         },
@@ -1387,9 +1393,11 @@
                         for (var el in arrObj) {
                             data.push({
                                 "Person Name": arrObj[el]['person_name'],
+                                "Assoc. Key": arrObj[el]['association_key'],
                                 "Position": getPosition(arrObj[el]['technician_position_id']),
                                 "Dedication": arrObj[el]['dedication'],
                                 "Office": getOffice(arrObj[el]['technician_office_id']),
+                                "ORCID": arrObj[el]['ORCID'],
                                 "Started": momentToDate(arrObj[el]['valid_from']),
                                 "Ended": momentToDate(arrObj[el]['valid_until'])
                             });
@@ -1524,6 +1532,8 @@
                     data['changed_by'] = scope.currentUser.userID;
                     teamData.updateScManPeopleTeamByID(scope.office,data)
                         .then( function () {
+                            scope.updateOfficePerson = [];
+                            scope.deleteNeverMember = [];
                             getPersonOfficeTeam(ind);
                             scope.renderPeople('new');
                         },
@@ -1749,9 +1759,11 @@
                         for (var el in arrObj) {
                             data.push({
                                 "Person Name": arrObj[el]['person_name'],
+                                "Assoc. Key": arrObj[el]['association_key'],
                                 "Position": getPosition(arrObj[el]['science_manager_position_id']),
                                 "Dedication": arrObj[el]['dedication'],
                                 "Office": getOffice(arrObj[el]['science_manager_office_id']),
+                                "ORCID": arrObj[el]['ORCID'],
                                 "Started": momentToDate(arrObj[el]['valid_from']),
                                 "Ended": momentToDate(arrObj[el]['valid_until'])
                             });
@@ -1885,6 +1897,8 @@
                     data['changed_by'] = scope.currentUser.userID;
                     teamData.updateAdmPeopleTeamByID(scope.office,data)
                         .then( function () {
+                            scope.updateOfficePerson = [];
+                            scope.deleteNeverMember = [];
                             getPersonOfficeTeam(ind);
                             scope.renderPeople('new');
                         },
@@ -2110,6 +2124,7 @@
                         for (var el in arrObj) {
                             data.push({
                                 "Person Name": arrObj[el]['person_name'],
+                                "Assoc. Key": arrObj[el]['association_key'],
                                 "Position": getPosition(arrObj[el]['administrative_position_id']),
                                 "Dedication": arrObj[el]['dedication'],
                                 "Office": getOffice(arrObj[el]['administrative_office_id']),

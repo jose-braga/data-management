@@ -19,12 +19,17 @@ a {
   max-width: 272px;
 }
 
-.input-no-margin {
+.input-no-margin, .input-no-margin-larger{
   margin-top: 1px;
   margin-bottom: 0px;
 }
 
 .input-no-margin.simple-input .md-input {
+  height: 16px;
+  width: 50px;
+}
+
+.input-no-margin-larger.simple-input .md-input {
   height: 16px;
   width: 50px;
 }
@@ -37,6 +42,12 @@ a {
   line-height: 16px;
   height: 16px;
   max-width: 100px;
+}
+
+.input-no-margin-larger .md-input{
+  line-height: 16px;
+  height: 16px;
+  max-width: 150px;
 }
 
 .input-no-margin .md-button.md-icon-button {

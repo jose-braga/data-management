@@ -97,6 +97,9 @@
                                 <ng-md-icon ng-if="sortReverse  && sortType=='person_name'"
                                         icon="arrow_upwards" size="12"></ng-md-icon>
                             </th>
+                            <th>
+                                <a>A. key</a>
+                            </th>
                             <th><a ng-click="sortColumn('administrative_position_id')">Position</a>
                                 <ng-md-icon ng-if="!sortReverse && sortType=='administrative_position_id'"
                                         icon="arrow_downward" size="12"></ng-md-icon>
@@ -128,6 +131,14 @@
                     <tbody>
                         <tr ng-repeat="(memberNum,member) in currPeople track by $index">
                             <td>{{member.person_name}}</td>
+                            <td>
+                                <md-input-container class="input-no-margin-larger">
+                                    <input ng-model="member.association_key"
+                                        ng-change="updateDataSubmit(member.id,currPeople[memberNum],'updateOfficePerson', [])"
+                                        aria-label="association_key"
+                                        name="member_assoc_key[memberNum]">
+                                </md-input-container>
+                            </td>
                             <td>
                                 <md-input-container class="select-container select-no-margin card-type">
 

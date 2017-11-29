@@ -700,7 +700,6 @@ var queryGetDepartments = function (req,res,next, personID, dates, updateArr, de
 };
 
 var queryPeopleStartDateGetRow = function (req,res,next, personID, dates, updateArr, deleteArr, updated, i, type) {
-    console.log('8')
     var querySQL = 'SELECT * from `people` WHERE id = ?;';
     var places = [personID];
     pool.getConnection(function(err, connection) {
@@ -723,16 +722,16 @@ var queryPeopleStartDateGetRow = function (req,res,next, personID, dates, update
                         if (i + 1 < updateArr.length) {
                             data = updateArr[i+1];
                             if (type.indexOf('lab') !== -1) {
-                                return queryUpdateLab(req, res, next, updateArr, deleteArr, updated, data, i+1);
+                                return queryUpdateResearcher(req, res, next, updateArr, deleteArr, updated, data, i+1);
                             }
                             if (type.indexOf('technician') !== -1) {
-                                return queryUpdateTech(req, res, next, updateArr, deleteArr, updated, data, i+1);
+                                return queryUpdateTechInfo(req, res, next, updateArr, deleteArr, updated, data, i+1);
                             }
                             if (type.indexOf('scMan') !== -1) {
-                                return queryUpdateScMan(req, res, next, updateArr, deleteArr, updated, data, i+1);
+                                return queryUpdateScManInfo(req, res, next, updateArr, deleteArr, updated, data, i+1);
                             }
                             if (type.indexOf('administrative') !== -1) {
-                                return queryUpdateAdm(req, res, next, updateArr, deleteArr, updated, data, i+1);
+                                return queryUpdateAdmInfo(req, res, next, updateArr, deleteArr, updated, data, i+1);
                             }
                         } else if (deleteArr.length > 0) {
                             data = deleteArr[0];
@@ -819,16 +818,16 @@ var queryPeopleUpdateStartDate = function (req,res,next, personID, resQuery, min
                     if (i + 1 < updateArr.length) {
                         data = updateArr[i+1];
                         if (type.indexOf('lab') !== -1) {
-                            return queryUpdateLab(req, res, next, updateArr, deleteArr, updated, data, i+1);
+                            return queryUpdateResearcher(req, res, next, updateArr, deleteArr, updated, data, i+1);
                         }
                         if (type.indexOf('technician') !== -1) {
-                            return queryUpdateTech(req, res, next, updateArr, deleteArr, updated, data, i+1);
+                            return queryUpdateTechInfo(req, res, next, updateArr, deleteArr, updated, data, i+1);
                         }
                         if (type.indexOf('scMan') !== -1) {
-                            return queryUpdateScMan(req, res, next, updateArr, deleteArr, updated, data, i+1);
+                            return queryUpdateScManInfo(req, res, next, updateArr, deleteArr, updated, data, i+1);
                         }
                         if (type.indexOf('administrative') !== -1) {
-                            return queryUpdateAdm(req, res, next, updateArr, deleteArr, updated, data, i+1);
+                            return queryUpdateAdmInfo(req, res, next, updateArr, deleteArr, updated, data, i+1);
                         }
                     } else if (deleteArr.length > 0) {
                         data = deleteArr[0];
@@ -932,7 +931,7 @@ var queryUpdateLabPeople = function (req, res, next, userCity, labs) {
     var data;
     if (updateArr.length > 0) {
         data = updateArr[0];
-        return queryUpdateLab(req, res, next, updateArr, deleteArr, updated, data, 0);
+        return queryUpdateResearcher(req, res, next, updateArr, deleteArr, updated, data, 0);
     } else if (deleteArr.length > 0) {
         data = deleteArr[0];
         return queryDeleteLab(req, res, next, updateArr, deleteArr, updated, data, 0);
@@ -943,6 +942,42 @@ var queryUpdateLabPeople = function (req, res, next, userCity, labs) {
         escapedQuery(querySQL, places, req, res, next);
     }
 };
+
+var queryUpdateResearcher = function (req, res, next,
+                                 updateArr, deleteArr, updated, data, i) {
+    var query;
+    var places;
+    if (data.researchers_id !== null) {
+        query = 'UPDATE `researchers`' +
+                ' SET `association_key` = ?,' +
+                ' `ORCID` = ?' +
+                ' WHERE `id` = ?;';
+        places = [data.association_key, data.ORCID, data.researchers_id];
+    } else {
+        query = 'INSERT INTO `researchers`' +
+                ' (person_id, association_key, ORCID)' +
+                ' VALUES (?,?,?);';
+        places = [data.person_id,data.association_key, data.ORCID];
+    }
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(query,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                return queryUpdateLab(req, res, next, updateArr, deleteArr, updated, data, i);
+            }
+        );
+    });
+};
+
 
 var queryUpdateLab = function (req, res, next,
                                  updateArr, deleteArr, updated, data, i) {
@@ -1128,7 +1163,7 @@ var queryUpdateTechPeople = function (req, res, next, userCity, labs) {
     var data;
     if (updateArr.length > 0) {
         data = updateArr[0];
-        return queryUpdateTech(req, res, next, updateArr, deleteArr, updated, data, 0);
+        return queryUpdateTechInfo(req, res, next, updateArr, deleteArr, updated, data, 0);
     } else if (deleteArr.length > 0) {
         data = deleteArr[0];
         return queryDeleteTech(req, res, next, updateArr, deleteArr, updated, data, 0);
@@ -1138,6 +1173,41 @@ var queryUpdateTechPeople = function (req, res, next, userCity, labs) {
     } else {
         escapedQuery(querySQL, places, req, res, next);
     }
+};
+
+var queryUpdateTechInfo = function (req, res, next,
+                                 updateArr, deleteArr, updated, data, i) {
+    var query;
+    var places;
+    if (data.technicians_info_id !== null) {
+        query = 'UPDATE `technicians_info`' +
+                ' SET `association_key` = ?,' +
+                ' `ORCID` = ?' +
+                ' WHERE `id` = ?;';
+        places = [data.association_key, data.ORCID, data.technicians_info_id];
+    } else {
+        query = 'INSERT INTO `technicians_info`' +
+                ' (person_id, association_key, ORCID)' +
+                ' VALUES (?,?,?);';
+        places = [data.person_id,data.association_key, data.ORCID];
+    }
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(query,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                return queryUpdateTech(req, res, next, updateArr, deleteArr, updated, data, i);
+            }
+        );
+    });
 };
 
 var queryUpdateTech = function (req, res, next,
@@ -1323,7 +1393,7 @@ var queryUpdateScManPeople = function (req, res, next, userCity, labs) {
     var data;
     if (updateArr.length > 0) {
         data = updateArr[0];
-        return queryUpdateScMan(req, res, next, updateArr, deleteArr, updated, data, 0);
+        return queryUpdateScManInfo(req, res, next, updateArr, deleteArr, updated, data, 0);
     } else if (deleteArr.length > 0) {
         data = deleteArr[0];
         return queryDeleteScMan(req, res, next, updateArr, deleteArr, updated, data, 0);
@@ -1333,6 +1403,41 @@ var queryUpdateScManPeople = function (req, res, next, userCity, labs) {
     } else {
         escapedQuery(querySQL, places, req, res, next);
     }
+};
+
+var queryUpdateScManInfo = function (req, res, next,
+                                 updateArr, deleteArr, updated, data, i) {
+    var query;
+    var places;
+    if (data.science_managers_info_id !== null) {
+        query = 'UPDATE `science_managers_info`' +
+                ' SET `association_key` = ?,' +
+                ' `ORCID` = ?' +
+                ' WHERE `id` = ?;';
+        places = [data.association_key, data.ORCID, data.science_managers_info_id];
+    } else {
+        query = 'INSERT INTO `science_managers_info`' +
+                ' (person_id, association_key, ORCID)' +
+                ' VALUES (?,?,?);';
+        places = [data.person_id,data.association_key, data.ORCID];
+    }
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(query,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                return queryUpdateScMan(req, res, next, updateArr, deleteArr, updated, data, i);
+            }
+        );
+    });
 };
 
 var queryUpdateScMan = function (req, res, next,
@@ -1519,7 +1624,7 @@ var queryUpdateAdmPeople = function (req, res, next, userCity, labs) {
     var data;
     if (updateArr.length > 0) {
         data = updateArr[0];
-        return queryUpdateAdm(req, res, next, updateArr, deleteArr, updated, data, 0);
+        return queryUpdateAdmInfo(req, res, next, updateArr, deleteArr, updated, data, 0);
     }
     if (deleteArr.length > 0) {
         data = deleteArr[0];
@@ -1530,6 +1635,40 @@ var queryUpdateAdmPeople = function (req, res, next, userCity, labs) {
     } else {
         escapedQuery(querySQL, places, req, res, next);
     }
+};
+
+var queryUpdateAdmInfo = function (req, res, next,
+                                 updateArr, deleteArr, updated, data, i) {
+    var query;
+    var places;
+    if (data.administrative_info_id !== null) {
+        query = 'UPDATE `administrative_info`' +
+                ' SET `association_key` = ?' +
+                ' WHERE `id` = ?;';
+        places = [data.association_key, data.administrative_info_id];
+    } else {
+        query = 'INSERT INTO `administrative_info`' +
+                ' (person_id, association_key)' +
+                ' VALUES (?,?);';
+        places = [data.person_id,data.association_key];
+    }
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(query,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                return queryUpdateAdm(req, res, next, updateArr, deleteArr, updated, data, i);
+            }
+        );
+    });
 };
 
 var queryUpdateAdm = function (req, res, next,
@@ -2239,11 +2378,13 @@ module.exports.listLabPeopleData = function (req, res, next) {
             var groupID = req.params.groupID;
             var places = [];
             var querySQL = 'SELECT people_labs.*, people.name AS person_name, ' +
+                           ' researchers.id AS researchers_id,researchers.association_key, researchers.ORCID,' +
                            ' labs.started AS lab_opened, labs.finished AS lab_closed,' +
                            ' labs_groups.valid_from AS labs_groups_valid_from, labs_groups.valid_until AS labs_groups_valid_until,' +
                            ' groups.id AS group_id, groups.name AS group_name' +
                            ' FROM people_labs' +
                            ' LEFT JOIN people ON people_labs.person_id = people.id' +
+                           ' LEFT JOIN researchers ON researchers.person_id = people_labs.person_id' +
                            ' LEFT JOIN labs ON people_labs.lab_id = labs.id' +
                            ' LEFT JOIN labs_groups ON labs_groups.lab_id = labs.id' +
                            ' LEFT JOIN groups ON labs_groups.group_id = groups.id' +
@@ -2281,9 +2422,11 @@ module.exports.listTechPeopleData = function (req, res, next) {
         function (req, res, username) {
             var teamID = req.params.teamID;
             var places = [];
-            var querySQL = 'SELECT technicians.*, people.name AS person_name ' +
+            var querySQL = 'SELECT technicians.*, people.name AS person_name, ' +
+                           ' technicians_info.id AS technicians_info_id, technicians_info.association_key, technicians_info.ORCID' +
                            ' FROM technicians' +
                            ' LEFT JOIN people ON technicians.person_id = people.id' +
+                           ' LEFT JOIN technicians_info ON technicians_info.person_id = technicians.person_id' +
                            ' WHERE technician_office_id = ? AND people.status = 1' +
                            ' ORDER BY people.name';
             querySQL = querySQL + '; ';
@@ -2298,9 +2441,11 @@ module.exports.listScManPeopleData = function (req, res, next) {
         function (req, res, username) {
             var teamID = req.params.teamID;
             var places = [];
-            var querySQL = 'SELECT science_managers.*, people.name AS person_name ' +
+            var querySQL = 'SELECT science_managers.*, people.name AS person_name, ' +
+                           ' science_managers_info.id AS science_managers_info_id, science_managers_info.association_key, science_managers_info.ORCID' +
                            ' FROM science_managers' +
                            ' LEFT JOIN people ON science_managers.person_id = people.id' +
+                           ' LEFT JOIN science_managers_info ON science_managers_info.person_id = science_managers.person_id' +
                            ' WHERE science_manager_office_id = ? AND people.status = 1' +
                            ' ORDER BY people.name';
             querySQL = querySQL + '; ';
@@ -2315,9 +2460,11 @@ module.exports.listAdmPeopleData = function (req, res, next) {
         function (req, res, username) {
             var teamID = req.params.teamID;
             var places = [];
-            var querySQL = 'SELECT people_administrative_offices.*, people.name AS person_name ' +
+            var querySQL = 'SELECT people_administrative_offices.*, people.name AS person_name, ' +
+                           ' administrative_info.id AS administrative_info_id, administrative_info.association_key' +
                            ' FROM people_administrative_offices' +
                            ' LEFT JOIN people ON people_administrative_offices.person_id = people.id' +
+                           ' LEFT JOIN administrative_info ON administrative_info.person_id = people_administrative_offices.person_id' +
                            ' WHERE administrative_office_id = ? AND people.status = 1' +
                            ' ORDER BY people.name';
             querySQL = querySQL + '; ';

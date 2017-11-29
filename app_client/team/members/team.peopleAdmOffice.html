@@ -30,6 +30,17 @@
                             <div class="answer"><span>{{member.person_name}}</span></div>
                         </div>
                         <div layout="row" layout-align=" center">
+                            <div class="question"><span class="highlight">A. key:</span></div>
+                            <div class="answer"><span>
+                                <md-input-container class="input-no-margin-larger">
+                                    <input ng-model="member.association_key"
+                                        ng-change="updateDataSubmit(member.id,currPeople[memberNum],'updateOfficePerson', [])"
+                                        aria-label="association_key"
+                                        name="member_assoc_key[memberNum]">
+                                </md-input-container>
+                            </span></div>
+                        </div>
+                        <div layout="row" layout-align=" center">
                             <div class="question"><span class="highlight">Position:</span></div>
                             <div class="answer">
                                 <md-input-container class="select-container select-no-margin card-type">

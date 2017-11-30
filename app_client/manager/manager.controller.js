@@ -2345,6 +2345,13 @@
                         vm.thisPerson[el].lab_data[id]['labs_groups_valid_until'] = processDate(vm.thisPerson[el].lab_data[id]['labs_groups_valid_until']);
                         vm.thisPerson[el].lab_data[id]['lab_opened'] = processDate(vm.thisPerson[el].lab_data[id]['lab_opened']);
                         vm.thisPerson[el].lab_data[id]['lab_closed'] = processDate(vm.thisPerson[el].lab_data[id]['lab_closed']);
+                        for (var id_lab in vm.labs) {
+                            if (vm.labs[id_lab].lab_id === vm.thisPerson[el].lab_data[id].lab_id
+                                && vm.labs[id_lab].group_id === vm.thisPerson[el].lab_data[id].group_id) {
+                                vm.thisPerson[el].lab_data[id]['lab_row'] = vm.labs[id_lab].lab_row;
+                                break;
+                            }
+                        }
                         vm.currentAffiliationsLab[el].push(Object.assign({}, vm.thisPerson[el].lab_data[id]));
                     }
 

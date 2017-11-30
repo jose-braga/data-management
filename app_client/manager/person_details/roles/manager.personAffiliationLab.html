@@ -10,7 +10,7 @@
                         class="search-box select-container input-row"
                         ng-controller="LabSelectCtrl as laboratory">
                         <label>Lab</label>
-                        <md-select required ng-model="vm.currentAffiliationsLab[vm.selectedIndex-2][numLab].lab_id"
+                        <md-select required ng-model="vm.currentAffiliationsLab[vm.selectedIndex-2][numLab].lab_row"
                             md-on-close="vm.updateOnSelect(vm.currentAffiliationsLab[vm.selectedIndex-2],vm.labs,numLab,'lab_id', ['lab','lab_opened','lab_closed','group_opened','group_closed','group_id','group_name','unit_id','unit'])"
                             md-container-class="correct-overflow" name="affLab_id[numLab]">
                             <div class="anchored">
@@ -22,7 +22,7 @@
                             </div>
                                 <md-optgroup class="scrollable" label="laboratories">
                                     <md-option ng-repeat="lab in vm.labs | filter:laboratory.searchTerm"
-                                        ng-value="lab.lab_id">{{vm.labNames(lab)}}</md-option>
+                                        ng-value="lab.lab_row">{{vm.labNames(lab)}}</md-option>
                                 </md-optgroup>
                         </md-select>
                     </md-input-container>

@@ -600,7 +600,6 @@ var queryORCIDGetJournalID = function (req, res, next,i) {
                     for (var ind in resQuery) {
                         var distance = levenshtein.get(resQuery[ind].name.toLowerCase(), journal_name);
                         if (ind == 0 || distance < minDistance) {
-                            console.log('minimum')
                             minDistance = distance;
                             minInd = ind;
                         }

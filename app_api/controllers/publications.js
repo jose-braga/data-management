@@ -642,8 +642,11 @@ var queryORCIDInsertPublication = function (req, res, next,i, journalID) {
     var add = req.body.addPublications;
     var querySQL = '';
     var places = [];
-    // null in authors
-    var numberAuthors = add[i].authors_raw.split(';').length;
+    if (add[i].authors_raw !== null || add[i].authors_raw !== undefined) {
+        var numberAuthors = add[i].authors_raw.split(';').length;
+    } else {
+        numberAuthors = null;
+    }
     var pageStart = null;
     var pageEnd = null;
     if (add[i].pages !== null) {

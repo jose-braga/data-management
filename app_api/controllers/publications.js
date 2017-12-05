@@ -599,7 +599,8 @@ var queryORCIDGetJournalID = function (req, res, next,i) {
                     var minDistance, minInd;
                     for (var ind in resQuery) {
                         var distance = levenshtein.get(resQuery[ind].name.toLowerCase(), journal_name);
-                        if (ind === 0 || distance < minDistance) {
+                        if (ind == 0 || distance < minDistance) {
+                            console.log('minimum')
                             minDistance = distance;
                             minInd = ind;
                         }
@@ -642,6 +643,7 @@ var queryORCIDInsertPublication = function (req, res, next,i, journalID) {
     var add = req.body.addPublications;
     var querySQL = '';
     var places = [];
+    // null in authors
     var numberAuthors = add[i].authors_raw.split(';').length;
     var pageStart = null;
     var pageEnd = null;
@@ -693,7 +695,6 @@ var queryORCIDInsertPublication = function (req, res, next,i, journalID) {
                     return;
                 }
                 var pubID = resQuery.insertId;
-                console.log(add[i].publication_type_id)
                 if (add[i].publication_type_id !== null && add[i].publication_type_id !== undefined) {
                     if (add[i].publication_type_id.length > 0) {
                         return queryORCIDInsertPublicationDescription(req,res,next,i, pubID);
@@ -938,7 +939,7 @@ module.exports.getLabPublicationInfo = function (req, res, next) {
 /******************** Call SQL Generators after Validations *******************/
 
 module.exports.listAllPublications = function (req, res, next) {
-    getUser(req, res, [0, 5, 10, 15, 16],
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30, 40],
         function (req, res, username) {
             queryAllPublications(req,res,next);
         }
@@ -994,7 +995,7 @@ module.exports.addPublicationsPerson = function (req, res, next) {
 };
 
 module.exports.addORCIDPublicationsPerson = function (req, res, next) {
-    getUser(req, res, [0, 5, 10, 15, 16],
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30, 40],
         function (req, res, username) {
             queryORCIDGetJournalID(req,res,next,0);
         }

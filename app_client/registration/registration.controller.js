@@ -115,7 +115,6 @@
             vm.thisPerson.researcher_data.affiliation_lab = submitAffiliations;
             data['changed_by'] = vm.currentUser.userID;
             data['earliest_date'] = findEarliestDate();
-            console.log(data);
             registrationData.addNewPersonData(data)
                 .then(function () {
                     if (ind > -1) {

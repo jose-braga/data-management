@@ -1694,7 +1694,7 @@
                 if (current.length == 1 && current[0]['people_lab_id'] === null) {
                     current[0]['people_lab_id'] = 'new';
                 } else {
-                    obj = {people_lab_id: 'new', lab_id: null, lab: null, dedication: null, lab_position: null,
+                    obj = {people_lab_id: 'new', lab_row: null, lab_id: null, lab: null, dedication: null, lab_position: null,
                            lab_position_id: null, group_id: null, group_name: null, lab_start: null, lab_end: null,
                            unit_id: null, unit: null};
                     current.push(obj);

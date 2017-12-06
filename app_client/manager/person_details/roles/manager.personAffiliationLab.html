@@ -11,7 +11,7 @@
                         ng-controller="LabSelectCtrl as laboratory">
                         <label>Lab</label>
                         <md-select required ng-model="vm.currentAffiliationsLab[vm.selectedIndex-2][numLab].lab_row"
-                            md-on-close="vm.updateOnSelect(vm.currentAffiliationsLab[vm.selectedIndex-2],vm.labs,numLab,'lab_id', ['lab','lab_opened','lab_closed','group_opened','group_closed','group_id','group_name','unit_id','unit'])"
+                            md-on-close="vm.updateOnSelect(vm.currentAffiliationsLab[vm.selectedIndex-2],vm.labs,numLab,'lab_row', ['lab_id','lab','lab_opened','lab_closed','group_opened','group_closed','group_id','group_name','unit_id','unit'])"
                             md-container-class="correct-overflow" name="affLab_id[numLab]">
                             <div class="anchored">
                                 <md-select-header class="select-search-header">

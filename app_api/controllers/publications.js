@@ -642,7 +642,7 @@ var queryORCIDInsertPublication = function (req, res, next,i, journalID) {
     var add = req.body.addPublications;
     var querySQL = '';
     var places = [];
-    if (add[i].authors_raw !== null || add[i].authors_raw !== undefined) {
+    if (add[i].authors_raw !== null && add[i].authors_raw !== undefined) {
         var numberAuthors = add[i].authors_raw.split(';').length;
     } else {
         numberAuthors = null;

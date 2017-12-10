@@ -65,13 +65,13 @@
         .config(['$routeProvider', '$locationProvider', config])
         .config(function($mdDateLocaleProvider) {
             $mdDateLocaleProvider.formatDate = function(date) {
-                if (date == null) return date;
+                if (date === null || date === undefined) return null;
                 return moment.tz(date, 'Europe/Lisbon').format('YYYY-MM-DD');
             };
             $mdDateLocaleProvider.parseDate = function(dateString) {
-                if (dateString == null) return dateString;
+                if (dateString === null || dateString === undefined) return null;
                 var m = moment.tz(dateString, 'Europe/Lisbon');
-                return m.isValid() ? m.format('YYYY-MM-DD') : new Date(NaN);
+                return m.isValid() ? m.format('YYYY-MM-DD') : null;
             };
         })
         ;

@@ -752,9 +752,11 @@ var queryAddRemainingInfo = function (req, res, next, userID, personID, querySQL
     if (process.env.NODE_ENV === 'production') {
         var recipients;
         if (institutionCityName === 'Lisboa') {
-            recipients = 'tsc@fct.unl.pt, jd.ribeiro@fct.unl.pt, jasl@fct.unl.pt, dq.helpdesk@fct.unl.pt';
+            recipients = 'tsc@fct.unl.pt, jasl@fct.unl.pt, josebraga@fct.unl.pt';
         } else if (institutionCityName === 'Porto') {
-            recipients = 'josecbraga@gmail.com'; // TODO: Change this!!!!
+            recipients = 'josebraga@fct.unl.pt, jasl@fct.unl.pt';
+        } else if (institutionCityName === 'Aveiro') {
+            recipients = 'josebraga@fct.unl.pt, jasl@fct.unl.pt';
         }
         let mailOptions = {
             from: '"Admin" <admin@laqv-ucibio.info>', // sender address

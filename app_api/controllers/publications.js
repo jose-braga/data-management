@@ -98,7 +98,7 @@ function momentToDate(timedate, timezone, timeformat) {
         timeformat = 'YYYY-MM-DD';
     }
     return timedate !== null ? moment.tz(timedate,timezone).format(timeformat) : null;
-}
+};
 
 /***************************** Query Functions ********************************/
 
@@ -147,7 +147,6 @@ var queryPersonPublications = function (req, res, next) {
                                 ' person_selected_publications.publication_id AS selected, publications.*,' +
                                 ' journals.name AS journal_name, journals.short_name AS journal_short_name, ' +
                                 ' journals.publisher, journals.publisher_city, journals.issn, journals.eissn ' +
-
                           'FROM people_publications' +
                           ' LEFT JOIN author_types ON people_publications.author_type_id = author_types.id' +
                           ' LEFT JOIN publications ON people_publications.publication_id = publications.id' +
@@ -592,7 +591,7 @@ var queryORCIDGetJournalID = function (req, res, next,i) {
                 }
                 if (resQuery.length === 1) {
                     // only 1 journal found, get its identity
-                    return queryORCIDInsertPublication(req,res,next,i,resQuery[0].id);
+                    return queryORCIDCheckIfExistsPublication(req,res,next,i,resQuery[0].id);
                 }
                 if (resQuery.length > 1) {
                     // several journals found, get the most similar
@@ -604,7 +603,7 @@ var queryORCIDGetJournalID = function (req, res, next,i) {
                             minInd = ind;
                         }
                     }
-                    return queryORCIDInsertPublication(req,res,next,i,resQuery[minInd].id);
+                    return queryORCIDCheckIfExistsPublication(req,res,next,i,resQuery[minInd].id);
                 }
             }
         );
@@ -632,7 +631,40 @@ var queryORCIDInsertNewJournal = function (req, res, next,i, journal_name) {
                     return;
                 }
                 var journalID = resQuery.insertId;
-                return queryORCIDInsertPublication(req,res,next,i,journalID);
+                return queryORCIDCheckIfExistsPublication(req,res,next,i,journalID);
+            }
+        );
+    });
+};
+
+var queryORCIDCheckIfExistsPublication = function (req, res, next,i, journalID) {
+    var add = req.body.addPublications;
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'SELECT id, title, doi FROM  publications' +
+                ' WHERE title = ? OR doi = ?;';
+    places.push(add[i].title,add[i].doi);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (resQuery.length === 0) {
+                    // publication does not exist
+                    return queryORCIDInsertPublication(req,res,next,i,journalID);
+                } else {
+                    // if there are no duplicates only 1 publication at most should appear
+                    var pubID = resQuery[0].id;
+                    return queryORCIDInsertPeoplePublications(req,res,next,i,pubID);
+                }
             }
         );
     });
@@ -642,8 +674,9 @@ var queryORCIDInsertPublication = function (req, res, next,i, journalID) {
     var add = req.body.addPublications;
     var querySQL = '';
     var places = [];
+    var numberAuthors;
     if (add[i].authors_raw !== null && add[i].authors_raw !== undefined) {
-        var numberAuthors = add[i].authors_raw.split(';').length;
+        numberAuthors = add[i].authors_raw.split(';').length;
     } else {
         numberAuthors = null;
     }

@@ -9,7 +9,8 @@
             To add publications to the database, the procedure is:
             <ol>
                 <li>Select publications from "ORCID results".<br>
-                    Only publications with citations in BibTex format will be automatically parsed. For the remaining, you must enter details manually.</li>
+                    Only publications with citations in BibTex format will be automatically parsed.<br>
+                    For the remaining, you must enter details manually (author names must be separated by semicolon ;).</li>
                 <li>Check/edit publication details (on "Selected publication details").<br> Add some more information and then clik + button to add.</li>
                 <li>Press "Add ORCID pub.".</li>
             </ol>
@@ -63,15 +64,48 @@
                         </div>
                         <div layout="row" layout-align=" center">
                             <div class="question"><span class="highlight">Authors:</span></div>
-                            <div class="answer"><span>{{publication.authors_raw}}</span></div>
+                            <div class="answer">
+                                <div ng-if="!publication.edit_authors">
+                                    <span>{{publication.authors_raw}}</span>
+                                </div>
+                                <div ng-if="publication.edit_authors">
+                                    <md-input-container>
+                                        <input required ng-model="vm.publicationDetailsORCID[pubNum].authors_raw" name="authors_raw">
+                                    </md-input-container>
+                                </div>
+                            </div>
                         </div>
                         <div layout="row" layout-align=" center">
                             <div class="question"><span class="highlight">Journal:</span></div>
-                            <div class="answer"><span>{{publication.journal_name}}</span></div>
+                            <div class="answer">
+                                <div ng-if="!publication.edit_journal">
+                                    <span>{{publication.journal_name}}</span>
+                                </div>
+                                <div ng-if="publication.edit_journal">
+                                    <md-input-container>
+                                        <input required ng-model="vm.publicationDetailsORCID[pubNum].journal_name" name="journal_name">
+                                    </md-input-container>
+                                </div>
+                            </div>
                         </div>
                         <div layout="row" layout-align=" center">
                             <div class="question"><span class="highlight">Vol/Num/Pages:</span></div>
-                            <div class="answer"><span>{{publication.volume}},{{publication.number}},{{publication.pages}}</span></div>
+                            <div class="answer">
+                                <div ng-if="!publication.edit_vol">
+                                    <span>{{publication.volume}},{{publication.number}},{{publication.pages}}</span>
+                                </div>
+                                <div ng-if="publication.edit_vol" layout="row">
+                                    <md-input-container class="input-no-margin simple-input">
+                                        <input ng-model="vm.publicationDetailsORCID[pubNum].volume" name="volume">
+                                    </md-input-container><span class="small-top">/</span>
+                                    <md-input-container class="input-no-margin simple-input">
+                                        <input ng-model="vm.publicationDetailsORCID[pubNum].number" name="number">
+                                    </md-input-container><span class="small-top">/</span>
+                                    <md-input-container class="input-no-margin simple-input">
+                                        <input ng-model="vm.publicationDetailsORCID[pubNum].pages" name="pages">
+                                    </md-input-container>
+                                </div>
+                            </div>
                         </div>
                         <div layout="row" layout-align=" center">
                             <div class="question"><span class="highlight">Year:</span></div>
@@ -249,7 +283,7 @@
                                 <a>Authors</a>
                             </th>
                             <th class="standard-width">
-                                <a>Journal</a>
+                                <a>Journal/Book</a>
                             </th>
                             <th class="small-width">
                                 <a>Vol/Num/Pages</a>
@@ -273,10 +307,45 @@
                     <tbody>
                         <tr ng-repeat="(pubNum,publication) in vm.publicationDetailsORCID track by $index">
                             <td>{{publication.title}}</td>
-                            <td>{{publication.authors_raw}}</td>
-                            <td>{{publication.journal_name}}</td>
-                            <td>{{publication.volume}},{{publication.number}},{{publication.pages}}</td>
-                            <td>{{publication.year}}</td>
+                            <td>
+                                <div ng-if="!publication.edit_authors">
+                                    {{publication.authors_raw}}
+                                </div>
+                                <div ng-if="publication.edit_authors">
+                                    <md-input-container>
+                                        <input ng-model="vm.publicationDetailsORCID[pubNum].authors_raw" name="authors_raw">
+                                    </md-input-container>
+                                </div>
+                            </td>
+                            <td>
+                                <div ng-if="!publication.edit_journal">
+                                    {{publication.journal_name}}
+                                </div>
+                                <div ng-if="publication.edit_journal">
+                                    <md-input-container>
+                                        <input ng-model="vm.publicationDetailsORCID[pubNum].journal_name" name="journal_name">
+                                    </md-input-container>
+                                </div>
+                            </td>
+                            <td>
+                                <div ng-if="!publication.edit_vol">
+                                    {{publication.volume}},{{publication.number}},{{publication.pages}}
+                                </div>
+                                <div ng-if="publication.edit_vol" layout="row">
+                                    <md-input-container class="input-no-margin simple-input extra-small">
+                                        <input ng-model="vm.publicationDetailsORCID[pubNum].volume" name="volume">
+                                    </md-input-container><span class="small-top">/</span>
+                                    <md-input-container class="input-no-margin simple-input extra-small">
+                                        <input ng-model="vm.publicationDetailsORCID[pubNum].number" name="number">
+                                    </md-input-container><span class="small-top">/</span>
+                                    <md-input-container class="input-no-margin simple-input extra-small">
+                                        <input ng-model="vm.publicationDetailsORCID[pubNum].pages" name="pages">
+                                    </md-input-container>
+                                </div>
+                            </td>
+                            <td>
+                                {{publication.year}}
+                            </td>
                             <td>
                                 <md-input-container class="select-container select-no-margin card-type">
                                     <md-select multiple ng-model="publication.publication_type_id"
@@ -328,10 +397,10 @@
                                 <a>Title</a>
                             </th>
                             <th class="large-contents-narrow">
-                                <a>Authors</a>
+                                 <a>Authors</a>
                             </th>
                             <th class="standard-width">
-                                <a>Journal</a>
+                                <a>Journal/Book</a>
                             </th>
                             <th class="smaller-width">
                                 <a>Year</a>

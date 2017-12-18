@@ -1048,24 +1048,42 @@
         };
         vm.submitAddORCIDPublications = function(ind) {
             if (vm.addPublicationsORCID.length > 0) {
-                vm.updateStatus[ind] = "Updating...";
-                vm.messageType[ind] = 'message-updating';
-                vm.hideMessage[ind] = false;
-                var data = {addPublications: vm.addPublicationsORCID};
-                publications.addORCIDPublicationsPerson(vm.currentUser.personID,data)
-                    .then( function () {
-                        vm.updateStatus[ind] = "Updated!";
-                        vm.messageType[ind] = 'message-success';
-                        vm.hideMessage[ind] = false;
-                        $timeout(function () { vm.hideMessage[ind] = true; }, 1500);
-                        getPublications(-1);
-                    },
-                    function () {
-                        vm.updateStatus[ind] = "Error!";
-                        vm.messageType[ind] = 'message-error';
-                    },
-                    function () {}
-                    );
+                var incomplete = false;
+                for (var indPub in vm.addPublicationsORCID) {
+                    if (vm.addPublicationsORCID[indPub].journal_name === null
+                        || vm.addPublicationsORCID[indPub].journal_name === undefined
+                        || vm.addPublicationsORCID[indPub].journal_name === ''
+                        || vm.addPublicationsORCID[indPub].authors_raw === null
+                        || vm.addPublicationsORCID[indPub].authors_raw === undefined
+                        || vm.addPublicationsORCID[indPub].authors_raw === '') {
+                        incomplete = true;
+                        break;
+                    }
+                }
+                if (incomplete) {
+                    alert('You must define authors and journal/book names for all chosen publications before submitting.');
+                } else {
+                    vm.updateStatus[ind] = "Updating...";
+                    vm.messageType[ind] = 'message-updating';
+                    vm.hideMessage[ind] = false;
+                    var data = {addPublications: vm.addPublicationsORCID};
+                    publications.addORCIDPublicationsPerson(vm.currentUser.personID,data)
+                        .then( function () {
+                            vm.updateStatus[ind] = "Updated!";
+                            vm.messageType[ind] = 'message-success';
+                            vm.hideMessage[ind] = false;
+                            $timeout(function () { vm.hideMessage[ind] = true; }, 1500);
+                            getPublications(-1);
+                        },
+                        function () {
+                            vm.updateStatus[ind] = "Error!";
+                            vm.messageType[ind] = 'message-error';
+                        },
+                        function () {}
+                        );
+                }
+            } else {
+                alert('There are no publications in the list of publications to be added to database.');
             }
             return false;
         };
@@ -1155,8 +1173,18 @@
                 var authorsSplit = authors
                                     .split(' ');
                 for (var ind in vm.allPublications) {
-                    var pubTitle = vm.allPublications[ind].title.toLowerCase();
-                    var pubAuthors = vm.allPublications[ind].authors_raw.toLowerCase();
+                    var pubTitle;
+                    var pubAuthors;
+                    if (vm.allPublications[ind].title !== null && vm.allPublications[ind].title !==undefined) {
+                        pubTitle = vm.allPublications[ind].title.toLowerCase();
+                    } else {
+                        pubTitle = '';
+                    }
+                    if (vm.allPublications[ind].authors_raw !== null && vm.allPublications[ind].authors_raw !==undefined) {
+                        pubAuthors = vm.allPublications[ind].authors_raw.toLowerCase();
+                    } else {
+                        pubAuthors = '';
+                    }
                     var selectByTitle = false;
                     var selectByAuthors = false;
                     var countTitle = 0;
@@ -1510,13 +1538,19 @@
             return publications;
         }
         function processDetailsORCID(pub, data) {
+            pub.edit_authors = true;
+            pub.edit_journal = true;
+            pub.edit_vol = true;
             var journal = null;
             if (data.hasOwnProperty('journal-title')) {
                 if (data['journal-title'] !== null && data['journal-title'].hasOwnProperty('value')) {
                     journal = data['journal-title']['value'];
                 }
             }
-            journal = journal.replace(/&amp;/g,'&');
+            if (journal !== null) {
+                journal = journal.replace(/&amp;/g,'&');
+                pub.edit_journal == false;
+            }
             pub.journal_name = journal;
             var contributors = [];
             if (data.hasOwnProperty('contributors')) {
@@ -1556,11 +1590,19 @@
                     }
                 }
             }
+            if (volume === null || number === null || pages === null) {
+                pub.edit_vol = true;
+            }
             pub.volume = volume;
             pub.number = number;
             pub.pages = pages;
             if (contributors.length ===0) {
-                pub.authors_raw = authors;
+                if (authors !== null && authors !== '') {
+                    pub.authors_raw = authors;
+                } else {
+                    pub.edit_authors = true;
+                }
+
             } else {
                 var strAuthors = '';
                 for (var ind in contributors) {
@@ -2768,3 +2810,4 @@
         .controller('PeopleSelectCtrl', PeopleSelectCtrl)
         ;
 })();
+

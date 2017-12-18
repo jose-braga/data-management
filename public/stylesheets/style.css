@@ -55,6 +55,15 @@ a {
   padding-top: 0px;
 }
 
+.input-no-margin.simple-input.extra-small {
+  height: 16px;
+  width: 30px;
+}
+
+.input-no-margin.simple-input.extra-small input{
+  width: 30px;
+}
+
 .input-no-margin .md-datepicker-triangle-button.md-icon-button.md-button {
   margin-top: 0px;
   padding-top: 0px;
@@ -332,6 +341,10 @@ md-select-menu ._md .scrollable{
 .search-header span {
   font-size: 20px;
   font-weight: bold;
+}
+
+.small-top {
+  margin-top: 5px;
 }
 
 

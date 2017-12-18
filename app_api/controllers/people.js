@@ -3585,6 +3585,7 @@ var queryOngoingDegreesPerson = function (req, res, next, userCity) {
 var queryAddOngoingDegreePerson = function (req,res, next, userCity, otherSQL, otherPlaces, personID,
                                      newDegrees, i) {
     newDegrees[i].degree_start = momentToDate(newDegrees[i].degree_start);
+    newDegrees[i].degree_estimate_end = momentToDate(newDegrees[i].degree_estimate_end);
     newDegrees[i].degree_end = momentToDate(newDegrees[i].degree_end);
     var query = 'INSERT INTO `degrees_people`' +
                    ' (`person_id`,`degree_id`,`area`,`institution`,`program`,`title`,`start`,`estimate_end`,`end`)' +

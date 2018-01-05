@@ -929,6 +929,9 @@
             }
 
         };
+        vm.removeRows = function (current, ind) {
+            current.splice(ind,1);
+        };
         vm.addAuthorName = function (chip) {
             for (var el in vm.thisPerson.author_data) {
                 if (typeof vm.thisPerson.author_data[el] === 'string') {
@@ -1302,6 +1305,7 @@
             for (var ind in vm.personPublications) {
                 if (pub.people_publications_id === vm.personPublications[ind].people_publications_id) {
                     vm.personPublications[ind].selected = pub.selected;
+                    vm.personPublications[ind].selected_by = vm.currentUser.personID;
                     break;
                 }
             }
@@ -1396,7 +1400,8 @@
                 .then(function (response) {
                     vm.personPublications = response.data.result;
                     for (var el in vm.personPublications) {
-                        if (vm.personPublications[el].selected !== null) {
+                        if (vm.personPublications[el].selected !== null
+                                && vm.personPublications[el].selected_by === vm.currentUser.personID) {
                             vm.personPublications[el].selected = true;
                         } else {
                             vm.personPublications[el].selected = false;

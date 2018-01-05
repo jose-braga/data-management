@@ -144,7 +144,7 @@ var queryPersonPublications = function (req, res, next) {
     var places = [];
     querySQL = querySQL + 'SELECT people_publications.id AS people_publications_id, people_publications.position AS author_position,' +
                                 ' people_publications.author_type_id, author_types.name_en AS author_type, ' +
-                                ' person_selected_publications.publication_id AS selected, publications.*,' +
+                                ' person_selected_publications.publication_id AS selected, person_selected_publications.person_id AS selected_by, publications.*,' +
                                 ' journals.name AS journal_name, journals.short_name AS journal_short_name, ' +
                                 ' journals.publisher, journals.publisher_city, journals.issn, journals.eissn ' +
                           'FROM people_publications' +
@@ -152,8 +152,8 @@ var queryPersonPublications = function (req, res, next) {
                           ' LEFT JOIN publications ON people_publications.publication_id = publications.id' +
                           ' LEFT JOIN person_selected_publications ON person_selected_publications.publication_id = publications.id' +
                           ' LEFT JOIN journals ON publications.journal_id = journals.id' +
-                          ' WHERE people_publications.person_id = ?;';
-    places.push(personID);
+                          ' WHERE people_publications.person_id = ?';
+    places.push(personID,personID);
     pool.getConnection(function(err, connection) {
         if (err) {
             sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
@@ -173,7 +173,34 @@ var queryPersonPublications = function (req, res, next) {
                         "result" : []});
                     return;
                 }
-                return queryPublicationDescription(req,res,next,resQuery,0);
+                var processed_result = [];
+                var rows_to_skip = [];
+                for (var ind in resQuery) {
+                    if (rows_to_skip.indexOf(ind) === -1) {
+                        if (resQuery[ind].selected === null) {
+                            processed_result.push(resQuery[ind]);
+                            rows_to_skip.push(ind);
+                        } else {
+                            var found = false;
+                            for (var ind_dup in resQuery) {
+                                if (ind_dup !== ind
+                                        && resQuery[ind_dup].id == resQuery[ind].id) {
+                                    rows_to_skip.push(ind_dup);
+
+                                    if (resQuery[ind_dup].selected_by == personID) {
+                                        processed_result.push(resQuery[ind_dup]);
+                                        found = true;
+                                    }
+                                }
+                            }
+                            if (!found) {
+                                processed_result.push(resQuery[ind]);
+                                rows_to_skip.push(ind);
+                            }
+                        }
+                    }
+                }
+                return queryPublicationDescription(req,res,next,processed_result,0);
             }
         );
     });

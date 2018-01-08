@@ -1316,9 +1316,11 @@
                 var authors = pub.authors_raw.split('; ');
                 for (var ind in pub.unit_authors) {
                     // - 1 to convert from position to array index
-                    authors[pub.unit_authors[ind].position - 1] = authors[pub.unit_authors[ind].position - 1] + '^';
-                    if (pub.unit_authors[ind].author_type_id === 1) {
-                        authors[pub.unit_authors[ind].position - 1] = authors[pub.unit_authors[ind].position - 1] + '(corresp.)';
+                    if (pub.unit_authors[ind].position !== null && pub.unit_authors[ind].position !== undefined) {
+                        authors[pub.unit_authors[ind].position - 1] = authors[pub.unit_authors[ind].position - 1] + '^';
+                        if (pub.unit_authors[ind].author_type_id === 1) {
+                            authors[pub.unit_authors[ind].position - 1] = authors[pub.unit_authors[ind].position - 1] + '(corresp.)';
+                        }
                     }
                 }
                 var authors_str = '';
@@ -1554,7 +1556,7 @@
             }
             if (journal !== null) {
                 journal = journal.replace(/&amp;/g,'&');
-                pub.edit_journal == false;
+                pub.edit_journal = false;
             }
             pub.journal_name = journal;
             var contributors = [];
@@ -1589,9 +1591,17 @@
                             if (pg !== null) pages = pg[1];
                             var aut = data.citation['citation-value'].match(/author = {(.*?)}/);
                             if (aut !== null) authors = aut[1];
+                            var j = data.citation['citation-value'].match(/journal = {(.*?)}/);
+                            if (journal === null) {
+                                if (j !== null) {
+                                    journal = j[1];
+                                    pub.journal_name = journal;
+                                    pub.edit_journal = false;
+                                }
+                            }
                         }
                     } else {
-                        alert(data.citation['citation-type']);
+                        alert('This data is not in an automatically parsed format (Bibtex), please add additional info below\nData format: ' + data.citation['citation-type']);
                     }
                 }
             }

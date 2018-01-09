@@ -23,6 +23,10 @@
                         class="s48"></md-icon>
             </md-button>
         </div>
+        <div>
+            This list contains <strong>{{vm.personPublications.length}} publications</strong>.
+        </div>
+
         <form flex novalidate name="personPublicationsForm"
                 ng-submit="personPublicationsForm.$valid && vm.submitSelectedPersonPublications(vm.forms['personSelectedPub'])">
             <div class="small-screens" layout="column" ng-if="!vm.showTable()">

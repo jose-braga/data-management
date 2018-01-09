@@ -22,7 +22,29 @@
                 </md-button>
             </div>
            <!-- <p> This information about your team members is {{infoFormCompletion | number:0}}% complete</p> -->
-            <div class="small-screens" layout="column" hide-gt-sm show-sm show-xs>
+           <div layout="row" class="paginator">
+                <md-input-container class="input-no-margin wider">
+                    <label>Results/page</label>
+                    <md-select ng-model="pageSize"
+                            md-on-close="renderPeople('new')"
+                            aria-label="pageSize"
+                            name="pageSize">
+                            <md-option ng-value="10">10</md-option>
+                            <md-option ng-value="20">20</md-option>
+                            <md-option ng-value="50">50</md-option>
+                    </md-select>
+                </md-input-container>
+                <md-input-container class="input-no-margin">
+                    <label>Page</label>
+                    <md-select ng-model="currentPage"
+                            md-on-close="renderPeople('page')"
+                            aria-label="currentPage"
+                            name="currentPage">
+                            <md-option ng-repeat="page in pages" ng-value="page">{{page}}</md-option>
+                    </md-select>
+                </md-input-container>
+            </div>
+            <div class="small-screens spacer-top" layout="column" hide-gt-sm show-sm show-xs>
                 <div ng-repeat="(memberNum,member) in currPeople track by $index">
                     <div layout="column">
                         <div layout="row" layout-align=" center">
@@ -115,7 +137,7 @@
                 </div>
             </div>
 
-            <div show-gt-sm hide-sm hide-xs>
+            <div show-gt-sm hide-sm hide-xs class="spacer-top">
                 <table>
                     <thead>
                         <tr>

@@ -3,6 +3,8 @@ var server = require('../models/server');
 var pool = server.pool;
 var levenshtein = require('fast-levenshtein');
 
+/* TODO: on update selected publications don't throw error if empty  */
+
 
 /**************************** Utility Functions *******************************/
 var sendJSONResponse = function(res, status, content) {
@@ -405,25 +407,30 @@ var queryUpdatePersonSelectedPublications = function (req, res, next) {
                               ' WHERE person_id = ? AND publication_id = ?;';
         places.push(personID,del[ind].id);
     }
-    pool.getConnection(function(err, connection) {
-        if (err) {
-            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
-            return;
-        }
-        connection.query(querySQL,places,
-            function (err, resQuery) {
-                // And done with the connection.
-                connection.release();
-                if (err) {
-                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
-                    return;
-                }
-                sendJSONResponse(res, 200,
-                    {"status": "success", "statusCode": 200, "count": 1,
-                     "result" : "OK!"});
+    if (add.length !== 0 || del.length !== 0) {
+        pool.getConnection(function(err, connection) {
+            if (err) {
+                sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+                return;
             }
-        );
-    });
+            connection.query(querySQL,places,
+                function (err, resQuery) {
+                    // And done with the connection.
+                    connection.release();
+                    if (err) {
+                        sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                        return;
+                    }
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 1,
+                         "result" : "OK!"});
+                }
+            );
+        });
+    } else {
+        sendJSONResponse(res, 200, {"status": "No changes", "statusCode": 200});
+                        return;
+    }
 };
 
 var queryUpdatePersonAuthorNames = function (req, res, next) {

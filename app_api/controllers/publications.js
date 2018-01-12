@@ -3,9 +3,6 @@ var server = require('../models/server');
 var pool = server.pool;
 var levenshtein = require('fast-levenshtein');
 
-/* TODO: on update selected publications don't throw error if empty  */
-
-
 /**************************** Utility Functions *******************************/
 var sendJSONResponse = function(res, status, content) {
     res.status(status);

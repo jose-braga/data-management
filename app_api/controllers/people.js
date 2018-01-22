@@ -617,6 +617,7 @@ function joinLabs(rows) {
                 lab_history: [{
                     group_id: rows[ind].group_id,
                     group_name: rows[ind].group_name,
+                    group_short_name: rows[ind].group_short_name,
                     labs_groups_valid_from: rows[ind].labs_groups_valid_from,
                     labs_groups_valid_until: rows[ind].labs_groups_valid_until,
                     unit_id: rows[ind].unit_id,
@@ -633,6 +634,7 @@ function joinLabs(rows) {
                         labObj.lab_history.push({
                             group_id: rows[ind2].group_id,
                             group_name: rows[ind2].group_name,
+                            group_short_name: rows[ind2].group_short_name,
                             labs_groups_valid_from: rows[ind2].labs_groups_valid_from,
                             labs_groups_valid_until: rows[ind2].labs_groups_valid_until,
                             unit_id: rows[ind2].unit_id,

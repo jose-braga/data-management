@@ -5022,6 +5022,39 @@ module.exports.searchPeople = function (req, res, next) {
 
     escapedQueryPersonSearch(querySQL, places, mergeRules, req, res, next);
 };
+
+module.exports.getAllPeople = function (req, res, next) {
+    var querySQL = 'SELECT people.id, people.name AS full_name, people.colloquial_name AS name,' +
+                   ' people.active_from, people.active_until,' +
+                   ' emails.email, phones.phone, phones.extension AS phone_extension,' +
+                   ' people_labs.valid_from AS lab_start, people_labs.valid_until AS lab_end,' +
+                   ' labs.id AS lab_id, labs.name AS lab_name,' +
+                   ' labs_groups.valid_from AS labs_groups_valid_from, labs_groups.valid_until AS labs_groups_valid_until,' +
+                   ' groups.id AS group_id, groups.name AS group_name,' +
+                   ' units.id AS unit_id, units.name AS unit_name,' +
+                   ' lab_positions.id AS lab_position_id, lab_positions.name_en AS lab_position_name_en, lab_positions.name_pt  AS lab_position_name_pt,' +
+                   ' personal_photo.url AS image_path' +
+                  ' FROM people' +
+                  ' LEFT JOIN emails ON people.id = emails.person_id' +
+                  ' LEFT JOIN phones ON people.id = phones.person_id' +
+                  ' LEFT JOIN people_labs ON people.id = people_labs.person_id' +
+                  ' LEFT JOIN labs ON labs.id = people_labs.lab_id' +
+                  ' LEFT JOIN labs_groups ON labs_groups.lab_id = labs.id' +
+                  ' LEFT JOIN groups ON labs_groups.group_id = groups.id' +
+                  ' LEFT JOIN groups_units ON groups_units.group_id = groups.id' +
+                  ' LEFT JOIN units ON groups_units.unit_id = units.id' +
+                  ' LEFT JOIN lab_positions ON lab_positions.id = people_labs.lab_position_id' +
+                  ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
+                  ' WHERE people.status = ?;';
+    var places = [1];
+    var mergeRules = [
+                      ['lab_data', 'lab_start', 'lab_end', 'lab_position_id','lab_position_name_en','lab_position_name_pt',
+                       'lab_id','lab_name','labs_groups_valid_from','labs_groups_valid_until','group_id','group_name','unit_id', 'unit_name']
+                    ];
+
+    escapedQueryPersonSearch(querySQL, places, mergeRules, req, res, next);
+};
+
 module.exports.getPersonInfo = function (req, res, next) {
     var personID = req.params.personID;
     var querySQL = 'SELECT people.id, people.name AS full_name, people.colloquial_name AS name,' +
@@ -5053,6 +5086,54 @@ module.exports.getPersonInfo = function (req, res, next) {
                     ];
 
     escapedQueryPersonSearch(querySQL, places, mergeRules, req, res, next);
+};
+module.exports.getGroupInfo = function (req, res, next) {
+    var groupID = req.params.groupID;
+    var querySQL = 'SELECT groups.id AS group_id, groups.name, groups.short_name AS group_short_name, ' +
+                   ' groups.started, groups.finished, ' +
+                   ' units.id AS unit_id, units.short_name AS unit, units.name AS unit_full_name' +
+                   ' FROM groups' +
+                   ' LEFT JOIN groups_units ON groups_units.group_id = groups.id' +
+                   ' LEFT JOIN units ON groups_units.unit_id = units.id' +
+                   ' WHERE groups.id = ?;';
+    var places = [groupID];
+    escapedQuery(querySQL, places, req, res, next);
+};
+module.exports.getLabInfo = function (req, res, next) {
+    var labID = req.params.labID;
+    var querySQL = 'SELECT labs.id AS lab_id, labs.name AS lab, labs.short_name AS lab_short_name,' +
+                   ' labs.started AS lab_opened, labs.finished AS lab_closed, ' +
+                   ' labs_groups.valid_from AS labs_groups_valid_from, labs_groups.valid_until AS labs_groups_valid_until,' +
+                   ' groups.id AS group_id, groups.name AS group_name, groups.short_name AS group_short_name,' +
+                   ' units.id AS unit_id, units.short_name AS unit, units.name AS unit_full_name' +
+                   ' FROM labs' +
+                   ' LEFT JOIN labs_groups ON labs_groups.lab_id = labs.id' +
+                   ' LEFT JOIN groups ON labs_groups.group_id = groups.id' +
+                   ' LEFT JOIN groups_units ON groups_units.group_id = groups.id' +
+                   ' LEFT JOIN units ON groups_units.unit_id = units.id' +
+                   ' WHERE labs.id = ?;';
+    var places = [labID];
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL, places,
+            function (err, rowsQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                rowsQuery = joinLabs(rowsQuery);
+                sendJSONResponse(res, 200,
+                    {"status": "success", "statusCode": 200, "count": 1,
+                      "result" : rowsQuery});
+                return;
+            }
+        );
+    });
 };
 module.exports.getLabMembers = function (req, res, next) {
     var now = momentToDate(moment());

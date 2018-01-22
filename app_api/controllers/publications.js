@@ -911,6 +911,88 @@ module.exports.getPublicationInfo = function (req, res, next) {
         );
     });
 };
+module.exports.getAllPublications = function (req, res, next) {
+    var querySQL = 'SELECT person_selected_publications.person_id AS person_selected,' +
+                    ' lab_selected_publications.lab_id AS lab_selected,'+
+                    ' people_publications.person_id,' +
+                    ' labs_publications.lab_id,' +
+                    ' publications.*,' +
+                    ' journals.name AS journal_name, journals.short_name AS journal_short_name, ' +
+                    ' journals.publisher, journals.publisher_city, journals.issn, journals.eissn ' +
+                    'FROM publications' +
+                    ' LEFT JOIN people_publications ON people_publications.publication_id = publications.id' +
+                    ' LEFT JOIN labs_publications ON labs_publications.publication_id = publications.id' +
+                    ' LEFT JOIN person_selected_publications ON person_selected_publications.publication_id = publications.id' +
+                    ' LEFT JOIN lab_selected_publications ON lab_selected_publications.publication_id = publications.id' +
+                    ' LEFT JOIN journals ON publications.journal_id = journals.id' +
+                    ' ;';
+    var places = [];
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if(resQuery.length === 0 || resQuery === undefined) {
+                    sendJSONResponse(res, 200,
+                        {"status": "No data returned!", "statusCode": 200, "count": 1,
+                        "result" : []});
+                    return;
+                }
+                var rowsSkip = [];
+                var publications = [];
+                for (var indRow in resQuery) {
+                    indRow = Number.parseInt(indRow,10);
+                    if (rowsSkip.indexOf(indRow) === -1) {
+                        rowsSkip.push(indRow);
+                        var person_selected = [];
+                        if (resQuery[indRow].person_selected !== null) person_selected.push(resQuery[indRow].person_selected);
+                        var lab_selected = [];
+                        if (resQuery[indRow].lab_selected !== null) lab_selected.push(resQuery[indRow].lab_selected);
+                        var person = [];
+                        if (resQuery[indRow].person_id !== null) person.push(resQuery[indRow].person_id);
+                        var lab = [];
+                        if (resQuery[indRow].lab_id !== null) lab.push(resQuery[indRow].lab_id);
+                        for (var ind = indRow + 1; ind < resQuery.length; ind++) {
+                            if (resQuery[ind].id == resQuery[indRow].id) {
+                                rowsSkip.push(ind);
+                                if (resQuery[ind].person_selected !== null) {
+                                    if (person_selected.indexOf(resQuery[ind].person_selected) === -1) {person_selected.push(resQuery[ind].person_selected);}
+                                }
+                                if (resQuery[ind].lab_selected !== null) {
+                                    if (lab_selected.indexOf(resQuery[ind].lab_selected) === -1) {lab_selected.push(resQuery[ind].lab_selected);}
+                                }
+                                if (resQuery[ind].person_id !== null) {
+                                    if (person.indexOf(resQuery[ind].person_id) === -1) {person.push(resQuery[ind].person_id);}
+                                }
+                                if (resQuery[ind].lab_id !== null) {
+                                    if (lab.indexOf(resQuery[ind].lab_id) === -1) {lab.push(resQuery[ind].lab_id);}
+                                }
+                            }
+                        }
+                        resQuery[indRow].person_selected = person_selected;
+                        resQuery[indRow].lab_selected = lab_selected;
+                        resQuery[indRow].person_id = person;
+                        resQuery[indRow].lab_id = lab;
+                        publications.push(resQuery[indRow]);
+                    }
+
+                }
+                sendJSONResponse(res, 200,
+                    {"status": "success", "statusCode": 200, "count": publications.length,
+                     "result" : publications});
+                return;
+            }
+        );
+    });
+};
 module.exports.getPersonPublicationInfo = function (req, res, next) {
     var personID = req.params.personID;
     var querySQL = 'SELECT people_publications.author_type_id,' +

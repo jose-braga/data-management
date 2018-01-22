@@ -20,11 +20,15 @@ var ctrlAuth = require('../controllers/authentication.js');
 /************************* PUBLIC API ENDPOINTS for v1 ************************/
 // GET for person
 router.get('/v1/person', ctrlPeopleData.searchPeople);
+router.get('/v1/person/all', ctrlPeopleData.getAllPeople);
 router.get('/v1/person/:personID', ctrlPeopleData.getPersonInfo);
+router.get('/v1/group/:groupID', ctrlPeopleData.getGroupInfo);
+router.get('/v1/lab/:labID', ctrlPeopleData.getLabInfo);
 router.get('/v1/group/:groupID/lab/:labID/members', ctrlPeopleData.getLabMembers);
 // GET lists for several purposes (no need to authenticate)
 router.get('/v1/list/:listOf', ctrlPeopleData.listOf);
 // GET search for person name
+router.get('/v1/publication/all', ctrlPublicationsData.getAllPublications);
 router.get('/v1/publication/:pubID', ctrlPublicationsData.getPublicationInfo);
 router.get('/v1/publication/person/:personID', ctrlPublicationsData.getPersonPublicationInfo);
 router.get('/v1/publication/group/:groupID/lab/:labID', ctrlPublicationsData.getLabPublicationInfo);

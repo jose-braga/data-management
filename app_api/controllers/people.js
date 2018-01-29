@@ -1590,15 +1590,17 @@ var queryUpdateScienceManagerAffiliations = function (req, res, next, userCity, 
                           ' `dedication` = ?,' +
                           ' `valid_from` = ?,' +
                           ' `valid_until` = ?' +
-                          ' WHERE `id` = ?';
-    querySQL = querySQL + '; ';
+                          ' WHERE `id` = ?; ';
     places.push(data.sc_man_office_id, data.sc_man_position_id, data.sc_man_dedication,
                 data.sc_man_valid_from, data.sc_man_valid_until, data.sc_man_id);
+    querySQL = querySQL + 'UPDATE `science_managers_units`' +
+                          ' SET `unit_id` = ?' +
+                          ' WHERE `science_manager_id` = ?; ';
+    places.push(data.sc_man_unit_id, data.sc_man_id);
     querySQL = querySQL + 'INSERT INTO `science_managers_history`' +
                           ' (`science_managers_id`,`person_id`,`science_manager_office_id`,`science_manager_position_id`,`dedication`,'+
                             '`valid_from`,`valid_until`,`updated`,`operation`,`changed_by`)' +
-                          ' VALUES (?,?,?,?,?,?,?,?,?,?)';
-    querySQL = querySQL + '; ';
+                          ' VALUES (?,?,?,?,?,?,?,?,?,?);';
     places.push(data.sc_man_id,personID, data.sc_man_office_id, data.sc_man_position_id,data.sc_man_dedication,
                 data.sc_man_valid_from,data.sc_man_valid_until,
                 updated,'U',changed_by);
@@ -1638,6 +1640,9 @@ var queryDeleteScienceManagerAffiliations = function (req, res, next, userCity, 
     var querySQL = '';
     data.sc_man_valid_from = momentToDate(data.sc_man_valid_from);
     data.sc_man_valid_until = momentToDate(data.sc_man_valid_until);
+    querySQL = querySQL + 'DELETE FROM `science_managers_units`' +
+                          ' WHERE science_manager_id = ?;';
+    places.push(data.sc_man_id);
     querySQL = querySQL + 'DELETE FROM `science_managers`' +
                           ' WHERE id=?';
     querySQL = querySQL + '; ';
@@ -1717,6 +1722,11 @@ var queryAddScienceManagerAffiliationsHistory = function (req, res, next, userCi
     var querySQL = '';
     data.sc_man_valid_from = momentToDate(data.sc_man_valid_from);
     data.sc_man_valid_until = momentToDate(data.sc_man_valid_until);
+    querySQL = querySQL + 'INSERT INTO `science_managers_units`' +
+                          ' (`science_manager_id`,`unit_id`)' +
+                          ' VALUES (?, ?)';
+    querySQL = querySQL + '; ';
+    places.push(scManID, data.sc_man_unit_id);
     querySQL = querySQL + 'INSERT INTO `science_managers_history`' +
                           ' (`science_managers_id`,`person_id`,`science_manager_office_id`,`science_manager_position_id`,`dedication`,'+
                             '`valid_from`,`valid_until`,`created`,`operation`,`changed_by`)' +
@@ -4485,11 +4495,14 @@ var queryGetTechnicianData = function (req,res,next, personID, row) {
 var queryGetScienceManagerAffiliation = function (req,res,next, personID, row) {
     var query = 'SELECT science_managers.id AS sc_man_id,' +
                 ' science_managers.science_manager_office_id AS sc_man_office_id,science_manager_offices.name_en AS sc_man_office_name_en,'+
+                ' science_managers_units.unit_id AS sc_man_unit_id, units.short_name AS sc_man_unit_short_name, units.name AS sc_man_unit_name, '+
                 ' science_managers.science_manager_position_id AS sc_man_position_id,science_manager_positions.name_en AS sc_man_position_name_en,' +
                 ' science_managers.dedication AS sc_man_dedication,' +
                 ' science_managers.valid_from AS sc_man_valid_from,science_managers.valid_until AS sc_man_valid_until' +
                 ' FROM people' +
                 ' LEFT JOIN science_managers ON people.id = science_managers.person_id' +
+                ' LEFT JOIN science_managers_units ON science_managers.id = science_managers_units.science_manager_id' +
+                ' LEFT JOIN units ON science_managers_units.unit_id = units.id' +
                 ' LEFT JOIN science_manager_offices ON science_managers.science_manager_office_id = science_manager_offices.id' +
                 ' LEFT JOIN science_manager_positions ON science_managers.science_manager_position_id = science_manager_positions.id' +
                 ' WHERE people.id = ?;';
@@ -5068,6 +5081,10 @@ module.exports.getPersonInfo = function (req, res, next) {
                    ' groups.id AS group_id, groups.name AS group_name,' +
                    ' units.id AS unit_id, units.name AS unit_name,' +
                    ' lab_positions.id AS lab_position_id, lab_positions.name_en AS lab_position_name_en, lab_positions.name_pt  AS lab_position_name_pt,' +
+                   ' science_managers.id AS science_manager_id, science_managers.science_manager_office_id, science_manager_offices.name_en AS science_manager_office_name,' +
+                   ' science_managers.valid_from AS science_manager_start, science_managers.valid_until AS science_manager_end,' +
+                   ' science_managers_units.unit_id AS science_manager_unit_id, science_manager_units.name AS science_manager_unit_name,' +
+                   ' science_managers.science_manager_position_id, science_manager_positions.name_en AS science_manager_position_name_en, science_manager_positions.name_pt AS science_manager_position_name_pt,' +
                    ' personal_photo.url AS image_path' +
                   ' FROM people' +
                   ' LEFT JOIN emails ON people.id = emails.person_id' +
@@ -5079,12 +5096,20 @@ module.exports.getPersonInfo = function (req, res, next) {
                   ' LEFT JOIN groups_units ON groups_units.group_id = groups.id' +
                   ' LEFT JOIN units ON groups_units.unit_id = units.id' +
                   ' LEFT JOIN lab_positions ON lab_positions.id = people_labs.lab_position_id' +
+                  ' LEFT JOIN science_managers ON science_managers.person_id = people.id' +
+                  ' LEFT JOIN science_manager_offices ON science_manager_offices.id = science_managers.science_manager_office_id' +
+                  ' LEFT JOIN science_managers_units ON science_managers_units.science_manager_id = science_managers.id' +
+                  ' LEFT JOIN units AS science_manager_units ON science_manager_units.id = science_managers_units.unit_id' +
+                  ' LEFT JOIN science_manager_positions ON science_manager_positions.id = science_managers.science_manager_position_id' +
+
                   ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
                   ' WHERE people.id = ?;';
     var places = [personID];
     var mergeRules = [
                       ['lab_data', 'lab_start', 'lab_end', 'lab_position_id','lab_position_name_en','lab_position_name_pt',
-                       'lab_id','lab_name','labs_groups_valid_from','labs_groups_valid_until','group_id','group_name','unit_id', 'unit_name']
+                       'lab_id','lab_name','labs_groups_valid_from','labs_groups_valid_until','group_id','group_name','unit_id', 'unit_name'],
+                      ['science_management_data', 'science_manager_start', 'science_manager_end', 'science_manager_position_id','science_manager_position_name_en','science_manager_position_name_pt',
+                       'science_manager_id','science_manager_office_id','science_manager_office_name','science_manager_unit_id','science_manager_unit_name']
                     ];
 
     escapedQueryPersonSearch(querySQL, places, mergeRules, req, res, next);

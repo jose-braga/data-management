@@ -103,7 +103,19 @@
                                 <ng-md-icon ng-if="vm.sortReverse  && vm.sortType=='year'"
                                         icon="arrow_upwards" size="12"></ng-md-icon>
                             </th>
-                            <th  class="smaller-width">Sel.</th>
+                            <th  class="smaller-width">
+                                <md-icon md-svg-src="images/icons/star_18px.svg">
+                                     <md-tooltip md-direction="top">
+                                          Highlighted publication
+                                    </md-tooltip>
+                                </md-icon>
+                            </th>
+                            <th  class="smaller-width">
+                                <md-icon md-svg-src="images/icons/public_24px.svg">
+                                    <md-tooltip md-direction="top">
+                                          Visible on other platforms (e.g. website)
+                                    </md-tooltip>
+                                </md-icon></th>
                             <th class="small-width"></th>
 
                         </tr>
@@ -117,6 +129,10 @@
                             <td layout-align="center center">
                                 <md-checkbox class="center-tick" name="selectedPublication" aria-label="Selected Publication"
                                         ng-change="vm.changeSelectedStatus(publication)" ng-model="publication.selected"></md-checkbox>
+                            </td>
+                            <td>
+                                <md-checkbox class="center-tick" name="publicPublication" aria-label="Selected Publication"
+                                        ng-change="vm.changePublicStatus(publication)" ng-model="publication.public"></md-checkbox>
                             </td>
                             <td>
                                 <md-button ng-click="vm.showDetailsPublication(publication)"
@@ -159,7 +175,10 @@
             </div>
             <div layout="column" layout-gt-sm="row" layout-align="none center">
                 <md-button type="submit"
-                    class="button-small md-raised md-primary">Update "Selected"</md-button>
+                    class="button-small md-raised md-primary">
+                        Update <md-icon class="white-icon" md-svg-src="images/icons/star_18px.svg"></md-icon> &
+                               <md-icon class="white-icon" md-svg-src="images/icons/public_24px.svg"></md-icon>
+                </md-button>
                 <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personSelectedPub']]">
                     <span class="message" ng-class="vm.messageType[vm.forms['personSelectedPub']]">
                         {{vm.updateStatus[vm.forms['personSelectedPub']]}}

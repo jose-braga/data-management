@@ -1310,6 +1310,14 @@
                 }
             }
         };
+        vm.changePublicStatus = function (pub) {
+            for (var ind in vm.personPublications) {
+                if (pub.people_publications_id === vm.personPublications[ind].people_publications_id) {
+                    vm.personPublications[ind].public = pub.public;
+                    break;
+                }
+            }
+        };
         vm.showDetailsPublication = function (pub) {
             if (vm.pubTitles.indexOf(pub.title) === -1) {
                 vm.pubTitles.push(pub.title);
@@ -1407,6 +1415,11 @@
                             vm.personPublications[el].selected = true;
                         } else {
                             vm.personPublications[el].selected = false;
+                        }
+                        if (vm.personPublications[el].public === 1) {
+                            vm.personPublications[el].public = true;
+                        } else {
+                            vm.personPublications[el].public = false;
                         }
                     }
                     vm.originalPersonPublications = JSON.parse(JSON.stringify(vm.personPublications));
@@ -2372,6 +2385,8 @@
         function processSelectedPub(current, original) {
             var add = [];
             var del = [];
+            var addPublic = [];
+            var delPublic = [];
             for (var curr in current) {
                 for (var ori in original) {
                     if (current[curr].people_publications_id === original[ori].people_publications_id) {
@@ -2380,6 +2395,11 @@
                         } else if (current[curr].selected === false && original[ori].selected === true) {
                             del.push(current[curr]);
                         }
+                        if (current[curr].public === true && original[ori].public === false) {
+                            addPublic.push(current[curr]);
+                        } else if (current[curr].public === false && original[ori].public === true) {
+                            delPublic.push(current[curr]);
+                        }
                         break;
                     }
                 }
@@ -2387,6 +2407,8 @@
             var objReturn = {};
             objReturn['addSelectedPub'] = add;
             objReturn['delSelectedPub'] = del;
+            objReturn['addPublicPub'] = addPublic;
+            objReturn['delPublicPub'] = delPublic;
             return objReturn;
         }
         function convertData(arrObj) {

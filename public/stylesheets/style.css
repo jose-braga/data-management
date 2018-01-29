@@ -405,3 +405,7 @@ ul.help-list li{
 .warning {
   color: red;
 }
+
+.white-icon svg{
+  fill: #ffffff;
+}

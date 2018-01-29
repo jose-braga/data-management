@@ -141,7 +141,7 @@ var queryPersonPublications = function (req, res, next) {
     var personID = req.params.personID;
     var querySQL = '';
     var places = [];
-    querySQL = querySQL + 'SELECT people_publications.id AS people_publications_id, people_publications.position AS author_position,' +
+    querySQL = querySQL + 'SELECT people_publications.id AS people_publications_id, people_publications.public, people_publications.position AS author_position,' +
                                 ' people_publications.author_type_id, author_types.name_en AS author_type, ' +
                                 ' person_selected_publications.publication_id AS selected, person_selected_publications.person_id AS selected_by, publications.*,' +
                                 ' journals.name AS journal_name, journals.short_name AS journal_short_name, ' +
@@ -391,6 +391,8 @@ var queryUpdatePersonSelectedPublications = function (req, res, next) {
     var personID = req.params.personID;
     var add = req.body.addSelectedPub;
     var del = req.body.delSelectedPub;
+    var addPublic = req.body.addPublicPub;
+    var delPublic = req.body.delPublicPub;
     var querySQL = '';
     var places = [];
     for (var ind in add) {
@@ -404,7 +406,19 @@ var queryUpdatePersonSelectedPublications = function (req, res, next) {
                               ' WHERE person_id = ? AND publication_id = ?;';
         places.push(personID,del[ind].id);
     }
-    if (add.length !== 0 || del.length !== 0) {
+    for (var ind in addPublic) {
+        querySQL = querySQL + 'UPDATE people_publications' +
+                              ' SET public = 1' +
+                              ' WHERE person_id = ? AND publication_id  = ?;';
+        places.push(personID,addPublic[ind].id);
+    }
+    for (var ind in delPublic) {
+        querySQL = querySQL + 'UPDATE people_publications' +
+                              ' SET public = 0' +
+                              ' WHERE person_id = ? AND publication_id  = ?;';
+        places.push(personID,delPublic[ind].id);
+    }
+    if (add.length !== 0 || del.length !== 0 || addPublic.length !== 0 || delPublic.length !== 0) {
         pool.getConnection(function(err, connection) {
             if (err) {
                 sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});

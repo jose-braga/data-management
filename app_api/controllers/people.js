@@ -291,10 +291,8 @@ var escapedQueryPersonSearch = function(querySQL, place, rules, req, res, next, 
             if (type === undefined) {
                 rows = filterLabTimes(rows);
             }
-            console.log(rows)
             var uniquePersons = uniqueIDs(rows,'id');
             var rowsProcessed = compactData(rows,uniquePersons, rules);
-            console.log(rowsProcessed)
             sendJSONResponse(res, 200,
                 {"status": "success", "statusCode": 200, "count": rowsProcessed.length,
                  "result" : rowsProcessed});

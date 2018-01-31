@@ -274,7 +274,7 @@ var escapedQuery = function(querySQL, place, req, res, next) {
     });
 };
 
-var escapedQueryPersonSearch = function(querySQL, place, rules, req, res, next) {
+var escapedQueryPersonSearch = function(querySQL, place, rules, req, res, next, type) {
     pool.getConnection(function(err, connection) {
         if (err) {
             sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
@@ -288,9 +288,13 @@ var escapedQueryPersonSearch = function(querySQL, place, rules, req, res, next) 
                 sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                 return;
             }
-            rows = filterLabTimes(rows);
+            if (type === undefined) {
+                rows = filterLabTimes(rows);
+            }
+            console.log(rows)
             var uniquePersons = uniqueIDs(rows,'id');
             var rowsProcessed = compactData(rows,uniquePersons, rules);
+            console.log(rowsProcessed)
             sendJSONResponse(res, 200,
                 {"status": "success", "statusCode": 200, "count": rowsProcessed.length,
                  "result" : rowsProcessed});
@@ -1388,6 +1392,10 @@ var queryUpdateTechnicianAffiliations = function (req, res, next, userCity, pers
     querySQL = querySQL + '; ';
     places.push(data.tech_office_id, data.tech_position_id, data.tech_dedication,
                 data.tech_valid_from,data.tech_valid_until, data.tech_id);
+    querySQL = querySQL + 'UPDATE `technicians_units`' +
+                          ' SET `unit_id` = ?' +
+                          ' WHERE `technician_id` = ?; ';
+    places.push(data.tech_unit_id, data.tech_id);
     querySQL = querySQL + 'INSERT INTO `technicians_history`' +
                           ' (`technician_id`,`person_id`,`technician_office_id`,`technician_position_id`,`dedication`,'+
                             '`valid_from`,`valid_until`,`updated`,`operation`,`changed_by`)' +
@@ -1432,6 +1440,9 @@ var queryDeleteTechnicianAffiliations = function (req, res, next, userCity, pers
     var querySQL = '';
     data.tech_valid_from = momentToDate(data.tech_valid_from);
     data.tech_valid_until = momentToDate(data.tech_valid_until);
+    querySQL = querySQL + 'DELETE FROM `technicians_units`' +
+                          ' WHERE technician_id = ?;';
+    places.push(data.tech_id);
     querySQL = querySQL + 'DELETE FROM `technicians`' +
                           ' WHERE id=?';
     querySQL = querySQL + '; ';
@@ -1513,6 +1524,11 @@ var queryAddTechnicianAffiliationsHistory = function (req, res, next, userCity, 
     var querySQL = '';
     data.tech_valid_from = momentToDate(data.tech_valid_from);
     data.tech_valid_until = momentToDate(data.tech_valid_until);
+    querySQL = querySQL + 'INSERT INTO `technicians_units`' +
+                          ' (`technician_id`,`unit_id`)' +
+                          ' VALUES (?, ?)';
+    querySQL = querySQL + '; ';
+    places.push(techID, data.tech_unit_id);
     querySQL = querySQL + 'INSERT INTO `technicians_history`' +
                           ' (`technician_id`,`person_id`,`technician_office_id`,`technician_position_id`,`dedication`,'+
                             '`valid_from`,`valid_until`,`created`,`operation`,`changed_by`)' +
@@ -1806,6 +1822,10 @@ var queryUpdateAdministrativeAffiliations = function (req, res, next, userCity, 
     querySQL = querySQL + '; ';
     places.push(data.adm_office_id, data.adm_position_id, data.adm_dedication,
                 data.adm_valid_from, data.adm_valid_until, data.adm_id);
+    querySQL = querySQL + 'UPDATE `people_administrative_units`' +
+                          ' SET `unit_id` = ?' +
+                          ' WHERE `administrative_id` = ?; ';
+    places.push(data.adm_unit_id, data.adm_id);
     querySQL = querySQL + 'INSERT INTO `people_administrative_offices_history`' +
                           ' (`people_administrative_offices_id`,`person_id`,`administrative_office_id`,`administrative_position_id`,`dedication`,'+
                             '`valid_from`,`valid_until`,`updated`,`operation`,`changed_by`)' +
@@ -1850,6 +1870,9 @@ var queryDeleteAdministrativeAffiliations = function (req, res, next, userCity, 
     var querySQL = '';
     data.adm_valid_from = momentToDate(data.adm_valid_from);
     data.adm_valid_until = momentToDate(data.adm_valid_until);
+    querySQL = querySQL + 'DELETE FROM `people_administrative_units`' +
+                          ' WHERE administrative_id = ?;';
+    places.push(data.adm_id);
     querySQL = querySQL + 'DELETE FROM `people_administrative_offices`' +
                           ' WHERE id=?';
     querySQL = querySQL + '; ';
@@ -1928,6 +1951,11 @@ var queryAddAdministrativeAffiliationsHistory = function (req, res, next, userCi
     var querySQL = '';
     data.adm_valid_from = momentToDate(data.adm_valid_from);
     data.adm_valid_until = momentToDate(data.adm_valid_until);
+    querySQL = querySQL + 'INSERT INTO `people_administrative_units`' +
+                          ' (`administrative_id`,`unit_id`)' +
+                          ' VALUES (?, ?)';
+    querySQL = querySQL + '; ';
+    places.push(admID, data.adm_unit_id);
     querySQL = querySQL + 'INSERT INTO `people_administrative_offices_history`' +
                           ' (`people_administrative_offices_id`,`person_id`,`administrative_office_id`,`administrative_position_id`,`dedication`,'+
                             '`valid_from`,`valid_until`,`created`,`operation`,`changed_by`)' +
@@ -4436,11 +4464,14 @@ var queryGetCostCenters = function (req, res, next, personID, row) {
 var queryGetTechnicianAffiliation = function (req,res,next, personID, row) {
     var query = 'SELECT technicians.id AS tech_id,' +
                 ' technicians.technician_office_id AS tech_office_id,technician_offices.name_en AS tech_office_name_en,' +
+                ' technicians_units.unit_id AS tech_unit_id, units.short_name AS tech_unit_short_name, units.name AS tech_unit_name, '+
                 ' technicians.technician_position_id AS tech_position_id,technician_positions.name_en AS tech_position_name_en,' +
                 ' technicians.dedication AS tech_dedication,' +
                 ' technicians.valid_from AS tech_valid_from,technicians.valid_until AS tech_valid_until' +
                 ' FROM people' +
                 ' LEFT JOIN technicians ON people.id = technicians.person_id' +
+                ' LEFT JOIN technicians_units ON technicians.id = technicians_units.technician_id' +
+                ' LEFT JOIN units ON technicians_units.unit_id = units.id' +
                 ' LEFT JOIN technician_offices ON technicians.technician_office_id = technician_offices.id' +
                 ' LEFT JOIN technician_positions ON technicians.technician_position_id = technician_positions.id' +
                 ' WHERE people.id = ?;';
@@ -4557,11 +4588,14 @@ var queryGetScienceManagerData = function (req,res,next, personID, row) {
 var queryGetAdministrativeAffiliation = function (req,res,next, personID, row) {
     var query = 'SELECT people_administrative_offices.id AS adm_id,' +
                 ' people_administrative_offices.administrative_office_id AS adm_office_id,administrative_offices.name_en AS adm_office_name_en,' +
+                ' people_administrative_units.unit_id AS adm_unit_id, units.short_name AS adm_unit_short_name, units.name AS adm_unit_name, '+
                 ' people_administrative_offices.administrative_position_id AS adm_position_id,administrative_positions.name_en AS adm_position_name_en,' +
                 ' people_administrative_offices.dedication AS adm_dedication,' +
                 ' people_administrative_offices.valid_from AS adm_valid_from,people_administrative_offices.valid_until AS adm_valid_until' +
                 ' FROM people' +
                 ' LEFT JOIN people_administrative_offices ON people.id = people_administrative_offices.person_id' +
+                ' LEFT JOIN people_administrative_units ON people_administrative_offices.id = people_administrative_units.administrative_id' +
+                ' LEFT JOIN units ON people_administrative_units.unit_id = units.id' +
                 ' LEFT JOIN administrative_offices ON people_administrative_offices.administrative_office_id = administrative_offices.id' +
                 ' LEFT JOIN administrative_positions ON people_administrative_offices.administrative_position_id = administrative_positions.id' +
                 ' WHERE people.id = ?;';
@@ -4920,19 +4954,22 @@ var queryUpdatePhotoDatabaseFinal = function (req, res, next, file, action) {
 };
 
 /***************************** Public API Person Queries *****************************/
+
+/* TODO: Create endpoints to get technicians, science managers and administratives?*/
+
 module.exports.searchPeople = function (req, res, next) {
     var now = momentToDate(moment());
     var name;
     var lab;
     if (req.query.hasOwnProperty('name')) {
-        // TODO: change to REGEX global to replace all
+        // TODO: (not critical) change to REGEX global to replace all
         name = req.query.name.replace(' ','%');
     } else {
         // TODO: change to REGEX global to replace all
         name = '';
     }
     if (req.query.hasOwnProperty('lab')) {
-        // TODO: change to REGEX global to replace all
+        // TODO: (not critical) change to REGEX global to replace all
         lab = req.query.lab.replace(' ','%');
     } else {
         lab = '';
@@ -4956,6 +4993,18 @@ module.exports.searchPeople = function (req, res, next) {
                        ' groups.id AS group_id, groups.name AS group_name,' +
                        ' units.id AS unit_id, units.name AS unit_name,' +
                        ' lab_positions.id AS lab_position_id, lab_positions.name_en AS lab_position_name_en, lab_positions.name_pt  AS lab_position_name_pt,' +
+                       ' technicians.id AS technician_id, technicians.technician_office_id, technician_offices.name_en AS technician_office_name,' +
+                   ' technicians.valid_from AS technician_start, technicians.valid_until AS technician_end,' +
+                   ' technicians_units.unit_id AS technician_unit_id, technician_units.name AS technician_unit_name,' +
+                   ' technicians.technician_position_id, technician_positions.name_en AS technician_position_name_en, technician_positions.name_pt AS technician_position_name_pt,' +
+                   ' science_managers.id AS science_manager_id, science_managers.science_manager_office_id, science_manager_offices.name_en AS science_manager_office_name,' +
+                   ' science_managers.valid_from AS science_manager_start, science_managers.valid_until AS science_manager_end,' +
+                   ' science_managers_units.unit_id AS science_manager_unit_id, science_manager_units.name AS science_manager_unit_name,' +
+                   ' science_managers.science_manager_position_id, science_manager_positions.name_en AS science_manager_position_name_en, science_manager_positions.name_pt AS science_manager_position_name_pt,' +
+                   ' people_administrative_offices.id AS administrative_id, people_administrative_offices.administrative_office_id, administrative_offices.name_en AS administrative_office_name,' +
+                   ' people_administrative_offices.valid_from AS administrative_start, people_administrative_offices.valid_until AS administrative_end,' +
+                   ' people_administrative_units.unit_id AS administrative_unit_id, administrative_units.name AS administrative_unit_name,' +
+                   ' people_administrative_offices.administrative_position_id, administrative_positions.name_en AS administrative_position_name_en, administrative_positions.name_pt AS administrative_position_name_pt,' +
                       ' personal_photo.url AS image_path' +
                       ' FROM people' +
                       ' LEFT JOIN emails ON people.id = emails.person_id' +
@@ -4967,6 +5016,21 @@ module.exports.searchPeople = function (req, res, next) {
                       ' LEFT JOIN groups_units ON groups_units.group_id = groups.id' +
                       ' LEFT JOIN units ON groups_units.unit_id = units.id' +
                       ' LEFT JOIN lab_positions ON lab_positions.id = people_labs.lab_position_id' +
+                      ' LEFT JOIN technicians ON technicians.person_id = people.id' +
+                  ' LEFT JOIN technician_offices ON technician_offices.id = technicians.technician_office_id' +
+                  ' LEFT JOIN technicians_units ON technicians_units.technician_id = technicians.id' +
+                  ' LEFT JOIN units AS technician_units ON technician_units.id = technicians_units.unit_id' +
+                  ' LEFT JOIN technician_positions ON technician_positions.id = technicians.technician_position_id' +
+                  ' LEFT JOIN science_managers ON science_managers.person_id = people.id' +
+                  ' LEFT JOIN science_manager_offices ON science_manager_offices.id = science_managers.science_manager_office_id' +
+                  ' LEFT JOIN science_managers_units ON science_managers_units.science_manager_id = science_managers.id' +
+                  ' LEFT JOIN units AS science_manager_units ON science_manager_units.id = science_managers_units.unit_id' +
+                  ' LEFT JOIN science_manager_positions ON science_manager_positions.id = science_managers.science_manager_position_id' +
+                  ' LEFT JOIN people_administrative_offices ON people_administrative_offices.person_id = people.id' +
+                  ' LEFT JOIN administrative_offices ON administrative_offices.id = people_administrative_offices.administrative_office_id' +
+                  ' LEFT JOIN people_administrative_units ON people_administrative_units.administrative_id = people_administrative_offices.id' +
+                  ' LEFT JOIN units AS administrative_units ON administrative_units.id = people_administrative_units.unit_id' +
+                  ' LEFT JOIN administrative_positions ON administrative_positions.id = people_administrative_offices.administrative_position_id' +
                       ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
                       ' WHERE people.name LIKE ?' +
                         ' AND (people.active_until > ? OR (people.active_from < ? AND people.active_until IS NULL) OR (people.active_from IS NULL AND people.active_until IS NULL))' +
@@ -4983,6 +5047,18 @@ module.exports.searchPeople = function (req, res, next) {
                        ' groups.id AS group_id, groups.name AS group_name,' +
                        ' units.id AS unit_id, units.name AS unit_name,' +
                        ' lab_positions.id AS lab_position_id, lab_positions.name_en AS lab_position_name_en, lab_positions.name_pt  AS lab_position_name_pt,' +
+                       ' technicians.id AS technician_id, technicians.technician_office_id, technician_offices.name_en AS technician_office_name,' +
+                   ' technicians.valid_from AS technician_start, technicians.valid_until AS technician_end,' +
+                   ' technicians_units.unit_id AS technician_unit_id, technician_units.name AS technician_unit_name,' +
+                   ' technicians.technician_position_id, technician_positions.name_en AS technician_position_name_en, technician_positions.name_pt AS technician_position_name_pt,' +
+                   ' science_managers.id AS science_manager_id, science_managers.science_manager_office_id, science_manager_offices.name_en AS science_manager_office_name,' +
+                   ' science_managers.valid_from AS science_manager_start, science_managers.valid_until AS science_manager_end,' +
+                   ' science_managers_units.unit_id AS science_manager_unit_id, science_manager_units.name AS science_manager_unit_name,' +
+                   ' science_managers.science_manager_position_id, science_manager_positions.name_en AS science_manager_position_name_en, science_manager_positions.name_pt AS science_manager_position_name_pt,' +
+                   ' people_administrative_offices.id AS administrative_id, people_administrative_offices.administrative_office_id, administrative_offices.name_en AS administrative_office_name,' +
+                   ' people_administrative_offices.valid_from AS administrative_start, people_administrative_offices.valid_until AS administrative_end,' +
+                   ' people_administrative_units.unit_id AS administrative_unit_id, administrative_units.name AS administrative_unit_name,' +
+                   ' people_administrative_offices.administrative_position_id, administrative_positions.name_en AS administrative_position_name_en, administrative_positions.name_pt AS administrative_position_name_pt,' +
                       ' personal_photo.url AS image_path' +
                       ' FROM people' +
                       ' LEFT JOIN emails ON people.id = emails.person_id' +
@@ -4994,6 +5070,21 @@ module.exports.searchPeople = function (req, res, next) {
                       ' LEFT JOIN groups_units ON groups_units.group_id = groups.id' +
                       ' LEFT JOIN units ON groups_units.unit_id = units.id' +
                       ' LEFT JOIN lab_positions ON lab_positions.id = people_labs.lab_position_id' +
+                      ' LEFT JOIN technicians ON technicians.person_id = people.id' +
+                  ' LEFT JOIN technician_offices ON technician_offices.id = technicians.technician_office_id' +
+                  ' LEFT JOIN technicians_units ON technicians_units.technician_id = technicians.id' +
+                  ' LEFT JOIN units AS technician_units ON technician_units.id = technicians_units.unit_id' +
+                  ' LEFT JOIN technician_positions ON technician_positions.id = technicians.technician_position_id' +
+                  ' LEFT JOIN science_managers ON science_managers.person_id = people.id' +
+                  ' LEFT JOIN science_manager_offices ON science_manager_offices.id = science_managers.science_manager_office_id' +
+                  ' LEFT JOIN science_managers_units ON science_managers_units.science_manager_id = science_managers.id' +
+                  ' LEFT JOIN units AS science_manager_units ON science_manager_units.id = science_managers_units.unit_id' +
+                  ' LEFT JOIN science_manager_positions ON science_manager_positions.id = science_managers.science_manager_position_id' +
+                  ' LEFT JOIN people_administrative_offices ON people_administrative_offices.person_id = people.id' +
+                  ' LEFT JOIN administrative_offices ON administrative_offices.id = people_administrative_offices.administrative_office_id' +
+                  ' LEFT JOIN people_administrative_units ON people_administrative_units.administrative_id = people_administrative_offices.id' +
+                  ' LEFT JOIN units AS administrative_units ON administrative_units.id = people_administrative_units.unit_id' +
+                  ' LEFT JOIN administrative_positions ON administrative_positions.id = people_administrative_offices.administrative_position_id' +
                       ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
                       ' WHERE (labs.name LIKE ?)' +
                         ' AND (people.active_until > ? OR (people.active_from < ? AND people.active_until IS NULL) OR (people.active_from IS NULL AND people.active_until IS NULL))' +
@@ -5012,6 +5103,18 @@ module.exports.searchPeople = function (req, res, next) {
                        ' groups.id AS group_id, groups.name AS group_name,' +
                        ' units.id AS unit_id, units.name AS unit_name,' +
                        ' lab_positions.id AS lab_position_id, lab_positions.name_en AS lab_position_name_en, lab_positions.name_pt  AS lab_position_name_pt,' +
+                       ' technicians.id AS technician_id, technicians.technician_office_id, technician_offices.name_en AS technician_office_name,' +
+                   ' technicians.valid_from AS technician_start, technicians.valid_until AS technician_end,' +
+                   ' technicians_units.unit_id AS technician_unit_id, technician_units.name AS technician_unit_name,' +
+                   ' technicians.technician_position_id, technician_positions.name_en AS technician_position_name_en, technician_positions.name_pt AS technician_position_name_pt,' +
+                   ' science_managers.id AS science_manager_id, science_managers.science_manager_office_id, science_manager_offices.name_en AS science_manager_office_name,' +
+                   ' science_managers.valid_from AS science_manager_start, science_managers.valid_until AS science_manager_end,' +
+                   ' science_managers_units.unit_id AS science_manager_unit_id, science_manager_units.name AS science_manager_unit_name,' +
+                   ' science_managers.science_manager_position_id, science_manager_positions.name_en AS science_manager_position_name_en, science_manager_positions.name_pt AS science_manager_position_name_pt,' +
+                   ' people_administrative_offices.id AS administrative_id, people_administrative_offices.administrative_office_id, administrative_offices.name_en AS administrative_office_name,' +
+                   ' people_administrative_offices.valid_from AS administrative_start, people_administrative_offices.valid_until AS administrative_end,' +
+                   ' people_administrative_units.unit_id AS administrative_unit_id, administrative_units.name AS administrative_unit_name,' +
+                   ' people_administrative_offices.administrative_position_id, administrative_positions.name_en AS administrative_position_name_en, administrative_positions.name_pt AS administrative_position_name_pt,' +
                       ' personal_photo.url AS image_path' +
                       ' FROM people' +
                       ' LEFT JOIN emails ON people.id = emails.person_id' +
@@ -5023,6 +5126,21 @@ module.exports.searchPeople = function (req, res, next) {
                       ' LEFT JOIN groups_units ON groups_units.group_id = groups.id' +
                       ' LEFT JOIN units ON groups_units.unit_id = units.id' +
                       ' LEFT JOIN lab_positions ON lab_positions.id = people_labs.lab_position_id' +
+                      ' LEFT JOIN technicians ON technicians.person_id = people.id' +
+                  ' LEFT JOIN technician_offices ON technician_offices.id = technicians.technician_office_id' +
+                  ' LEFT JOIN technicians_units ON technicians_units.technician_id = technicians.id' +
+                  ' LEFT JOIN units AS technician_units ON technician_units.id = technicians_units.unit_id' +
+                  ' LEFT JOIN technician_positions ON technician_positions.id = technicians.technician_position_id' +
+                  ' LEFT JOIN science_managers ON science_managers.person_id = people.id' +
+                  ' LEFT JOIN science_manager_offices ON science_manager_offices.id = science_managers.science_manager_office_id' +
+                  ' LEFT JOIN science_managers_units ON science_managers_units.science_manager_id = science_managers.id' +
+                  ' LEFT JOIN units AS science_manager_units ON science_manager_units.id = science_managers_units.unit_id' +
+                  ' LEFT JOIN science_manager_positions ON science_manager_positions.id = science_managers.science_manager_position_id' +
+                  ' LEFT JOIN people_administrative_offices ON people_administrative_offices.person_id = people.id' +
+                  ' LEFT JOIN administrative_offices ON administrative_offices.id = people_administrative_offices.administrative_office_id' +
+                  ' LEFT JOIN people_administrative_units ON people_administrative_units.administrative_id = people_administrative_offices.id' +
+                  ' LEFT JOIN units AS administrative_units ON administrative_units.id = people_administrative_units.unit_id' +
+                  ' LEFT JOIN administrative_positions ON administrative_positions.id = people_administrative_offices.administrative_position_id' +
                       ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
                       ' WHERE people.name LIKE ?' +
                         ' AND (labs.name LIKE ?)' +
@@ -5032,7 +5150,13 @@ module.exports.searchPeople = function (req, res, next) {
     }
     var mergeRules = [
                       ['lab_data', 'lab_start', 'lab_end', 'lab_position_id','lab_position_name_en','lab_position_name_pt',
-                       'lab_id','lab_name','labs_groups_valid_from','labs_groups_valid_until','group_id','group_name','unit_id', 'unit_name']
+                       'lab_id','lab_name','labs_groups_valid_from','labs_groups_valid_until','group_id','group_name','unit_id', 'unit_name'],
+                      ['technician_data', 'technician_start', 'technician_end', 'technician_position_id','technician_position_name_en','technician_position_name_pt',
+                       'technician_id','technician_office_id','technician_office_name','technician_unit_id','technician_unit_name'],
+                      ['science_management_data', 'science_manager_start', 'science_manager_end', 'science_manager_position_id','science_manager_position_name_en','science_manager_position_name_pt',
+                       'science_manager_id','science_manager_office_id','science_manager_office_name','science_manager_unit_id','science_manager_unit_name'],
+                      ['administrative_data', 'administrative_start', 'administrative_end', 'administrative_position_id','administrative_position_name_en','administrative_position_name_pt',
+                       'administrative_id','administrative_office_id','administrative_office_name','administrative_unit_id','administrative_unit_name']
                     ];
 
     escapedQueryPersonSearch(querySQL, places, mergeRules, req, res, next);
@@ -5048,6 +5172,18 @@ module.exports.getAllPeople = function (req, res, next) {
                    ' groups.id AS group_id, groups.name AS group_name,' +
                    ' units.id AS unit_id, units.name AS unit_name,' +
                    ' lab_positions.id AS lab_position_id, lab_positions.name_en AS lab_position_name_en, lab_positions.name_pt  AS lab_position_name_pt,' +
+                   ' technicians.id AS technician_id, technicians.technician_office_id, technician_offices.name_en AS technician_office_name,' +
+                   ' technicians.valid_from AS technician_start, technicians.valid_until AS technician_end,' +
+                   ' technicians_units.unit_id AS technician_unit_id, technician_units.name AS technician_unit_name,' +
+                   ' technicians.technician_position_id, technician_positions.name_en AS technician_position_name_en, technician_positions.name_pt AS technician_position_name_pt,' +
+                   ' science_managers.id AS science_manager_id, science_managers.science_manager_office_id, science_manager_offices.name_en AS science_manager_office_name,' +
+                   ' science_managers.valid_from AS science_manager_start, science_managers.valid_until AS science_manager_end,' +
+                   ' science_managers_units.unit_id AS science_manager_unit_id, science_manager_units.name AS science_manager_unit_name,' +
+                   ' science_managers.science_manager_position_id, science_manager_positions.name_en AS science_manager_position_name_en, science_manager_positions.name_pt AS science_manager_position_name_pt,' +
+                   ' people_administrative_offices.id AS administrative_id, people_administrative_offices.administrative_office_id, administrative_offices.name_en AS administrative_office_name,' +
+                   ' people_administrative_offices.valid_from AS administrative_start, people_administrative_offices.valid_until AS administrative_end,' +
+                   ' people_administrative_units.unit_id AS administrative_unit_id, administrative_units.name AS administrative_unit_name,' +
+                   ' people_administrative_offices.administrative_position_id, administrative_positions.name_en AS administrative_position_name_en, administrative_positions.name_pt AS administrative_position_name_pt,' +
                    ' personal_photo.url AS image_path' +
                   ' FROM people' +
                   ' LEFT JOIN emails ON people.id = emails.person_id' +
@@ -5059,12 +5195,33 @@ module.exports.getAllPeople = function (req, res, next) {
                   ' LEFT JOIN groups_units ON groups_units.group_id = groups.id' +
                   ' LEFT JOIN units ON groups_units.unit_id = units.id' +
                   ' LEFT JOIN lab_positions ON lab_positions.id = people_labs.lab_position_id' +
+                  ' LEFT JOIN technicians ON technicians.person_id = people.id' +
+                  ' LEFT JOIN technician_offices ON technician_offices.id = technicians.technician_office_id' +
+                  ' LEFT JOIN technicians_units ON technicians_units.technician_id = technicians.id' +
+                  ' LEFT JOIN units AS technician_units ON technician_units.id = technicians_units.unit_id' +
+                  ' LEFT JOIN technician_positions ON technician_positions.id = technicians.technician_position_id' +
+                  ' LEFT JOIN science_managers ON science_managers.person_id = people.id' +
+                  ' LEFT JOIN science_manager_offices ON science_manager_offices.id = science_managers.science_manager_office_id' +
+                  ' LEFT JOIN science_managers_units ON science_managers_units.science_manager_id = science_managers.id' +
+                  ' LEFT JOIN units AS science_manager_units ON science_manager_units.id = science_managers_units.unit_id' +
+                  ' LEFT JOIN science_manager_positions ON science_manager_positions.id = science_managers.science_manager_position_id' +
+                  ' LEFT JOIN people_administrative_offices ON people_administrative_offices.person_id = people.id' +
+                  ' LEFT JOIN administrative_offices ON administrative_offices.id = people_administrative_offices.administrative_office_id' +
+                  ' LEFT JOIN people_administrative_units ON people_administrative_units.administrative_id = people_administrative_offices.id' +
+                  ' LEFT JOIN units AS administrative_units ON administrative_units.id = people_administrative_units.unit_id' +
+                  ' LEFT JOIN administrative_positions ON administrative_positions.id = people_administrative_offices.administrative_position_id' +
                   ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
                   ' WHERE people.status = ?;';
     var places = [1];
     var mergeRules = [
                       ['lab_data', 'lab_start', 'lab_end', 'lab_position_id','lab_position_name_en','lab_position_name_pt',
-                       'lab_id','lab_name','labs_groups_valid_from','labs_groups_valid_until','group_id','group_name','unit_id', 'unit_name']
+                       'lab_id','lab_name','labs_groups_valid_from','labs_groups_valid_until','group_id','group_name','unit_id', 'unit_name'],
+                     ['technician_data', 'technician_start', 'technician_end', 'technician_position_id','technician_position_name_en','technician_position_name_pt',
+                       'technician_id','technician_office_id','technician_office_name','technician_unit_id','technician_unit_name'],
+                      ['science_management_data', 'science_manager_start', 'science_manager_end', 'science_manager_position_id','science_manager_position_name_en','science_manager_position_name_pt',
+                       'science_manager_id','science_manager_office_id','science_manager_office_name','science_manager_unit_id','science_manager_unit_name'],
+                      ['administrative_data', 'administrative_start', 'administrative_end', 'administrative_position_id','administrative_position_name_en','administrative_position_name_pt',
+                       'administrative_id','administrative_office_id','administrative_office_name','administrative_unit_id','administrative_unit_name']
                     ];
 
     escapedQueryPersonSearch(querySQL, places, mergeRules, req, res, next);
@@ -5081,10 +5238,18 @@ module.exports.getPersonInfo = function (req, res, next) {
                    ' groups.id AS group_id, groups.name AS group_name,' +
                    ' units.id AS unit_id, units.name AS unit_name,' +
                    ' lab_positions.id AS lab_position_id, lab_positions.name_en AS lab_position_name_en, lab_positions.name_pt  AS lab_position_name_pt,' +
+                   ' technicians.id AS technician_id, technicians.technician_office_id, technician_offices.name_en AS technician_office_name,' +
+                   ' technicians.valid_from AS technician_start, technicians.valid_until AS technician_end,' +
+                   ' technicians_units.unit_id AS technician_unit_id, technician_units.name AS technician_unit_name,' +
+                   ' technicians.technician_position_id, technician_positions.name_en AS technician_position_name_en, technician_positions.name_pt AS technician_position_name_pt,' +
                    ' science_managers.id AS science_manager_id, science_managers.science_manager_office_id, science_manager_offices.name_en AS science_manager_office_name,' +
                    ' science_managers.valid_from AS science_manager_start, science_managers.valid_until AS science_manager_end,' +
                    ' science_managers_units.unit_id AS science_manager_unit_id, science_manager_units.name AS science_manager_unit_name,' +
                    ' science_managers.science_manager_position_id, science_manager_positions.name_en AS science_manager_position_name_en, science_manager_positions.name_pt AS science_manager_position_name_pt,' +
+                   ' people_administrative_offices.id AS administrative_id, people_administrative_offices.administrative_office_id, administrative_offices.name_en AS administrative_office_name,' +
+                   ' people_administrative_offices.valid_from AS administrative_start, people_administrative_offices.valid_until AS administrative_end,' +
+                   ' people_administrative_units.unit_id AS administrative_unit_id, administrative_units.name AS administrative_unit_name,' +
+                   ' people_administrative_offices.administrative_position_id, administrative_positions.name_en AS administrative_position_name_en, administrative_positions.name_pt AS administrative_position_name_pt,' +
                    ' personal_photo.url AS image_path' +
                   ' FROM people' +
                   ' LEFT JOIN emails ON people.id = emails.person_id' +
@@ -5096,20 +5261,33 @@ module.exports.getPersonInfo = function (req, res, next) {
                   ' LEFT JOIN groups_units ON groups_units.group_id = groups.id' +
                   ' LEFT JOIN units ON groups_units.unit_id = units.id' +
                   ' LEFT JOIN lab_positions ON lab_positions.id = people_labs.lab_position_id' +
+                  ' LEFT JOIN technicians ON technicians.person_id = people.id' +
+                  ' LEFT JOIN technician_offices ON technician_offices.id = technicians.technician_office_id' +
+                  ' LEFT JOIN technicians_units ON technicians_units.technician_id = technicians.id' +
+                  ' LEFT JOIN units AS technician_units ON technician_units.id = technicians_units.unit_id' +
+                  ' LEFT JOIN technician_positions ON technician_positions.id = technicians.technician_position_id' +
                   ' LEFT JOIN science_managers ON science_managers.person_id = people.id' +
                   ' LEFT JOIN science_manager_offices ON science_manager_offices.id = science_managers.science_manager_office_id' +
                   ' LEFT JOIN science_managers_units ON science_managers_units.science_manager_id = science_managers.id' +
                   ' LEFT JOIN units AS science_manager_units ON science_manager_units.id = science_managers_units.unit_id' +
                   ' LEFT JOIN science_manager_positions ON science_manager_positions.id = science_managers.science_manager_position_id' +
-
+                  ' LEFT JOIN people_administrative_offices ON people_administrative_offices.person_id = people.id' +
+                  ' LEFT JOIN administrative_offices ON administrative_offices.id = people_administrative_offices.administrative_office_id' +
+                  ' LEFT JOIN people_administrative_units ON people_administrative_units.administrative_id = people_administrative_offices.id' +
+                  ' LEFT JOIN units AS administrative_units ON administrative_units.id = people_administrative_units.unit_id' +
+                  ' LEFT JOIN administrative_positions ON administrative_positions.id = people_administrative_offices.administrative_position_id' +
                   ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
                   ' WHERE people.id = ?;';
     var places = [personID];
     var mergeRules = [
                       ['lab_data', 'lab_start', 'lab_end', 'lab_position_id','lab_position_name_en','lab_position_name_pt',
                        'lab_id','lab_name','labs_groups_valid_from','labs_groups_valid_until','group_id','group_name','unit_id', 'unit_name'],
+                      ['technician_data', 'technician_start', 'technician_end', 'technician_position_id','technician_position_name_en','technician_position_name_pt',
+                       'technician_id','technician_office_id','technician_office_name','technician_unit_id','technician_unit_name'],
                       ['science_management_data', 'science_manager_start', 'science_manager_end', 'science_manager_position_id','science_manager_position_name_en','science_manager_position_name_pt',
-                       'science_manager_id','science_manager_office_id','science_manager_office_name','science_manager_unit_id','science_manager_unit_name']
+                       'science_manager_id','science_manager_office_id','science_manager_office_name','science_manager_unit_id','science_manager_unit_name'],
+                      ['administrative_data', 'administrative_start', 'administrative_end', 'administrative_position_id','administrative_position_name_en','administrative_position_name_pt',
+                       'administrative_id','administrative_office_id','administrative_office_name','administrative_unit_id','administrative_unit_name']
                     ];
 
     escapedQueryPersonSearch(querySQL, places, mergeRules, req, res, next);
@@ -5197,6 +5375,104 @@ module.exports.getLabMembers = function (req, res, next) {
                     ];
     escapedQueryPersonSearch(querySQL, places, mergeRules, req, res, next);
 };
+module.exports.getFacilityMembers = function (req, res, next) {
+    var now = momentToDate(moment());
+    var facility = req.params.facilityID;
+    var querySQL = 'SELECT people.id, people.name AS full_name, people.colloquial_name AS name,' +
+                   ' people.active_from, people.active_until,' +
+                   ' emails.email, phones.phone, phones.extension AS phone_extension,' +
+                   ' technicians.id AS technician_id, technicians.technician_office_id, technician_offices.name_en AS technician_office_name,' +
+                   ' technicians.valid_from AS technician_start, technicians.valid_until AS technician_end,' +
+                   ' technicians_units.unit_id AS technician_unit_id, technician_units.name AS technician_unit_name,' +
+                   ' technicians.technician_position_id, technician_positions.name_en AS technician_position_name_en, technician_positions.name_pt AS technician_position_name_pt,' +
+                  ' personal_photo.url AS image_path' +
+                  ' FROM people' +
+                  ' LEFT JOIN emails ON people.id = emails.person_id' +
+                  ' LEFT JOIN phones ON people.id = phones.person_id' +
+
+                  ' LEFT JOIN technicians ON technicians.person_id = people.id' +
+                  ' LEFT JOIN technician_offices ON technician_offices.id = technicians.technician_office_id' +
+                  ' LEFT JOIN technicians_units ON technicians_units.technician_id = technicians.id' +
+                  ' LEFT JOIN units AS technician_units ON technician_units.id = technicians_units.unit_id' +
+                  ' LEFT JOIN technician_positions ON technician_positions.id = technicians.technician_position_id' +
+
+                  ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
+                  ' WHERE technician_offices.id = ?' +
+                  ' AND (people.active_until > ? OR (people.active_from < ? AND people.active_until IS NULL) OR (people.active_from IS NULL AND people.active_until IS NULL))' +
+                  ';';
+    var places = [facility,now,now];
+    var mergeRules = [
+                      ['technician_data', 'technician_start', 'technician_end', 'technician_position_id','technician_position_name_en','technician_position_name_pt',
+                       'technician_id','technician_office_id','technician_office_name','technician_unit_id','technician_unit_name']
+                    ];
+    escapedQueryPersonSearch(querySQL, places, mergeRules, req, res, next,'non-researcher');
+};
+module.exports.getScienceOfficeMembers = function (req, res, next) {
+    var now = momentToDate(moment());
+    var office = req.params.officeID;
+    var querySQL = 'SELECT people.id, people.name AS full_name, people.colloquial_name AS name,' +
+                   ' people.active_from, people.active_until,' +
+                   ' emails.email, phones.phone, phones.extension AS phone_extension,' +
+                   ' science_managers.id AS science_manager_id, science_managers.science_manager_office_id, science_manager_offices.name_en AS science_manager_office_name,' +
+                   ' science_managers.valid_from AS science_manager_start, science_managers.valid_until AS science_manager_end,' +
+                   ' science_managers_units.unit_id AS science_manager_unit_id, science_manager_units.name AS science_manager_unit_name,' +
+                   ' science_managers.science_manager_position_id, science_manager_positions.name_en AS science_manager_position_name_en, science_manager_positions.name_pt AS science_manager_position_name_pt,' +
+                  ' personal_photo.url AS image_path' +
+                  ' FROM people' +
+                  ' LEFT JOIN emails ON people.id = emails.person_id' +
+                  ' LEFT JOIN phones ON people.id = phones.person_id' +
+
+                  ' LEFT JOIN science_managers ON science_managers.person_id = people.id' +
+                  ' LEFT JOIN science_manager_offices ON science_manager_offices.id = science_managers.science_manager_office_id' +
+                  ' LEFT JOIN science_managers_units ON science_managers_units.science_manager_id = science_managers.id' +
+                  ' LEFT JOIN units AS science_manager_units ON science_manager_units.id = science_managers_units.unit_id' +
+                  ' LEFT JOIN science_manager_positions ON science_manager_positions.id = science_managers.science_manager_position_id' +
+
+                  ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
+                  ' WHERE science_manager_offices.id = ?' +
+                  ' AND (people.active_until > ? OR (people.active_from < ? AND people.active_until IS NULL) OR (people.active_from IS NULL AND people.active_until IS NULL))' +
+                  ';';
+    var places = [office,now,now];
+    var mergeRules = [
+                      ['science_management_data', 'science_manager_start', 'science_manager_end', 'science_manager_position_id','science_manager_position_name_en','science_manager_position_name_pt',
+                       'science_manager_id','science_manager_office_id','science_manager_office_name','science_manager_unit_id','science_manager_unit_name']
+                    ];
+    escapedQueryPersonSearch(querySQL, places, mergeRules, req, res, next,'non-researcher');
+};
+module.exports.getAdministrativeOfficeMembers = function (req, res, next) {
+    var now = momentToDate(moment());
+    var office = req.params.officeID;
+    var querySQL = 'SELECT people.id, people.name AS full_name, people.colloquial_name AS name,' +
+                   ' people.active_from, people.active_until,' +
+                   ' emails.email, phones.phone, phones.extension AS phone_extension,' +
+                   ' people_administrative_offices.id AS administrative_id, people_administrative_offices.administrative_office_id, administrative_offices.name_en AS administrative_office_name,' +
+                   ' people_administrative_offices.valid_from AS administrative_start, people_administrative_offices.valid_until AS administrative_end,' +
+                   ' people_administrative_units.unit_id AS administrative_unit_id, administrative_units.name AS administrative_unit_name,' +
+                   ' people_administrative_offices.administrative_position_id, administrative_positions.name_en AS administrative_position_name_en, administrative_positions.name_pt AS administrative_position_name_pt,' +
+                  ' personal_photo.url AS image_path' +
+                  ' FROM people' +
+                  ' LEFT JOIN emails ON people.id = emails.person_id' +
+                  ' LEFT JOIN phones ON people.id = phones.person_id' +
+
+                  ' LEFT JOIN people_administrative_offices ON people_administrative_offices.person_id = people.id' +
+                  ' LEFT JOIN administrative_offices ON administrative_offices.id = people_administrative_offices.administrative_office_id' +
+                  ' LEFT JOIN people_administrative_units ON people_administrative_units.administrative_id = people_administrative_offices.id' +
+                  ' LEFT JOIN units AS administrative_units ON administrative_units.id = people_administrative_units.unit_id' +
+                  ' LEFT JOIN administrative_positions ON administrative_positions.id = people_administrative_offices.administrative_position_id' +
+
+                  ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
+                  ' WHERE administrative_offices.id = ?' +
+                  ' AND (people.active_until > ? OR (people.active_from < ? AND people.active_until IS NULL) OR (people.active_from IS NULL AND people.active_until IS NULL))' +
+                  ';';
+    var places = [office,now,now];
+    var mergeRules = [
+                      ['administrative_data', 'administrative_start', 'administrative_end', 'administrative_position_id','administrative_position_name_en','administrative_position_name_pt',
+                       'administrative_id','administrative_office_id','administrative_office_name','administrative_unit_id','administrative_unit_name']
+                    ];
+    escapedQueryPersonSearch(querySQL, places, mergeRules, req, res, next,'non-researcher');
+};
+
+
 module.exports.listOf = function (req, res, next) {
     var listOf = req.params.listOf;
     var querySQL = '';

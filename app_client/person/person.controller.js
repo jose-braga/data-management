@@ -855,7 +855,7 @@
                 if (current.length == 1 && current[0]['tech_id'] === null) {
                     current[0]['tech_id'] = 'new';
                 } else {
-                    obj = {tech_id: 'new',
+                    obj = {tech_id: 'new', tech_unit_id: null,
                            tech_office_id: null, tech_office_name_en: null,
                            tech_dedication: null, tech_position_name_en: null, tech_position_id: null,
                            tech_valid_from: null, tech_valid_until: null};
@@ -865,7 +865,7 @@
                 if (current.length == 1 && current[0]['sc_man_id'] === null) {
                     current[0]['sc_man_id'] = 'new';
                 } else {
-                    obj = {sc_man_id: 'new',
+                    obj = {sc_man_id: 'new', sc_man_unit_id: null,
                            sc_man_office_id: null, sc_man_office_name_en: null,
                            sc_man_dedication: null, sc_man_position_name_en: null, sc_man_position_id: null,
                            sc_man_valid_from: null, sc_man_valid_until: null};
@@ -875,7 +875,7 @@
                 if (current.length == 1 && current[0]['adm_id'] === null) {
                     current[0]['adm_id'] = 'new';
                 } else {
-                    obj = {adm_id: 'new',
+                    obj = {adm_id: 'new', adm_unit_id: null,
                            adm_office_id: null, adm_office_name_en: null,
                            adm_dedication: null, adm_position_name_en: null, adm_position_id: null,
                            adm_valid_from: null, adm_valid_until: null};

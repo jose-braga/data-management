@@ -2546,7 +2546,14 @@
         function nameMatching(name1, str) {
             var name1Final = prepareString(name1);
             var strFinal = prepareString(str);
-            return name1Final.match(strFinal);
+            var strSplit = strFinal.split(' ');
+            for (var el in strSplit) {
+                if (name1Final.match(strSplit[el]) === null) {
+                    return null;
+                }
+
+            }
+            return true;
         }
         function prepareString(str) {
             return str.toLowerCase()

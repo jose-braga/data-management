@@ -25,7 +25,10 @@ router.get('/v1/person/:personID', ctrlPeopleData.getPersonInfo);
 router.get('/v1/group/:groupID', ctrlPeopleData.getGroupInfo);
 router.get('/v1/lab/:labID', ctrlPeopleData.getLabInfo);
 router.get('/v1/group/:groupID/lab/:labID/members', ctrlPeopleData.getLabMembers);
-// GET lists for several purposes (no need to authenticate)
+router.get('/v1/facility/:facilityID/members', ctrlPeopleData.getFacilityMembers);
+router.get('/v1/science-management/:officeID/members', ctrlPeopleData.getScienceOfficeMembers);
+router.get('/v1/administrative/:officeID/members', ctrlPeopleData.getAdministrativeOfficeMembers);
+// GET lists for several purposes
 router.get('/v1/list/:listOf', ctrlPeopleData.listOf);
 // GET search for person name
 router.get('/v1/publication/all', ctrlPublicationsData.getAllPublications);

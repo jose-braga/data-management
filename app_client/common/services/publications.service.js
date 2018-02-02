@@ -27,6 +27,21 @@
                 }
             );
         };
+        var thisMembersPublications = function (groupID, teamID) {
+            return $http.get('api/publications/team/' + groupID + '/' + teamID + '/members',
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+
+        var addMembersPublications = function (groupID, teamID, data) {
+            return $http.put('api/publications/team/' + groupID + '/' + teamID, data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
 
         var updateSelectedPublications = function (personID, data) {
             return $http.put('api/publications/person/' + personID + '/selected', data,
@@ -54,6 +69,14 @@
 
         var removePublicationsPerson = function (personID, data) {
             return $http.put('api/publications/person/' + personID + '/delete', data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+
+        var removePublicationsTeam = function (groupID, teamID, data) {
+            return $http.put('api/publications/team/' + groupID + '/' + teamID + '/delete', data,
                 {
                     headers: {Authorization: 'Bearer ' + authentication.getToken()}
                 }
@@ -90,16 +113,12 @@
             );
         };
 
-        var removePublicationsTeam = function (personID, data) {
-
-        };
-
-
-
         return {
+            addMembersPublications: addMembersPublications,
             allPublications: allPublications,
             thisPersonPublications: thisPersonPublications,
             thisTeamPublications: thisTeamPublications,
+            thisMembersPublications: thisMembersPublications,
             updateSelectedPublications: updateSelectedPublications,
             updateTeamSelectedPublications: updateTeamSelectedPublications,
             updateAuthorNamesPerson: updateAuthorNamesPerson,

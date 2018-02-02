@@ -1,0 +1,80 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Publication details</span>
+        </md-card-title-text>
+    </md-card-title>
+    <md-card-content layout="column">
+        <div layout="column" flex>
+            <div layout="row" layout-align="center" class="publication-spacer">
+                <div class="question"><span class="highlight">Publication type:</span></div>
+                <div class="answer"><span>{{ctrl.pub.doc_type}}</span></div>
+            </div>
+            <div layout="row" layout-align="center" class="publication-spacer">
+                <md-tooltip>^ - author belongs to unit; (corresp.) - author belongs to unit and is corresponding author</md-tooltip>
+                <div class="question"><span class="highlight">Authors:<br></span></div>
+                <div class="answer"><span>{{ctrl.pub.authors}}</span></div>
+            </div>
+            <div layout="row" layout-align="center" class="publication-spacer">
+                <div class="question"><span class="highlight">Publication year:</span></div>
+                <div class="answer"><span>{{ctrl.pub.year}}</span></div>
+            </div>
+            <div layout="row" layout-align="center" class="publication-spacer">
+                <div class="question"><span class="highlight">Title:</span></div>
+                <div class="answer"><span>{{ctrl.pub.title}}</span></div>
+            </div>
+            <div layout="row" layout-align="center" class="publication-spacer">
+                <div class="question"><span class="highlight">Journal name:</span></div>
+                <div class="answer"><span>{{ctrl.pub.journal_name}}</span></div>
+            </div>
+            <div layout="row" layout-align="center" class="publication-spacer">
+                <div class="question"><span class="highlight">Journal short name:</span></div>
+                <div class="answer"><span>{{ctrl.pub.journal_short_name}}</span></div>
+            </div>
+            <div layout="row" layout-align="center" class="publication-spacer">
+                <div class="question"><span class="highlight">ISSN / E-ISSN:</span></div>
+                <div class="answer"><span>{{ctrl.pub.issn}} / {{ctrl.pub.eissn}}</span></div>
+            </div>
+            <div layout="row" layout-align="center" class="publication-spacer">
+                <div class="question"><span class="highlight">Publisher:</span></div>
+                <div class="answer"><span>{{ctrl.pub.publisher}},
+                                          {{ctrl.pub.publisher_city}}</span></div>
+            </div>
+            <div layout="row" layout-align="center" class="publication-spacer">
+                <div class="question"><span class="highlight">Publication date:</span></div>
+                <div class="answer"><span>{{ctrl.pub.publication_date}}</span></div>
+            </div>
+            <div layout="row" layout-align="center" class="publication-spacer">
+                <div class="question"><span class="highlight">Volume:</span></div>
+                <div class="answer"><span>{{ctrl.pub.volume}}</span></div>
+            </div>
+            <div layout="row" layout-align="center" class="publication-spacer">
+                <div class="question"><span class="highlight">Pages:</span></div>
+                <div class="answer"><span>{{ctrl.pub.page_start}} -
+                                          {{ctrl.pub.page_end}}</span></div>
+            </div>
+            <div layout="row" layout-align="center" class="publication-spacer">
+                <div class="question"><span class="highlight">DOI:</span></div>
+                <div class="answer">
+                    <span>
+                        <a href="https://doi.org/{{ctrl.pub.doi}}"
+                                target="_blank">{{ctrl.pub.doi}}
+                        </a>
+                    </span>
+                </div>
+            </div>
+            <div layout="row" layout-align="center" class="publication-spacer">
+                <div class="question"><span class="highlight">WOS id (accession number):</span></div>
+                <div class="answer"><span>{{ctrl.pub.wos}}</span></div>
+            </div>
+            <div layout="row" layout-align="center" class="publication-spacer">
+                <div class="question"><span class="highlight">PubMed ID:</span></div>
+                <div class="answer"><span>{{ctrl.pub.pubmed_id}}</span></div>
+            </div>
+            <div layout="row" layout-align="center" class="publication-spacer">
+                <div class="question"><span class="highlight">Num. of authors:</span></div>
+                <div class="answer"><span>{{ctrl.pub.number_authors}}</span></div>
+            </div>
+        </div>
+    </md-card-content>
+</md-card>

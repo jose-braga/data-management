@@ -1,10 +1,16 @@
 <md-card>
     <md-card-title>
         <md-card-title-text>
-            <span class="md-headline">This Lab Publications</span>
+            <span class="md-headline">Publications reported by team members</span>
+            <span> Note 1: Not al of these should be associated with your lab, as members might have published while on other labs/institutions.</span>
+            <span> Note 2: Automatic importing mechanisms might have incorrectly attributed some publications to team members. Warn application developer!</span>
+            <span> Note 3: A missing publication requires that you or a team member adds it to his/her personal publications in 'Myself'</span>
         </md-card-title-text>
     </md-card-title>
     <md-card-content layout="column">
+        <div class="search-header spacer-top space-left">
+            <span>Lab members publications</span>
+        </div>
         <div layout="row" layout-align="none center">
             <span class="spacer-top-smaller">Filter:</span>
             <md-input-container class="input-row-longer">
@@ -23,8 +29,8 @@
                         class="s48"></md-icon>
             </md-button>
         </div>
-        <form flex novalidate name="teamPublicationsForm"
-                ng-submit="teamPublicationsForm.$valid && submitSelectedTeamPublications(forms['teamSelectedPub'])">
+        <form flex novalidate name="membersPublicationsForm"
+                ng-submit="membersPublicationsForm.$valid && submitMembersPublications(forms['membersPub'])">
             <div layout="row" class="paginator">
                 <md-input-container class="input-no-margin wider">
                     <label>Results/page</label>
@@ -65,13 +71,6 @@
                         <div layout="row" layout-align=" center">
                             <div class="question"><span class="highlight">Year:</span></div>
                             <div class="answer"><span>{{publication.year}}</span></div>
-                        </div>
-                        <div layout="row" layout-align=" center">
-                            <div class="question"><span class="highlight">Selected Publication:</span></div>
-                            <div class="answer">
-                                <md-checkbox class="center-tick" name="selectedPublication" aria-label="Selected Publication"
-                                        ng-change="changeSelectedStatus(publication)" ng-model="publication.selected"></md-checkbox>
-                            </div>
                         </div>
                         <div layout="row">
                             <md-button ng-click="showDetailsPublication(publication)"
@@ -116,22 +115,7 @@
                                 <ng-md-icon ng-if="sortReverse  && sortType=='year'"
                                         icon="arrow_upwards" size="12"></ng-md-icon>
                             </th>
-                            <th class="smaller-width">
-                                <md-icon md-svg-src="images/icons/star_18px.svg">
-                                    <md-tooltip md-direction="top">
-                                          Highlighted publication
-                                    </md-tooltip>
-                                </md-icon>
-                            </th>
-                            <th class="smaller-width">
-                                <md-icon md-svg-src="images/icons/public_24px.svg">
-                                    <md-tooltip md-direction="top">
-                                          Visible on other platforms (e.g. website)
-                                    </md-tooltip>
-                                </md-icon>
-                            </th>
                             <th class="small-width"></th>
-
                         </tr>
                     </thead>
                     <tbody>
@@ -140,24 +124,16 @@
                             <td>{{publication.authors_raw}}</td>
                             <td>{{publication.journal_short_name}}</td>
                             <td>{{publication.year}}</td>
-                            <td layout-align="center center">
-                                <md-checkbox class="center-tick" name="selectedPublication" aria-label="Selected Publication"
-                                        ng-change="changeSelectedStatus(publication)" ng-model="publication.selected"></md-checkbox>
-                            </td>
-                            <td>
-                                <md-checkbox class="center-tick" name="publicPublication" aria-label="Public Publication"
-                                        ng-change="changePublicStatus(publication)" ng-model="publication.public"></md-checkbox>
-                            </td>
                             <td>
                                 <md-button ng-click="showDetailsPublication(publication)"
                                             aria-label="Details"
                                             class="md-icon-button interaction-button">
                                     <md-icon md-svg-src="images/icons/description_24px.svg"></md-icon>
                                 </md-button>
-                                <md-button ng-click="removePublication(publication)"
-                                            aria-label="Remove publication"
+                                <md-button ng-click="addPublication(publication)"
+                                            aria-label="Details"
                                             class="md-icon-button interaction-button">
-                                    <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
+                                    <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
                                 </md-button>
                             </td>
                         </tr>
@@ -186,22 +162,104 @@
                     </md-select>
                 </md-input-container>
             </div>
-            <div layout="column" layout-gt-sm="row" layout-align="none center">
-                <md-button type="submit"
-                    class="button-small md-raised md-primary">
-                        Update <md-icon class="white-icon" md-svg-src="images/icons/star_18px.svg"></md-icon> &
-                               <md-icon class="white-icon" md-svg-src="images/icons/public_24px.svg"></md-icon>
-                </md-button>
-                <div class="status-message" ng-hide="hideMessage[forms['teamSelectedPub']]">
-                    <span class="message" ng-class="messageType[forms['teamSelectedPub']]">
-                        {{updateStatus[forms['teamSelectedPub']]}}
-                    </span>
+
+            <!-- Publications to be added to Lab -->
+            <div class="small-screens" layout="column" ng-if="!showTable()">
+                <div ng-repeat="(pubNum,publication) in currPublications track by $index">
+                    <div layout="column">
+                        <div layout="row" layout-align=" center">
+                            <div class="question"><span class="highlight">Title:</span></div>
+                            <div class="answer"><span>{{publication.title}}</span></div>
+                        </div>
+                        <div layout="row" layout-align=" center">
+                            <div class="question"><span class="highlight">Authors:</span></div>
+                            <div class="answer"><span>{{publication.authors_raw}}</span></div>
+                        </div>
+                        <div layout="row" layout-align=" center">
+                            <div class="question"><span class="highlight">Journal:</span></div>
+                            <div class="answer"><span>{{publication.journal_short_name}}</span></div>
+                        </div>
+                        <div layout="row" layout-align=" center">
+                            <div class="question"><span class="highlight">Year:</span></div>
+                            <div class="answer"><span>{{publication.year}}</span></div>
+                        </div>
+                        <div layout="row">
+                            <md-button ng-click="showDetailsPublication(publication)"
+                                        aria-label="Details"
+                                        class="md-icon-button interaction-button">
+                                <md-icon md-svg-src="images/icons/description_24px.svg"></md-icon>
+                            </md-button>
+                        </div>
+                    </div>
+                    <md-divider ng-if="!showTable()"></md-divider>
                 </div>
-                <md-button ng-click="submitPublicationRemoval(forms['teamPubRemove'])"
-                    class="button-small md-raised md-primary">Confirm removal</md-button>
-                <div class="status-message" ng-hide="hideMessage[forms['teamPubRemove']]">
-                    <span class="message" ng-class="messageType[forms['teamPubRemove']]">
-                        {{updateStatus[forms['teamPubRemove']]}}
+            </div>
+            <div ng-if="showTable()">
+                <div class="search-header spacer-top space-left">
+                    <span>Publications to be added:</span>
+                </div>
+                <table class="publications">
+                    <thead>
+                        <tr>
+                            <th class="large-contents-wide">
+                                <a ng-click="sortColumn('title')">Title</a>
+                                <ng-md-icon ng-if="!sortReverse && sortType=='title'"
+                                        icon="arrow_downward" size="12"></ng-md-icon>
+                                <ng-md-icon ng-if="sortReverse  && sortType=='title'"
+                                        icon="arrow_upwards" size="12"></ng-md-icon>
+                            </th>
+                            <th class="large-contents-narrow">
+                                <a ng-click="sortColumn('authors_raw')">Authors</a>
+                                <ng-md-icon ng-if="!sortReverse && sortType=='authors_raw'"
+                                        icon="arrow_downward" size="12"></ng-md-icon>
+                                <ng-md-icon ng-if="sortReverse  && sortType=='authors_raw'"
+                                        icon="arrow_upwards" size="12"></ng-md-icon>
+                            </th>
+                            <th class="standard-width">
+                                <a ng-click="sortColumn('journal_short_name')">Journal</a>
+                                <ng-md-icon ng-if="!sortReverse && sortType=='journal_short_name'"
+                                        icon="arrow_downward" size="12"></ng-md-icon>
+                                <ng-md-icon ng-if="sortReverse  && sortType=='journal_short_name'"
+                                        icon="arrow_upwards" size="12"></ng-md-icon>
+                            </th>
+                            <th class="smaller-width">
+                                <a ng-click="sortColumn('year')">Year</a>
+                                <ng-md-icon ng-if="!sortReverse && sortType=='year'"
+                                        icon="arrow_downward" size="12"></ng-md-icon>
+                                <ng-md-icon ng-if="sortReverse  && sortType=='year'"
+                                        icon="arrow_upwards" size="12"></ng-md-icon>
+                            </th>
+                            <th class="small-width"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="(pubNum,publication) in newLabPublications track by $index">
+                            <td>{{publication.title}}</td>
+                            <td>{{publication.authors_raw}}</td>
+                            <td>{{publication.journal_short_name}}</td>
+                            <td>{{publication.year}}</td>
+                            <td>
+                                <md-button ng-click="showDetailsPublication(publication)"
+                                            aria-label="Details"
+                                            class="md-icon-button interaction-button">
+                                    <md-icon md-svg-src="images/icons/description_24px.svg"></md-icon>
+                                </md-button>
+                                <md-button ng-click="removeRow(newLabPublications,$index)"
+                                            aria-label="Details"
+                                            class="md-icon-button interaction-button">
+                                    <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
+                                </md-button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="spacer-top" layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button type="submit"
+                    class="button-small md-raised md-primary">Add publications</md-button>
+                <div class="status-message" ng-hide="hideMessage[forms['membersPub']]">
+                    <span class="message" ng-class="messageType[forms['membersPub']]">
+                        {{updateStatus[forms['membersPub']]}}
                     </span>
                 </div>
             </div>

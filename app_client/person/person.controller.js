@@ -1015,6 +1015,12 @@
                     .then( function () {
                         initializeDetails();
                         getPublications(ind);
+                        if (ind > -1) {
+                            vm.updateStatus[ind] = "Updated!";
+                            vm.messageType[ind] = 'message-success';
+                            vm.hideMessage[ind] = false;
+                            $timeout(function () { vm.hideMessage[ind] = true; }, 1500);
+                        }
                     },
                     function () {
                         vm.updateStatus[ind] = "Error!";
@@ -1305,7 +1311,6 @@
             for (var ind in vm.personPublications) {
                 if (pub.people_publications_id === vm.personPublications[ind].people_publications_id) {
                     vm.personPublications[ind].selected = pub.selected;
-                    vm.personPublications[ind].selected_by = vm.currentUser.personID;
                     break;
                 }
             }
@@ -1410,8 +1415,7 @@
                 .then(function (response) {
                     vm.personPublications = response.data.result;
                     for (var el in vm.personPublications) {
-                        if (vm.personPublications[el].selected !== null
-                                && vm.personPublications[el].selected_by === vm.currentUser.personID) {
+                        if (vm.personPublications[el].selected === 1) {
                             vm.personPublications[el].selected = true;
                         } else {
                             vm.personPublications[el].selected = false;

@@ -143,13 +143,12 @@ var queryPersonPublications = function (req, res, next) {
     var places = [];
     querySQL = querySQL + 'SELECT people_publications.id AS people_publications_id, people_publications.public, people_publications.position AS author_position,' +
                                 ' people_publications.author_type_id, author_types.name_en AS author_type, ' +
-                                ' person_selected_publications.publication_id AS selected, person_selected_publications.person_id AS selected_by, publications.*,' +
+                                ' people_publications.selected AS selected, publications.*,' +
                                 ' journals.name AS journal_name, journals.short_name AS journal_short_name, ' +
                                 ' journals.publisher, journals.publisher_city, journals.issn, journals.eissn ' +
                           'FROM people_publications' +
                           ' LEFT JOIN author_types ON people_publications.author_type_id = author_types.id' +
                           ' LEFT JOIN publications ON people_publications.publication_id = publications.id' +
-                          ' LEFT JOIN person_selected_publications ON person_selected_publications.publication_id = publications.id' +
                           ' LEFT JOIN journals ON publications.journal_id = journals.id' +
                           ' WHERE people_publications.person_id = ?';
     places.push(personID,personID);
@@ -172,34 +171,7 @@ var queryPersonPublications = function (req, res, next) {
                         "result" : []});
                     return;
                 }
-                var processed_result = [];
-                var rows_to_skip = [];
-                for (var ind in resQuery) {
-                    if (rows_to_skip.indexOf(ind) === -1) {
-                        if (resQuery[ind].selected === null) {
-                            processed_result.push(resQuery[ind]);
-                            rows_to_skip.push(ind);
-                        } else {
-                            var found = false;
-                            for (var ind_dup in resQuery) {
-                                if (ind_dup !== ind
-                                        && resQuery[ind_dup].id == resQuery[ind].id) {
-                                    rows_to_skip.push(ind_dup);
-
-                                    if (resQuery[ind_dup].selected_by == personID) {
-                                        processed_result.push(resQuery[ind_dup]);
-                                        found = true;
-                                    }
-                                }
-                            }
-                            if (!found) {
-                                processed_result.push(resQuery[ind]);
-                                rows_to_skip.push(ind);
-                            }
-                        }
-                    }
-                }
-                return queryPublicationDescription(req,res,next,processed_result,0);
+                return queryPublicationDescription(req,res,next,resQuery,0);
             }
         );
     });
@@ -210,14 +182,12 @@ var queryTeamPublications = function (req, res, next) {
     var groupID = req.params.groupID;
     var querySQL = '';
     var places = [];
-    // should only select papers that have been published while in te lab
-    // papers published during the year the person entered or left the lab will count
-    querySQL = querySQL + 'SELECT lab_selected_publications.publication_id AS selected, publications.*,' +
+    querySQL = querySQL + 'SELECT labs_publications.id AS labs_publications_id, publications.*,' +
+                                ' labs_publications.selected AS selected, labs_publications.public AS public,' +
                                 ' journals.name AS journal_name, journals.short_name AS journal_short_name, ' +
                                 ' journals.publisher, journals.publisher_city, journals.issn, journals.eissn ' +
                           'FROM labs_publications' +
                           ' LEFT JOIN publications ON labs_publications.publication_id = publications.id' +
-                          ' LEFT JOIN lab_selected_publications ON lab_selected_publications.publication_id = publications.id' +
                           ' LEFT JOIN journals ON publications.journal_id = journals.id' +
                           ' WHERE labs_publications.group_id = ? AND labs_publications.lab_id = ?;';
     places.push(groupID, teamID);
@@ -241,6 +211,55 @@ var queryTeamPublications = function (req, res, next) {
                     return;
                 }
                 return queryPublicationDescription(req,res,next,resQuery,0);
+            }
+        );
+    });
+};
+
+var queryMembersPublications = function (req, res, next) {
+    var teamID = req.params.teamID;
+    var groupID = req.params.groupID;
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'SELECT publications.*, journals.short_name AS journal_short_name, journals.name AS journal_name,' +
+                          ' journals.publisher, journals.publisher_city, journals.eissn AS eissn, journals.issn AS issn' +
+                          ' FROM publications' +
+                          ' LEFT JOIN journals ON journals.id = publications.journal_id' +
+                          ' LEFT JOIN people_publications ON people_publications.publication_id = publications.id' +
+                          ' LEFT JOIN people_labs ON people_labs.person_id = people_publications.person_id' +
+                          ' LEFT JOIN labs ON labs.id = people_labs.lab_id' +
+                          ' LEFT JOIN labs_groups ON labs_groups.lab_id = labs.id' +
+                          ' LEFT JOIN groups ON labs_groups.group_id = groups.id' +
+                          ' WHERE groups.id = ? AND labs.id = ?' +
+                          ' GROUP BY publications.title;';
+    places.push(groupID, teamID);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (resQuery.length === 0 || resQuery === undefined) {
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 1,
+                        "result" : []});
+                    return;
+                }
+                sendJSONResponse(res, 200,
+                {
+                    "status": "success",
+                    "statusCode": 200,
+                    "count": resQuery.length,
+                    "result": resQuery
+                });
+                return;
             }
         );
     });
@@ -396,14 +415,15 @@ var queryUpdatePersonSelectedPublications = function (req, res, next) {
     var querySQL = '';
     var places = [];
     for (var ind in add) {
-        querySQL = querySQL + 'INSERT INTO person_selected_publications' +
-                              ' (person_id,publication_id)' +
-                              ' VALUES (?,?);';
+        querySQL = querySQL + 'UPDATE people_publications' +
+                              ' SET selected = 1' +
+                              ' WHERE person_id = ? AND publication_id  = ?;';
         places.push(personID,add[ind].id);
     }
     for (var ind in del) {
-        querySQL = querySQL + 'DELETE FROM person_selected_publications' +
-                              ' WHERE person_id = ? AND publication_id = ?;';
+        querySQL = querySQL + 'UPDATE people_publications' +
+                              ' SET selected = 0' +
+                              ' WHERE person_id = ? AND publication_id  = ?;';
         places.push(personID,del[ind].id);
     }
     for (var ind in addPublic) {
@@ -435,12 +455,13 @@ var queryUpdatePersonSelectedPublications = function (req, res, next) {
                     sendJSONResponse(res, 200,
                         {"status": "success", "statusCode": 200, "count": 1,
                          "result" : "OK!"});
+                    return;
                 }
             );
         });
     } else {
         sendJSONResponse(res, 200, {"status": "No changes", "statusCode": 200});
-                        return;
+        return;
     }
 };
 
@@ -492,42 +513,62 @@ var queryUpdateTeamSelectedPublications = function (req, res, next) {
     var groupID = req.params.groupID;
     var add = req.body.addSelectedPub;
     var del = req.body.delSelectedPub;
+    var addPublic = req.body.addPublicPub;
+    var delPublic = req.body.delPublicPub;
     var querySQL = '';
     var places = [];
     for (var ind in add) {
-        querySQL = querySQL + 'INSERT INTO lab_selected_publications' +
-                              ' (group_id,lab_id,publication_id)' +
-                              ' VALUES (?,?,?);';
+        querySQL = querySQL + 'UPDATE labs_publications' +
+                              ' SET selected = 1' +
+                              ' WHERE group_id = ? AND lab_id = ? AND publication_id  = ?;';
         places.push(groupID,teamID,add[ind].id);
     }
     for (var ind in del) {
-        querySQL = querySQL + 'DELETE FROM lab_selected_publications' +
-                              ' WHERE groupID = ? AND lab_id = ? AND publication_id = ?;';
+        querySQL = querySQL + 'UPDATE labs_publications' +
+                              ' SET selected = 0' +
+                              ' WHERE group_id = ? AND lab_id = ? AND publication_id  = ?;';
         places.push(groupID, teamID,del[ind].id);
     }
-    pool.getConnection(function(err, connection) {
-        if (err) {
-            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
-            return;
-        }
-        connection.query(querySQL,places,
-            function (err, resQuery) {
-                // And done with the connection.
-                connection.release();
-                if (err) {
-                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+    for (var ind in addPublic) {
+        querySQL = querySQL + 'UPDATE labs_publications' +
+                              ' SET public = 1' +
+                              ' WHERE group_id = ? AND lab_id = ? AND publication_id  = ?;';
+        places.push(groupID,teamID,addPublic[ind].id);
+    }
+    for (var ind in delPublic) {
+        querySQL = querySQL + 'UPDATE labs_publications' +
+                              ' SET public = 0' +
+                              ' WHERE group_id = ? AND lab_id = ? AND publication_id  = ?;';
+        places.push(groupID, teamID,delPublic[ind].id);
+    }
+    if (add.length !== 0 || del.length !== 0 || addPublic.length !== 0 || delPublic.length !== 0) {
+        pool.getConnection(function(err, connection) {
+            if (err) {
+                sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+                return;
+            }
+            connection.query(querySQL,places,
+                function (err, resQuery) {
+                    // And done with the connection.
+                    connection.release();
+                    if (err) {
+                        sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                        return;
+                    }
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 1,
+                         "result" : "OK!"});
                     return;
                 }
-                sendJSONResponse(res, 200,
-                    {"status": "success", "statusCode": 200, "count": 1,
-                     "result" : "OK!"});
-            }
-        );
-    });
+            );
+        });
+    } else {
+        sendJSONResponse(res, 200, {"status": "No changes", "statusCode": 200});
+        return;
+    }
 };
 
 var queryDeletePublicationsPerson = function (req, res, next) {
-    var personID = req.params.personID;
     var del = req.body.deletePublications;
     var querySQL = '';
     var places = [];
@@ -536,10 +577,40 @@ var queryDeletePublicationsPerson = function (req, res, next) {
                               ' WHERE id = ?;';
         places.push(del[ind].people_publications_id);
     }
+    if (querySQL !== '') {
+        pool.getConnection(function(err, connection) {
+            if (err) {
+                sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+                return;
+            }
+            connection.query(querySQL,places,
+                function (err, resQuery) {
+                    // And done with the connection.
+                    connection.release();
+                    if (err) {
+                        sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                        return;
+                    }
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 1,
+                         "result" : "OK!"});
+                }
+            );
+        });
+    } else {
+        sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "message": "No changes"});
+    }
+};
+
+var queryDeletePublicationsTeam = function (req, res, next) {
+    var del = req.body.deletePublications;
+    var querySQL = '';
+    var places = [];
     for (var ind in del) {
-        querySQL = querySQL + 'DELETE FROM person_selected_publications' +
-                              ' WHERE person_id = ? AND publication_id = ?;';
-        places.push(personID,del[ind].id);
+        querySQL = querySQL + 'DELETE FROM labs_publications' +
+                              ' WHERE id = ?;';
+        places.push(del[ind].labs_publications_id);
     }
     if (querySQL !== '') {
         pool.getConnection(function(err, connection) {
@@ -576,6 +647,43 @@ var queryAddPublicationsPerson = function (req, res, next) {
         querySQL = querySQL + 'INSERT INTO people_publications (person_id,publication_id, author_type_id, position)' +
                               ' VALUES (?,?,?,?);';
         places.push(personID, add[ind].id, add[ind].author_type_id, add[ind].position);
+    }
+    if (querySQL !== '') {
+        pool.getConnection(function(err, connection) {
+            if (err) {
+                sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+                return;
+            }
+            connection.query(querySQL,places,
+                function (err, resQuery) {
+                    // And done with the connection.
+                    connection.release();
+                    if (err) {
+                        sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                        return;
+                    }
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 1,
+                         "result" : "OK!"});
+                }
+            );
+        });
+    } else {
+        sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "message": "No changes"});
+    }
+};
+
+var queryAddPublicationsLab = function(req, res, next) {
+    var groupID = req.params.groupID;
+    var teamID = req.params.teamID;
+    var add = req.body.addPublications;
+    var querySQL = '';
+    var places = [];
+    for (var ind in add) {
+        querySQL = querySQL + 'INSERT INTO labs_publications (lab_id, group_id, publication_id,public)' +
+                              ' VALUES (?,?,?,1);';
+        places.push(teamID,groupID, add[ind].id);
     }
     if (querySQL !== '') {
         pool.getConnection(function(err, connection) {
@@ -851,17 +959,11 @@ var queryORCIDInsertPeoplePublications = function (req, res, next, i, pubID) {
     });
 };
 
-/*
-
-
-*/
-
-
 /***************************** Public API Person Queries *****************************/
 module.exports.getPublicationInfo = function (req, res, next) {
     var pubID = req.params.pubID;
-    var querySQL = 'SELECT person_selected_publications.person_id AS person_selected,' +
-                    ' lab_selected_publications.lab_id AS lab_selected,'+
+    var querySQL = 'SELECT people_publications.selected AS person_selected,' +
+                    ' labs_publications.selected AS lab_selected,'+
                     ' people_publications.person_id,' +
                     ' labs_publications.lab_id,' +
                     ' publications.*,' +
@@ -870,8 +972,6 @@ module.exports.getPublicationInfo = function (req, res, next) {
                     'FROM publications' +
                     ' LEFT JOIN people_publications ON people_publications.publication_id = publications.id' +
                     ' LEFT JOIN labs_publications ON labs_publications.publication_id = publications.id' +
-                    ' LEFT JOIN person_selected_publications ON person_selected_publications.publication_id = publications.id' +
-                    ' LEFT JOIN lab_selected_publications ON lab_selected_publications.publication_id = publications.id' +
                     ' LEFT JOIN journals ON publications.journal_id = journals.id' +
                     ' WHERE publications.id = ?;';
     var places = [pubID];
@@ -899,11 +999,11 @@ module.exports.getPublicationInfo = function (req, res, next) {
                 var person = [];
                 var lab = [];
                 for (var ind in resQuery) {
-                    if (resQuery[ind].person_selected !== null) {
-                        if (person_selected.indexOf(resQuery[ind].person_selected) === -1) {person_selected.push(resQuery[ind].person_selected);}
+                    if (resQuery[ind].person_selected === 1) {
+                        if (person_selected.indexOf(resQuery[ind].person_selected) === -1) {person_selected.push(resQuery[ind].person_id);}
                     }
-                    if (resQuery[ind].lab_selected !== null) {
-                        if (lab_selected.indexOf(resQuery[ind].lab_selected) === -1) {lab_selected.push(resQuery[ind].lab_selected);}
+                    if (resQuery[ind].lab_selected === 1) {
+                        if (lab_selected.indexOf(resQuery[ind].lab_selected) === -1) {lab_selected.push(resQuery[ind].lab_id);}
                     }
                     if (resQuery[ind].person_id !== null) {
                         if (person.indexOf(resQuery[ind].person_id) === -1) {person.push(resQuery[ind].person_id);}
@@ -926,18 +1026,14 @@ module.exports.getPublicationInfo = function (req, res, next) {
     });
 };
 module.exports.getAllPublications = function (req, res, next) {
-    var querySQL = 'SELECT person_selected_publications.person_id AS person_selected,' +
-                    ' lab_selected_publications.lab_id AS lab_selected,'+
-                    ' people_publications.person_id,' +
-                    ' labs_publications.lab_id,' +
+    var querySQL = 'SELECT people_publications.person_id, people_publications.selected AS person_selected,' +
+                    ' labs_publications.lab_id, labs_publications.selected AS lab_selected,' +
                     ' publications.*,' +
                     ' journals.name AS journal_name, journals.short_name AS journal_short_name, ' +
                     ' journals.publisher, journals.publisher_city, journals.issn, journals.eissn ' +
                     'FROM publications' +
                     ' LEFT JOIN people_publications ON people_publications.publication_id = publications.id' +
                     ' LEFT JOIN labs_publications ON labs_publications.publication_id = publications.id' +
-                    ' LEFT JOIN person_selected_publications ON person_selected_publications.publication_id = publications.id' +
-                    ' LEFT JOIN lab_selected_publications ON lab_selected_publications.publication_id = publications.id' +
                     ' LEFT JOIN journals ON publications.journal_id = journals.id' +
                     ' ;';
     var places = [];
@@ -967,9 +1063,9 @@ module.exports.getAllPublications = function (req, res, next) {
                     if (rowsSkip.indexOf(indRow) === -1) {
                         rowsSkip.push(indRow);
                         var person_selected = [];
-                        if (resQuery[indRow].person_selected !== null) person_selected.push(resQuery[indRow].person_selected);
+                        if (resQuery[indRow].person_selected === 1) person_selected.push(resQuery[indRow].person_id);
                         var lab_selected = [];
-                        if (resQuery[indRow].lab_selected !== null) lab_selected.push(resQuery[indRow].lab_selected);
+                        if (resQuery[indRow].lab_selected === 1) lab_selected.push(resQuery[indRow].lab_id);
                         var person = [];
                         if (resQuery[indRow].person_id !== null) person.push(resQuery[indRow].person_id);
                         var lab = [];
@@ -977,11 +1073,11 @@ module.exports.getAllPublications = function (req, res, next) {
                         for (var ind = indRow + 1; ind < resQuery.length; ind++) {
                             if (resQuery[ind].id == resQuery[indRow].id) {
                                 rowsSkip.push(ind);
-                                if (resQuery[ind].person_selected !== null) {
-                                    if (person_selected.indexOf(resQuery[ind].person_selected) === -1) {person_selected.push(resQuery[ind].person_selected);}
+                                if (resQuery[ind].person_selected === 1) {
+                                    if (person_selected.indexOf(resQuery[ind].person_selected) === -1) {person_selected.push(resQuery[ind].person_id);}
                                 }
-                                if (resQuery[ind].lab_selected !== null) {
-                                    if (lab_selected.indexOf(resQuery[ind].lab_selected) === -1) {lab_selected.push(resQuery[ind].lab_selected);}
+                                if (resQuery[ind].lab_selected === 1) {
+                                    if (lab_selected.indexOf(resQuery[ind].lab_selected) === -1) {lab_selected.push(resQuery[ind].lab_id);}
                                 }
                                 if (resQuery[ind].person_id !== null) {
                                     if (person.indexOf(resQuery[ind].person_id) === -1) {person.push(resQuery[ind].person_id);}
@@ -1010,15 +1106,14 @@ module.exports.getAllPublications = function (req, res, next) {
 module.exports.getPersonPublicationInfo = function (req, res, next) {
     var personID = req.params.personID;
     var querySQL = 'SELECT people_publications.author_type_id,' +
-                    ' person_selected_publications.publication_id AS selected, publications.*,' +
+                    ' people_publications.selected, publications.*,' +
                     ' journals.name AS journal_name, journals.short_name AS journal_short_name, ' +
                     ' journals.publisher, journals.publisher_city, journals.issn, journals.eissn ' +
                     'FROM people_publications' +
                     ' LEFT JOIN author_types ON people_publications.author_type_id = author_types.id' +
                     ' LEFT JOIN publications ON people_publications.publication_id = publications.id' +
-                    ' LEFT JOIN person_selected_publications ON person_selected_publications.publication_id = publications.id' +
                     ' LEFT JOIN journals ON publications.journal_id = journals.id' +
-                    ' WHERE people_publications.person_id = ?;';
+                    ' WHERE people_publications.person_id = ? AND people_publications.public = 1;';
     var places = [personID];
     pool.getConnection(function(err, connection) {
         if (err) {
@@ -1054,14 +1149,15 @@ module.exports.getPersonPublicationInfo = function (req, res, next) {
 module.exports.getLabPublicationInfo = function (req, res, next) {
     var labID = req.params.labID;
     var groupID = req.params.groupID;
-    var querySQL = 'SELECT lab_selected_publications.publication_id AS selected, publications.*,' +
+    var querySQL = 'SELECT labs_publications.selected AS selected, publications.*,' +
                     ' journals.name AS journal_name, journals.short_name AS journal_short_name, ' +
                     ' journals.publisher, journals.publisher_city, journals.issn, journals.eissn ' +
                     'FROM labs_publications' +
                     ' LEFT JOIN publications ON labs_publications.publication_id = publications.id' +
                     ' LEFT JOIN lab_selected_publications ON lab_selected_publications.publication_id = publications.id' +
                     ' LEFT JOIN journals ON publications.journal_id = journals.id' +
-                    ' WHERE labs_publications.group_id = ? AND labs_publications.lab_id = ?;';
+                    ' WHERE labs_publications.group_id = ? AND labs_publications.lab_id = ?' +
+                    ' AND  labs_publications.public = 1;';
     var places = [groupID,labID];
     pool.getConnection(function(err, connection) {
         if (err) {
@@ -1095,9 +1191,6 @@ module.exports.getLabPublicationInfo = function (req, res, next) {
     });
 };
 
-
-
-
 /******************** Call SQL Generators after Validations *******************/
 
 module.exports.listAllPublications = function (req, res, next) {
@@ -1120,6 +1213,13 @@ module.exports.listTeamPublications = function (req, res, next) {
     getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
         function (req, res, username) {
             queryTeamPublications(req,res,next);
+        }
+    );
+};
+module.exports.listMembersPublications = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
+        function (req, res, username) {
+            queryMembersPublications(req,res,next);
         }
     );
 };
@@ -1148,10 +1248,26 @@ module.exports.deletePublicationsPerson = function (req, res, next) {
     );
 };
 
+module.exports.deletePublicationsTeam = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
+        function (req, res, username) {
+            queryDeletePublicationsTeam(req,res,next);
+        }
+    );
+};
+
 module.exports.addPublicationsPerson = function (req, res, next) {
     getUser(req, res, [0, 5, 10, 15, 16],
         function (req, res, username) {
             queryAddPublicationsPerson(req,res,next);
+        }
+    );
+};
+
+module.exports.addPublicationsLab = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
+        function (req, res, username) {
+            queryAddPublicationsLab(req,res,next);
         }
     );
 };

@@ -26,6 +26,13 @@
                     <md-tab label='List'>
                         <md-content>
                             <div layout="row" layout-padding>
+                                <team-members-publications
+                                    data-lab="{{lab.lab_id}}"
+                                    data-group="{{lab.group_id}}"
+                                flex>
+                                </team-members-publications>
+                            </div>
+                            <div layout="row" layout-padding>
                                 <team-lab-publications
                                     data-lab="{{lab.lab_id}}"
                                     data-group="{{lab.group_id}}"

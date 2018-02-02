@@ -29,6 +29,28 @@
 
         <form flex novalidate name="personPublicationsForm"
                 ng-submit="personPublicationsForm.$valid && vm.submitSelectedPersonPublications(vm.forms['personSelectedPub'])">
+            <div layout="row" class="paginator">
+                <md-input-container class="input-no-margin wider">
+                    <label>Results/page</label>
+                    <md-select ng-model="vm.pageSize"
+                            md-on-close="vm.renderPublications('new')"
+                            aria-label="pageSize"
+                            name="pageSize">
+                            <md-option ng-value="10">10</md-option>
+                            <md-option ng-value="20">20</md-option>
+                            <md-option ng-value="50">50</md-option>
+                    </md-select>
+                </md-input-container>
+                <md-input-container class="input-no-margin">
+                    <label>Page</label>
+                    <md-select ng-model="vm.currentPage"
+                            md-on-close="vm.renderPublications('page')"
+                            aria-label="currentPage"
+                            name="currentPage">
+                            <md-option ng-repeat="page in vm.pages" ng-value="page">{{page}}</md-option>
+                    </md-select>
+                </md-input-container>
+            </div>
             <div class="small-screens" layout="column" ng-if="!vm.showTable()">
                 <div ng-repeat="(pubNum,publication) in vm.currPublications track by $index">
                     <div layout="column">
@@ -49,18 +71,37 @@
                             <div class="answer"><span>{{publication.year}}</span></div>
                         </div>
                         <div layout="row" layout-align=" center">
-                            <div class="question"><span class="highlight">Selected Publication:</span></div>
+                            <div class="question">
+                                <span class="highlight">Highlighted Publication <md-icon md-svg-src="images/icons/star_18px.svg"></md-icon>:
+                                </span>
+                            </div>
                             <div class="answer">
                                 <md-checkbox class="center-tick" name="selectedPublication" aria-label="Selected Publication"
                                         ng-change="vm.changeSelectedStatus(publication)" ng-model="publication.selected"></md-checkbox>
                             </div>
                         </div>
-                        <div layout="row">
+                        <div layout="row" layout-align=" center">
+                            <div class="question">
+                                <span class="highlight">Public?
+                                    <md-icon md-svg-src="images/icons/public_24px.svg"></md-icon>:
+                                    <md-tooltip md-direction="top">
+                                          Visible on other platforms (e.g. LAQV/UCIBIO website) as your publication
+                                    </md-tooltip>
+                                </span>
+                            </div>
+                            <div class="answer">
+                                <md-checkbox class="center-tick" name="publicPublication" aria-label="Public Publication"
+                                        ng-change="vm.changePublicStatus(publication)" ng-model="publication.public"></md-checkbox>
+                            </div>
+                        </div>
+                        <div layout="row" layout-align="none center">
+                            Show pub. details:
                             <md-button ng-click="vm.showDetailsPublication(publication)"
                                         aria-label="Details"
                                         class="md-icon-button interaction-button">
                                 <md-icon md-svg-src="images/icons/description_24px.svg"></md-icon>
                             </md-button>
+                            Remove publication:
                             <md-button ng-click="vm.removePublication(publication)"
                                         aria-label="Remove publication"
                                         class="md-icon-button interaction-button">
@@ -110,12 +151,13 @@
                                     </md-tooltip>
                                 </md-icon>
                             </th>
-                            <th  class="smaller-width">
+                            <th class="smaller-width">
                                 <md-icon md-svg-src="images/icons/public_24px.svg">
                                     <md-tooltip md-direction="top">
-                                          Visible on other platforms (e.g. website)
+                                          Visible on other platforms (e.g. website) as your publication
                                     </md-tooltip>
-                                </md-icon></th>
+                                </md-icon>
+                            </th>
                             <th class="small-width"></th>
 
                         </tr>
@@ -131,7 +173,7 @@
                                         ng-change="vm.changeSelectedStatus(publication)" ng-model="publication.selected"></md-checkbox>
                             </td>
                             <td>
-                                <md-checkbox class="center-tick" name="publicPublication" aria-label="Selected Publication"
+                                <md-checkbox class="center-tick" name="publicPublication" aria-label="Public Publication"
                                         ng-change="vm.changePublicStatus(publication)" ng-model="publication.public"></md-checkbox>
                             </td>
                             <td>

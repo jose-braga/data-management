@@ -230,8 +230,7 @@ var queryMembersPublications = function (req, res, next) {
                           ' LEFT JOIN labs ON labs.id = people_labs.lab_id' +
                           ' LEFT JOIN labs_groups ON labs_groups.lab_id = labs.id' +
                           ' LEFT JOIN groups ON labs_groups.group_id = groups.id' +
-                          ' WHERE groups.id = ? AND labs.id = ?' +
-                          ' GROUP BY publications.title;';
+                          ' WHERE groups.id = ? AND labs.id = ?;';
     places.push(groupID, teamID);
     pool.getConnection(function(err, connection) {
         if (err) {
@@ -252,12 +251,21 @@ var queryMembersPublications = function (req, res, next) {
                         "result" : []});
                     return;
                 }
+                var non_duplicates = [];
+                var id_collection = [];
+                for (var ind in resQuery) {
+                    if (id_collection.indexOf(resQuery[ind].id) === -1) {
+                        id_collection.push(resQuery[ind].id);
+                        non_duplicates.push(resQuery[ind]);
+                    }
+                }
+
                 sendJSONResponse(res, 200,
                 {
                     "status": "success",
                     "statusCode": 200,
-                    "count": resQuery.length,
-                    "result": resQuery
+                    "count": non_duplicates.length,
+                    "result": non_duplicates
                 });
                 return;
             }

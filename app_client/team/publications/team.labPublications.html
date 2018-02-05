@@ -67,17 +67,31 @@
                             <div class="answer"><span>{{publication.year}}</span></div>
                         </div>
                         <div layout="row" layout-align=" center">
-                            <div class="question"><span class="highlight">Selected Publication:</span></div>
+                            <div class="question"><span class="highlight">Highlighted <md-icon md-svg-src="images/icons/star_18px.svg"></md-icon>:</span></div>
                             <div class="answer">
                                 <md-checkbox class="center-tick" name="selectedPublication" aria-label="Selected Publication"
                                         ng-change="changeSelectedStatus(publication)" ng-model="publication.selected"></md-checkbox>
                             </div>
                         </div>
-                        <div layout="row">
+                        <div layout="row" layout-align=" center">
+                            <div class="question"><span class="highlight">Public <md-icon md-svg-src="images/icons/public_24px.svg"></md-icon>:</span></div>
+                            <div class="answer">
+                                <md-checkbox class="center-tick" name="publicPublication" aria-label="Public Publication"
+                                        ng-change="changePublicStatus(publication)" ng-model="publication.public"></md-checkbox>
+                            </div>
+                        </div>
+                        <div layout="row"  layout-align="none center">
+                            Show pub. details:
                             <md-button ng-click="showDetailsPublication(publication)"
                                         aria-label="Details"
                                         class="md-icon-button interaction-button">
                                 <md-icon md-svg-src="images/icons/description_24px.svg"></md-icon>
+                            </md-button>
+                            Remove publication:
+                            <md-button ng-click="removePublication(publication)"
+                                        aria-label="Remove publication"
+                                        class="md-icon-button interaction-button">
+                                <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
                             </md-button>
                         </div>
                     </div>

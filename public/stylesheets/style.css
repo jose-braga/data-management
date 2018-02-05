@@ -209,6 +209,10 @@ md-select-menu ._md .scrollable{
   margin-top: 20px;
 }
 
+.spacer-bottom {
+  margin-bottom: 20px;
+}
+
 .spacer-top-smaller {
   margin-top: 7px;
   margin-right: 10px;

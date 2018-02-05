@@ -31,7 +31,7 @@
         </div>
         <form flex novalidate name="membersPublicationsForm"
                 ng-submit="membersPublicationsForm.$valid && submitMembersPublications(forms['membersPub'])">
-            <div layout="row" class="paginator">
+            <div layout="row" class="paginator spacer-bottom">
                 <md-input-container class="input-no-margin wider">
                     <label>Results/page</label>
                     <md-select ng-model="pageSize"
@@ -77,6 +77,11 @@
                                         aria-label="Details"
                                         class="md-icon-button interaction-button">
                                 <md-icon md-svg-src="images/icons/description_24px.svg"></md-icon>
+                            </md-button>
+                            <md-button ng-click="addPublication(publication)"
+                                        aria-label="Details"
+                                        class="md-icon-button interaction-button">
+                                <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
                             </md-button>
                         </div>
                     </div>
@@ -165,7 +170,10 @@
 
             <!-- Publications to be added to Lab -->
             <div class="small-screens" layout="column" ng-if="!showTable()">
-                <div ng-repeat="(pubNum,publication) in currPublications track by $index">
+                <div class="search-header spacer-top space-left">
+                    <span>Publications to be added:</span>
+                </div>
+                <div ng-repeat="(pubNum,publication) in newLabPublications track by $index">
                     <div layout="column">
                         <div layout="row" layout-align=" center">
                             <div class="question"><span class="highlight">Title:</span></div>
@@ -188,6 +196,11 @@
                                         aria-label="Details"
                                         class="md-icon-button interaction-button">
                                 <md-icon md-svg-src="images/icons/description_24px.svg"></md-icon>
+                            </md-button>
+                            <md-button ng-click="removeRow(newLabPublications,$index)"
+                                        aria-label="Details"
+                                        class="md-icon-button interaction-button">
+                                <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
                             </md-button>
                         </div>
                     </div>

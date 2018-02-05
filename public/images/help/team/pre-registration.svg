@@ -10,9 +10,9 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="634.74933"
-   height="164.24889"
-   viewBox="0 0 167.94409 43.457518"
+   width="845.89716"
+   height="106.648"
+   viewBox="0 0 223.81028 28.217284"
    version="1.1"
    id="svg7830"
    inkscape:version="0.92.0 r15299"
@@ -131,6 +131,21 @@
          d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
          transform="matrix(-0.3,0,0,-0.3,0.69,0)" />
     </marker>
+    <marker
+       inkscape:stockid="Arrow2Send"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="Arrow2Send-39"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         id="path8561-72"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.625;stroke-linejoin:round;stroke-opacity:1"
+         d="M 8.7185878,4.0337352 -2.2072895,0.01601326 8.7185884,-4.0017078 c -1.7454984,2.3720609 -1.7354408,5.6174519 -6e-7,8.035443 z"
+         transform="matrix(-0.3,0,0,-0.3,0.69,0)"
+         inkscape:connector-curvature="0" />
+    </marker>
   </defs>
   <sodipodi:namedview
      id="base"
@@ -141,7 +156,7 @@
      inkscape:pageshadow="2"
      inkscape:zoom="0.98994949"
      inkscape:cx="246.58423"
-     inkscape:cy="111.0664"
+     inkscape:cy="53.465521"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -158,8 +173,8 @@
     <inkscape:grid
        type="xygrid"
        id="grid9577"
-       originx="25.960885"
-       originy="-231.48278" />
+       originx="25.960884"
+       originy="-246.72301" />
   </sodipodi:namedview>
   <metadata
      id="metadata7827">
@@ -177,149 +192,160 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(25.960886,-22.059713)">
+     transform="translate(25.960886,-22.059714)">
+    <rect
+       style="fill:#c3e7ff;fill-opacity:1;stroke:#000000;stroke-width:0.38100001;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:normal"
+       id="rect8375"
+       width="39.382324"
+       height="27.836283"
+       x="-25.770386"
+       y="22.250214"
+       ry="5.5805879" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:7.61999989px;line-height:4.76249981px;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.19049999px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="-6.308352"
+       y="34.777805"
+       id="text8926"><tspan
+         sodipodi:role="line"
+         id="tspan8924"
+         x="-5.6614461"
+         y="34.777805"
+         style="font-size:4.06400013px;line-height:4.76249981px;text-align:center;text-anchor:middle;stroke-width:0.19049999px">Team manager </tspan><tspan
+         sodipodi:role="line"
+         x="-6.3083515"
+         y="40.464031"
+         style="font-size:4.06400013px;line-height:4.76249981px;text-align:center;text-anchor:middle;stroke-width:0.19049999px"
+         id="tspan8928">initiates</tspan></text>
+    <rect
+       style="fill:#bdf7b6;fill-opacity:1;stroke:#000000;stroke-width:0.38100007;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:normal"
+       id="rect8375-4"
+       width="39.382324"
+       height="27.836285"
+       x="39.292011"
+       y="22.250214"
+       ry="5.5805879" />
+    <rect
+       style="fill:#ffb098;fill-opacity:1;stroke:#000000;stroke-width:0.38100007;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:normal"
+       id="rect8375-5"
+       width="39.382324"
+       height="27.836285"
+       x="102.41039"
+       y="22.250214"
+       ry="5.5805879" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:7.61999989px;line-height:4.76250029px;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.19049999px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="121.87242"
+       y="34.446415"
+       id="text8926-0"><tspan
+         sodipodi:role="line"
+         x="122.51933"
+         y="34.446415"
+         style="font-size:4.06400013px;line-height:4.76250029px;text-align:center;text-anchor:middle;stroke-width:0.19049999px"
+         id="tspan8928-5">Global or Local </tspan><tspan
+         sodipodi:role="line"
+         x="121.87242"
+         y="40.132641"
+         style="font-size:4.06400013px;line-height:4.76250029px;text-align:center;text-anchor:middle;stroke-width:0.19049999px"
+         id="tspan9239">Manager Validates</tspan></text>
     <g
-       id="g10716"
-       transform="matrix(0.72,0,0,0.72,16.243126,12.260772)">
-      <rect
-         ry="7.7508163"
-         y="13.874226"
-         x="-58.3521"
-         height="38.661503"
-         width="54.697674"
-         id="rect8375"
-         style="fill:#c3e7ff;fill-opacity:1;stroke:#000000;stroke-width:0.5291667;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:normal" />
+       id="g10689"
+       transform="matrix(0.72,0,0,0.72,16.243126,12.86452)">
       <text
-         id="text8926"
-         y="31.273657"
-         x="-31.321497"
-         style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:6.61458302px;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-         xml:space="preserve"><tspan
-           style="font-size:5.64444447px;line-height:6.61458302px;text-align:center;text-anchor:middle;stroke-width:0.26458332px"
-           y="31.273657"
-           x="-30.423016"
-           id="tspan8924"
-           sodipodi:role="line">Team manager </tspan><tspan
-           id="tspan8928"
-           style="font-size:5.64444447px;line-height:6.61458302px;text-align:center;text-anchor:middle;stroke-width:0.26458332px"
-           y="39.171192"
-           x="-31.321497"
-           sodipodi:role="line">initiates</tspan></text>
-      <rect
-         ry="7.7508163"
-         y="13.874224"
-         x="32.012341"
-         height="38.661507"
-         width="54.697674"
-         id="rect8375-4"
-         style="fill:#bdf7b6;fill-opacity:1;stroke:#000000;stroke-width:0.52916676;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:normal" />
-      <rect
-         ry="7.7508163"
-         y="13.874224"
-         x="119.67675"
-         height="38.661507"
-         width="54.697674"
-         id="rect8375-5"
-         style="fill:#ffb098;fill-opacity:1;stroke:#000000;stroke-width:0.52916676;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:normal" />
-      <path
-         sodipodi:nodetypes="cccc"
-         inkscape:connector-curvature="0"
-         id="path8526-9"
-         d="m 145.52083,56.229167 v 15.875 H 58.208333 v -13.22917"
-         style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:3.72627425;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow2Send-3)" />
-      <text
-         id="text8926-0"
-         y="30.813391"
-         x="146.70735"
+         id="text8926-5"
+         y="30.735088"
+         x="59.844765"
          style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:6.61458349px;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
          xml:space="preserve"><tspan
-           id="tspan8928-5"
+           id="tspan8928-8"
            style="font-size:5.64444447px;line-height:6.61458349px;text-align:center;text-anchor:middle;stroke-width:0.26458332px"
-           y="30.813391"
-           x="147.60583"
-           sodipodi:role="line">Global or Local </tspan><tspan
-           id="tspan9239"
-           style="font-size:5.64444447px;line-height:6.61458349px;text-align:center;text-anchor:middle;stroke-width:0.26458332px"
-           y="38.710926"
-           x="146.70735"
-           sodipodi:role="line">Manager Validates</tspan></text>
-      <g
-         transform="translate(0,0.8385393)"
-         id="g10689">
-        <text
-           xml:space="preserve"
-           style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:6.61458349px;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-           x="59.844765"
            y="30.735088"
-           id="text8926-5"><tspan
-             sodipodi:role="line"
-             x="59.844765"
-             y="30.735088"
-             style="font-size:5.64444447px;line-height:6.61458349px;text-align:center;text-anchor:middle;stroke-width:0.26458332px"
-             id="tspan8928-8">User pre-registers</tspan></text>
-        <text
-           xml:space="preserve"
-           style="font-style:normal;font-weight:normal;font-size:3.88055563px;line-height:6.61458349px;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-           x="59.937611"
-           y="38.231293"
-           id="text8926-5-9"><tspan
-             sodipodi:role="line"
-             x="59.937611"
-             y="38.231293"
-             style="font-size:3.88055563px;line-height:6.61458349px;text-align:center;text-anchor:middle;stroke-width:0.26458332px"
-             id="tspan8928-8-5">Fills initial data</tspan></text>
-      </g>
-      <g
-         transform="translate(0,2.3474977)"
-         id="g10630">
-        <path
-           style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:3.72627425;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow2Send)"
-           d="M -1.3363511,33.739514 H 22.705374"
-           id="path8526"
-           inkscape:connector-curvature="0" />
-        <text
-           xml:space="preserve"
-           style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:6.61458302px;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-           x="3.5775051"
-           y="26.369047"
-           id="text10589"><tspan
-             sodipodi:role="line"
-             id="tspan10587"
-             x="3.5775051"
-             y="26.369047"
-             style="font-size:4.23333311px;stroke-width:0.26458332px">Mail user</tspan></text>
-      </g>
-      <g
-         transform="translate(0,2.3474996)"
-         id="g10683">
-        <path
-           style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:3.72627425;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow2Send-6)"
-           d="M 88.945002,33.739512 H 112.98673"
-           id="path8526-1"
-           inkscape:connector-curvature="0" />
-        <text
-           xml:space="preserve"
-           style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:6.61458349px;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-           x="88.959938"
-           y="26.369045"
-           id="text10589-7"><tspan
-             sodipodi:role="line"
-             id="tspan10587-0"
-             x="88.959938"
-             y="26.369045"
-             style="font-size:4.23333311px;stroke-width:0.26458332px">Mail manager</tspan></text>
-      </g>
+           x="59.844765"
+           sodipodi:role="line">User pre-registers</tspan></text>
       <text
-         id="text10589-3"
-         y="67.757439"
-         x="69.547623"
+         id="text8926-5-9"
+         y="38.231293"
+         x="59.937611"
+         style="font-style:normal;font-weight:normal;font-size:3.88055563px;line-height:6.61458349px;font-family:sans-serif;text-align:center;letter-spacing:0px;word-spacing:0px;text-anchor:middle;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         xml:space="preserve"><tspan
+           id="tspan8928-8-5"
+           style="font-size:3.88055563px;line-height:6.61458349px;text-align:center;text-anchor:middle;stroke-width:0.26458332px"
+           y="38.231293"
+           x="59.937611"
+           sodipodi:role="line">Fills initial data</tspan></text>
+    </g>
+    <g
+       id="g10630"
+       transform="matrix(0.72,0,0,0.72,16.243126,13.95097)">
+      <path
+         inkscape:connector-curvature="0"
+         id="path8526"
+         d="M -1.3363511,33.739514 H 22.705374"
+         style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:3.72627425;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow2Send)" />
+      <text
+         id="text10589"
+         y="26.369047"
+         x="3.5775051"
+         style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:6.61458302px;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         xml:space="preserve"><tspan
+           style="font-size:4.23333311px;stroke-width:0.26458332px"
+           y="26.369047"
+           x="3.5775051"
+           id="tspan10587"
+           sodipodi:role="line">Mail user</tspan></text>
+    </g>
+    <g
+       id="g10683"
+       transform="matrix(0.72,0,0,0.72,16.243126,13.950972)">
+      <path
+         inkscape:connector-curvature="0"
+         id="path8526-1"
+         d="M 88.945002,33.739512 H 112.98673"
+         style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:3.72627425;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow2Send-6)" />
+      <text
+         id="text10589-7"
+         y="26.369045"
+         x="88.959938"
          style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:6.61458349px;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
          xml:space="preserve"><tspan
            style="font-size:4.23333311px;stroke-width:0.26458332px"
-           y="67.757439"
-           x="69.547623"
-           id="tspan10587-7"
-           sodipodi:role="line">Mail user. Pre-Registration ends.</tspan></text>
+           y="26.369045"
+           x="88.959938"
+           id="tspan10587-0"
+           sodipodi:role="line">Mail manager</tspan></text>
     </g>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:7.61999989px;line-height:4.76250029px;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.19049999px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="169.67542"
+       y="36.991875"
+       id="text10589-3"><tspan
+         sodipodi:role="line"
+         id="tspan10587-7"
+         x="169.67542"
+         y="36.991875"
+         style="font-size:3.52777767px;stroke-width:0.19049999px">Pre-Registration </tspan><tspan
+         sodipodi:role="line"
+         x="169.67542"
+         y="42.817394"
+         style="font-size:3.52777767px;stroke-width:0.19049999px"
+         id="tspan4606">ends.</tspan></text>
+    <path
+       style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:2.79885483;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow2Send-39)"
+       d="m 144.11866,38.24342 h 18.83841"
+       id="path8526-5"
+       inkscape:connector-curvature="0" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:7.61999989px;line-height:4.76249981px;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.19049999px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       x="143.15067"
+       y="32.669415"
+       id="text10589-8"><tspan
+         sodipodi:role="line"
+         id="tspan10587-72"
+         x="143.15067"
+         y="32.669415"
+         style="font-size:3.04799986px;stroke-width:0.19049999px">IF OK, mail user</tspan></text>
   </g>
 </svg>

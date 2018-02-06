@@ -413,3 +413,11 @@ ul.help-list li{
 .white-icon svg{
   fill: #ffffff;
 }
+
+.nav-highlights {
+  background-color: rgb(253,253,253);
+}
+
+.nav-highlights ul{
+  margin-left: 10px;
+}

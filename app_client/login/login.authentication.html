@@ -1,0 +1,53 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Enter your credentials</span>
+        </md-card-title-text>
+    </md-card-title>
+    <form flex name="loginForm"
+            ng-submit="loginForm.$valid && vm.onSubmit()" novalidate>
+        <md-card-content layout="column" flex>
+            <md-input-container>
+                <label>Username</label>
+                <input ng-model="vm.credentials.username" name="vm.credentials.username">
+            </md-input-container>
+            <md-input-container>
+                <label>{{vm.initialPassword}}</label>
+                <input type="password" ng-model="vm.credentials.password"
+                    name="password">
+            </md-input-container>
+
+
+            <div ng-if="vm.showPasswordChange" layout="column">
+                <md-input-container>
+                    <label>New password</label>
+                    <input type="password"
+                        ng-model="vm.credentials.newPassword1"
+                        name="newPassword1">
+                </md-input-container>
+                <md-input-container>
+                    <label>Retype new password</label>
+                    <input type="password"
+                        ng-model="vm.credentials.newPassword2"
+                        name="newPassword2"
+                        change-password-validate="vm.credentials.newPassword1">
+                    <div ng-messages="loginForm.newPassword2.$error">
+                        <div ng-message="changePasswordValidate">No match with previous</div>
+                    </div>
+                </md-input-container>
+            </div>
+            <div layout="column"  layout-gt-xs="row">
+                <div flex-gt-xs="10">
+                    <md-button id="login-submit" type="submit"
+                        class="button-small md-raised md-primary">{{vm.submitButtonTxt}}</md-button>
+                </div>
+                <div flex-gt-xs="20"></div>
+                <div flex-gt-xs="20">
+                    <md-button id="change-password" ng-click="vm.newPassClick()"
+                        class="passwordBtn button-small md-raised">{{vm.changeButtonTxt}}</md-button>
+                </div>
+
+            </div>
+        </md-card-content>
+    </form>
+</md-card>

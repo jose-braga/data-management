@@ -2353,7 +2353,6 @@
                     publications.thisMembersPublications(scope.group, scope.lab)
                         .then(function (response) {
                             scope.membersPublicationsAll = response.data.result;
-                            // TODO: Must remove already existing publications in lab
                             var labPubIDs = scope.teamPublications.map(function(obj){return obj.id;});
                             scope.membersPublications = scope.membersPublicationsAll.filter(
                                     function (obj) { return labPubIDs.indexOf(obj.id) === -1;});

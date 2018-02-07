@@ -609,6 +609,7 @@ function joinLabs(rows) {
     var indToExclude = [];
     var newRows = [];
     for (var ind in rows) {
+        ind = parseInt(ind,10);
         if (indToExclude.indexOf(ind) === -1) {
             var labObj = {
                 lab_id: rows[ind].lab_id,
@@ -629,9 +630,11 @@ function joinLabs(rows) {
             };
             indToExclude.push(ind);
             var currID = rows[ind].lab_id;
+
             for (var ind2 in rows) {
+                ind2 = parseInt(ind2,10);
                 if (ind2 > ind && indToExclude.indexOf(ind2) === -1) {
-                    if (rows[ind2].lab_id === currID) {
+                    if (rows[ind2].lab_id == currID) {
                         indToExclude.push(ind2);
                         labObj.lab_history.push({
                             group_id: rows[ind2].group_id,
@@ -5161,6 +5164,10 @@ module.exports.searchPeople = function (req, res, next) {
 };
 
 module.exports.getAllPeople = function (req, res, next) {
+    var unitID = null;
+    if (req.query.hasOwnProperty('unit')) {
+        unitID = req.query.unit;
+    }
     var querySQL = 'SELECT people.id, people.name AS full_name, people.colloquial_name AS name,' +
                    ' people.active_from, people.active_until,' +
                    ' emails.email, phones.phone, phones.extension AS phone_extension,' +
@@ -5209,8 +5216,12 @@ module.exports.getAllPeople = function (req, res, next) {
                   ' LEFT JOIN units AS administrative_units ON administrative_units.id = people_administrative_units.unit_id' +
                   ' LEFT JOIN administrative_positions ON administrative_positions.id = people_administrative_offices.administrative_position_id' +
                   ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
-                  ' WHERE people.status = ?;';
+                  ' WHERE people.status = ?';
     var places = [1];
+    if (unitID !== null) {
+        querySQL = querySQL + ' AND (units.id = ? OR technicians_units.id = ? OR science_managers_units.id = ? OR administrative_units.id = ?)';
+        places.push(unitID,unitID,unitID,unitID);
+    }
     var mergeRules = [
                       ['lab_data', 'lab_start', 'lab_end', 'lab_position_id','lab_position_name_en','lab_position_name_pt',
                        'lab_id','lab_name','labs_groups_valid_from','labs_groups_valid_until','group_id','group_name','unit_id', 'unit_name'],
@@ -5221,7 +5232,6 @@ module.exports.getAllPeople = function (req, res, next) {
                       ['administrative_data', 'administrative_start', 'administrative_end', 'administrative_position_id','administrative_position_name_en','administrative_position_name_pt',
                        'administrative_id','administrative_office_id','administrative_office_name','administrative_unit_id','administrative_unit_name']
                     ];
-
     escapedQueryPersonSearch(querySQL, places, mergeRules, req, res, next);
 };
 
@@ -5473,6 +5483,11 @@ module.exports.getAdministrativeOfficeMembers = function (req, res, next) {
 
 module.exports.listOf = function (req, res, next) {
     var listOf = req.params.listOf;
+    var unitID = null;
+    if (req.query.hasOwnProperty('unit')) {
+        unitID = req.query.unit;
+    }
+    var places = [];
     var querySQL = '';
     if (listOf === 'countries') {
         querySQL = 'SELECT countries.id AS country_id, countries.name FROM countries';
@@ -5530,8 +5545,12 @@ module.exports.listOf = function (req, res, next) {
                    ' units.id AS unit_id, units.short_name AS unit, units.name AS unit_full_name' +
                    ' FROM groups' +
                    ' LEFT JOIN groups_units ON groups_units.group_id = groups.id' +
-                   ' LEFT JOIN units ON groups_units.unit_id = units.id;';
-        getQueryResponse(querySQL, req, res, next);
+                   ' LEFT JOIN units ON groups_units.unit_id = units.id';
+        if (unitID !== null) {
+            querySQL = querySQL + ' WHERE units.id = ?';
+            places.push(unitID);
+        }
+        escapedQuery(querySQL, places, req, res, next);
     } else if (listOf === 'labs') {
         querySQL = 'SELECT labs.id AS lab_id, labs.name AS lab, labs.short_name AS lab_short_name,' +
                    ' labs.started AS lab_opened, labs.finished AS lab_closed, ' +
@@ -5542,13 +5561,17 @@ module.exports.listOf = function (req, res, next) {
                    ' LEFT JOIN labs_groups ON labs_groups.lab_id = labs.id' +
                    ' LEFT JOIN groups ON labs_groups.group_id = groups.id' +
                    ' LEFT JOIN groups_units ON groups_units.group_id = groups.id' +
-                   ' LEFT JOIN units ON groups_units.unit_id = units.id;';
+                   ' LEFT JOIN units ON groups_units.unit_id = units.id';
+        if (unitID !== null) {
+            querySQL = querySQL + ' WHERE units.id = ?';
+            places.push(unitID);
+        }
         pool.getConnection(function(err, connection) {
             if (err) {
                 sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
                 return;
             }
-            connection.query(querySQL,
+            connection.query(querySQL, places,
                 function (err, rowsQuery) {
                     // And done with the connection.
                     connection.release();

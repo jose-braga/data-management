@@ -89,6 +89,84 @@ var getUser = function (req, res, permissions, callback) {
     }
 };
 
+function processPublications(resQuery) {
+    function containsObj(list, obj) {
+        for (var i in list) {
+            if (JSON.stringify(list[i]) === JSON.stringify(obj)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    var rowsSkip = [];
+    var publications = [];
+    for (var indRow in resQuery) {
+        indRow = Number.parseInt(indRow,10);
+        if (rowsSkip.indexOf(indRow) === -1) {
+            rowsSkip.push(indRow);
+            var person_selected = [];
+            if (resQuery[indRow].person_selected === 1) person_selected.push(resQuery[indRow].person_id);
+            var lab_selected = [];
+            if (resQuery[indRow].lab_selected === 1) {
+                lab_selected.push({
+                    lab_id: resQuery[indRow].lab_id,
+                    group_id: resQuery[indRow].group_id
+                });
+            }
+            var person = [];
+            if (resQuery[indRow].person_id !== null) person.push(resQuery[indRow].person_id);
+            var lab = [];
+            if (resQuery[indRow].lab_id !== null) {
+                lab.push({
+                    lab_id: resQuery[indRow].lab_id,
+                    group_id: resQuery[indRow].group_id
+                });
+            }
+            for (var ind = indRow + 1; ind < resQuery.length; ind++) {
+                if (resQuery[ind].id == resQuery[indRow].id) {
+                    rowsSkip.push(ind);
+                    if (resQuery[ind].person_selected === 1) {
+                        if (person_selected.indexOf(resQuery[ind].person_selected) === -1) {
+                            person_selected.push(resQuery[ind].person_id);
+                        }
+                    }
+                    if (resQuery[ind].lab_selected === 1) {
+                        let objTest = {
+                            lab_id: resQuery[ind].lab_id,
+                            group_id: resQuery[ind].group_id
+                        };
+                        if (!containsObj(lab_selected,objTest)) {
+                            lab_selected.push(objTest);
+                        }
+                    }
+                    if (resQuery[ind].person_id !== null) {
+                        if (person.indexOf(resQuery[ind].person_id) === -1) {
+                            person.push(resQuery[ind].person_id);
+                        }
+                    }
+                    if (resQuery[ind].lab_id !== null) {
+                        let objTest = {
+                            lab_id: resQuery[ind].lab_id,
+                            group_id: resQuery[ind].group_id
+                        };
+                        if (!containsObj(lab,objTest)) {
+                            lab.push(objTest);
+                        }
+                    }
+                }
+            }
+            delete resQuery[indRow].group_id;
+            resQuery[indRow].person_selected = person_selected;
+            resQuery[indRow].lab_selected = lab_selected;
+            resQuery[indRow].person_id = person;
+            resQuery[indRow].lab_id = lab;
+            publications.push(resQuery[indRow]);
+        }
+    }
+    return publications;
+}
+
+
 function momentToDate(timedate, timezone, timeformat) {
     if (timezone === undefined) {
         timezone = 'Europe/Lisbon';
@@ -1034,17 +1112,29 @@ module.exports.getPublicationInfo = function (req, res, next) {
     });
 };
 module.exports.getAllPublications = function (req, res, next) {
+    var unitID = null;
+    if (req.query.hasOwnProperty('unit')) {
+        unitID = req.query.unit;
+    }
     var querySQL = 'SELECT people_publications.person_id, people_publications.selected AS person_selected,' +
-                    ' labs_publications.lab_id, labs_publications.selected AS lab_selected,' +
+                    ' labs_publications.lab_id,labs_publications.group_id, labs_publications.selected AS lab_selected,' +
                     ' publications.*,' +
                     ' journals.name AS journal_name, journals.short_name AS journal_short_name, ' +
                     ' journals.publisher, journals.publisher_city, journals.issn, journals.eissn ' +
                     'FROM publications' +
                     ' LEFT JOIN people_publications ON people_publications.publication_id = publications.id' +
                     ' LEFT JOIN labs_publications ON labs_publications.publication_id = publications.id' +
-                    ' LEFT JOIN journals ON publications.journal_id = journals.id' +
-                    ' ;';
+                    ' LEFT JOIN labs ON labs.id = labs_publications.lab_id' +
+                    ' LEFT JOIN labs_groups ON labs_groups.lab_id = labs.id' +
+                    ' LEFT JOIN groups ON labs_groups.group_id = groups.id' +
+                    ' LEFT JOIN groups_units ON groups_units.group_id = groups.id' +
+                    ' LEFT JOIN units ON groups_units.unit_id = units.id' +
+                    ' LEFT JOIN journals ON publications.journal_id = journals.id';
     var places = [];
+    if (unitID !== null) {
+        querySQL = querySQL + ' WHERE units.id = ?';
+        places.push(unitID);
+    }
     pool.getConnection(function(err, connection) {
         if (err) {
             sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
@@ -1060,49 +1150,12 @@ module.exports.getAllPublications = function (req, res, next) {
                 }
                 if(resQuery.length === 0 || resQuery === undefined) {
                     sendJSONResponse(res, 200,
-                        {"status": "No data returned!", "statusCode": 200, "count": 1,
+                        {"status": "No data returned!", "statusCode": 200, "count": 0,
                         "result" : []});
                     return;
                 }
-                var rowsSkip = [];
-                var publications = [];
-                for (var indRow in resQuery) {
-                    indRow = Number.parseInt(indRow,10);
-                    if (rowsSkip.indexOf(indRow) === -1) {
-                        rowsSkip.push(indRow);
-                        var person_selected = [];
-                        if (resQuery[indRow].person_selected === 1) person_selected.push(resQuery[indRow].person_id);
-                        var lab_selected = [];
-                        if (resQuery[indRow].lab_selected === 1) lab_selected.push(resQuery[indRow].lab_id);
-                        var person = [];
-                        if (resQuery[indRow].person_id !== null) person.push(resQuery[indRow].person_id);
-                        var lab = [];
-                        if (resQuery[indRow].lab_id !== null) lab.push(resQuery[indRow].lab_id);
-                        for (var ind = indRow + 1; ind < resQuery.length; ind++) {
-                            if (resQuery[ind].id == resQuery[indRow].id) {
-                                rowsSkip.push(ind);
-                                if (resQuery[ind].person_selected === 1) {
-                                    if (person_selected.indexOf(resQuery[ind].person_selected) === -1) {person_selected.push(resQuery[ind].person_id);}
-                                }
-                                if (resQuery[ind].lab_selected === 1) {
-                                    if (lab_selected.indexOf(resQuery[ind].lab_selected) === -1) {lab_selected.push(resQuery[ind].lab_id);}
-                                }
-                                if (resQuery[ind].person_id !== null) {
-                                    if (person.indexOf(resQuery[ind].person_id) === -1) {person.push(resQuery[ind].person_id);}
-                                }
-                                if (resQuery[ind].lab_id !== null) {
-                                    if (lab.indexOf(resQuery[ind].lab_id) === -1) {lab.push(resQuery[ind].lab_id);}
-                                }
-                            }
-                        }
-                        resQuery[indRow].person_selected = person_selected;
-                        resQuery[indRow].lab_selected = lab_selected;
-                        resQuery[indRow].person_id = person;
-                        resQuery[indRow].lab_id = lab;
-                        publications.push(resQuery[indRow]);
-                    }
+                var publications = processPublications(resQuery);
 
-                }
                 sendJSONResponse(res, 200,
                     {"status": "success", "statusCode": 200, "count": publications.length,
                      "result" : publications});

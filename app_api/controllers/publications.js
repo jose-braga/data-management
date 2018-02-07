@@ -110,7 +110,8 @@ function processPublications(resQuery) {
             if (resQuery[indRow].lab_selected === 1) {
                 lab_selected.push({
                     lab_id: resQuery[indRow].lab_id,
-                    group_id: resQuery[indRow].group_id
+                    group_id: resQuery[indRow].group_id,
+                    unit_id: resQuery[indRow].unit_id
                 });
             }
             var person = [];
@@ -119,7 +120,8 @@ function processPublications(resQuery) {
             if (resQuery[indRow].lab_id !== null) {
                 lab.push({
                     lab_id: resQuery[indRow].lab_id,
-                    group_id: resQuery[indRow].group_id
+                    group_id: resQuery[indRow].group_id,
+                    unit_id: resQuery[indRow].unit_id
                 });
             }
             for (var ind = indRow + 1; ind < resQuery.length; ind++) {
@@ -133,7 +135,8 @@ function processPublications(resQuery) {
                     if (resQuery[ind].lab_selected === 1) {
                         let objTest = {
                             lab_id: resQuery[ind].lab_id,
-                            group_id: resQuery[ind].group_id
+                            group_id: resQuery[ind].group_id,
+                            unit_id: resQuery[ind].unit_id
                         };
                         if (!containsObj(lab_selected,objTest)) {
                             lab_selected.push(objTest);
@@ -147,7 +150,8 @@ function processPublications(resQuery) {
                     if (resQuery[ind].lab_id !== null) {
                         let objTest = {
                             lab_id: resQuery[ind].lab_id,
-                            group_id: resQuery[ind].group_id
+                            group_id: resQuery[ind].group_id,
+                            unit_id: resQuery[ind].unit_id
                         };
                         if (!containsObj(lab,objTest)) {
                             lab.push(objTest);
@@ -156,6 +160,7 @@ function processPublications(resQuery) {
                 }
             }
             delete resQuery[indRow].group_id;
+            delete resQuery[indRow].unit_id;
             resQuery[indRow].person_selected = person_selected;
             resQuery[indRow].lab_selected = lab_selected;
             resQuery[indRow].person_id = person;
@@ -1051,7 +1056,7 @@ module.exports.getPublicationInfo = function (req, res, next) {
     var querySQL = 'SELECT people_publications.selected AS person_selected,' +
                     ' labs_publications.selected AS lab_selected,'+
                     ' people_publications.person_id,' +
-                    ' labs_publications.lab_id,labs_publications.group_id,' +
+                    ' labs_publications.lab_id,labs_publications.group_id, units.id AS unit_id,' +
                     ' publications.*,' +
                     ' journals.name AS journal_name, journals.short_name AS journal_short_name, ' +
                     ' journals.publisher, journals.publisher_city, journals.issn, journals.eissn ' +
@@ -1100,7 +1105,7 @@ module.exports.getAllPublications = function (req, res, next) {
         unitID = req.query.unit;
     }
     var querySQL = 'SELECT people_publications.person_id, people_publications.selected AS person_selected,' +
-                    ' labs_publications.lab_id,labs_publications.group_id, ' +
+                    ' labs_publications.lab_id,labs_publications.group_id, units.id AS unit_id,' +
                     ' labs_publications.selected AS lab_selected,' +
                     ' publications.*,' +
                     ' journals.name AS journal_name, journals.short_name AS journal_short_name, ' +

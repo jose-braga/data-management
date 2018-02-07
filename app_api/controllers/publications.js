@@ -1051,13 +1051,18 @@ module.exports.getPublicationInfo = function (req, res, next) {
     var querySQL = 'SELECT people_publications.selected AS person_selected,' +
                     ' labs_publications.selected AS lab_selected,'+
                     ' people_publications.person_id,' +
-                    ' labs_publications.lab_id,' +
+                    ' labs_publications.lab_id,labs_publications.group_id,' +
                     ' publications.*,' +
                     ' journals.name AS journal_name, journals.short_name AS journal_short_name, ' +
                     ' journals.publisher, journals.publisher_city, journals.issn, journals.eissn ' +
                     'FROM publications' +
                     ' LEFT JOIN people_publications ON people_publications.publication_id = publications.id' +
                     ' LEFT JOIN labs_publications ON labs_publications.publication_id = publications.id' +
+                    ' LEFT JOIN labs ON labs.id = labs_publications.lab_id' +
+                    ' LEFT JOIN labs_groups ON labs_groups.lab_id = labs.id' +
+                    ' LEFT JOIN groups ON labs_groups.group_id = groups.id' +
+                    ' LEFT JOIN groups_units ON groups_units.group_id = groups.id' +
+                    ' LEFT JOIN units ON groups_units.unit_id = units.id' +
                     ' LEFT JOIN journals ON publications.journal_id = journals.id' +
                     ' WHERE publications.id = ?;';
     var places = [pubID];
@@ -1080,32 +1085,10 @@ module.exports.getPublicationInfo = function (req, res, next) {
                         "result" : []});
                     return;
                 }
-                var person_selected = [];
-                var lab_selected = [];
-                var person = [];
-                var lab = [];
-                for (var ind in resQuery) {
-                    if (resQuery[ind].person_selected === 1) {
-                        if (person_selected.indexOf(resQuery[ind].person_selected) === -1) {person_selected.push(resQuery[ind].person_id);}
-                    }
-                    if (resQuery[ind].lab_selected === 1) {
-                        if (lab_selected.indexOf(resQuery[ind].lab_selected) === -1) {lab_selected.push(resQuery[ind].lab_id);}
-                    }
-                    if (resQuery[ind].person_id !== null) {
-                        if (person.indexOf(resQuery[ind].person_id) === -1) {person.push(resQuery[ind].person_id);}
-                    }
-                    if (resQuery[ind].lab_id !== null) {
-                        if (lab.indexOf(resQuery[ind].lab_id) === -1) {lab.push(resQuery[ind].lab_id);}
-                    }
-
-                }
-                resQuery[0].person_selected = person_selected;
-                resQuery[0].lab_selected = lab_selected;
-                resQuery[0].person_id = person;
-                resQuery[0].lab_id = lab;
+                var publications = processPublications(resQuery);
                 sendJSONResponse(res, 200,
-                    {"status": "success", "statusCode": 200, "count": 1,
-                     "result" : resQuery[0]});
+                    {"status": "success", "statusCode": 200, "count": publications.length,
+                     "result" : publications});
                 return;
             }
         );
@@ -1117,7 +1100,8 @@ module.exports.getAllPublications = function (req, res, next) {
         unitID = req.query.unit;
     }
     var querySQL = 'SELECT people_publications.person_id, people_publications.selected AS person_selected,' +
-                    ' labs_publications.lab_id,labs_publications.group_id, labs_publications.selected AS lab_selected,' +
+                    ' labs_publications.lab_id,labs_publications.group_id, ' +
+                    ' labs_publications.selected AS lab_selected,' +
                     ' publications.*,' +
                     ' journals.name AS journal_name, journals.short_name AS journal_short_name, ' +
                     ' journals.publisher, journals.publisher_city, journals.issn, journals.eissn ' +

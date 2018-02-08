@@ -9,7 +9,7 @@
         <toolbar-row></toolbar-row>
         <md-tabs md-dynamic-height md-border-bottom>
             <md-tab ng-if="vm.show('labs')" ng-repeat="lab in vm.personLab"
-                    label={{lab.lab}}@{{lab.group_name}}>
+                    label="{{lab.lab | limitTo : 10}}...@{{lab.group_name | limitTo : 10}}...">
                 <md-content>
                     <div layout="row" layout-padding>
                         <team-people-lab-presentation
@@ -21,23 +21,23 @@
                 </md-content>
             </md-tab>
             <md-tab ng-if="vm.show('labs')" ng-repeat="lab in vm.personLab"
-                    label="Publications {{ lab.lab | limitTo : 10 }}...">
+                    label="Publications {{ lab.lab | limitTo : 10 }}...@{{lab.group_name | limitTo : 10}}...">
                 <md-tabs md-selected="vm.selectedIndexPublications" md-dynamic-height md-border-bottom>
                     <md-tab label='List'>
                         <md-content>
-                            <div layout="row" layout-padding>
-                                <team-members-publications
-                                    data-lab="{{lab.lab_id}}"
-                                    data-group="{{lab.group_id}}"
-                                flex>
-                                </team-members-publications>
-                            </div>
                             <div layout="row" layout-padding>
                                 <team-lab-publications
                                     data-lab="{{lab.lab_id}}"
                                     data-group="{{lab.group_id}}"
                                 flex>
                                 </team-lab-publications>
+                            </div>
+                            <div layout="row" layout-padding>
+                                <team-members-publications
+                                    data-lab="{{lab.lab_id}}"
+                                    data-group="{{lab.group_id}}"
+                                flex>
+                                </team-members-publications>
                             </div>
                         </md-content>
                     </md-tab>

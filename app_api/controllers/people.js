@@ -5607,7 +5607,8 @@ module.exports.listOf = function (req, res, next) {
         getQueryResponse(querySQL, req, res, next);
     } else if (listOf === 'lab-positions') {
         querySQL = 'SELECT lab_positions.id AS lab_position_id, lab_positions.name_en' +
-                   ' FROM lab_positions;';
+                   ' FROM lab_positions' +
+                   ' ORDER BY sort_order;';
         getQueryResponse(querySQL, req, res, next);
     } else if (listOf === 'cost-centers') {
         querySQL = 'SELECT cost_centers.*, ' +

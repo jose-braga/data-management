@@ -123,7 +123,11 @@ router.put('/publications/team/:groupID/:teamID', auth, ctrlPublicationsData.add
 router.put('/publications/team/:groupID/:teamID/selected', auth, ctrlPublicationsData.updateTeamSelectedPub);
 router.put('/publications/team/:groupID/:teamID/delete', auth, ctrlPublicationsData.deletePublicationsTeam);
 
-
+// GET COMMUNICATION information (authenticated)
+router.get('/communications/person/:personID', auth, ctrlPublicationsData.listPersonCommunications);
+// PUT COMMUNICATION information (authenticated)
+router.put('/communications/person/:personID', auth, ctrlPublicationsData.updatePersonCommunications);
+router.put('/communications/person/:personID/add-orcid', auth, ctrlPublicationsData.addORCIDCommunicationsPerson);
 
 // POST (Create) new user (authenticated)
 router.post('/registration', auth, ctrlRegistrationData.addPerson);

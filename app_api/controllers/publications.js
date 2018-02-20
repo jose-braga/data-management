@@ -356,6 +356,49 @@ var queryMembersPublications = function (req, res, next) {
     });
 };
 
+var queryPersonCommunications = function (req, res, next) {
+    var personID = req.params.personID;
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'SELECT communications.id, communications.person_id, communications.authors_raw, ' +
+                          ' communications.presenter, communications.title, communications.type_id AS communication_type_id, ' +
+                          ' communication_types.name AS communication_type_name,' +
+                          ' communications.conference_title, communications.international, communications.city, communications.country_id, countries.name AS country_name, communications.date, communications.doi,' +
+                          ' communication_types.name AS communication_type_name, communications.conference_type_id, conference_types.name AS conference_type_name ' +
+                          'FROM communications' +
+                          ' LEFT JOIN communication_types ON communication_types.id = communications.type_id' +
+                          ' LEFT JOIN conference_types ON conference_types.id = communications.conference_type_id' +
+                          ' LEFT JOIN countries ON countries.id = communications.country_id' +
+                          ' WHERE communications.person_id = ?';
+    places.push(personID);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (resQuery.length === 0 || resQuery === undefined) {
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 0,
+                        "result" : []});
+                    return;
+                }
+                sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": resQuery.length,
+                        "result" : resQuery});
+                    return;
+            }
+        );
+    });
+};
+
 var queryPublicationDescription = function (req, res, next, rows,i) {
     var querySQL = '';
     var places = [];
@@ -1050,6 +1093,112 @@ var queryORCIDInsertPeoplePublications = function (req, res, next, i, pubID) {
     });
 };
 
+var queryORCIDInsertCommunication = function (req, res, next, i) {
+    var personID = req.params.personID;
+    var add = req.body.add;
+    var querySQL = '';
+    var places = [];
+    var date = momentToDate(add[i].date);
+    querySQL = querySQL + 'INSERT INTO  communications' +
+                ' (person_id,authors_raw,presenter,title,type_id,conference_title,' +
+                  'conference_type_id, international,city,country_id,date,doi)' +
+                ' VALUES (?,?,?,?,?,?,?,?,?,?,?,?);';
+    places.push(personID,
+                add[i].authors_raw,
+                add[i].presenter,
+                add[i].title,
+                add[i].communication_type_id,
+                add[i].conference,
+                add[i].conference_type_id,
+                add[i].international,
+                add[i].city,
+                add[i].country_id.country_id,
+                date,
+                add[i].doi);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (i+1 < add.length) {
+                    return queryORCIDInsertCommunication(req,res,next,i+1);
+                } else {
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 1,
+                         "result" : "all done"});
+                }
+            }
+        );
+    });
+};
+
+var queryUpdatePersonCommunications = function (req, res, next, i) {
+    var personID = req.params.personID;
+    var upd = req.body.upd;
+    var querySQL = '';
+    var places = [];
+    var date = momentToDate(upd[i].date);
+    querySQL = querySQL + 'UPDATE  communications' +
+                ' SET authors_raw = ?,' +
+                ' presenter = ?,' +
+                ' title = ?,' +
+                ' type_id = ?,' +
+                ' conference_title = ?,' +
+                ' conference_type_id = ?,' +
+                ' international = ?, ' +
+                ' city = ?, ' +
+                ' country_id = ?,' +
+                ' date = ?,' +
+                ' doi = ?,' +
+                ' public = ?' +
+                ' WHERE id = ?;';
+    places.push(upd[i].authors_raw,
+                upd[i].presenter,
+                upd[i].title,
+                upd[i].communication_type_id,
+                upd[i].conference_title,
+                upd[i].conference_type_id,
+                upd[i].international,
+                upd[i].city,
+                upd[i].country_id,
+                date,
+                upd[i].doi,
+                upd[i].public,
+                upd[i].id);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (i+1 < upd.length) {
+                    return queryUpdatePersonCommunications(req,res,next,i+1);
+                } else {
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 1,
+                         "result" : "all done"});
+                }
+            }
+        );
+    });
+};
+
+
 /***************************** Public API Person Queries *****************************/
 module.exports.getPublicationInfo = function (req, res, next) {
     var pubID = req.params.pubID;
@@ -1330,10 +1479,34 @@ module.exports.addORCIDPublicationsPerson = function (req, res, next) {
     );
 };
 
+module.exports.addORCIDCommunicationsPerson = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30, 40],
+        function (req, res, username) {
+            queryORCIDInsertCommunication(req,res,next,0);
+        }
+    );
+};
+
 module.exports.updateTeamSelectedPub = function (req, res, next) {
     getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
         function (req, res, username) {
             queryUpdateTeamSelectedPublications(req,res,next);
+        }
+    );
+};
+
+module.exports.listPersonCommunications = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16],
+        function (req, res, username) {
+            queryPersonCommunications(req,res,next);
+        }
+    );
+};
+
+module.exports.updatePersonCommunications = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16],
+        function (req, res, username) {
+            queryUpdatePersonCommunications(req,res,next,0);
         }
     );
 };

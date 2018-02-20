@@ -100,6 +100,14 @@
             return $http.get('api/list/publication-types');
         };
 
+        var communicationTypes = function () {
+            return $http.get('api/list/communication-types');
+        };
+
+        var conferenceTypes = function () {
+            return $http.get('api/list/conference-types');
+        };
+
         var permissions = function () {
             return $http.get('api/list/permissions');
         };
@@ -324,6 +332,8 @@
             roles: roles,
             authorTypes: authorTypes,
             publicationTypes: publicationTypes,
+            communicationTypes: communicationTypes,
+            conferenceTypes: conferenceTypes,
             permissions: permissions,
             updateInstitutionCityPersonByID: updateInstitutionCityPersonByID,
             updateJobsPersonByID: updateJobsPersonByID,

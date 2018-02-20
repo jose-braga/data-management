@@ -1,0 +1,116 @@
+<md-dialog flex flex-gt-md="50">
+    <form flex novalidate name="personCommunicationsForm"
+                ng-submit="personCommunicationsForm.$valid && vm.submitPersonCommunications(vm.forms['personSelectedComm'])">
+        <md-dialog-content>
+            <div class="md-dialog-content">
+                <span class="md-headline">Communication details</span>
+                <div layout="column" flex>
+                    <div layout="row" layout-align="center" class="publication-spacer">
+                        <div class="question"><span class="highlight">Communication type:</span></div>
+                        <div class="answer"><span>
+                            <md-input-container class="select-container select-no-margin card-type">
+                                <md-select md-container-class="panel-select" ng-model="ctrl.work.communication_type_id"
+                                        md-on-close="ctrl.changedField('communicationTypes',ctrl.work)"
+                                        aria-label="publication type"
+                                        name="publication_orcid_communication_type">
+                                    <div class="scrollable">
+                                        <md-option ng-repeat="type in ctrl.vm.communicationTypes"
+                                                ng-value="type.id">{{type.name}}</md-option>
+                                    </div>
+                                </md-select>
+                            </md-input-container>
+                        </span></div>
+                    </div>
+                    <div layout="row" layout-align="center" class="publication-spacer">
+                        <div class="question"><span class="highlight">Authors:<br></span></div>
+                        <div class="answer">
+                            <input required class="wide" ng-change="ctrl.communicationAuthorsList(ctrl.work.authors_raw, ctrl.pubNum)"
+                                            ng-model="ctrl.work.authors_raw" name="authors_raw">
+                        </div>
+                    </div>
+                    <div layout="row" layout-align="center" class="publication-spacer">
+                        <div class="question"><span class="highlight">Presenting author:<br></span></div>
+                        <div class="answer">
+                             <md-input-container class="select-container select-no-margin card-type">
+                                <md-select ng-model="ctrl.work.presenter"
+                                        aria-label="presenter"
+                                        name="publication_orcid_presenter">
+                                    <md-option ng-repeat="presenter in ctrl.presenters"
+                                            ng-value="presenter">{{presenter}}</md-option>
+                                </md-select>
+                            </md-input-container>
+                        </div>
+                    </div>
+                    <div layout="row" layout-align="center" class="publication-spacer">
+                        <div class="question"><span class="highlight">Title:<br></span></div>
+                        <div class="answer">
+                            <input required class="wide" ng-model="ctrl.work.title" name="title">
+                        </div>
+                    </div>
+                    <div layout="row" layout-align="center" class="publication-spacer">
+                        <div class="question"><span class="highlight">Conference title:<br></span></div>
+                        <div class="answer">
+                            <input required class="wide" ng-model="ctrl.work.conference_title" name="conference">
+                        </div>
+                    </div>
+                    <div layout="row" layout-align="center" class="publication-spacer">
+                        <div class="question"><span class="highlight">Conference type:<br></span></div>
+                        <div class="answer">
+                            <md-input-container class="select-container select-no-margin card-type">
+                                <md-select required ng-model="ctrl.work.conference_type_id"
+                                        aria-label="publication type"
+                                        name="publication_orcid_conference_type">
+                                    <div class="scrollable">
+                                        <md-option ng-repeat="type in ctrl.vm.conferenceTypes"
+                                                ng-value="type.id">{{type.name}}</md-option>
+                                    </div>
+                                </md-select>
+                            </md-input-container>
+                        </div>
+                    </div>
+                    <div layout="row" layout-align="center" class="publication-spacer">
+                        <div class="question"><span class="highlight">International?:<br></span></div>
+                        <div class="answer">
+                            <md-checkbox ng-model="ctrl.work.international" aria-label="international"></md-checkbox>
+                            <md-input-container class="search-box select-container input-row"
+                                ng-controller="CountrySelectCtrl as count">
+                                <label>Country</label>
+                                <md-select required ng-model="ctrl.work.country_id"
+                                        md-on-close="ctrl.changedField('countries',ctrl.work)">
+                                    <div class="anchored">
+                                        <md-select-header class="select-search-header">
+                                            <input ng-model="count.searchTerm" type="search"
+                                              placeholder="Search your countries"
+                                              class="md-text select-search-box">
+                                        </md-select-header>
+                                    </div>
+                                    <div class="scrollable">
+                                        <md-optgroup label="countries">
+                                            <md-option ng-repeat="country in count.countries | filter:count.searchTerm"
+                                                ng-value="country.country_id">{{country.name}}</md-option>
+                                        </md-optgroup>
+                                    </div>
+                                </md-select>
+                            </md-input-container>
+                        </div>
+                    </div>
+                    <div layout="row" layout-align="center" class="publication-spacer">
+                        <div class="question"><span class="highlight">City:<br></span></div>
+                        <div class="answer">
+                            <input required class="wide" ng-model="ctrl.work.city" name="city">
+                        </div>
+                    </div>
+                    <div layout="row" layout-align="center" class="publication-spacer">
+                        <div class="question"><span class="highlight">Date:<br></span></div>
+                        <div class="answer">
+                            <md-input-container class="input-no-margin simple-input">
+                                <md-datepicker class="calendar-no-margin" required md-current-view="year" ng-model="ctrl.work.date"
+                                        name="communication_date" md-hide-icons="calendar"></md-datepicker>
+                            </md-input-container>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </md-dialog-content>
+    </form>
+</md-dialog>

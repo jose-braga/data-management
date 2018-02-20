@@ -20,6 +20,14 @@
             );
         };
 
+        var thisPersonCommunications = function (personID) {
+            return $http.get('api/communications/person/' + personID,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+
         var thisTeamPublications = function (groupID, teamID) {
             return $http.get('api/publications/team/' + groupID + '/' + teamID,
                 {
@@ -92,6 +100,7 @@
         };
 
         var getORCIDPublicationsPerson = function (orcid) {
+            // despite its name in this function we get all Works (from ORCID) by the person, not only publications
             return $http.get(orcid_base_url + '/' + orcid_version + '/' + orcid + '/works',
                 {
                     headers: orcid_headers
@@ -112,11 +121,26 @@
                 }
             );
         };
+        var addORCIDCommunicationsPerson = function (personID, data) {
+            return $http.put('api/communications/person/' + personID + '/add-orcid', data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var updateCommunicationsPerson = function (personID, data) {
+            return $http.put('api/communications/person/' + personID, data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
 
         return {
             addMembersPublications: addMembersPublications,
             allPublications: allPublications,
             thisPersonPublications: thisPersonPublications,
+            thisPersonCommunications: thisPersonCommunications,
             thisTeamPublications: thisTeamPublications,
             thisMembersPublications: thisMembersPublications,
             updateSelectedPublications: updateSelectedPublications,
@@ -127,6 +151,8 @@
             getORCIDPublicationsPerson: getORCIDPublicationsPerson,
             getORCIDDetailsPublication: getORCIDDetailsPublication,
             addORCIDPublicationsPerson: addORCIDPublicationsPerson,
+            addORCIDCommunicationsPerson: addORCIDCommunicationsPerson,
+            updateCommunicationsPerson: updateCommunicationsPerson,
             removePublicationsTeam: removePublicationsTeam
         };
     };

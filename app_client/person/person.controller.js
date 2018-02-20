@@ -1,6 +1,6 @@
 (function(){
 /******************************* Controllers **********************************/
-    var personCtrl = function ($scope, $timeout, $mdMedia,
+    var personCtrl = function ($scope, $timeout, $mdMedia, $mdDialog,
                                Upload, personData, publications, authentication) {
 
         var vm = this;
@@ -43,8 +43,10 @@
             'personCostCenter':         28,
             'personPubRemove':          29,
             'personPubAdd':             30,
-            'personORCIDAdd':           31
-
+            'personORCIDAdd':           31,
+            'personUpdateComm':         32,
+            'personCommRemove':         33,
+            'personCommORCIDAdd':       34
         };
         vm.changePhoto = false;
         vm.photoSize = {w: 196, h: 196};
@@ -66,6 +68,7 @@
             }
             getPersonData(vm.currentUser.personID, -1);
             getPublications();
+            getCommunications();
             getDataLists();
             initializeImages();
             initializeDetails();
@@ -1115,7 +1118,16 @@
                 .then(function (response) {
                     var data = response.data.group;
                     vm.allORCIDPublicationsPrior = readORCIDData(data);
-                    vm.allORCIDPublications = removeExistingORCID(vm.allORCIDPublicationsPrior,vm.allPublicationsPrior);
+                    // filtering for all published works (journal articles, conference papers)
+                    var printedORCID = vm.allORCIDPublicationsPrior.filter(function (el){
+                            if (el.type === null) return true; //because we don't know if it is printed or not
+                            if (el.type === 'LECTURE_SPEECH') return false;
+                            if (el.type === 'CONFERENCE_POSTER') return false;
+                            if (el.type === 'CONFERENCE_PAPER') return false;
+                            return true;
+                        });
+                    // removes all publications from ORCID that are already in DB
+                    vm.allORCIDPublications = removeExistingORCID(printedORCID,vm.allPublicationsPrior);
                     vm.progressORCID = false;
                 })
                 .catch(function (err) {
@@ -1123,6 +1135,7 @@
                 });
             }
         };
+
         vm.showDetailsORCID = function (pub) {
             publications.getORCIDDetailsPublication(pub.path)
                 .then(function (response) {
@@ -1133,7 +1146,6 @@
                 });
 
         };
-
         vm.addPublicationPerson = function(publication) {
             var found = false;
             for (var ind in vm.addPublications) {
@@ -1213,6 +1225,7 @@
             }
         };
         vm.getAllPublications = function() {
+            // gets all publications from DB and excludes the ones that are already attributed to you
             vm.progressORCID = false;
             vm.addPublications = [];
 
@@ -1398,7 +1411,6 @@
             	saveAs(new Blob([s2ab(wbout)],{type:"application/octet-stream"}), fname);
             } catch(e) { if(typeof console != 'undefined') console.log(e, wbout); }
         };
-
         vm.removePublication = function(publication) {
             for(var ind in vm.personPublications){
                 if (vm.personPublications[ind].people_publications_id === publication.people_publications_id) {
@@ -1443,56 +1455,6 @@
                 });
 
         }
-        function sorter(a,b) {
-            if (vm.sortType === 'year') {
-                if (vm.sortReverse) {
-                    return (a[vm.sortType] ? String(a[vm.sortType]) : String(9999))
-                        .localeCompare(b[vm.sortType] ? String(b[vm.sortType]) : String(9999));
-                } else {
-                    return -(a[vm.sortType] ? String(a[vm.sortType]) : String(2000))
-                        .localeCompare(b[vm.sortType] ? String(b[vm.sortType]) : String(2000));
-                }
-            } else {
-                if (vm.sortReverse) {
-                    return -(a[vm.sortType] ? a[vm.sortType] : '')
-                        .localeCompare(b[vm.sortType] ? b[vm.sortType] : '');
-                } else {
-                    return (a[vm.sortType] ? a[vm.sortType] : '')
-                        .localeCompare(b[vm.sortType] ? b[vm.sortType] : '');
-                }
-            }
-        }
-        function initializeImages() {
-            vm.imagePersonPre = '';
-            vm.imagePerson = '';
-            vm.imagePersonCropped = '';
-            $scope.$watch('vm.imagePersonPre["$ngfBlobUrl"]', function(newValue, oldValue, scope) {
-                vm.imagePerson = newValue;
-                vm.personImageType = vm.imagePersonPre.type;
-            }, true);
-        }
-        function initializeVariables() {
-            vm.deletePublications = [];
-            vm.delAuthorNames = [];
-            vm.newAuthorNames = [];
-            vm.sortReverse = false;
-            vm.sortType = 'year';
-            vm.currentPage = 1;
-            vm.pageSize = 10;
-
-            // computes the number of pages
-            vm.totalPublications = vm.personPublications.length;
-            vm.totalPages = Math.ceil(vm.totalPublications / vm.pageSize);
-            vm.pages = [];
-            for (var num=1; num<=vm.totalPages; num++) {
-                vm.pages.push(num);
-            }
-            vm.renderPublications();
-        }
-        function initializeDetails() {
-            vm.pubTitles = [];
-            vm.thisPublication = [];
-        }
         function readORCIDData(data) {
             var publications = [];
             for (var ind in data) {
@@ -1506,7 +1468,7 @@
                         }
                     }
                 }
-                pub.title = title;
+                pub.title = title.trim();
                 var doi = null;
                 if (info.hasOwnProperty('external-ids')) {
                     if (info['external-ids'] !== null) {
@@ -1556,6 +1518,11 @@
                     path = info.path;
                 }
                 pub.path = path;
+                var type = null;
+                if (info.hasOwnProperty('type')) {
+                    type = info.type;
+                }
+                pub.type = type;
                 pub.detailProgress = false;
                 publications.push(pub);
             }
@@ -1698,7 +1665,437 @@
             return publications;
         }
 
+        /* For managing communications */
+        vm.submitPersonCommunications = function (ind) {
+            vm.updateStatus[ind] = "Updating...";
+            vm.messageType[ind] = 'message-updating';
+            vm.hideMessage[ind] = false;
+            var data = processChangedComm(vm.personCommunications,vm.originalPersonCommunications);
+            console.log(data)
+            alert('')
+            publications.updateCommunicationsPerson(vm.currentUser.personID,{upd: data})
+                .then( function () {
+                    getCommunications();
+                    if (ind > -1) {
+                        vm.updateStatus[ind] = "Updated!";
+                        vm.messageType[ind] = 'message-success';
+                        vm.hideMessage[ind] = false;
+                        $timeout(function () { vm.hideMessage[ind] = true; }, 1500);
+                    }
+                },
+                function () {
+                    vm.updateStatus[ind] = "Error!";
+                    vm.messageType[ind] = 'message-error';
+                },
+                function () {}
+                );
+            return false;
+        };
+        vm.submitAddORCIDCommunications = function(ind) {
+            if (vm.addCommunicationsORCID.length > 0) {
+                vm.updateStatus[ind] = "Updating...";
+                vm.messageType[ind] = 'message-updating';
+                vm.hideMessage[ind] = false;
+                var data = {add: vm.addCommunicationsORCID};
+                publications.addORCIDCommunicationsPerson(vm.currentUser.personID,data)
+                    .then( function () {
+                        vm.updateStatus[ind] = "Updated!";
+                        vm.messageType[ind] = 'message-success';
+                        vm.hideMessage[ind] = false;
+                        $timeout(function () { vm.hideMessage[ind] = true; }, 1500);
+                        getCommunications(-1);
+                    },
+                    function () {
+                        vm.updateStatus[ind] = "Error!";
+                        vm.messageType[ind] = 'message-error';
+                    },
+                    function () {}
+                    );
+            }
+            return false;
+        };
+        vm.connectCommORCID = function() {
+            vm.progressORCID = true;
+            var orcid;
+            if (vm.thisPerson.researcher_data[0].ORCID !== null) {
+                orcid = vm.thisPerson.researcher_data[0].ORCID;
+            } else if (vm.thisPerson.technician_data[0].ORCID !== null) {
+                orcid = vm.thisPerson.technician_data[0].ORCID;
+            } else if (vm.thisPerson.science_manager_data[0].ORCID !== null) {
+                orcid = vm.thisPerson.science_manager_data[0].ORCID;
+            } else {
+                orcid = null;
+            }
+            if (orcid === null) {
+                alert('Please insert your ORCID in your role data');
+            } else {
+                // this will get all your works on ORCID
+                publications.getORCIDPublicationsPerson(orcid)
+                .then(function (response) {
+                    var data = response.data.group;
+                    vm.allORCIDWorksPrior = readORCIDData(data);
+                    // filtering for all non-article works (talks, posters,...)
+                    var commORCID = vm.allORCIDWorksPrior.filter(function (el){
+                            if (el.type === null) return true; //because we don't know if it is a communication or not
+                            if (el.type === 'LECTURE_SPEECH') return true;
+                            if (el.type === 'CONFERENCE_POSTER') return true;
+                            // as per ORCID, a CONFERENCE_PAPER is not published in scholarly journals
+                            if (el.type === 'CONFERENCE_PAPER') return true;
+                            return false;
+                        });
+                    vm.allORCIDCommunications = removeExistingComm(commORCID,vm.personCommunications);
+                    vm.progressORCID = false;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            }
+        };
+        vm.showCommDetailsORCID = function (pub) {
+            publications.getORCIDDetailsPublication(pub.path)
+                .then(function (response) {
+                    processCommDetailsORCID(pub,response.data);
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+
+        };
+
+        vm.renderCommunications = function (str) {
+            if (str === 'new') {
+                vm.currentPageCommunications = 1;
+            }
+            vm.totalCommunications = vm.personCommunications.length;
+            vm.selectedCommunications = [];
+            var toInclude = 0;
+            var toIncludeDueFrom = 0;
+            var toIncludeDueTo = 0;
+            vm.fromYearCommunications = parseInt(vm.fromYearCommunications,10);
+            vm.toYearCommunications = parseInt(vm.toYearCommunications,10);
+            for (var ind in vm.personCommunications) {
+                toInclude = 0;
+                toIncludeDueFrom = 0;
+                toIncludeDueTo = 0;
+                if (Number.isInteger(vm.fromYearCommunications)) {
+                    if (vm.fromYearCommunications <= vm.personCommunications[ind].year) {
+                       toIncludeDueFrom = 1;
+                    }
+                } else {
+                    toIncludeDueFrom = 1;
+                }
+                if (Number.isInteger(vm.toYearCommunications)) {
+                    if (vm.toYearCommunications >= vm.personCommunications[ind].year) {
+                       toIncludeDueTo = 1;
+                    }
+                } else {
+                    toIncludeDueTo = 1;
+                }
+                toInclude = toIncludeDueFrom * toIncludeDueTo;
+                if (toInclude === 1) {
+                    vm.selectedCommunications.push(vm.personCommunications[ind]);
+                }
+            }
+            vm.totalFromSearchCommunications = vm.selectedCommunications.length;
+
+            vm.totalPagesCommunications = Math.ceil(vm.totalFromSearchCommunications / vm.pageSizeCommunications);
+            vm.pagesCommunications = [];
+            for (var num=1; num<=vm.totalPagesCommunications; num++) {
+                vm.pagesCommunications.push(num);
+            }
+            // Sort selectedPeople according to defined order, before
+            // defining page contents
+            vm.selectedCommunications = vm.selectedCommunications.sort(sorter);
+            vm.currCommunications = [];
+            for (var member = (vm.currentPageCommunications - 1) * vm.pageSizeCommunications;
+                    member < vm.currentPageCommunications * vm.pageSizeCommunications && member < vm.totalFromSearchCommunications;
+                    member++) {
+                vm.currCommunications.push(Object.assign({}, vm.selectedCommunications[member]));
+            }
+        };
+        vm.communicationAuthorsList = function (str, num) {
+            var authors = str.split(';');
+            vm.communicationDetailsORCID[num].presenters = [];
+            for (var ind in authors) {
+                vm.communicationDetailsORCID[num].presenters.push(authors[ind].trim());
+            }
+        };
+        vm.communicationORCIDintoDatabase = function(work) {
+            var found = false;
+            for (var ind in vm.addCommunicationsORCID) {
+                if (vm.addCommunicationsORCID[ind].title === work.title
+                    && vm.addCommunicationsORCID[ind].conference === work.conference
+                    && vm.addCommunicationsORCID[ind].type === work.type)
+                {
+                        found = true;
+                        break;
+                }
+            }
+            if (!found) {
+                if (!work.international) {
+                    work.country_id={};
+                    work.country_id.country_id = 184;
+                    work.international = false;
+                }
+                vm.addCommunicationsORCID.push(work);
+            }
+
+        };
+        vm.removeCommunicationORCID = function(work,num) {
+            // remove from final list
+            for (var ind in vm.addCommunicationsORCID) {
+                if (vm.addCommunicationsORCID[ind].title === work.title
+                    && vm.addCommunicationsORCID[ind].conference === work.conference
+                    && vm.addCommunicationsORCID[ind].type === work.type)
+                {
+                    vm.addCommunicationsORCID.splice(ind,1);
+                    break;
+                }
+            }
+            // remove from details list
+            vm.communicationDetailsORCID.splice(num,1);
+
+
+        };
+        vm.showDetailsCommunication = function (work, pubNum) {
+            var authors = work.authors_raw.split(';');
+            var config = {
+                parent: angular.element(document.body),
+                controller: commDetailsCtrl,
+                controllerAs: 'ctrl',
+                templateUrl: 'person/productivity/communications/person.communicationsDetail.html',
+                locals: {work: work, vm: vm, pubNum: pubNum, presenters: authors},
+                bindToController: true,
+                clickOutsideToClose: true,
+                escapeToClose: true
+            };
+            $mdDialog.show(config)
+                .then(function (ans) {
+                    // the details dialog has no action, so code is run only when closed(i.e. cancelled)
+                },
+                    function () {
+                        for (var ind in vm.currCommunications) {
+                            for (var ind_ori in vm.personCommunications) {
+                                if (vm.currCommunications[ind].id == vm.personCommunications[ind_ori].id) {
+                                    vm.personCommunications[ind_ori] = vm.currCommunications[ind];
+                                }
+                            }
+                        }
+                });
+        };
+        vm.changePublicStatusComm = function (work) {
+            for (var ind in vm.personCommunications) {
+                if (work.id === vm.personCommunications[ind].id) {
+                    vm.personCommunications[ind].public = work.public;
+                    break;
+                }
+            }
+        };
+
+        function getCommunications(ind) {
+            publications.thisPersonCommunications(vm.currentUser.personID)
+                .then(function (response) {
+                    vm.personCommunications = response.data.result;
+                    // remove below
+                    for (var el in vm.personCommunications) {
+                        if (vm.personCommunications[el].international === 1) {
+                            vm.personCommunications[el].international = true;
+                        } else {
+                            vm.personCommunications[el].international = false;
+                        }
+                        if (vm.personCommunications[el].public === 1) {
+                            vm.personCommunications[el].public = true;
+                        } else {
+                            vm.personCommunications[el].public = false;
+                        }
+                    }
+                    vm.originalPersonCommunications = [];
+                    for (var el in vm.personCommunications) {
+                        vm.originalPersonCommunications.push(JSON.parse(JSON.stringify(vm.personCommunications[el])));
+                    }
+
+                    initializeVariablesCommunications();
+                    if (ind > -1) {
+                        vm.updateStatus[ind] = "Updated!";
+                        vm.messageType[ind] = 'message-success';
+                        vm.hideMessage[ind] = false;
+                        $timeout(function () { vm.hideMessage[ind] = true; }, 1500);
+                    } else if (ind === -1) {
+                        vm.connectCommORCID();
+                    }
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+        }
+        function processCommDetailsORCID(pub, data) {
+            pub.edit_date = true;
+            if (pub.year !== null && pub.month !== null && pub.day !== null) {
+                pub.date = pub.year + '-' + pub.month + '-' + pub.day;
+                pub.edit_date = false;
+            }
+            if (data.hasOwnProperty('citation')) {
+                //from this we can get authors, volume, pages
+                if (data.citation !== null && data.citation.hasOwnProperty('citation-value')) {
+                    if (data.citation['citation-value'] !== null) {
+                        var citation = data.citation['citation-value'];
+                        pub.authors_raw = citation;
+                        pub.conference = citation;
+                        pub.presenters = [citation];
+                    }
+                }
+            }
+            for (var ind in vm.communicationTypes) {
+                var typeName = vm.communicationTypes[ind].name.toUpperCase().replace(' ','_');
+                if (typeName == pub.type) {
+                    pub.communication_type_id = vm.communicationTypes[ind].id;
+                }
+            }
+            vm.communicationDetailsORCID.push(pub);
+        }
+        function removeExistingComm(dataORCID, dataDB) {
+            var communications  = [];
+            var titleORCID, titleDB, commTypeDB;
+            for (var ind in dataORCID) {
+                var found = false;
+                for (var indDB in dataDB) {
+                    // first DOI is compared, if there is no DOI then compares titles and types
+
+                    if (dataORCID[ind].doi !== null) {
+                        if (dataDB[indDB].doi !== null) {
+                            if (dataORCID[ind].doi.toLowerCase() == dataDB[indDB].doi.toLowerCase()) {
+                                // already in database => skip
+                                found = true;
+                                break;
+                            }
+                        } else {
+                            titleORCID = dataORCID[ind].title
+                                    .toLowerCase()
+                                    .replace(/[\s\-;,:\+]/g,'');
+                            titleDB = dataDB[indDB].title
+                                    .toLowerCase()
+                                    .replace(/[\s\-;,:\+]/g,'');
+                            commTypeDB = dataDB[indDB].communication_type_name
+                                    .toUpperCase()
+                                    .replace(' ','_');
+                            // compare titles and types
+                            if (titleORCID == titleDB && dataORCID[ind].type == commTypeDB) {
+                                // already in database => skip
+                                found = true;
+                                break;
+                            }
+                        }
+                    } else {
+                        // compare titles and types
+                        titleORCID = dataORCID[ind].title
+                                .toLowerCase()
+                                .replace(/[\s\-;,:\+]/g,'');
+                        titleDB = dataDB[indDB].title
+                                .toLowerCase()
+                                .replace(/[\s\-;,:\+]/g,'');
+                        commTypeDB = dataDB[indDB].communication_type_name
+                                    .toUpperCase()
+                                    .replace(' ','_');
+                        // compare titles
+                        if (titleORCID == titleDB  && dataORCID[ind].type == commTypeDB) {
+                            // already in database => skip
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                if (!found) {
+                    communications.push(dataORCID[ind]);
+                }
+            }
+            return communications;
+        }
+        function processChangedComm(current, original) {
+            var upd = [];
+            for (var curr in current) {
+                for (var ori in original) {
+                    if (current[curr].id == original[ori].id) {
+                        if (JSON.stringify(current[curr]) != JSON.stringify(original[ori])) {
+                            upd.push(current[curr]);
+                        }
+                    }
+                }
+            }
+            return upd;
+        }
+
+
+
+        /* Initialization functions */
+        function initializeVariables() {
+            vm.deletePublications = [];
+            vm.delAuthorNames = [];
+            vm.newAuthorNames = [];
+            vm.sortReverse = false;
+            vm.sortType = 'year';
+            vm.currentPage = 1;
+            vm.pageSize = 10;
+
+            // computes the number of pages
+            vm.totalPublications = vm.personPublications.length;
+            vm.totalPages = Math.ceil(vm.totalPublications / vm.pageSize);
+            vm.pages = [];
+            for (var num=1; num<=vm.totalPages; num++) {
+                vm.pages.push(num);
+            }
+            vm.renderPublications();
+        }
+        function initializeVariablesCommunications() {
+            vm.communicationDetailsORCID = [];
+            vm.addCommunicationsORCID = [];
+
+            vm.deleteCommunications = [];
+            vm.currentPageCommunications = 1;
+            vm.pageSizeCommunications = 10;
+
+            // computes the number of pages
+            vm.totalCommunications = vm.personCommunications.length;
+            vm.totalPagesCommunications = Math.ceil(vm.totalCommunications / vm.pageSizeCommunications);
+            vm.pagesCommunications = [];
+            for (var num=1; num<=vm.totalPagesCommunications; num++) {
+                vm.pagesCommunications.push(num);
+            }
+            vm.renderCommunications();
+        }
+        function initializeDetails() {
+            vm.pubTitles = [];
+            vm.thisPublication = [];
+        }
+
         /* Auxiliary functions */
+        function initializeImages() {
+            vm.imagePersonPre = '';
+            vm.imagePerson = '';
+            vm.imagePersonCropped = '';
+            $scope.$watch('vm.imagePersonPre["$ngfBlobUrl"]', function(newValue, oldValue, scope) {
+                vm.imagePerson = newValue;
+                vm.personImageType = vm.imagePersonPre.type;
+            }, true);
+        }
+        function sorter(a,b) {
+            if (vm.sortType === 'year') {
+                if (vm.sortReverse) {
+                    return (a[vm.sortType] ? String(a[vm.sortType]) : String(9999))
+                        .localeCompare(b[vm.sortType] ? String(b[vm.sortType]) : String(9999));
+                } else {
+                    return -(a[vm.sortType] ? String(a[vm.sortType]) : String(2000))
+                        .localeCompare(b[vm.sortType] ? String(b[vm.sortType]) : String(2000));
+                }
+            } else {
+                if (vm.sortReverse) {
+                    return -(a[vm.sortType] ? a[vm.sortType] : '')
+                        .localeCompare(b[vm.sortType] ? b[vm.sortType] : '');
+                } else {
+                    return (a[vm.sortType] ? a[vm.sortType] : '')
+                        .localeCompare(b[vm.sortType] ? b[vm.sortType] : '');
+                }
+            }
+        }
         function timeOverlap(d1_start,d1_end, d2_start, d2_end) {
             // returns false if no overlap
             // else returns [startoverlap,endoverlap]
@@ -2146,6 +2543,13 @@
                 });
         }
         function getDataLists(){
+            personData.allCountries()
+                .then(function (response) {
+                    vm.countries = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
             personData.institutionCities()
                 .then(function (response) {
                     vm.institutionCities = response.data.result;
@@ -2310,6 +2714,20 @@
             personData.publicationTypes()
                 .then(function (response) {
                     vm.publicationTypes = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            personData.communicationTypes()
+                .then(function (response) {
+                    vm.communicationTypes = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            personData.conferenceTypes()
+                .then(function (response) {
+                    vm.conferenceTypes = response.data.result;
                 })
                 .catch(function (err) {
                     console.log(err);
@@ -2555,6 +2973,33 @@
         });
 
     };
+    var commDetailsCtrl = function($mdDialog) {
+        var ctrl = this;
+        ctrl.communicationAuthorsList = function (str, num) {
+            var authors = str.split(';');
+            ctrl.presenters = [];
+            for (var ind in authors) {
+                ctrl.presenters.push(authors[ind].trim());
+            }
+        };
+        ctrl.changedField = function (field,work) {
+            // only need to do this for fields that are shown
+            if (field === 'communicationTypes') {
+                for (var ind in ctrl.vm.communicationTypes) {
+                    if (ctrl.vm.communicationTypes[ind].id == work.communication_type_id) {
+                        work.communication_type_name = ctrl.vm.communicationTypes[ind].name;
+                    }
+                }
+            }
+            if (field === 'countries') {
+                for (var ind in ctrl.vm.countries) {
+                    if (ctrl.vm.countries[ind].country_id == work.country_id) {
+                        work.country_name = ctrl.vm.countries[ind].name;
+                    }
+                }
+            }
+        };
+    };
 
 
 /******************************** Directives **********************************/
@@ -2688,27 +3133,42 @@
     var personPublications = function () {
         return {
             restrict: 'E',
-            templateUrl: 'person/publications/person.publications.html'
+            templateUrl: 'person/productivity/publications/person.publications.html'
         };
     };
     var personPublicationDetail = function () {
         return {
             restrict: 'E',
-            templateUrl: 'person/publications/person.publicationDetail.html'
+            templateUrl: 'person/productivity/publications/person.publicationDetail.html'
         };
     };
     var personAddPublications = function () {
         return {
             restrict: 'E',
-            templateUrl: 'person/publications/person.addPublications.html'
+            templateUrl: 'person/productivity/publications/person.addPublications.html'
         };
     };
     var personAddPublicationsOrcid = function () {
         return {
             restrict: 'E',
-            templateUrl: 'person/publications/person.addPublicationsORCID.html'
+            templateUrl: 'person/productivity/publications/person.addPublicationsORCID.html'
         };
     };
+    var personCommunications = function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'person/productivity/communications/person.communications.html'
+        };
+    };
+    var personAddCommunicationsOrcid = function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'person/productivity/communications/person.addCommunicationsORCID.html'
+        };
+    };
+
+
+
     var personWebsitePhoto = function () {
         return {
             restrict: 'E',
@@ -2837,6 +3297,8 @@
         .directive('personAuthorNames', personAuthorNames)
         .directive('personPublications', personPublications)
         .directive('personAddPublications', personAddPublications)
+        .directive('personCommunications', personCommunications)
+        .directive('personAddCommunicationsOrcid', personAddCommunicationsOrcid)
         .directive('personAddPublicationsOrcid', personAddPublicationsOrcid)
         .directive('personPublicationDetail', personPublicationDetail)
         .directive('personWebsitePhoto', personWebsitePhoto)
@@ -2846,6 +3308,7 @@
         .directive('integerValidate', integerValidate)
 
         .controller('personCtrl',  personCtrl)
+        .controller('commDetailsCtrl',  commDetailsCtrl)
         .controller('CountrySelectCtrl', CountrySelectCtrl)
         .controller('LabSelectCtrl', LabSelectCtrl)
         .controller('PeopleSelectCtrl', PeopleSelectCtrl)

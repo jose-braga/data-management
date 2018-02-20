@@ -73,5 +73,6 @@
                 return m.isValid() ? m.format('YYYY-MM-DD') : null;
             };
         })
+        .config(function($mdAriaProvider) {$mdAriaProvider.disableWarnings();})
         ;
  })();

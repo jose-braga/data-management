@@ -1,0 +1,217 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Search your ORCID</span>
+        </md-card-title-text>
+    </md-card-title>
+    <md-card-content layout="column">
+        <p>These are communications found on ORCID that are not part of LAQV/UCIBIO database yet.<br>
+            To add communications to the database, the procedure is:
+            <ol>
+                <li>Select communications from "ORCID results".<br>
+                <li>Check/edit communication details (on "Selected communication details").<br>
+                    Add some more information and then clik + button to add to final list.</li>
+                <li>Press "Add ORCID comm.".</li>
+            </ol>
+        </p>
+        <div layout="row">
+            <md-button type="submit" ng-click="vm.connectCommORCID()"
+                class="button-small md-raised md-warn">Connect ORCID</md-button>
+            <md-progress-circular ng-disabled="!vm.progressORCID" md-diameter="20"></md-progress-circular>
+        </div>
+
+        <form flex novalidate name="personAddORCIDCommunicationsForm"
+                ng-submit="personAddORCIDCommunicationsForm.$valid && vm.submitAddORCIDCommunications(vm.forms['personCommORCIDAdd'])">
+            <div layout="column" flex>
+                <div class="search-header spacer-top space-left">
+                    <span>ORCID results (communications only)</span>
+                </div>
+                <div ng-repeat="(pubNum,work) in vm.allORCIDCommunications track by $index">
+                    <div layout="column">
+                        <div layout="row" layout-align=" center">
+                            <div class="question"><span class="highlight">Title:</span></div>
+                            <div class="answer"><span>{{work.title}}</span></div>
+                        </div>
+                        <div layout="row" layout-align=" center">
+                            <div class="question"><span class="highlight">Year:</span></div>
+                            <div class="answer"><span>{{work.year}}</span></div>
+                        </div>
+                        <div layout="row" layout-align=" center">
+                            <div class="question"><span class="highlight">ORCID Type:</span></div>
+                            <div class="answer"><span>{{work.type}}</span></div>
+                        </div>
+                        <div layout="row">
+                            <md-button ng-click="vm.showCommDetailsORCID(work)"
+                                    aria-label="Details ORCID work"
+                                    class="md-icon-button interaction-button">
+                                <md-icon md-svg-src="images/icons/description_24px.svg"></md-icon>
+                            </md-button>
+                        </div>
+                    </div>
+                    <md-divider></md-divider>
+                </div>
+                <div class="search-header spacer-top space-left">
+                    <span>Selected communication details</span>
+                </div>
+                <div ng-repeat="(pubNum,work) in vm.communicationDetailsORCID track by $index" flex>
+                    <div layout="column" flex>
+                        <div layout="row" layout-align="center" class="spacer-top">
+                            <div class="question"><span class="highlight">Title:</span></div>
+                            <div class="answer"><span>{{work.title}}</span></div>
+                        </div>
+                        <div layout="row" layout-align="none center">
+                            <div class="question"><span class="highlight">Authors list *<br>(separate with ;):</span></div>
+                            <div class="answer">
+                                <md-input-container class="input-compact">
+                                    <input required ng-change="vm.communicationAuthorsList(work.authors_raw,pubNum)"
+                                            ng-model="work.authors_raw" name="authors_raw[pubNum]">
+                                </md-input-container>
+                            </div>
+                        </div>
+                        <div layout="row" layout-align="none center">
+                            <div class="question"><span class="highlight">Presenter:</span></div>
+                            <div class="answer">
+                                <md-input-container class="select-container select-no-margin card-type">
+                                    <md-select ng-model="vm.communicationDetailsORCID[pubNum].presenter"
+                                            aria-label="presenter"
+                                            name="publication_orcid_presenter[pubNum]">
+                                        <md-option ng-repeat="presenter in vm.communicationDetailsORCID[pubNum].presenters"
+                                                ng-value="presenter">{{presenter}}</md-option>
+                                    </md-select>
+                                </md-input-container>
+                            </div>
+                        </div>
+                        <div layout="row" layout-align="none center">
+                            <div class="question"><span class="highlight">Date:</span></div>
+                            <div class="answer">
+                                <div ng-if="!work.edit_date">
+                                    <span>{{vm.communicationDetailsORCID[pubNum].date}}</span>
+                                </div>
+                                <div ng-if="work.edit_date" layout="row">
+                                    <md-input-container>
+                                        <md-datepicker required md-current-view="year" ng-model="vm.communicationDetailsORCID[pubNum].date"
+                                                name="member_startDate[memberNum]"
+                                                md-placeholder="Enter date" md-hide-icons="calendar"></md-datepicker>
+                                    </md-input-container>
+                                </div>
+                            </div>
+                        </div>
+                        <div layout="row" ng-class="{'spacer-top': !work.edit_date}">
+                            <div class="question"><span class="highlight">Communication type*:</span></div>
+                            <div class="answer">
+                                <span>
+                                    <md-input-container class="select-container select-no-margin card-type">
+                                        <md-select required ng-model="work.communication_type_id"
+                                                aria-label="publication type"
+                                                name="publication_orcid_communication_type[pubNum]">
+                                            <div class="scrollable">
+                                                <md-option ng-repeat="type in vm.communicationTypes"
+                                                        ng-value="type.id">{{type.name}}</md-option>
+                                            </div>
+                                        </md-select>
+                                    </md-input-container>
+                                </span>
+                            </div>
+                        </div>
+                        <div layout="row" layout-align="none center">
+                            <div class="question"><span class="highlight">Conference/meeting name*:</span></div>
+                            <div class="answer">
+                                <md-input-container class="input-compact">
+                                    <input required ng-model="vm.communicationDetailsORCID[pubNum].conference" name="conference[pubNum]">
+                                </md-input-container>
+                            </div>
+                        </div>
+                        <div layout="row" layout-align="none center">
+                            <div class="question"><span class="highlight">Conference type*:</span></div>
+                            <div class="answer">
+                                <span>
+                                    <md-input-container class="select-container select-no-margin card-type">
+                                        <md-select required ng-model="work.conference_type_id"
+                                                aria-label="publication type"
+                                                name="publication_orcid_conference_type[pubNum]">
+                                            <div class="scrollable">
+                                                <md-option ng-repeat="type in vm.conferenceTypes"
+                                                        ng-value="type.id">{{type.name}}</md-option>
+                                            </div>
+                                        </md-select>
+                                    </md-input-container>
+                                </span>
+                            </div>
+                        </div>
+                        <div layout="row" layout-align="none center">
+                            <div class="question"><span class="highlight">International?</span></div>
+                            <div class="answer">
+                                <md-checkbox ng-model="work.international" aria-label="international"></md-checkbox>
+                                <md-input-container class="search-box select-container input-row"
+                                    ng-if="work.international"
+                                    ng-controller="CountrySelectCtrl as count">
+                                    <label>Country</label>
+                                    <md-select required ng-model="work.country_id"
+                                        ng-model-options="{trackBy: '$value.country_id'}">
+                                        <div class="anchored">
+                                            <md-select-header class="select-search-header">
+                                                <input ng-model="count.searchTerm" type="search"
+                                                  placeholder="Search your countries"
+                                                  class="md-text select-search-box">
+                                            </md-select-header>
+                                        </div>
+                                        <div class="scrollable">
+                                            <md-optgroup label="countries">
+                                                <md-option ng-repeat="country in count.countries | filter:count.searchTerm"
+                                                    ng-value="country">{{country.name}}</md-option>
+                                            </md-optgroup>
+                                        </div>
+                                    </md-select>
+                                </md-input-container>
+                            </div>
+                        </div>
+                        <div layout="row" layout-align="none center">
+                            <div class="question"><span class="highlight">City*:</span></div>
+                            <div class="answer">
+                                <md-input-container class="input-compact">
+                                    <input required ng-model="work.city" name="city[pubNum]">
+                                </md-input-container>
+                            </div>
+                        </div>
+                        <div layout="row" layout-align="none center">
+                            Add to final list
+                            <md-button ng-click="vm.communicationORCIDintoDatabase(work)"
+                                    aria-label="Add database"
+                                    class="md-icon-button interaction-button">
+                                <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                            </md-button>
+                            Remove from list
+                            <md-button ng-click="vm.removeCommunicationORCID(work,pubNum)"
+                                    aria-label="remove"
+                                    class="md-icon-button interaction-button">
+                                <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
+                            </md-button>
+                        </div>
+                    </div>
+                    <md-divider></md-divider>
+                </div>
+                <div class="search-header spacer-top space-left">
+                    <span>Communications to be added to LAQV/UCIBIO database</span>
+                </div>
+                <ol>
+                    <li ng-repeat="(pubNum,work) in vm.addCommunicationsORCID track by $index">
+                        {{work.type}}: {{work.authors_raw}}. "{{work.title}}", {{work.conference}},
+                        {{work.city}}
+                    </li>
+                </ol>
+            </div>
+            <div class="spacer-top"
+                    layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button type="submit"
+                    class="button-small md-raised md-primary">Add ORCID Comm.</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personCommORCIDAdd']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['personCommORCIDAdd']]">
+                        {{vm.updateStatus[vm.forms['personCommORCIDAdd']]}}
+                    </span>
+                </div>
+            </div>
+        </form>
+
+
+    </md-card-content>
+</md-card>

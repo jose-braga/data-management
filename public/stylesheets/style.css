@@ -38,6 +38,13 @@ a {
   margin-top: 5px;
 }
 
+.input-compact {
+  margin-top: 1px;
+  margin-bottom: 0px;
+  padding-bottom: 5px;
+  width: 100%;
+}
+
 .input-no-margin .md-input{
   line-height: 16px;
   height: 16px;
@@ -95,7 +102,7 @@ a {
 }
 
 .question {
-  width: 20%;
+  width: 25%;
   float: left;
   margin-right: 2%;
 }
@@ -105,7 +112,7 @@ a {
 }
 
 .answer {
-  width: 78%;
+  width: 73%;
   float: left;
 }
 
@@ -420,4 +427,16 @@ ul.help-list li{
 
 .nav-highlights ul{
   margin-left: 10px;
+}
+
+.bind {
+  border: 1px solid black;
+}
+
+.no-margin-bottom {
+  margin-bottom: 0px;
+}
+
+.wide {
+  width: 100%;
 }

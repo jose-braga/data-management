@@ -5636,6 +5636,12 @@ module.exports.listOf = function (req, res, next) {
     } else if (listOf === 'publication-types') {
         querySQL = 'SELECT * FROM publication_types;';
         getQueryResponse(querySQL, req, res, next);
+    } else if (listOf === 'communication-types') {
+        querySQL = 'SELECT * FROM communication_types;';
+        getQueryResponse(querySQL, req, res, next);
+    } else if (listOf === 'conference-types') {
+        querySQL = 'SELECT * FROM conference_types;';
+        getQueryResponse(querySQL, req, res, next);
     } else {
         var errorNum = 404;
         sendJSONResponse(res, errorNum, {"status": "error", "statusCode": errorNum, "error" : "Does not exist!"});

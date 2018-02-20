@@ -110,9 +110,9 @@
                     </div>
                 </md-content>
             </md-tab>
-            <md-tab label='Publications'>
+            <md-tab label='Productivity'>
                 <md-tabs md-selected="vm.selectedIndexPublications" md-dynamic-height md-border-bottom>
-                    <md-tab label='List'>
+                    <md-tab label='List Pub.'>
                         <md-content>
                             <div layout="row" layout-padding>
                                 <person-publications></person-publications>
@@ -126,11 +126,33 @@
                             </div>
                         </md-content>
                     </md-tab>
-                    <md-tab label='Add' md-on-select="vm.getAllPublications()">
+                    <md-tab label='Add Pub.' md-on-select="vm.getAllPublications()">
                         <md-content>
                             <div layout-padding>
                                 <person-add-publications></person-add-publications>
                                 <person-add-publications-orcid></person-add-publications-orcid>
+                            </div>
+                        </md-content>
+                    </md-tab>
+                    <md-tab label='Communications' md-on-select="">
+                        <md-content>
+                            <div layout-padding>
+                                <person-communications></person-communications>
+                                <person-add-communications-orcid></person-add-communications-orcid>
+                            </div>
+                        </md-content>
+                    </md-tab>
+                    <md-tab label='Projects' md-on-select="">
+                        <md-content>
+                            <div layout-padding>
+
+                            </div>
+                        </md-content>
+                    </md-tab>
+                    <md-tab label='Other' md-on-select="">
+                        <md-content>
+                            <div layout-padding>
+
                             </div>
                         </md-content>
                     </md-tab>

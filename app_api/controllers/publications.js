@@ -363,7 +363,8 @@ var queryPersonCommunications = function (req, res, next) {
     querySQL = querySQL + 'SELECT communications.id, communications.person_id, communications.authors_raw, ' +
                           ' communications.presenter, communications.title, communications.type_id AS communication_type_id, ' +
                           ' communication_types.name AS communication_type_name,' +
-                          ' communications.conference_title, communications.international, communications.city, communications.country_id, countries.name AS country_name, communications.date, communications.doi,' +
+                          ' communications.conference_title, communications.international, communications.city, communications.country_id, countries.name AS country_name,' +
+                          ' communications.date, communications.doi, communications.public,' +
                           ' communication_types.name AS communication_type_name, communications.conference_type_id, conference_types.name AS conference_type_name ' +
                           'FROM communications' +
                           ' LEFT JOIN communication_types ON communication_types.id = communications.type_id' +

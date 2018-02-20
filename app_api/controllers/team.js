@@ -983,13 +983,14 @@ var queryUpdateLab = function (req, res, next,
                                  updateArr, deleteArr, updated, data, i) {
     data.valid_from = momentToDate(data.valid_from);
     data.valid_until = momentToDate(data.valid_until);
-    var query = 'UPDATE `people_labs`' +
-                ' SET `lab_position_id` = ?,' +
-                ' `dedication` = ?,' +
-                ' `valid_from` = ?,' +
-                ' `valid_until` = ?' +
-                ' WHERE `id` = ?;';
-    var places = [data.lab_position_id, data.dedication,
+    var query = 'UPDATE people_labs' +
+                ' SET lab_position_id = ?,' +
+                ' sort_order = ?,' +
+                ' dedication = ?,' +
+                ' valid_from = ?,' +
+                ' valid_until = ?' +
+                ' WHERE id = ?;';
+    var places = [data.lab_position_id, data.sort_order, data.dedication,
             data.valid_from, data.valid_until, data.id];
     pool.getConnection(function(err, connection) {
         if (err) {
@@ -1018,12 +1019,12 @@ var queryUpdateLabHistory = function (req, res, next, peopleOfficeID,
     data.valid_until = momentToDate(data.valid_until);
     var changed_by = req.body.changed_by;
     var personID = data.person_id;
-    var query = 'INSERT INTO `people_labs_history`' +
-                  ' (`people_labs_id`,`person_id`,`lab_id`,`lab_position_id`,`dedication`,'+
-                    '`valid_from`,`valid_until`,`updated`,`operation`,`changed_by`)' +
-                  ' VALUES (?,?,?,?,?,?,?,?,?,?);';
+    var query = 'INSERT INTO people_labs_history' +
+                  ' (people_labs_id,person_id,lab_id,lab_position_id,sort_order,dedication,'+
+                    'valid_from,valid_until,updated,operation,changed_by)' +
+                  ' VALUES (?,?,?,?,?,?,?,?,?,?,?);';
     var places = [peopleOfficeID,personID, data.lab_id,
-                data.lab_position_id,data.dedication,
+                data.lab_position_id,data.sort_order,data.dedication,
                 data.valid_from,data.valid_until,
                 updated,'U',changed_by];
     pool.getConnection(function(err, connection) {
@@ -1048,7 +1049,7 @@ var queryUpdateLabHistory = function (req, res, next, peopleOfficeID,
 
 var queryDeleteLab = function (req, res, next,
                                  updateArr, deleteArr, updated, data, i) {
-    var query = 'DELETE FROM `people_labs`' +
+    var query = 'DELETE FROM people_labs' +
                           ' WHERE id=?;';
     var places = data.id;
     pool.getConnection(function(err, connection) {

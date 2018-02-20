@@ -626,12 +626,12 @@ var queryUpdateLabHistory = function (req, res, next, peopleOfficeID,
     data.valid_until = momentToDate(data.valid_until);
     var changed_by = req.body.changed_by;
     var personID = data.person_id;
-    var query = 'INSERT INTO `people_labs_history`' +
-                  ' (`people_labs_id`,`person_id`,`lab_id`,`lab_position_id`,`dedication`,'+
-                    '`valid_from`,`valid_until`,`updated`,`operation`,`changed_by`)' +
+    var query = 'INSERT INTO people_labs_history' +
+                  ' (people_labs_id,person_id,lab_id,lab_position_id,sort_order,dedication,'+
+                    'valid_from,valid_until,updated,operation,changed_by)' +
                   ' VALUES (?,?,?,?,?,?,?,?,?,?);';
     var places = [peopleOfficeID,personID, data.lab_id,
-                data.position_id,data.dedication,
+                data.position_id,data.sort_order,data.dedication,
                 data.valid_from,data.valid_until,
                 updated,'U',changed_by];
     pool.getConnection(function(err, connection) {

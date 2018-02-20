@@ -5606,7 +5606,7 @@ module.exports.listOf = function (req, res, next) {
         querySQL = 'SELECT * FROM technician_positions;';
         getQueryResponse(querySQL, req, res, next);
     } else if (listOf === 'lab-positions') {
-        querySQL = 'SELECT lab_positions.id AS lab_position_id, lab_positions.name_en' +
+        querySQL = 'SELECT lab_positions.id AS lab_position_id, lab_positions.name_en, lab_positions.sort_order' +
                    ' FROM lab_positions' +
                    ' ORDER BY sort_order;';
         getQueryResponse(querySQL, req, res, next);

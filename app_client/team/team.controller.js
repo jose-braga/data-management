@@ -681,7 +681,7 @@
                 };
 
                 function getNameFromID(id, type, rID) {
-                    if (type === 'position_id') {
+                    if (type === 'lab_position_id') {
                         if (rID === 1) {
                             for (var p in scope.labPositions) {
                                 if (scope.labPositions[p]['lab_position_id'] === id) {

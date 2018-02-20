@@ -5,6 +5,9 @@
         </md-card-title-text>
     </md-card-title>
     <md-card-content layout="column">
+        <p>Note: Order column is used to define order of appearance in website
+            within each lab position category (LAQV only).
+        </p>
         <form flex novalidate name="teamLabPeopleForm"
                 ng-submit="teamLabPeopleForm.$valid && submitLabPeople()">
             <div layout="row" layout-align="none center">
@@ -157,6 +160,12 @@
                                 <ng-md-icon ng-if="sortReverse  && sortType=='lab_position_id'"
                                         icon="arrow_upwards" size="12"></ng-md-icon>
                             </th>
+                            <th><a ng-click="sortColumn('order')">Order</a>
+                                <ng-md-icon ng-if="!sortReverse && sortType=='lab_position_id'"
+                                        icon="arrow_downward" size="12"></ng-md-icon>
+                                <ng-md-icon ng-if="sortReverse  && sortType=='lab_position_id'"
+                                        icon="arrow_upwards" size="12"></ng-md-icon>
+                            </th>
                             <th><a ng-click="sortColumn('dedication')">Time (%)</a>
                                 <ng-md-icon ng-if="!sortReverse && sortType=='dedication'"
                                         icon="arrow_downward" size="12"></ng-md-icon>
@@ -203,6 +212,14 @@
                                             <md-option ng-repeat="type in labPositions" ng-value="type.lab_position_id">{{type.name_en}}</md-option>
                                         </div>
                                     </md-select>
+                                </md-input-container>
+                            </td>
+                            <td>
+                                <md-input-container class="input-no-margin">
+                                    <input ng-model="member.sort_order"
+                                        ng-change="updateDataSubmit(member.id,currPeople[memberNum],'updateLabPerson', [])"
+                                        aria-label="order"
+                                        name="member_order[memberNum]" integer-validate>
                                 </md-input-container>
                             </td>
                             <td>

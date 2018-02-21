@@ -1182,22 +1182,23 @@ var queryUpdateAffiliationsLab = function (req, res, next, userCity, personID,up
     var places = [];
     data.lab_start = momentToDate(data.lab_start);
     data.lab_end = momentToDate(data.lab_end);
-    querySQL = querySQL + 'UPDATE `people_labs`' +
-                          ' SET `lab_id` = ?,' +
-                          ' `lab_position_id` = ?,' +
-                          ' `dedication` = ?,' +
-                          ' `valid_from` = ?,' +
-                          ' `valid_until` = ?' +
-                          ' WHERE `id` = ?';
+    querySQL = querySQL + 'UPDATE people_labs' +
+                          ' SET lab_id = ?,' +
+                          ' lab_position_id = ?,' +
+                          ' sort_order = ?,' +
+                          ' dedication = ?,' +
+                          ' valid_from = ?,' +
+                          ' valid_until = ?' +
+                          ' WHERE id = ?';
     querySQL = querySQL + '; ';
-    places.push(data.lab_id, data.lab_position_id, data.dedication,
+    places.push(data.lab_id, data.lab_position_id, data.sort_order, data.dedication,
                 data.lab_start, data.lab_end, data.people_lab_id);
-    querySQL = querySQL + 'INSERT INTO `people_labs_history`' +
-                          ' (`people_labs_id`,`person_id`,`lab_id`,`lab_position_id`,`dedication`,'+
-                            '`valid_from`,`valid_until`,`updated`,`operation`,`changed_by`)' +
-                          ' VALUES (?,?,?,?,?,?,?,?,?,?)';
+    querySQL = querySQL + 'INSERT INTO people_labs_history' +
+                          ' (people_labs_id,person_id,lab_id,lab_position_id,sort_order,dedication,'+
+                            'valid_from,valid_until,updated,operation,changed_by)' +
+                          ' VALUES (?,?,?,?,?,?,?,?,?,?,?)';
     querySQL = querySQL + '; ';
-    places.push(data.people_lab_id,personID, data.lab_id, data.lab_position_id,data.dedication,
+    places.push(data.people_lab_id,personID, data.lab_id, data.lab_position_id,data.sort_order,data.dedication,
                 data.lab_start,data.lab_end,
                 updated,'U',changed_by);
     pool.getConnection(function(err, connection) {
@@ -1236,16 +1237,16 @@ var queryDeleteAffiliationsLab = function (req, res, next, userCity, personID,up
     var places = [];
     data.lab_start = momentToDate(data.lab_start);
     data.lab_end = momentToDate(data.lab_end);
-    querySQL = querySQL + 'DELETE FROM `people_labs`' +
+    querySQL = querySQL + 'DELETE FROM people_labs' +
                           ' WHERE id=?';
     querySQL = querySQL + '; ';
     places.push(data.people_lab_id);
-    querySQL = querySQL + 'INSERT INTO `people_labs_history`' +
-                          ' (`people_labs_id`,`person_id`,`lab_id`,`lab_position_id`,`dedication`,'+
-                            '`valid_from`,`valid_until`,`updated`,`operation`,`changed_by`)' +
-                          ' VALUES (?,?,?,?,?,?,?,?,?,?)';
+    querySQL = querySQL + 'INSERT INTO people_labs_history' +
+                          ' (people_labs_id,person_id,lab_id,lab_position_id,sort_order,dedication,'+
+                            'valid_from,valid_until,updated,operation,changed_by)' +
+                          ' VALUES (?,?,?,?,?,?,?,?,?,?,?)';
     querySQL = querySQL + '; ';
-    places.push(data.people_lab_id,personID, data.lab_id, data.lab_position_id,data.dedication,
+    places.push(data.people_lab_id,personID, data.lab_id, data.lab_position_id,data.sort_order,data.dedication,
                 data.lab_start,data.lab_end,
                 updated,'D',changed_by);
     pool.getConnection(function(err, connection) {
@@ -1281,11 +1282,11 @@ var queryAddAffiliationsLab = function (req, res, next, userCity, personID,updat
     var places = [];
     data.lab_start = momentToDate(data.lab_start);
     data.lab_end = momentToDate(data.lab_end);
-    querySQL = querySQL + 'INSERT INTO `people_labs`' +
-                          ' (`person_id`,`lab_id`,`lab_position_id`,`dedication`,`valid_from`,`valid_until`)' +
-                          ' VALUES (?, ?, ?, ?, ?, ?)';
+    querySQL = querySQL + 'INSERT INTO people_labs' +
+                          ' (person_id,lab_id,lab_position_id,sort_order,dedication,valid_from,valid_until)' +
+                          ' VALUES (?, ?, ?, ?, ?, ?, ?)';
     querySQL = querySQL + '; ';
-    places.push(personID, data.lab_id, data.lab_position_id,data.dedication,
+    places.push(personID, data.lab_id, data.lab_position_id, data.sort_order,data.dedication,
                 data.lab_start, data.lab_end);
     pool.getConnection(function(err, connection) {
         if (err) {
@@ -1314,12 +1315,12 @@ var queryAddAffiliationsLabHistory = function (req, res, next, userCity, personI
     var places = [];
     data.lab_start = momentToDate(data.lab_start);
     data.lab_end = momentToDate(data.lab_end);
-    querySQL = querySQL + 'INSERT INTO `people_labs_history`' +
-                          ' (`people_labs_id`,`person_id`,`lab_id`,`lab_position_id`,`dedication`,'+
-                            '`valid_from`,`valid_until`,`created`,`operation`,`changed_by`)' +
-                          ' VALUES (?,?,?,?,?,?,?,?,?,?)';
+    querySQL = querySQL + 'INSERT INTO people_labs_history' +
+                          ' (people_labs_id,person_id,lab_id,lab_position_id,sort_order,dedication,'+
+                            'valid_from,valid_until,created,operation,changed_by)' +
+                          ' VALUES (?,?,?,?,?,?,?,?,?,?,?)';
     querySQL = querySQL + '; ';
-    places.push(peopleLabID,personID, data.lab_id, data.lab_position_id,data.dedication,
+    places.push(peopleLabID,personID, data.lab_id, data.lab_position_id,data.sort_order,data.dedication,
                 data.lab_start,data.lab_end,
                 created,'C',changed_by);
     pool.getConnection(function(err, connection) {
@@ -4337,7 +4338,7 @@ var queryGetLabs = function (req,res,next, personID, row) {
     var query = 'SELECT labs.id AS lab_id,' +
                 ' labs.name AS lab, labs.short_name AS lab_short_name,' +
                 ' people_labs.id AS people_lab_id, people_labs.valid_from AS lab_start, people_labs.valid_until AS lab_end,' +
-                ' people_labs.dedication, lab_positions.id AS lab_position_id, lab_positions.name_en AS lab_position,' +
+                ' people_labs.dedication, lab_positions.id AS lab_position_id, lab_positions.name_en AS lab_position, people_labs.sort_order,' +
                 ' labs.started AS lab_opened, labs.finished AS lab_closed,' +
                 ' labs_groups.valid_from AS labs_groups_valid_from, labs_groups.valid_until AS labs_groups_valid_until,' +
                 ' groups.id AS group_id, groups.name AS group_name, groups.started AS group_opened, groups.finished AS group_closed,' +
@@ -5240,7 +5241,7 @@ module.exports.getPersonInfo = function (req, res, next) {
     var querySQL = 'SELECT people.id, people.name AS full_name, people.colloquial_name AS name,' +
                    ' people.active_from, people.active_until,' +
                    ' emails.email, phones.phone, phones.extension AS phone_extension,' +
-                   ' people_labs.valid_from AS lab_start, people_labs.valid_until AS lab_end,' +
+                   ' people_labs.valid_from AS lab_start, people_labs.valid_until AS lab_end, people_labs.sort_order,' +
                    ' labs.id AS lab_id, labs.name AS lab_name,' +
                    ' labs_groups.valid_from AS labs_groups_valid_from, labs_groups.valid_until AS labs_groups_valid_until,' +
                    ' groups.id AS group_id, groups.name AS group_name,' +
@@ -5288,7 +5289,7 @@ module.exports.getPersonInfo = function (req, res, next) {
                   ' WHERE people.id = ?;';
     var places = [personID];
     var mergeRules = [
-                      ['lab_data', 'lab_start', 'lab_end', 'lab_position_id','lab_position_name_en','lab_position_name_pt',
+                      ['lab_data', 'lab_start', 'lab_end', 'lab_position_id','lab_position_name_en','lab_position_name_pt', 'sort_order',
                        'lab_id','lab_name','labs_groups_valid_from','labs_groups_valid_until','group_id','group_name','unit_id', 'unit_name'],
                       ['technician_data', 'technician_start', 'technician_end', 'technician_position_id','technician_position_name_en','technician_position_name_pt',
                        'technician_id','technician_office_id','technician_office_name','technician_unit_id','technician_unit_name'],

@@ -629,7 +629,7 @@ var queryUpdateLabHistory = function (req, res, next, peopleOfficeID,
     var query = 'INSERT INTO people_labs_history' +
                   ' (people_labs_id,person_id,lab_id,lab_position_id,sort_order,dedication,'+
                     'valid_from,valid_until,updated,operation,changed_by)' +
-                  ' VALUES (?,?,?,?,?,?,?,?,?,?);';
+                  ' VALUES (?,?,?,?,?,?,?,?,?,?,?);';
     var places = [peopleOfficeID,personID, data.lab_id,
                 data.position_id,data.sort_order,data.dedication,
                 data.valid_from,data.valid_until,
@@ -1488,7 +1488,7 @@ module.exports.listAllPeopleWithRolesData = function (req, res, next) {
                            ' labs_groups.valid_from AS labs_groups_valid_from, labs_groups.valid_until AS labs_groups_valid_until,' +
                            ' people_labs.dedication AS dedication,' +
                            ' people_labs.valid_from AS valid_from, people_labs.valid_until AS valid_until,' +
-                           ' people_labs.lab_position_id AS position_id,' +
+                           ' people_labs.lab_position_id AS position_id, people_labs.sort_order,' +
                            ' people_labs.id AS people_labs_id,' +
                            ' groups.id AS group_id,' +
                            ' units.id AS unit_id ' +

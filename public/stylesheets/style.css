@@ -358,6 +358,9 @@ md-select-menu ._md .scrollable{
   margin-top: 5px;
 }
 
+.small-top {
+  margin-bottom: 5px;
+}
 
 .dropzone-container {
   margin-bottom: 20px;

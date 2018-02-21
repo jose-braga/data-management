@@ -48,6 +48,26 @@
                 </md-input-container>
             </div>
             <div class="small-screens spacer-top" layout="column" hide-gt-sm show-sm show-xs>
+                <div class="bind">
+                    <div layout="row" layout-align=" center" class="small-bottom small-top">
+                        <div class="question"><span class="highlight">Sort by:</span></div>
+                        <div class="answer">
+                            <md-input-container class="select-container select-no-margin card-type">
+                                <md-select ng-model="sortType"
+                                        ng-change="sortColumn(sortType)"
+                                        aria-label="sort_by"
+                                        name="column_sort">
+                                    <md-option value="person_name">Name</md-option>
+                                    <md-option value="lab_position_id">Lab Position</md-option>
+                                    <md-option value="dedication">Dedication</md-option>
+                                    <md-option value="valid_from">Started</md-option>
+                                    <md-option value="valid_until">Finished</md-option>
+                                </md-select>
+                            </md-input-container>
+                        </div>
+                    </div>
+                </div>
+                <div class="spacer-bottom"></div>
                 <div ng-repeat="(memberNum,member) in currPeople track by $index">
                     <div layout="column">
                         <div layout="row" layout-align=" center">
@@ -77,6 +97,17 @@
                                             <md-option ng-repeat="type in labPositions" ng-value="type.lab_position_id">{{type.name_en}}</md-option>
                                         </div>
                                     </md-select>
+                                </md-input-container>
+                            </div>
+                        </div>
+                        <div layout="row" layout-align=" center">
+                            <div class="question"><span class="highlight">Order:</span></div>
+                            <div class="answer">
+                                <md-input-container class="input-no-margin">
+                                    <input ng-model="member.sort_order"
+                                        ng-change="updateDataSubmit(member.id,currPeople[memberNum],'updateLabPerson', [])"
+                                        aria-label="order"
+                                        name="member_order[memberNum]" integer-validate>
                                 </md-input-container>
                             </div>
                         </div>
@@ -136,7 +167,7 @@
                         </md-button>
                         -->
                     </div>
-                    <md-divider hide-gt-sm></md-divider>
+                    <md-divider class="spacer-top" hide-gt-sm></md-divider>
                 </div>
             </div>
 

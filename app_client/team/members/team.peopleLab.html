@@ -51,17 +51,27 @@
                 <div class="bind">
                     <div layout="row" layout-align=" center" class="small-bottom small-top">
                         <div class="question"><span class="highlight">Sort by:</span></div>
-                        <div class="answer">
+                        <div class="answer" layout="row">
                             <md-input-container class="select-container select-no-margin card-type">
                                 <md-select ng-model="sortType"
-                                        ng-change="sortColumn(sortType)"
+                                        ng-change="sortColumn(sortType,'small')"
                                         aria-label="sort_by"
                                         name="column_sort">
                                     <md-option value="person_name">Name</md-option>
                                     <md-option value="lab_position_id">Lab Position</md-option>
+                                    <md-option value="sort_order">Order</md-option>
                                     <md-option value="dedication">Dedication</md-option>
                                     <md-option value="valid_from">Started</md-option>
                                     <md-option value="valid_until">Finished</md-option>
+                                </md-select>
+                            </md-input-container>
+                            <md-input-container class="select-container select-no-margin card-type">
+                                <md-select ng-model="sortReverse"
+                                        ng-change="sortColumn(sortType,'small')"
+                                        aria-label="sort_by"
+                                        name="column_sort_order">
+                                    <md-option value="false">Ascending</md-option>
+                                    <md-option value="true">Descending</md-option>
                                 </md-select>
                             </md-input-container>
                         </div>
@@ -191,10 +201,10 @@
                                 <ng-md-icon ng-if="sortReverse  && sortType=='lab_position_id'"
                                         icon="arrow_upwards" size="12"></ng-md-icon>
                             </th>
-                            <th><a ng-click="sortColumn('order')">Order</a>
-                                <ng-md-icon ng-if="!sortReverse && sortType=='lab_position_id'"
+                            <th><a ng-click="sortColumn('sort_order')">Order</a>
+                                <ng-md-icon ng-if="!sortReverse && sortType=='sort_order'"
                                         icon="arrow_downward" size="12"></ng-md-icon>
-                                <ng-md-icon ng-if="sortReverse  && sortType=='lab_position_id'"
+                                <ng-md-icon ng-if="sortReverse  && sortType=='sort_order'"
                                         icon="arrow_upwards" size="12"></ng-md-icon>
                             </th>
                             <th><a ng-click="sortColumn('dedication')">Time (%)</a>

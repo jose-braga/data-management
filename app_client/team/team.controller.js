@@ -598,12 +598,18 @@
                         scope.currPeople.push(Object.assign({}, scope.selectedPeople[member]));
                     }
                 };
-                scope.sortColumn = function(colName) {
-                    if (colName === scope.sortType) {
-                        scope.sortReverse = !scope.sortReverse;
+                scope.sortColumn = function(colName,screen) {
+                    if (screen === undefined) {
+                        if (colName === scope.sortType) {
+                            scope.sortReverse = !scope.sortReverse;
+                        } else {
+                            scope.sortType = colName;
+                            scope.sortReverse = false;
+                        }
                     } else {
                         scope.sortType = colName;
-                        scope.sortReverse = false;
+                        if (scope.sortReverse === 'true') {scope.sortReverse = true;}
+                        else {scope.sortReverse = false;}
                     }
                     scope.renderPeople('new');
                 };
@@ -771,9 +777,15 @@
                         }
                     } else if (scope.sortType === 'dedication') {
                         if (scope.sortReverse) {
-                            return (a[scope.sortType] ? a[scope.sortType] : 101) > (b[scope.sortType] ? b[scope.sortType] : 101);
-                        } else {
                             return (a[scope.sortType] ? a[scope.sortType] : 0) < (b[scope.sortType] ? b[scope.sortType] : 0);
+                        } else {
+                            return (a[scope.sortType] ? a[scope.sortType] : 101) > (b[scope.sortType] ? b[scope.sortType] : 101);
+                        }
+                    } else if (scope.sortType === 'sort_order') {
+                        if (scope.sortReverse) {
+                            return (a[scope.sortType] ? a[scope.sortType] : 0) < (b[scope.sortType] ? b[scope.sortType] : 0);
+                        } else {
+                            return (a[scope.sortType] ? a[scope.sortType] : 1e6) > (b[scope.sortType] ? b[scope.sortType] : 1e6);
                         }
                     }  else if (scope.sortType === 'lab_position_id') {
                         if (scope.sortReverse) {

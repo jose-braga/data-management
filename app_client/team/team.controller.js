@@ -520,14 +520,21 @@
             function (scope,element,attrs) {
                 scope.currentUser = authentication.currentUser();
                 scope.sortType = 'person_name';
+                scope.sortTypePast = 'person_name';
                 scope.sortReverse = false;
+                scope.sortReversePast = false;
                 scope.pageSize = 10;
+                scope.pageSizePast = 10;
                 scope.totalFromSearch = 10;
+                scope.totalFromSearchPast = 10;
                 scope.currentPage = 1;
+                scope.currentPagePast = 1;
                 scope.searchName = '';
+                scope.searchNamePast = '';
                 scope.allPeople = [];
                 scope.forms = {
                     'peopleLab': 0,
+                    'peopleLabPast': 1
                 };
                 var numberCards = Object.keys(scope.forms).length; // the number of cards with "Update" in each tab
                 scope.updateStatus = [];
@@ -561,15 +568,28 @@
                 scope.renderPeople = function (str) {
                     if (str === 'new') {
                        scope.currentPage = 1;
+                       scope.currentPagePast = 1;
                     }
-                    scope.totalPeople = scope.team.length;
+                    var curr = [];
+                    var past = [];
+                    for (var ind in scope.team) {
+                        scope.team[ind]['valid_from'] = processDate(scope.team[ind]['valid_from']);
+                        scope.team[ind]['valid_until'] = processDate(scope.team[ind]['valid_until']);
+                        if (moment(scope.team[ind]['valid_until']).isAfter(moment())
+                                || scope.team[ind]['valid_until'] === null) {
+                            curr.push(Object.assign({}, scope.team[ind]));
+                        } else {
+                            past.push(Object.assign({}, scope.team[ind]));
+                        }
+                    }
+                    scope.totalPeople = curr.length;
                     // now we filter based on search terms
                     scope.selectedPeople = [];
-                    for (var member in scope.team) {
+                    for (var member in curr) {
                         var toInclude = 0;
                         var toIncludeDueName = 0;
                         if (scope.searchName !== '') {
-                            if (nameMatching(scope.team[member]['person_name'],scope.searchName) !== null) {
+                            if (nameMatching(curr[member]['person_name'],scope.searchName) !== null) {
                                toIncludeDueName = 1;
                             }
                         } else {
@@ -577,7 +597,7 @@
                         }
                         toInclude = toIncludeDueName;
                         if (toInclude === 1) {
-                            scope.selectedPeople.push(scope.team[member]);
+                            scope.selectedPeople.push(curr[member]);
                         }
                     }
                     scope.totalFromSearch = scope.selectedPeople.length;
@@ -597,6 +617,43 @@
                         scope.selectedPeople[member]['valid_until'] = processDate(scope.selectedPeople[member]['valid_until']);
                         scope.currPeople.push(Object.assign({}, scope.selectedPeople[member]));
                     }
+
+                    scope.totalPeoplePast = past.length;
+                    // now we filter based on search terms
+                    scope.selectedPeoplePast = [];
+                    for (var member in past) {
+                        var toIncludePast = 0;
+                        var toIncludeDueNamePast = 0;
+                        if (scope.searchNamePast !== '') {
+                            if (nameMatching(past[member]['person_name'],scope.searchNamePast) !== null) {
+                               toIncludeDueNamePast = 1;
+                            }
+                        } else {
+                            toIncludeDueNamePast = 1;
+                        }
+                        toIncludePast = toIncludeDueNamePast;
+                        if (toIncludePast === 1) {
+                            scope.selectedPeoplePast.push(past[member]);
+                        }
+                    }
+                    scope.totalFromSearchPast = scope.selectedPeoplePast.length;
+                    scope.totalPagesPast = Math.ceil(scope.totalFromSearchPast / scope.pageSizePast);
+                    scope.pagesPast = [];
+                    for (var num=1; num<=scope.totalPagesPast; num++) {
+                        scope.pagesPast.push(num);
+                    }
+                    // Sort selectedPeople according to defined order, before
+                    // defining page contents
+                    scope.selectedPeoplePast = scope.selectedPeoplePast.sort(sorterPast);
+                    scope.pastPeople = [];
+                    for (var member = (scope.currentPagePast - 1) * scope.pageSizePast;
+                            member < scope.currentPagePast * scope.pageSizePast && member < scope.totalFromSearchPast;
+                            member++) {
+                        scope.selectedPeoplePast[member]['valid_from'] = processDate(scope.selectedPeoplePast[member]['valid_from']);
+                        scope.selectedPeoplePast[member]['valid_until'] = processDate(scope.selectedPeoplePast[member]['valid_until']);
+                        scope.pastPeople.push(Object.assign({}, scope.selectedPeoplePast[member]));
+                    }
+
                 };
                 scope.sortColumn = function(colName,screen) {
                     if (screen === undefined) {
@@ -613,8 +670,22 @@
                     }
                     scope.renderPeople('new');
                 };
-                scope.submitLabPeople = function () {
-                    var ind = scope.forms['peopleLab'];
+                scope.sortColumnPast = function(colName,screen) {
+                    if (screen === undefined) {
+                        if (colName === scope.sortTypePast) {
+                            scope.sortReversePast = !scope.sortReversePast;
+                        } else {
+                            scope.sortTypePast = colName;
+                            scope.sortReversePast = false;
+                        }
+                    } else {
+                        scope.sortTypePast = colName;
+                        if (scope.sortReversePast === 'true') {scope.sortReversePast = true;}
+                        else {scope.sortReversePast = false;}
+                    }
+                    scope.renderPeople('new');
+                };
+                scope.submitLabPeople = function (ind) {
                     scope.updateStatus[ind] = "Updating...";
                     scope.messageType[ind] = 'message-updating';
                     scope.hideMessage[ind] = false;
@@ -769,23 +840,49 @@
                 function sorter(a,b) {
                     if (scope.sortType === 'valid_from' || scope.sortType === 'valid_until') {
                         if (scope.sortReverse) {
-                            return (moment(a[scope.sortType]).isValid() ? moment(a[scope.sortType]) : moment(0))
-                                    .isBefore(moment(b[scope.sortType]).isValid() ? moment(b[scope.sortType]) : moment(0));
+                            if ((moment(a[scope.sortType]).isValid() ? moment(a[scope.sortType]) : moment(0))
+                                    .isBefore(moment(b[scope.sortType]).isValid() ? moment(b[scope.sortType]) : moment(0))) {
+                                return 1;
+                            } else if ((moment(a[scope.sortType]).isValid() ? moment(a[scope.sortType]) : moment(0))
+                                    .isAfter(moment(b[scope.sortType]).isValid() ? moment(b[scope.sortType]) : moment(0))) {
+                                return -1;
+                            }
                         } else {
-                            return (moment(a[scope.sortType]).isValid() ? moment(a[scope.sortType]) : moment())
-                                    .isAfter(moment(b[scope.sortType]).isValid() ? moment(b[scope.sortType]) : moment());
+                            if ((moment(a[scope.sortType]).isValid() ? moment(a[scope.sortType]) : moment().add(100, 'years'))
+                                    .isAfter(moment(b[scope.sortType]).isValid() ? moment(b[scope.sortType]) : moment().add(100, 'years'))) {
+                                return 1;
+                            } else if ((moment(a[scope.sortType]).isValid() ? moment(a[scope.sortType]) : moment().add(100, 'years'))
+                                    .isBefore(moment(b[scope.sortType]).isValid() ? moment(b[scope.sortType]) : moment().add(100, 'years'))) {
+                                return -1;
+                            }
                         }
                     } else if (scope.sortType === 'dedication') {
                         if (scope.sortReverse) {
-                            return (a[scope.sortType] ? a[scope.sortType] : 0) < (b[scope.sortType] ? b[scope.sortType] : 0);
+                            if ((a[scope.sortType] ? a[scope.sortType] : 0) < (b[scope.sortType] ? b[scope.sortType] : 0)) {
+                                return 1;
+                            } else if ((a[scope.sortType] ? a[scope.sortType] : 0) > (b[scope.sortType] ? b[scope.sortType] : 0)) {
+                                return -1;
+                            }
                         } else {
-                            return (a[scope.sortType] ? a[scope.sortType] : 101) > (b[scope.sortType] ? b[scope.sortType] : 101);
+                            if ((a[scope.sortType] ? a[scope.sortType] : 101) > (b[scope.sortType] ? b[scope.sortType] : 101)) {
+                                return 1;
+                            } else if ((a[scope.sortType] ? a[scope.sortType] : 101) < (b[scope.sortType] ? b[scope.sortType] : 101)) {
+                                return -1;
+                            }
                         }
                     } else if (scope.sortType === 'sort_order') {
                         if (scope.sortReverse) {
-                            return (a[scope.sortType] ? a[scope.sortType] : 0) < (b[scope.sortType] ? b[scope.sortType] : 0);
+                            if ((a[scope.sortType] ? a[scope.sortType] : 0) < (b[scope.sortType] ? b[scope.sortType] : 0)) {
+                                return 1;
+                            } else if ((a[scope.sortType] ? a[scope.sortType] : 0) > (b[scope.sortType] ? b[scope.sortType] : 0)) {
+                                return -1;
+                            }
                         } else {
-                            return (a[scope.sortType] ? a[scope.sortType] : 1e6) > (b[scope.sortType] ? b[scope.sortType] : 1e6);
+                            if ((a[scope.sortType] ? a[scope.sortType] : 1e6) > (b[scope.sortType] ? b[scope.sortType] : 1e6)) {
+                                return 1;
+                            } else if ((a[scope.sortType] ? a[scope.sortType] : 1e6) < (b[scope.sortType] ? b[scope.sortType] : 1e6)) {
+                                return -1;
+                            }
                         }
                     }  else if (scope.sortType === 'lab_position_id') {
                         if (scope.sortReverse) {
@@ -804,6 +901,73 @@
                                 .localeCompare(b[scope.sortType] ? b[scope.sortType] : '');
                         }
                     }
+                    return 0;
+                }
+                function sorterPast(a,b) {
+                    if (scope.sortTypePast === 'valid_from' || scope.sortTypePast === 'valid_until') {
+                        if (scope.sortReversePast) {
+                            if ((moment(a[scope.sortTypePast]).isValid() ? moment(a[scope.sortTypePast]) : moment(0))
+                                    .isBefore(moment(b[scope.sortTypePast]).isValid() ? moment(b[scope.sortTypePast]) : moment(0))) {
+                                return 1;
+                            } else if ((moment(a[scope.sortTypePast]).isValid() ? moment(a[scope.sortTypePast]) : moment(0))
+                                    .isAfter(moment(b[scope.sortTypePast]).isValid() ? moment(b[scope.sortTypePast]) : moment(0))) {
+                                return -1;
+                            }
+                        } else {
+                            if ((moment(a[scope.sortTypePast]).isValid() ? moment(a[scope.sortTypePast]) : moment().add(100, 'years'))
+                                    .isAfter(moment(b[scope.sortTypePast]).isValid() ? moment(b[scope.sortTypePast]) : moment().add(100, 'years'))) {
+                                return 1;
+                            } else if ((moment(a[scope.sortTypePast]).isValid() ? moment(a[scope.sortTypePast]) : moment().add(100, 'years'))
+                                    .isBefore(moment(b[scope.sortTypePast]).isValid() ? moment(b[scope.sortTypePast]) : moment().add(100, 'years'))) {
+                                return -1;
+                            }
+                        }
+                    } else if (scope.sortTypePast === 'dedication') {
+                        if (scope.sortReversePast) {
+                            if ((a[scope.sortTypePast] ? a[scope.sortTypePast] : 0) < (b[scope.sortTypePast] ? b[scope.sortTypePast] : 0)) {
+                                return 1;
+                            } else if ((a[scope.sortTypePast] ? a[scope.sortTypePast] : 0) > (b[scope.sortTypePast] ? b[scope.sortTypePast] : 0)) {
+                                return -1;
+                            }
+                        } else {
+                            if ((a[scope.sortTypePast] ? a[scope.sortTypePast] : 101) > (b[scope.sortTypePast] ? b[scope.sortTypePast] : 101)) {
+                                return 1;
+                            } else if ((a[scope.sortTypePast] ? a[scope.sortTypePast] : 101) < (b[scope.sortTypePast] ? b[scope.sortTypePast] : 101)) {
+                                return -1;
+                            }
+                        }
+                    } else if (scope.sortTypePast === 'sort_order') {
+                        if (scope.sortReversePast) {
+                            if ((a[scope.sortTypePast] ? a[scope.sortTypePast] : 0) < (b[scope.sortTypePast] ? b[scope.sortTypePast] : 0)) {
+                                return 1;
+                            } else if ((a[scope.sortTypePast] ? a[scope.sortTypePast] : 0) > (b[scope.sortTypePast] ? b[scope.sortTypePast] : 0)) {
+                                return -1;
+                            }
+                        } else {
+                            if ((a[scope.sortTypePast] ? a[scope.sortTypePast] : 1e6) > (b[scope.sortTypePast] ? b[scope.sortTypePast] : 1e6)) {
+                                return 1;
+                            } else if ((a[scope.sortTypePast] ? a[scope.sortTypePast] : 1e6) < (b[scope.sortTypePast] ? b[scope.sortTypePast] : 1e6)) {
+                                return -1;
+                            }
+                        }
+                    }  else if (scope.sortTypePast === 'lab_position_id') {
+                        if (scope.sortReversePast) {
+                            return -(a[scope.sortTypePast] ? getNameFromID(a[scope.sortTypePast],scope.sortTypePast, 1) : 'aa')
+                                .localeCompare(b[scope.sortTypePast] ? getNameFromID(b[scope.sortTypePast],scope.sortTypePast, 1) : 'aa');
+                        } else {
+                            return (a[scope.sortTypePast] ? getNameFromID(a[scope.sortTypePast],scope.sortTypePast, 1) : 'ZZ')
+                                .localeCompare(b[scope.sortTypePast] ? getNameFromID(b[scope.sortTypePast],scope.sortTypePast, 1) : 'ZZ');
+                        }
+                    } else {
+                        if (scope.sortReversePast) {
+                            return -(a[scope.sortTypePast] ? a[scope.sortTypePast] : '')
+                                .localeCompare(b[scope.sortTypePast] ? b[scope.sortTypePast] : '');
+                        } else {
+                            return (a[scope.sortTypePast] ? a[scope.sortTypePast] : '')
+                                .localeCompare(b[scope.sortTypePast] ? b[scope.sortTypePast] : '');
+                        }
+                    }
+                    return 0;
                 }
                 function timeOverlap(d1_start,d1_end, d2_start, d2_end) {
                     // returns false if no overlap
@@ -1318,17 +1482,35 @@
                 function sorter(a,b) {
                     if (scope.sortType === 'valid_from' || scope.sortType === 'valid_until') {
                         if (scope.sortReverse) {
-                            return (moment(a[scope.sortType]).isValid() ? moment(a[scope.sortType]) : moment(0))
-                                    .isBefore(moment(b[scope.sortType]).isValid() ? moment(b[scope.sortType]) : moment(0));
+                            if ((moment(a[scope.sortType]).isValid() ? moment(a[scope.sortType]) : moment(0))
+                                    .isBefore(moment(b[scope.sortType]).isValid() ? moment(b[scope.sortType]) : moment(0))) {
+                                return 1;
+                            } else if ((moment(a[scope.sortType]).isValid() ? moment(a[scope.sortType]) : moment(0))
+                                    .isAfter(moment(b[scope.sortType]).isValid() ? moment(b[scope.sortType]) : moment(0))) {
+                                return -1;
+                            }
                         } else {
-                            return (moment(a[scope.sortType]).isValid() ? moment(a[scope.sortType]) : moment())
-                                    .isAfter(moment(b[scope.sortType]).isValid() ? moment(b[scope.sortType]) : moment());
+                            if ((moment(a[scope.sortType]).isValid() ? moment(a[scope.sortType]) : moment().add(100, 'years'))
+                                    .isAfter(moment(b[scope.sortType]).isValid() ? moment(b[scope.sortType]) : moment().add(100, 'years'))) {
+                                return 1;
+                            } else if ((moment(a[scope.sortType]).isValid() ? moment(a[scope.sortType]) : moment().add(100, 'years'))
+                                    .isBefore(moment(b[scope.sortType]).isValid() ? moment(b[scope.sortType]) : moment().add(100, 'years'))) {
+                                return -1;
+                            }
                         }
                     } else if (scope.sortType === 'dedication') {
                         if (scope.sortReverse) {
-                            return (a[scope.sortType] ? a[scope.sortType] : 101) > (b[scope.sortType] ? b[scope.sortType] : 101);
+                            if ((a[scope.sortType] ? a[scope.sortType] : 0) < (b[scope.sortType] ? b[scope.sortType] : 0)) {
+                                return 1;
+                            } else if ((a[scope.sortType] ? a[scope.sortType] : 0) > (b[scope.sortType] ? b[scope.sortType] : 0)) {
+                                return -1;
+                            }
                         } else {
-                            return (a[scope.sortType] ? a[scope.sortType] : 0) < (b[scope.sortType] ? b[scope.sortType] : 0);
+                            if ((a[scope.sortType] ? a[scope.sortType] : 101) > (b[scope.sortType] ? b[scope.sortType] : 101)) {
+                                return 1;
+                            } else if ((a[scope.sortType] ? a[scope.sortType] : 101) < (b[scope.sortType] ? b[scope.sortType] : 101)) {
+                                return -1;
+                            }
                         }
                     }  else if (scope.sortType === 'technician_position_id') {
                         if (scope.sortReverse) {
@@ -1347,6 +1529,7 @@
                                 .localeCompare(b[scope.sortType] ? b[scope.sortType] : '');
                         }
                     }
+                    return 0;
                 }
 
                 /* for exporting */
@@ -1684,17 +1867,35 @@
                 function sorter(a,b) {
                     if (scope.sortType === 'valid_from' || scope.sortType === 'valid_until') {
                         if (scope.sortReverse) {
-                            return (moment(a[scope.sortType]).isValid() ? moment(a[scope.sortType]) : moment(0))
-                                    .isBefore(moment(b[scope.sortType]).isValid() ? moment(b[scope.sortType]) : moment(0));
+                            if ((moment(a[scope.sortType]).isValid() ? moment(a[scope.sortType]) : moment(0))
+                                    .isBefore(moment(b[scope.sortType]).isValid() ? moment(b[scope.sortType]) : moment(0))) {
+                                return 1;
+                            } else if ((moment(a[scope.sortType]).isValid() ? moment(a[scope.sortType]) : moment(0))
+                                    .isAfter(moment(b[scope.sortType]).isValid() ? moment(b[scope.sortType]) : moment(0))) {
+                                return -1;
+                            }
                         } else {
-                            return (moment(a[scope.sortType]).isValid() ? moment(a[scope.sortType]) : moment())
-                                    .isAfter(moment(b[scope.sortType]).isValid() ? moment(b[scope.sortType]) : moment());
+                            if ((moment(a[scope.sortType]).isValid() ? moment(a[scope.sortType]) : moment().add(100, 'years'))
+                                    .isAfter(moment(b[scope.sortType]).isValid() ? moment(b[scope.sortType]) : moment().add(100, 'years'))) {
+                                return 1;
+                            } else if ((moment(a[scope.sortType]).isValid() ? moment(a[scope.sortType]) : moment().add(100, 'years'))
+                                    .isBefore(moment(b[scope.sortType]).isValid() ? moment(b[scope.sortType]) : moment().add(100, 'years'))) {
+                                return -1;
+                            }
                         }
                     } else if (scope.sortType === 'dedication') {
                         if (scope.sortReverse) {
-                            return (a[scope.sortType] ? a[scope.sortType] : 101) > (b[scope.sortType] ? b[scope.sortType] : 101);
+                            if ((a[scope.sortType] ? a[scope.sortType] : 0) < (b[scope.sortType] ? b[scope.sortType] : 0)) {
+                                return 1;
+                            } else if ((a[scope.sortType] ? a[scope.sortType] : 0) > (b[scope.sortType] ? b[scope.sortType] : 0)) {
+                                return -1;
+                            }
                         } else {
-                            return (a[scope.sortType] ? a[scope.sortType] : 0) < (b[scope.sortType] ? b[scope.sortType] : 0);
+                            if ((a[scope.sortType] ? a[scope.sortType] : 101) > (b[scope.sortType] ? b[scope.sortType] : 101)) {
+                                return 1;
+                            } else if ((a[scope.sortType] ? a[scope.sortType] : 101) < (b[scope.sortType] ? b[scope.sortType] : 101)) {
+                                return -1;
+                            }
                         }
                     }  else if (scope.sortType === 'science_manager_position_id') {
                         if (scope.sortReverse) {
@@ -1713,6 +1914,7 @@
                                 .localeCompare(b[scope.sortType] ? b[scope.sortType] : '');
                         }
                     }
+                    return 0;
                 }
 
                 /* for exporting */
@@ -2049,17 +2251,35 @@
                 function sorter(a,b) {
                     if (scope.sortType === 'valid_from' || scope.sortType === 'valid_until') {
                         if (scope.sortReverse) {
-                            return (moment(a[scope.sortType]).isValid() ? moment(a[scope.sortType]) : moment(0))
-                                    .isBefore(moment(b[scope.sortType]).isValid() ? moment(b[scope.sortType]) : moment(0));
+                            if ((moment(a[scope.sortType]).isValid() ? moment(a[scope.sortType]) : moment(0))
+                                    .isBefore(moment(b[scope.sortType]).isValid() ? moment(b[scope.sortType]) : moment(0))) {
+                                return 1;
+                            } else if ((moment(a[scope.sortType]).isValid() ? moment(a[scope.sortType]) : moment(0))
+                                    .isAfter(moment(b[scope.sortType]).isValid() ? moment(b[scope.sortType]) : moment(0))) {
+                                return -1;
+                            }
                         } else {
-                            return (moment(a[scope.sortType]).isValid() ? moment(a[scope.sortType]) : moment())
-                                    .isAfter(moment(b[scope.sortType]).isValid() ? moment(b[scope.sortType]) : moment());
+                            if ((moment(a[scope.sortType]).isValid() ? moment(a[scope.sortType]) : moment().add(100, 'years'))
+                                    .isAfter(moment(b[scope.sortType]).isValid() ? moment(b[scope.sortType]) : moment().add(100, 'years'))) {
+                                return 1;
+                            } else if ((moment(a[scope.sortType]).isValid() ? moment(a[scope.sortType]) : moment().add(100, 'years'))
+                                    .isBefore(moment(b[scope.sortType]).isValid() ? moment(b[scope.sortType]) : moment().add(100, 'years'))) {
+                                return -1;
+                            }
                         }
                     } else if (scope.sortType === 'dedication') {
                         if (scope.sortReverse) {
-                            return (a[scope.sortType] ? a[scope.sortType] : 101) > (b[scope.sortType] ? b[scope.sortType] : 101);
+                            if ((a[scope.sortType] ? a[scope.sortType] : 0) < (b[scope.sortType] ? b[scope.sortType] : 0)) {
+                                return 1;
+                            } else if ((a[scope.sortType] ? a[scope.sortType] : 0) > (b[scope.sortType] ? b[scope.sortType] : 0)) {
+                                return -1;
+                            }
                         } else {
-                            return (a[scope.sortType] ? a[scope.sortType] : 0) < (b[scope.sortType] ? b[scope.sortType] : 0);
+                            if ((a[scope.sortType] ? a[scope.sortType] : 101) > (b[scope.sortType] ? b[scope.sortType] : 101)) {
+                                return 1;
+                            } else if ((a[scope.sortType] ? a[scope.sortType] : 101) < (b[scope.sortType] ? b[scope.sortType] : 101)) {
+                                return -1;
+                            }
                         }
                     }  else if (scope.sortType === 'administrative_position_id') {
                         if (scope.sortReverse) {
@@ -2078,6 +2298,7 @@
                                 .localeCompare(b[scope.sortType] ? b[scope.sortType] : '');
                         }
                     }
+                    return 0;
                 }
 
                 /* for exporting */

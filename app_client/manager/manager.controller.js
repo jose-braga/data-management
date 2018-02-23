@@ -2658,17 +2658,35 @@
         function sorter(a,b) {
             if (vm.sortType === 'valid_from' || vm.sortType === 'valid_until') {
                 if (vm.sortReverse) {
-                    return (moment(a[vm.sortType]).isValid() ? moment(a[vm.sortType]) : moment(0))
-                            .isBefore(moment(b[vm.sortType]).isValid() ? moment(b[vm.sortType]) : moment(0));
+                    if ((moment(a[vm.sortType]).isValid() ? moment(a[vm.sortType]) : moment(0))
+                            .isBefore(moment(b[vm.sortType]).isValid() ? moment(b[vm.sortType]) : moment(0))) {
+                        return 1;
+                    } else if ((moment(a[vm.sortType]).isValid() ? moment(a[vm.sortType]) : moment(0))
+                            .isAfter(moment(b[vm.sortType]).isValid() ? moment(b[vm.sortType]) : moment(0))) {
+                        return -1;
+                    }
                 } else {
-                    return (moment(a[vm.sortType]).isValid() ? moment(a[vm.sortType]) : moment())
-                            .isAfter(moment(b[vm.sortType]).isValid() ? moment(b[vm.sortType]) : moment());
+                    if ((moment(a[vm.sortType]).isValid() ? moment(a[vm.sortType]) : moment().add(100, 'years'))
+                            .isAfter(moment(b[vm.sortType]).isValid() ? moment(b[vm.sortType]) : moment().add(100, 'years'))) {
+                        return 1;
+                    } else if ((moment(a[vm.sortType]).isValid() ? moment(a[vm.sortType]) : moment().add(100, 'years'))
+                            .isBefore(moment(b[vm.sortType]).isValid() ? moment(b[vm.sortType]) : moment().add(100, 'years'))) {
+                        return -1;
+                    }
                 }
             } else if (vm.sortType === 'dedication') {
                 if (vm.sortReverse) {
-                    return (a[vm.sortType] ? a[vm.sortType] : 101) > (b[vm.sortType] ? b[vm.sortType] : 101);
+                    if ((a[vm.sortType] ? a[vm.sortType] : 0) < (b[vm.sortType] ? b[vm.sortType] : 0)) {
+                        return 1;
+                    } else if ((a[vm.sortType] ? a[vm.sortType] : 0) > (b[vm.sortType] ? b[vm.sortType] : 0)) {
+                        return -1;
+                    }
                 } else {
-                    return (a[vm.sortType] ? a[vm.sortType] : 0) < (b[vm.sortType] ? b[vm.sortType] : 0);
+                    if ((a[vm.sortType] ? a[vm.sortType] : 101) > (b[vm.sortType] ? b[vm.sortType] : 101)) {
+                        return 1;
+                    } else if ((a[vm.sortType] ? a[vm.sortType] : 101) < (b[vm.sortType] ? b[vm.sortType] : 101)) {
+                        return -1;
+                    }
                 }
             } else if (vm.sortType === 'role_id'
                     || vm.sortType === 'lab_id'
@@ -2700,6 +2718,7 @@
                         .localeCompare(b[vm.sortType] ? b[vm.sortType] : '');
                 }
             }
+            return 0;
         }
         function getNameFromID(id, type, rID) {
             if (type === 'role_id') {

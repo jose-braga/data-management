@@ -1,15 +1,14 @@
 <md-card>
     <md-card-title>
         <md-card-title-text>
-            <span class="md-headline">Team members</span>
+            <span class="md-headline">Current team members</span>
         </md-card-title-text>
     </md-card-title>
     <md-card-content layout="column">
-        <p>Note: Order column is used to define order of appearance in website
-            within each lab position category (LAQV only).
+        <p>Note: "Order" column is used to define order of appearance in website (LAQV only).
         </p>
         <form flex novalidate name="teamLabPeopleForm"
-                ng-submit="teamLabPeopleForm.$valid && submitLabPeople()">
+                ng-submit="teamLabPeopleForm.$valid && submitLabPeople(forms['peopleLab'])">
             <div layout="row" layout-align="none center">
                 <ng-md-icon icon="search" size="24"></ng-md-icon>
                 <md-input-container flex>
@@ -342,6 +341,359 @@
                 <div class="status-message" ng-hide="hideMessage[forms['peopleLab']]">
                     <span class="message" ng-class="messageType[forms['peopleLab']]">
                         {{updateStatus[forms['peopleLab']]}}
+                    </span>
+                </div>
+            </div>
+
+        </form>
+
+
+    </md-card-content>
+</md-card>
+
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Past team members or positions</span>
+        </md-card-title-text>
+    </md-card-title>
+    <md-card-content layout="column">
+        <p>Note: "Order" column is used to define order of appearance in website (LAQV only).
+        </p>
+        <form flex novalidate name="teamLabPeopleFormPast"
+                ng-submit="teamLabPeopleFormPast.$valid && submitLabPeople(forms['peopleLabPast'])">
+            <div layout="row" layout-align="none center">
+                <ng-md-icon icon="search" size="24"></ng-md-icon>
+                <md-input-container flex>
+                    <label>Search by name</label>
+                    <input ng-model="searchNamePast" ng-change="renderPeople('new')">
+                </md-input-container>
+                <md-button class="s48" ng-click="exportSpreadsheet()"
+                            aria-label="Export selection"
+                            class="md-icon-button interaction-button">
+                    <md-tooltip>Export filtered results to spreadsheet</md-tooltip>
+                    <md-icon md-svg-src="images/icons/spreadsheet.svg"
+                            class="s48"></md-icon>
+                </md-button>
+            </div>
+           <!-- <p> This information about your team members is {{infoFormCompletion | number:0}}% complete</p> -->
+           <div layout="row" class="paginator">
+                <md-input-container class="input-no-margin wider">
+                    <label>Results/page</label>
+                    <md-select ng-model="pageSizePast"
+                            md-on-close="renderPeople('new')"
+                            aria-label="pageSizePast"
+                            name="pageSizePast">
+                            <md-option ng-value="10">10</md-option>
+                            <md-option ng-value="20">20</md-option>
+                            <md-option ng-value="50">50</md-option>
+                    </md-select>
+                </md-input-container>
+                <md-input-container class="input-no-margin">
+                    <label>Page</label>
+                    <md-select ng-model="currentPagePast"
+                            md-on-close="renderPeople('page')"
+                            aria-label="currentPagePast"
+                            name="currentPagePast">
+                            <md-option ng-repeat="page in pagesPast" ng-value="page">{{page}}</md-option>
+                    </md-select>
+                </md-input-container>
+            </div>
+            <div class="small-screens spacer-top" layout="column" hide-gt-sm show-sm show-xs>
+                <div class="bind">
+                    <div layout="row" layout-align=" center" class="small-bottom small-top">
+                        <div class="question"><span class="highlight">Sort by:</span></div>
+                        <div class="answer" layout="row">
+                            <md-input-container class="select-container select-no-margin card-type">
+                                <md-select ng-model="sortTypePast"
+                                        ng-change="sortColumn(sortTypePast,'small')"
+                                        aria-label="sort_by"
+                                        name="column_sort">
+                                    <md-option value="person_name">Name</md-option>
+                                    <md-option value="lab_position_id">Lab Position</md-option>
+                                    <md-option value="sort_order">Order</md-option>
+                                    <md-option value="dedication">Dedication</md-option>
+                                    <md-option value="valid_from">Started</md-option>
+                                    <md-option value="valid_until">Finished</md-option>
+                                </md-select>
+                            </md-input-container>
+                            <md-input-container class="select-container select-no-margin card-type">
+                                <md-select ng-model="sortReversePast"
+                                        ng-change="sortColumnPast(sortTypePast,'small')"
+                                        aria-label="sort_by"
+                                        name="column_sort_order">
+                                    <md-option value="false">Ascending</md-option>
+                                    <md-option value="true">Descending</md-option>
+                                </md-select>
+                            </md-input-container>
+                        </div>
+                    </div>
+                </div>
+                <div class="spacer-bottom"></div>
+                <div ng-repeat="(memberNum,member) in pastPeople track by $index">
+                    <div layout="column">
+                        <div layout="row" layout-align=" center">
+                            <div class="question"><span class="highlight">Name:</span></div>
+                            <div class="answer"><span>{{member.person_name}}</span></div>
+                        </div>
+                        <div layout="row" layout-align=" center">
+                            <div class="question"><span class="highlight">A. key:</span></div>
+                            <div class="answer"><span>
+                                <md-input-container class="input-no-margin-larger">
+                                    <input ng-model="member.association_key"
+                                        ng-change="updateDataSubmit(member.id,pastPeople[memberNum],'updateLabPerson', [])"
+                                        aria-label="association_key"
+                                        name="member_assoc_key[memberNum]">
+                                </md-input-container>
+                            </span></div>
+                        </div>
+                        <div layout="row" layout-align=" center">
+                            <div class="question"><span class="highlight">Position:</span></div>
+                            <div class="answer">
+                                <md-input-container class="select-container select-no-margin card-type">
+                                    <md-select ng-model="member.lab_position_id"
+                                            ng-change="updateDataSubmit(member.id,pastPeople[memberNum],'updateLabPerson', [])"
+                                            aria-label="positions"
+                                            name="member_labPosition[memberNum]">
+                                        <div class="scrollable">
+                                            <md-option ng-repeat="type in labPositions" ng-value="type.lab_position_id">{{type.name_en}}</md-option>
+                                        </div>
+                                    </md-select>
+                                </md-input-container>
+                            </div>
+                        </div>
+                        <div layout="row" layout-align=" center">
+                            <div class="question"><span class="highlight">Order:</span></div>
+                            <div class="answer">
+                                <md-input-container class="input-no-margin">
+                                    <input ng-model="member.sort_order"
+                                        ng-change="updateDataSubmit(member.id,pastPeople[memberNum],'updateLabPerson', [])"
+                                        aria-label="order"
+                                        name="member_order[memberNum]" integer-validate>
+                                </md-input-container>
+                            </div>
+                        </div>
+                        <div layout="row" layout-align="none center">
+                            <div class="question"><span class="highlight">Time (%):</span></div>
+                            <div class="answer">
+                                <md-input-container class="input-no-margin simple-input">
+                                    <input ng-model="member.dedication"
+                                        ng-change="updateDataSubmit(member.id,pastPeople[memberNum],'updateLabPerson', [])"
+                                        aria-label="dedications"
+                                        name="member_dedication[memberNum]" dedication-validate>
+                                </md-input-container>
+                            </div>
+                        </div>
+                        <div layout="row" layout-align=" center">
+                            <div class="question"><span class="highlight">ORCID:</span></div>
+                            <div class="answer"><span>
+                                <md-input-container class="input-no-margin-larger">
+                                    <input ng-model="member.ORCID"
+                                        ng-change="updateDataSubmit(member.id,pastPeople[memberNum],'updateLabPerson', [])"
+                                        aria-label="ORCID"
+                                        name="member_ORCID[memberNum]">
+                                </md-input-container>
+                            </span></div>
+                        </div>
+                        <div layout="row" layout-align=" center">
+                            <div class="question"><span class="highlight">Started:</span></div>
+                            <div class="answer">
+                                <md-input-container class="input-no-margin">
+                                    <md-datepicker md-current-view="year" ng-model="member.valid_from"
+                                            ng-change="updateDataSubmit(member.id,pastPeople[memberNum],'updateLabPerson', [])"
+                                            md-min-date="pastPeople[memberNum].labs_groups_valid_from"
+                                            md-max-date="pastPeople[memberNum].labs_groups_valid_until"
+                                            name="member_startDate[memberNum]"
+                                            md-placeholder="Enter date" md-hide-icons="calendar"></md-datepicker>
+                                </md-input-container>
+                            </div>
+                        </div>
+                        <div layout="row" layout-align=" center">
+                            <div class="question"><span class="highlight">Finished:</span></div>
+                            <div class="answer">
+                                <md-input-container class="input-row input-no-margin">
+                                    <md-datepicker md-current-view="year" ng-model="member.valid_until"
+                                            ng-change="updateDataSubmit(member.id,pastPeople[memberNum],'updateLabPerson', [])"
+                                            md-min-date="pastPeople[memberNum].labs_groups_valid_from"
+                                            md-max-date="pastPeople[memberNum].labs_groups_valid_until"
+                                            name="member_endDate[memberNum]"
+                                            md-placeholder="Enter date" md-hide-icons="calendar"></md-datepicker>
+                                </md-input-container>
+                            </div>
+                        </div>
+                        <!--
+                        <md-button ng-click="removeRows(member)"
+                                            aria-label="Remove"
+                                            class="md-icon-button interaction-button">
+                            <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
+                        </md-button>
+                        -->
+                    </div>
+                    <md-divider class="spacer-top" hide-gt-sm></md-divider>
+                </div>
+            </div>
+
+            <div show-gt-sm hide-sm hide-xs class="spacer-top">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>
+                                <a ng-click="sortColumnPast('person_name')">Name </a>
+                                <ng-md-icon ng-if="!sortReversePast && sortTypePast=='person_name'"
+                                        icon="arrow_downward" size="12"></ng-md-icon>
+                                <ng-md-icon ng-if="sortReversePast  && sortTypePast=='person_name'"
+                                        icon="arrow_upwards" size="12"></ng-md-icon>
+                            </th>
+                            <th>
+                                <a>A. key</a>
+                            </th>
+                            <th><a ng-click="sortColumnPast('lab_position_id')">Position</a>
+                                <ng-md-icon ng-if="!sortReversePast && sortTypePast=='lab_position_id'"
+                                        icon="arrow_downward" size="12"></ng-md-icon>
+                                <ng-md-icon ng-if="sortReversePast  && sortTypePast=='lab_position_id'"
+                                        icon="arrow_upwards" size="12"></ng-md-icon>
+                            </th>
+                            <th><a ng-click="sortColumnPast('sort_order')">Order</a>
+                                <ng-md-icon ng-if="!sortReversePast && sortTypPast=='sort_order'"
+                                        icon="arrow_downward" size="12"></ng-md-icon>
+                                <ng-md-icon ng-if="sortReversePast  && sortTypePast=='sort_order'"
+                                        icon="arrow_upwards" size="12"></ng-md-icon>
+                            </th>
+                            <th><a ng-click="sortColumnPast('dedication')">Time (%)</a>
+                                <ng-md-icon ng-if="!sortReversePast && sortTypePast=='dedication'"
+                                        icon="arrow_downward" size="12"></ng-md-icon>
+                                <ng-md-icon ng-if="sortReversePast  && sortTypePast=='dedication'"
+                                        icon="arrow_upwards" size="12"></ng-md-icon>
+                            </th>
+                            <th>
+                                <a>ORCID</a>
+                            </th>
+                            <th><a ng-click="sortColumnPast('valid_from')">Started</a>
+                                <ng-md-icon ng-if="!sortReversePast && sortTypePast=='valid_from'"
+                                        icon="arrow_downward" size="12"></ng-md-icon>
+                                <ng-md-icon ng-if="sortReversePast  && sortTypePast=='valid_from'"
+                                        icon="arrow_upwards" size="12"></ng-md-icon>
+                            </th>
+                            <th><a ng-click="sortColumnPast('valid_until')">Finished</a>
+                                <ng-md-icon ng-if="!sortReversePast && sortTypePast=='valid_until'"
+                                        icon="arrow_downward" size="12"></ng-md-icon>
+                                <ng-md-icon ng-if="sortReversePast  && sortTypePast=='valid_until'"
+                                        icon="arrow_upwards" size="12"></ng-md-icon>
+                            </th>
+                            <th>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="(memberNum,member) in pastPeople track by $index">
+                            <td>{{member.person_name}}</td>
+                            <td>
+                                <md-input-container class="input-no-margin-larger">
+                                    <input ng-model="member.association_key"
+                                        ng-change="updateDataSubmit(member.id,pastPeople[memberNum],'updateLabPerson', [])"
+                                        aria-label="association_key"
+                                        name="member_assoc_key[memberNum]">
+                                </md-input-container>
+                            </td>
+                            <td>
+                                <md-input-container class="select-container select-no-margin card-type">
+                                    <md-select ng-model="member.lab_position_id"
+                                            ng-change="updateDataSubmit(member.id,pastPeople[memberNum],'updateLabPerson', [])"
+                                            aria-label="positions"
+                                            name="member_labPosition[memberNum]">
+                                        <div class="scrollable">
+                                            <md-option ng-repeat="type in labPositions" ng-value="type.lab_position_id">{{type.name_en}}</md-option>
+                                        </div>
+                                    </md-select>
+                                </md-input-container>
+                            </td>
+                            <td>
+                                <md-input-container class="input-no-margin">
+                                    <input ng-model="member.sort_order"
+                                        ng-change="updateDataSubmit(member.id,pastPeople[memberNum],'updateLabPerson', [])"
+                                        aria-label="order"
+                                        name="member_order[memberNum]" integer-validate>
+                                </md-input-container>
+                            </td>
+                            <td>
+                                <md-input-container class="input-no-margin">
+                                    <input ng-model="member.dedication"
+                                        ng-change="updateDataSubmit(member.id,pastPeople[memberNum],'updateLabPerson', [])"
+                                        aria-label="dedications"
+                                        name="member_dedication[memberNum]" dedication-validate>
+                                </md-input-container>
+                            </td>
+                            <td>
+                                <md-input-container class="input-no-margin-larger">
+                                    <input ng-model="member.ORCID"
+                                        ng-change="updateDataSubmit(member.id,pastPeople[memberNum],'updateLabPerson', [])"
+                                        aria-label="ORCID"
+                                        name="member_ORCID[memberNum]">
+                                </md-input-container>
+                            </td>
+                            <td>
+                                <md-input-container class="input-no-margin simple-input">
+                                    <md-datepicker md-current-view="year" ng-model="member.valid_from"
+                                            ng-change="updateDataSubmit(member.id,pastPeople[memberNum],'updateLabPerson', [])"
+                                            md-min-date="pastPeople[memberNum].labs_groups_valid_from"
+                                            md-max-date="pastPeople[memberNum].labs_groups_valid_until"
+                                            name="member_startDate[memberNum]"
+                                            md-placeholder="Enter date" md-hide-icons="calendar"></md-datepicker>
+                                </md-input-container>
+                            </td>
+                            <td>
+                                <md-input-container class="input-no-margin simple-input">
+                                    <md-datepicker md-current-view="year" ng-model="member.valid_until"
+                                            ng-change="updateDataSubmit(member.id,pastPeople[memberNum],'updateLabPerson', [])"
+                                            md-min-date="pastPeople[memberNum].labs_groups_valid_from"
+                                            md-max-date="pastPeople[memberNum].labs_groups_valid_until"
+                                            name="member_endDate[memberNum]"
+                                            md-placeholder="Enter date" md-hide-icons="calendar"></md-datepicker>
+                                </md-input-container>
+                            </td>
+                            <td>
+                                <!--
+                                <md-button ng-click="removeRows(member)"
+                                            aria-label="Remove"
+                                            class="md-icon-button interaction-button">
+                                    <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
+                                </md-button>
+                                -->
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div layout="row" class="paginator">
+                <md-input-container class="input-no-margin wider">
+                    <label>Results/page</label>
+                    <md-select ng-model="pageSizePast"
+                            md-on-close="renderPeople('new')"
+                            aria-label="pageSizePast"
+                            name="pageSizePast">
+                            <md-option ng-value="10">10</md-option>
+                            <md-option ng-value="20">20</md-option>
+                            <md-option ng-value="50">50</md-option>
+                    </md-select>
+                </md-input-container>
+                <md-input-container class="input-no-margin">
+                    <label>Page</label>
+                    <md-select ng-model="currentPagePast"
+                            md-on-close="renderPeople('page')"
+                            aria-label="currentPagePast"
+                            name="currentPagePast">
+                            <md-option ng-repeat="page in pagesPast" ng-value="page">{{page}}</md-option>
+                    </md-select>
+                </md-input-container>
+            </div>
+
+            <div layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button type="submit"
+                    class="button-small md-raised md-primary">Update</md-button>
+                <div class="status-message" ng-hide="hideMessage[forms['peopleLabPast']]">
+                    <span class="message" ng-class="messageType[forms['peopleLabPast']]">
+                        {{updateStatus[forms['peopleLabPast']]}}
                     </span>
                 </div>
             </div>

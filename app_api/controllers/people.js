@@ -4980,7 +4980,7 @@ module.exports.searchPeople = function (req, res, next) {
     var places;
     if (name === '' && lab === '') {
         sendJSONResponse(res, 200,
-                    {"status": "No information sent!", "statusCode": 200, "count": 1,
+                    {"status": "No information sent!", "statusCode": 200, "count": 0,
                      "result" : "OK!"});
         return;
 

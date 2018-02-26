@@ -207,7 +207,7 @@ var queryAllPublications = function (req, res, next) {
                 }
                 if (resQuery.length === 0 || resQuery === undefined) {
                     sendJSONResponse(res, 200,
-                        {"status": "success", "statusCode": 200, "count": 1,
+                        {"status": "success", "statusCode": 200, "count": 0,
                         "result" : []});
                     return;
                 }
@@ -250,7 +250,7 @@ var queryPersonPublications = function (req, res, next) {
                 }
                 if (resQuery.length === 0 || resQuery === undefined) {
                     sendJSONResponse(res, 200,
-                        {"status": "success", "statusCode": 200, "count": 1,
+                        {"status": "success", "statusCode": 200, "count": 0,
                         "result" : []});
                     return;
                 }
@@ -289,7 +289,7 @@ var queryTeamPublications = function (req, res, next) {
                 }
                 if (resQuery.length === 0 || resQuery === undefined) {
                     sendJSONResponse(res, 200,
-                        {"status": "success", "statusCode": 200, "count": 1,
+                        {"status": "success", "statusCode": 200, "count": 0,
                         "result" : []});
                     return;
                 }
@@ -330,7 +330,7 @@ var queryMembersPublications = function (req, res, next) {
                 }
                 if (resQuery.length === 0 || resQuery === undefined) {
                     sendJSONResponse(res, 200,
-                        {"status": "success", "statusCode": 200, "count": 1,
+                        {"status": "success", "statusCode": 200, "count": 0,
                         "result" : []});
                     return;
                 }
@@ -1236,7 +1236,7 @@ module.exports.getPublicationInfo = function (req, res, next) {
                 }
                 if(resQuery.length === 0 || resQuery === undefined) {
                     sendJSONResponse(res, 200,
-                        {"status": "No data returned!", "statusCode": 200, "count": 1,
+                        {"status": "No data returned!", "statusCode": 200, "count": 0,
                         "result" : []});
                     return;
                 }
@@ -1330,7 +1330,7 @@ module.exports.getPersonPublicationInfo = function (req, res, next) {
                 }
                 if(resQuery.length === 0 || resQuery === undefined) {
                     sendJSONResponse(res, 200,
-                        {"status": "No data returned!", "statusCode": 200, "count": 1,
+                        {"status": "No data returned!", "statusCode": 200, "count": 0,
                         "result" : []});
                     return;
                 }
@@ -1374,7 +1374,7 @@ module.exports.getLabPublicationInfo = function (req, res, next) {
                 }
                 if(resQuery.length === 0 || resQuery === undefined) {
                     sendJSONResponse(res, 200,
-                        {"status": "No data returned!", "statusCode": 200, "count": 1,
+                        {"status": "No data returned!", "statusCode": 200, "count": 0,
                         "result" : []});
                     return;
                 }

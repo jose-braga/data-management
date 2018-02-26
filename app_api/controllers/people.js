@@ -5172,7 +5172,7 @@ module.exports.getAllPeople = function (req, res, next) {
     var querySQL = 'SELECT people.id, people.name AS full_name, people.colloquial_name AS name,' +
                    ' people.active_from, people.active_until,' +
                    ' emails.email, phones.phone, phones.extension AS phone_extension,' +
-                   ' people_labs.valid_from AS lab_start, people_labs.valid_until AS lab_end,' +
+                   ' people_labs.sort_order, people_labs.valid_from AS lab_start, people_labs.valid_until AS lab_end,' +
                    ' labs.id AS lab_id, labs.name AS lab_name,' +
                    ' labs_groups.valid_from AS labs_groups_valid_from, labs_groups.valid_until AS labs_groups_valid_until,' +
                    ' groups.id AS group_id, groups.name AS group_name,' +
@@ -5224,7 +5224,7 @@ module.exports.getAllPeople = function (req, res, next) {
         places.push(unitID,unitID,unitID,unitID);
     }
     var mergeRules = [
-                      ['lab_data', 'lab_start', 'lab_end', 'lab_position_id','lab_position_name_en','lab_position_name_pt',
+                      ['lab_data', 'lab_start', 'lab_end', 'lab_position_id','lab_position_name_en','lab_position_name_pt','sort_order',
                        'lab_id','lab_name','labs_groups_valid_from','labs_groups_valid_until','group_id','group_name','unit_id', 'unit_name'],
                      ['technician_data', 'technician_start', 'technician_end', 'technician_position_id','technician_position_name_en','technician_position_name_pt',
                        'technician_id','technician_office_id','technician_office_name','technician_unit_id','technician_unit_name'],
@@ -5361,7 +5361,7 @@ module.exports.getLabMembers = function (req, res, next) {
                    ' labs_groups.valid_from AS labs_groups_valid_from, labs_groups.valid_until AS labs_groups_valid_until,' +
                    ' groups.id AS group_id, groups.name AS group_name,' +
                    ' units.id AS unit_id, units.name AS unit_name,' +
-                   ' people_labs.sort_order , lab_positions.id AS lab_position_id, lab_positions.name_en AS lab_position_name_en, lab_positions.name_pt  AS lab_position_name_pt,' +
+                   ' people_labs.sort_order, lab_positions.id AS lab_position_id, lab_positions.name_en AS lab_position_name_en, lab_positions.name_pt  AS lab_position_name_pt,' +
                   ' personal_photo.url AS image_path' +
                   ' FROM people' +
                   ' LEFT JOIN emails ON people.id = emails.person_id' +

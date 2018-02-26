@@ -1000,10 +1000,10 @@ var queryORCIDInsertPublication = function (req, res, next,i, journalID) {
         }
     }
     querySQL = querySQL + 'INSERT INTO  publications' +
-                ' (authors_raw,number_authors,title,year,journal_id,volume,page_start,page_end,publication_date,doi)' +
-                          ' VALUES (?,?,?,?,?,?,?,?,?,?);';
+                ' (authors_raw,number_authors,title,year,journal_id,volume,page_start,page_end,publication_date,doi,publication_source_id)' +
+                          ' VALUES (?,?,?,?,?,?,?,?,?,?,?);';
     places.push(add[i].authors_raw,numberAuthors,add[i].title,add[i].year,
-                journalID,volume,pageStart,pageEnd, date, add[i].doi);
+                journalID,volume,pageStart,pageEnd, date, add[i].doi,2);
     pool.getConnection(function(err, connection) {
         if (err) {
             sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});

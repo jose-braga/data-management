@@ -1,3 +1,5 @@
+// TODO: solved "undefined" in lab affiliations groups
+
 (function(){
 /******************************* Controllers **********************************/
     var teamCtrl = function ($scope, $timeout, $mdMedia, $mdPanel,
@@ -62,28 +64,31 @@
             vm.messageType[ind] = 'message-updating';
             vm.hideMessage[ind] = false;
             var data = vm.newPerson;
-
-            var submitAffiliations = []
+            var submitAffiliations = [];
             for (var el in vm.newPerson.affiliations) {
-                // find the lab data to which this affiliation refers to
-                for (var elLab in vm.labs) {
-                    if (vm.labs[elLab].lab_id === vm.newPerson.affiliations[el].data.id) {
-                        var indLab = elLab;
-                        break;
+                if (vm.newPerson.affiliations[el].data.type === 'lab') {
+                    // find the lab data to which this affiliation refers to
+                    for (var elLab in vm.labs) {
+                        if (vm.labs[elLab].lab_id === vm.newPerson.affiliations[el].data.id) {
+                            var indLab = elLab;
+                            break;
+                        }
                     }
-                }
-                for (var elHist in vm.labs[indLab].lab_history) {
-                    var overlap = timeOverlap(vm.newPerson.affiliations[el].start,
-                                              vm.newPerson.affiliations[el].end,
-                                              vm.labs[indLab].lab_history[elHist].labs_groups_valid_from,
-                                              vm.labs[indLab].lab_history[elHist].labs_groups_valid_until);
-                    if (overlap) {
-                        var thisData = Object.assign({},vm.newPerson.affiliations[el]);
+                    for (var elHist in vm.labs[indLab].lab_history) {
+                        var overlap = timeOverlap(vm.newPerson.affiliations[el].start,
+                                                  vm.newPerson.affiliations[el].end,
+                                                  vm.labs[indLab].lab_history[elHist].labs_groups_valid_from,
+                                                  vm.labs[indLab].lab_history[elHist].labs_groups_valid_until);
+                        if (overlap) {
+                            var thisData = Object.assign({},vm.newPerson.affiliations[el]);
 
-                        thisData.start = processDate(overlap[0]);
-                        thisData.end = processDate(overlap[1]);
-                        submitAffiliations.push(thisData);
+                            thisData.start = processDate(overlap[0]);
+                            thisData.end = processDate(overlap[1]);
+                            submitAffiliations.push(thisData);
+                        }
                     }
+                } else {
+                    submitAffiliations = vm.newPerson.affiliations;
                 }
             }
             vm.newPerson.affiliations = submitAffiliations;

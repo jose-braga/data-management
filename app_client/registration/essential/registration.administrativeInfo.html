@@ -25,6 +25,15 @@
                                 ng-value="off.id">{{off.name_en}}</md-option>
                         </md-select>
                     </md-input-container>
+                    <md-input-container
+                        class="search-box select-container input-row">
+                        <label>Unit</label>
+                        <md-select required ng-model="vm.thisPerson.administrative_data.office[num].unit_id"
+                                    name="administrative_unit_id[num]">
+                            <md-option ng-repeat="unit in vm.units"
+                                ng-value="unit.id">{{unit.short_name}}</md-option>
+                        </md-select>
+                    </md-input-container>
                 </div>
                 <div layout="column" layout-gt-xs="row">
                     <md-input-container>

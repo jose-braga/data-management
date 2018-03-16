@@ -5,6 +5,9 @@ const nodemailer = require('../controllers/emailer');
 let transporter = nodemailer.transporter;
 var userModule = require('../models/users');
 var permissions = require('../config/permissions');
+var externalAPI = require('../config/external-api');
+
+var WEBSITE_API_BASE_URL = externalAPI.baseURL;
 
 /**************************** Utility Functions *******************************/
 
@@ -647,6 +650,10 @@ var queryUpdateLabHistory = function (req, res, next, peopleOfficeID,
                     sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                     return;
                 }
+                externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'people', personID,
+                                'UCIBIO API error updating by manager of person information (lab affiliation [personID,lab_id]) :', [personID,data.lab_id]);
+                externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'people', personID,
+                                'LAQV API error updating by manager of person information (lab affiliation [personID,lab_id]) :', [personID,data.lab_id]);
                 //checks remaining affiliations and finds earliest date
                 return queryGetLabs(req,res,next,personID,[],
                             updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
@@ -727,6 +734,10 @@ var queryUpdateTechHistory = function (req, res, next, peopleOfficeID,
                     sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                     return;
                 }
+                externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'people', personID,
+                                'UCIBIO API error updating by manager of person information (tech affiliation [personID,office_id]) :', [personID,data.technician_office_id]);
+                externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'people', personID,
+                                'LAQV API error updating by manager of person information (tech affiliation [personID,office_id]) :', [personID,data.technician_office_id]);
                 //checks remaining affiliations and finds earliest date
                 return queryGetLabs(req,res,next,personID,[],
                         updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
@@ -809,6 +820,10 @@ var queryUpdateScManHistory = function (req, res, next, peopleOfficeID,
                     sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                     return;
                 }
+                externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'people', personID,
+                                'UCIBIO API error updating by manager of person information (sc. man. affiliation [personID,office_id]) :', [personID,data.science_manager_office_id]);
+                externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'people', personID,
+                                'LAQV API error updating by manager of person information (sc. man. affiliation [personID,office_id]) :', [personID,data.science_manager_office_id]);
                 //checks remaining affiliations and finds earliest date
                 return queryGetLabs(req,res,next,personID,[],
                         updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
@@ -889,6 +904,10 @@ var queryUpdateAdmHistory = function (req, res, next, peopleOfficeID,
                     sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                     return;
                 }
+                externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'people', personID,
+                                'UCIBIO API error updating by manager of person information (adm. affiliation [personID,office_id]) :', [personID,data.administrative_office_id]);
+                externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'people', personID,
+                                'LAQV API error updating by manager of person information (adm. affiliation [personID,office_id]) :', [personID,data.administrative_office_id]);
                 //checks remaining affiliations and finds earliest date
                 return queryGetLabs(req,res,next,personID,[],
                             updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
@@ -1146,6 +1165,10 @@ var queryPeopleUpdateStartDate = function (req,res,next, personID, resQuery, min
                     sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                     return;
                 }
+                externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'people', personID,
+                                'UCIBIO API error updating by manager of person information (activity start) :', personID);
+                externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'people', personID,
+                                'LAQV API error updating by manager of person information (activity start) :', personID);
                 var data;
                 if (iLab + 1 < updateLabArr.length) {
                     data = updateLabArr[iLab+1];
@@ -1193,7 +1216,7 @@ var queryDeleteNeverMember  = function (req, res, next,
                          '`active_from`,`active_until`,`status`,`updated`,`operation`,`changed_by`)' +
                        ' VALUES (?,?,?,?,?,?,?,?,?,?,?,?)';
     querySQL = querySQL + '; ';
-    // the person is not truly deleted, only the status isn updated
+    // the person is not truly deleted, only the status is updated
     places.push(data.id,data.user_id,data.name,data.colloquial_name,
                     momentToDate(data.birth_date),data.gender,
                     momentToDate(data.active_from),momentToDate(data.active_until),
@@ -1212,6 +1235,10 @@ var queryDeleteNeverMember  = function (req, res, next,
                     sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                     return;
                 }
+                externalAPI.contact(WEBSITE_API_BASE_URL[1], 'delete', 'people', data.id,
+                                'UCIBIO API error delete person :', data.id);
+                externalAPI.contact(WEBSITE_API_BASE_URL[2], 'delete', 'people', data.id,
+                                'LAQV API error delete person :', data.id);
                 if (iDel + 1 < deleteNeverMemberArr.length) {
                     data = deleteNeverMemberArr[iDel+1];
                     return queryDeleteNeverMember(req, res, next, updateLabArr, updateTechArr, updateManageArr, updateAdmArr, deleteNeverMemberArr,
@@ -1235,6 +1262,7 @@ var queryValidatePerson = function (req, res, next) {
     var gender = req.body.gender;
     var active_from = momentToDate(req.body.active_from);
     var active_until = momentToDate(req.body.active_until);
+    var unit= req.body.unit;
     var changed_by = req.body.changed_by;
     var updated = momentToDate(moment(),undefined,'YYYY-MM-DD HH:mm:ss');
     var requesterCities = permissions.geographicAccess(req.payload.stat);
@@ -1263,6 +1291,16 @@ var queryValidatePerson = function (req, res, next) {
                     if (err) {
                         sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                         return;
+                    }
+                    for (var ind in unit) {
+                        if (unit[ind] == 1) {
+                            externalAPI.contact(WEBSITE_API_BASE_URL[1], 'create', 'people', personID,
+                                    'UCIBIO API error creation of person :', personID);
+                        }
+                        if (unit[ind] == 2) {
+                            externalAPI.contact(WEBSITE_API_BASE_URL[2], 'create', 'people', personID,
+                                    'LAQV API error creation of person :', personID);
+                        }
                     }
                     return sendEmailsToUsers(req, res, next);
                 }

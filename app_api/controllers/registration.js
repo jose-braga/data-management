@@ -5,6 +5,9 @@ const nodemailer = require('../controllers/emailer');
 let transporter = nodemailer.transporter;
 var userModule = require('../models/users');
 var permissions = require('../config/permissions');
+var externalAPI = require('../config/external-api');
+
+var WEBSITE_API_BASE_URL = externalAPI.baseURL;
 
 /**************************** Utility Functions *******************************/
 
@@ -453,6 +456,10 @@ var queryAddTechnicianHistory = function (req, res, next,userID, personID, offic
     var placeholders = [officeID,personID, data.office_id, data.office_position_id,data.dedication,
                 momentToDate(data.start),momentToDate(data.end),
                 created,'C',changed_by];
+    query = query + 'INSERT INTO `technicians_units`' +
+                  ' (`technician_id`,`unit_id`)' +
+                  ' VALUES (?,?);';
+    placeholders.push(officeID,data.unit_id);
     pool.getConnection(function(err, connection) {
         if (err) {
             sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
@@ -513,6 +520,11 @@ var queryAddScienceManagerHistory = function (req, res, next,userID, personID, o
     var placeholders = [officeID,personID, data.office_id, data.office_position_id,data.dedication,
                 momentToDate(data.start),momentToDate(data.end),
                 created,'C',changed_by];
+    query = query + 'INSERT INTO `science_managers_units`' +
+                  ' (`science_manager_id`,`unit_id`)' +
+                  ' VALUES (?,?);';
+    placeholders.push(officeID,data.unit_id);
+
     pool.getConnection(function(err, connection) {
         if (err) {
             sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
@@ -573,6 +585,10 @@ var queryAddAdministrativeHistory = function (req, res, next,userID, personID, o
     var placeholders = [officeID,personID, data.office_id, data.office_position_id,data.dedication,
                         momentToDate(data.start),momentToDate(data.end),
                         created,'C',changed_by];
+    query = query + 'INSERT INTO `people_administrative_units`' +
+                  ' (`administrative_id`,`unit_id`)' +
+                  ' VALUES (?,?);';
+    placeholders.push(officeID,data.unit_id);
     pool.getConnection(function(err, connection) {
         if (err) {
             sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
@@ -659,6 +675,7 @@ var queryAddDepartmentHistory = function (req, res, next,userID, personID, depID
 
 var queryAddRemainingInfo = function (req, res, next, userID, personID, querySQL, places,
                                       created, changed_by) {
+    var unit = req.body.unit;
     var responsibles = req.body.responsibles;
     var nationalities = req.body.nationalities;
     var address = req.body.address;
@@ -777,6 +794,16 @@ var queryAddRemainingInfo = function (req, res, next, userID, personID, querySQL
             }
             console.log('Message %s sent: %s', info.messageId, info.response);
         });
+    }
+    for (var ind in unit) {
+        if (unit[ind] == 1) {
+            externalAPI.contact(WEBSITE_API_BASE_URL[1], 'create', 'people', personID,
+                    'UCIBIO API error creation of person :', personID);
+        }
+        if (unit[ind] == 2) {
+            externalAPI.contact(WEBSITE_API_BASE_URL[2], 'create', 'people', personID,
+                    'LAQV API error creation of person :', personID);
+        }
     }
     escapedQuery(querySQL, places, req, res, next);
 };

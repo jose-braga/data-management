@@ -52,8 +52,8 @@
                         class="search-box select-container input-row"
                         ng-controller="LabSelectCtrl as laboratory">
                         <label>Lab</label>
-                        <md-select required ng-model="vm.thisPerson.researcher_data.affiliation_lab[num].lab_id"
-                            md-on-close="vm.updateOnSelect(vm.thisPerson.researcher_data.affiliation_lab,vm.labs,num,'lab_id', ['lab','group_id','group_name','unit_id','unit'])"
+                        <md-select required ng-model="vm.thisPerson.researcher_data.affiliation_lab[num].lab_row"
+                            md-on-close="vm.updateOnSelect(vm.thisPerson.researcher_data.affiliation_lab,vm.labs,num,'lab_row', ['lab_id','lab','lab_opened','lab_closed','group_opened','group_closed','group_id','group_name','unit_id','unit'])"
                             md-container-class="correct-overflow" name="affLab_id[num]">
                             <div class="anchored">
                                 <md-select-header class="select-search-header">
@@ -63,8 +63,8 @@
                             </md-select-header>
                             </div>
                                 <md-optgroup class="scrollable" label="laboratories">
-                                    <md-option ng-repeat="lab in vm.labs | filter: {name: laboratory.searchTerm}"
-                                        ng-value="lab.lab_id">{{lab.lab}}</md-option>
+                                    <md-option ng-repeat="lab in vm.labs | filter: laboratory.searchTerm"
+                                        ng-value="lab.lab_row">{{lab.lab}}@{{lab.group_name}}</md-option>
                                 </md-optgroup>
                         </md-select>
                     </md-input-container>

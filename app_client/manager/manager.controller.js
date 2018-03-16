@@ -1571,6 +1571,35 @@
             vm.updateStatus[ind] = "Updating...";
             vm.messageType[ind] = 'message-updating';
             vm.hideMessage[ind] = false;
+            var unit = [];
+            for (var el in vm.currentAffiliationsLabValidate[indDetail]) {
+                if (vm.currentAffiliationsLabValidate[indDetail][el].unit_id !== undefined) {
+                    if (unit.indexOf(vm.currentAffiliationsLabValidate[indDetail][el].unit_id) === -1) {
+                        unit.push(vm.currentAffiliationsLabValidate[indDetail][el].unit_id);
+                    }
+                }
+            }
+            for (var el in vm.currentAffiliationsTechValidate[indDetail]) {
+                if (vm.currentAffiliationsTechValidate[indDetail][el].tech_unit_id !== undefined) {
+                    if (unit.indexOf(vm.currentAffiliationsTechValidate[indDetail][el].tech_unit_id) === -1) {
+                        unit.push(vm.currentAffiliationsTechValidate[indDetail][el].tech_unit_id);
+                    }
+                }
+            }
+            for (var el in vm.currentAffiliationsScManValidate[indDetail]) {
+                if (vm.currentAffiliationsScManValidate[indDetail][el].sc_man_unit_id !== undefined) {
+                    if (unit.indexOf(vm.currentAffiliationsScManValidate[indDetail][el].sc_man_unit_id) === -1) {
+                        unit.push(vm.currentAffiliationsScManValidate[indDetail][el].sc_man_unit_id);
+                    }
+                }
+            }
+            for (var el in vm.currentAffiliationsAdmValidate[indDetail]) {
+                if (vm.currentAffiliationsAdmValidate[indDetail][el].adm_unit_id !== undefined) {
+                    if (unit.indexOf(vm.currentAffiliationsAdmValidate[indDetail][el].adm_unit_id) === -1) {
+                        unit.push(vm.currentAffiliationsAdmValidate[indDetail][el].adm_unit_id);
+                    }
+                }
+            }
             var data = {
                 "name": datum.name,
                 "user_id": datum.user_id,
@@ -1581,7 +1610,8 @@
                 "active_until": datum.active_until,
                 "city_id": datum.institution_city_id,
                 "changed_by": vm.currentUser.userID,
-                "personal_email": datum.pers_email[0].personal_email
+                "personal_email": datum.pers_email[0].personal_email,
+                "unit": unit
             };
             managerData.validatePerson(datum.id, data)
                 .then( function () {

@@ -2,6 +2,9 @@ var moment = require('moment-timezone');
 var server = require('../models/server');
 var pool = server.pool;
 var levenshtein = require('fast-levenshtein');
+var externalAPI = require('../config/external-api');
+
+var WEBSITE_API_BASE_URL = externalAPI.baseURL;
 
 /**************************** Utility Functions *******************************/
 var sendJSONResponse = function(res, status, content) {
@@ -105,9 +108,11 @@ function processPublications(resQuery) {
         if (rowsSkip.indexOf(indRow) === -1) {
             rowsSkip.push(indRow);
             var person_selected = [];
-            if (resQuery[indRow].person_selected === 1) person_selected.push(resQuery[indRow].person_id);
+            if (resQuery[indRow].person_selected === 1
+                && resQuery[indRow].person_public === 1) {person_selected.push(resQuery[indRow].person_id);}
             var lab_selected = [];
-            if (resQuery[indRow].lab_selected === 1) {
+            if (resQuery[indRow].lab_selected === 1
+                && resQuery[indRow].lab_public === 1) {
                 lab_selected.push({
                     lab_id: resQuery[indRow].lab_id,
                     group_id: resQuery[indRow].group_id,
@@ -115,9 +120,10 @@ function processPublications(resQuery) {
                 });
             }
             var person = [];
-            if (resQuery[indRow].person_id !== null) person.push(resQuery[indRow].person_id);
+            if (resQuery[indRow].person_id !== null
+                && resQuery[indRow].person_public === 1) {person.push(resQuery[indRow].person_id);}
             var lab = [];
-            if (resQuery[indRow].lab_id !== null) {
+            if (resQuery[indRow].lab_id !== null && resQuery[indRow].lab_public === 1) {
                 lab.push({
                     lab_id: resQuery[indRow].lab_id,
                     group_id: resQuery[indRow].group_id,
@@ -127,12 +133,12 @@ function processPublications(resQuery) {
             for (var ind = indRow + 1; ind < resQuery.length; ind++) {
                 if (resQuery[ind].id == resQuery[indRow].id) {
                     rowsSkip.push(ind);
-                    if (resQuery[ind].person_selected === 1) {
+                    if (resQuery[ind].person_selected === 1 && resQuery[ind].person_public === 1) {
                         if (person_selected.indexOf(resQuery[ind].person_selected) === -1) {
                             person_selected.push(resQuery[ind].person_id);
                         }
                     }
-                    if (resQuery[ind].lab_selected === 1) {
+                    if (resQuery[ind].lab_selected === 1 && resQuery[ind].lab_public === 1) {
                         let objTest = {
                             lab_id: resQuery[ind].lab_id,
                             group_id: resQuery[ind].group_id,
@@ -142,12 +148,12 @@ function processPublications(resQuery) {
                             lab_selected.push(objTest);
                         }
                     }
-                    if (resQuery[ind].person_id !== null) {
+                    if (resQuery[ind].person_id !== null && resQuery[ind].person_public === 1) {
                         if (person.indexOf(resQuery[ind].person_id) === -1) {
                             person.push(resQuery[ind].person_id);
                         }
                     }
-                    if (resQuery[ind].lab_id !== null) {
+                    if (resQuery[ind].lab_id !== null && resQuery[ind].lab_public === 1) {
                         let objTest = {
                             lab_id: resQuery[ind].lab_id,
                             group_id: resQuery[ind].group_id,
@@ -161,6 +167,8 @@ function processPublications(resQuery) {
             }
             delete resQuery[indRow].group_id;
             delete resQuery[indRow].unit_id;
+            delete resQuery[indRow].person_public;
+            delete resQuery[indRow].lab_public;
             resQuery[indRow].person_selected = person_selected;
             resQuery[indRow].lab_selected = lab_selected;
             resQuery[indRow].person_id = person;
@@ -587,6 +595,30 @@ var queryUpdatePersonSelectedPublications = function (req, res, next) {
                         sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                         return;
                     }
+                    for (var ind in add) {
+                        externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'publications', add[ind].id,
+                                                'UCIBIO API error updating highlight status (on) of publication (id, person) :', [add[ind].id,personID]);
+                        externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'publications', add[ind].id,
+                                                'LAQV API error updating highlight status (on) of publication (id, person) :', [add[ind].id,personID]);
+                    }
+                    for (var ind in del) {
+                        externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'publications', del[ind].id,
+                                                'UCIBIO API error updating highlight status (off) of publication (id, person) :', [del[ind].id,personID]);
+                        externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'publications', del[ind].id,
+                                                'LAQV API error updating highlight status (off) of publication (id, person) :', [del[ind].id,personID]);
+                    }
+                    for (var ind in addPublic) {
+                        externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'publications', addPublic[ind].id,
+                                                'UCIBIO API error updating (public status - on) of publication (id, person) :', [addPublic[ind].id,personID]);
+                        externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'publications', addPublic[ind].id,
+                                                'LAQV API error updating (public status - on) of publication (id, person) :', [addPublic[ind].id,personID]);
+                    }
+                    for (var ind in delPublic) {
+                        externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'publications', delPublic[ind].id,
+                                                'UCIBIO API error updating (public status - off) of publication (id, person) :', [delPublic[ind].id,personID]);
+                        externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'publications', delPublic[ind].id,
+                                                'LAQV API error updating (public status - off) of publication (id, person) :', [delPublic[ind].id,personID]);
+                    }
                     sendJSONResponse(res, 200,
                         {"status": "success", "statusCode": 200, "count": 1,
                          "result" : "OK!"});
@@ -690,6 +722,30 @@ var queryUpdateTeamSelectedPublications = function (req, res, next) {
                         sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                         return;
                     }
+                    for (var ind in add) {
+                        externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'publications', add[ind].id,
+                                                'UCIBIO API error updating highlight status (on) of publication (pub_id,lab_id, group_id) :', [add[ind].id,teamID,groupID]);
+                        externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'publications', add[ind].id,
+                                                'LAQV API error updating highlight status (on) of publication (pub_id,lab_id, group_id) :', [add[ind].id,teamID,groupID]);
+                    }
+                    for (var ind in del) {
+                        externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'publications', del[ind].id,
+                                                'UCIBIO API error updating highlight status (off) of publication (pub_id,lab_id, group_id) :', [del[ind].id,teamID,groupID]);
+                        externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'publications', del[ind].id,
+                                                'LAQV API error updating highlight status (off) of publication (pub_id,lab_id, group_id) :', [del[ind].id,teamID,groupID]);
+                    }
+                    for (var ind in addPublic) {
+                        externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'publications', addPublic[ind].id,
+                                                'UCIBIO API error updating public status (on) of publication (pub_id,lab_id, group_id) :', [addPublic[ind].id,teamID,groupID]);
+                        externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'publications', addPublic[ind].id,
+                                                'LAQV API error updating public status (on) of publication (pub_id,lab_id, group_id) :', [addPublic[ind].id,teamID,groupID]);
+                    }
+                    for (var ind in delPublic) {
+                        externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'publications', delPublic[ind].id,
+                                                'UCIBIO API error updating public status (off) of publication (pub_id,lab_id, group_id) :', [delPublic[ind].id,teamID,groupID]);
+                        externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'publications', delPublic[ind].id,
+                                                'LAQV API error updating public status (off) of publication (pub_id,lab_id, group_id) :', [delPublic[ind].id,teamID,groupID]);
+                    }
                     sendJSONResponse(res, 200,
                         {"status": "success", "statusCode": 200, "count": 1,
                          "result" : "OK!"});
@@ -704,6 +760,7 @@ var queryUpdateTeamSelectedPublications = function (req, res, next) {
 };
 
 var queryDeletePublicationsPerson = function (req, res, next) {
+    var personID = req.params.personID;
     var del = req.body.deletePublications;
     var querySQL = '';
     var places = [];
@@ -726,6 +783,12 @@ var queryDeletePublicationsPerson = function (req, res, next) {
                         sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                         return;
                     }
+                    for (var ind in del) {
+                        externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'publications', del[ind].id,
+                                                'UCIBIO API error updating (delete association of publication to person) (id, person) :', [del[ind].id,personID]);
+                        externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'publications', del[ind].id,
+                                                'LAQV API error updating (delete association of publication to person) (id, person) :', [del[ind].id,personID]);
+                    }
                     sendJSONResponse(res, 200,
                         {"status": "success", "statusCode": 200, "count": 1,
                          "result" : "OK!"});
@@ -739,6 +802,8 @@ var queryDeletePublicationsPerson = function (req, res, next) {
 };
 
 var queryDeletePublicationsTeam = function (req, res, next) {
+    var groupID = req.params.groupID;
+    var teamID = req.params.teamID;
     var del = req.body.deletePublications;
     var querySQL = '';
     var places = [];
@@ -760,6 +825,12 @@ var queryDeletePublicationsTeam = function (req, res, next) {
                     if (err) {
                         sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                         return;
+                    }
+                    for (var ind in del) {
+                        externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'publications', del[ind].id,
+                                                'UCIBIO API error updating (delete association of publication to team) (id, lab, group) :', [del[ind].id,teamID,groupID]);
+                        externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'publications', del[ind].id,
+                                                'LAQV API error updating (delete association of publication to team) (id, lab, group) :', [del[ind].id,teamID,groupID]);
                     }
                     sendJSONResponse(res, 200,
                         {"status": "success", "statusCode": 200, "count": 1,
@@ -797,6 +868,12 @@ var queryAddPublicationsPerson = function (req, res, next) {
                         sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                         return;
                     }
+                    for (var ind in add) {
+                        externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'publications', add[ind].id,
+                                                'UCIBIO API error updating (adding association of publication to person) (id, person) :', [add[ind].id, personID]);
+                        externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'publications', add[ind].id,
+                                                'LAQV API error updating (adding association of publication to person) (id, person) :', [add[ind].id, personID]);
+                    }
                     sendJSONResponse(res, 200,
                         {"status": "success", "statusCode": 200, "count": 1,
                          "result" : "OK!"});
@@ -833,6 +910,12 @@ var queryAddPublicationsLab = function(req, res, next) {
                     if (err) {
                         sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                         return;
+                    }
+                    for (var ind in add) {
+                        externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'publications', add[ind].id,
+                                                'UCIBIO API error updating (adding association of publication to team) (id, lab, group) :', [add[ind].id, teamID, groupID]);
+                        externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'publications', add[ind].id,
+                                                'LAQV API error updating (adding association of publication to team) (id, lab, group) :', [add[ind].id, teamID, groupID]);
                     }
                     sendJSONResponse(res, 200,
                         {"status": "success", "statusCode": 200, "count": 1,
@@ -929,9 +1012,15 @@ var queryORCIDCheckIfExistsPublication = function (req, res, next,i, journalID) 
     var add = req.body.addPublications;
     var querySQL = '';
     var places = [];
-    querySQL = querySQL + 'SELECT id, title, doi FROM  publications' +
+    if (add[i].title !== null && add[i].doi !== null) {
+        querySQL = querySQL + 'SELECT id, title, doi FROM publications' +
+                ' WHERE title = ? AND doi = ?;';
+        places.push(add[i].title,add[i].doi);
+    } else {
+        querySQL = querySQL + 'SELECT id, title, doi FROM publications' +
                 ' WHERE title = ? OR doi = ?;';
-    places.push(add[i].title,add[i].doi);
+        places.push(add[i].title,add[i].doi);
+    }
     pool.getConnection(function(err, connection) {
         if (err) {
             sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
@@ -1082,6 +1171,10 @@ var queryORCIDInsertPeoplePublications = function (req, res, next, i, pubID) {
                     sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                     return;
                 }
+                externalAPI.contact(WEBSITE_API_BASE_URL[1], 'create', 'publications', pubID,
+                                        'UCIBIO API error updating highlight status (on) of publication (id, person) :', [pubID,personID]);
+                externalAPI.contact(WEBSITE_API_BASE_URL[2], 'create', 'publications', pubID,
+                                        'LAQV API error updating highlight status (on) of publication (id, person) :', [pubID,personID]);
                 if (i+1<add.length) {
                     return queryORCIDGetJournalID(req,res,next,i+1);
                 } else {
@@ -1205,8 +1298,8 @@ module.exports.getPublicationInfo = function (req, res, next) {
     var pubID = req.params.pubID;
     var querySQL = 'SELECT people_publications.selected AS person_selected,' +
                     ' labs_publications.selected AS lab_selected,'+
-                    ' people_publications.person_id,' +
-                    ' labs_publications.lab_id,labs_publications.group_id, units.id AS unit_id,' +
+                    ' people_publications.person_id, people_publications.public AS person_public,' +
+                    ' labs_publications.lab_id,labs_publications.group_id, units.id AS unit_id, labs_publications.public AS lab_public,' +
                     ' publications.*,' +
                     ' journals.name AS journal_name, journals.short_name AS journal_short_name, ' +
                     ' journals.publisher, journals.publisher_city, journals.issn, journals.eissn ' +

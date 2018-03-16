@@ -5,7 +5,9 @@ const nodemailer = require('../controllers/emailer');
 let transporter = nodemailer.transporter;
 var userModule = require('../models/users');
 var permissions = require('../config/permissions');
+var externalAPI = require('../config/external-api');
 
+var WEBSITE_API_BASE_URL = externalAPI.baseURL;
 var MANAGER_PERMISSION_LEVEL = 15;
 
 /**************************** Utility Functions *******************************/
@@ -813,6 +815,10 @@ var queryPeopleUpdateStartDate = function (req,res,next, personID, resQuery, min
                     sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                     return;
                 }
+                externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'people', personID,
+                                'UCIBIO API error updating by team leader person information (activity start) :', personID);
+                externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'people', personID,
+                                'LAQV API error updating by team leader person information (activity start) :', personID);
                 var data;
                 if (type.indexOf('update') !== -1) {
                     if (i + 1 < updateArr.length) {
@@ -978,7 +984,6 @@ var queryUpdateResearcher = function (req, res, next,
     });
 };
 
-
 var queryUpdateLab = function (req, res, next,
                                  updateArr, deleteArr, updated, data, i) {
     data.valid_from = momentToDate(data.valid_from);
@@ -1040,6 +1045,10 @@ var queryUpdateLabHistory = function (req, res, next, peopleOfficeID,
                     sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                     return;
                 }
+                externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'people', personID,
+                                'UCIBIO API error updating by team leader person information (lab affiliation [personID,lab_id]) :', [personID,data.lab_id]);
+                externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'people', personID,
+                                'LAQV API error updating by team leader person information (lab affiliation [personID,lab_id]) :', [personID,data.lab_id]);
                 //checks remaining affiliations and finds earliest date
                 return queryGetLabs(req,res,next,personID,[], updateArr, deleteArr, updated, i,'lab update');
             }
@@ -1098,6 +1107,10 @@ var queryDeleteLabHistory = function (req, res, next,
                     sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                     return;
                 }
+                externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'people', personID,
+                                'UCIBIO API error updating by team leader person information (delete lab affiliation [personID,lab_id]) :', [personID,data.lab_id]);
+                externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'people', personID,
+                                'LAQV API error updating by team leader person information (delete lab affiliation [personID,lab_id]) :', [personID,data.lab_id]);
                 //checks remaining affiliations and finds earliest date
                 return queryGetLabs(req,res,next,personID,[], updateArr, deleteArr, updated, i,'lab delete');
             }
@@ -1271,6 +1284,10 @@ var queryUpdateTechHistory = function (req, res, next, peopleOfficeID,
                     sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                     return;
                 }
+                externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'people', personID,
+                                'UCIBIO API error updating by team leader person information (update tech affiliation [personID,office_id]) :', [personID,data.technician_office_id]);
+                externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'people', personID,
+                                'LAQV API error updating by team leader person information (update tech affiliation [personID,office_id]) :', [personID,data.technician_office_id]);
                 //checks remaining affiliations and finds earliest date
                 return queryGetLabs(req,res,next,personID,[], updateArr, deleteArr, updated, i,'technician update');
             }
@@ -1329,6 +1346,10 @@ var queryDeleteTechHistory = function (req, res, next,
                     sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                     return;
                 }
+                externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'people', personID,
+                                'UCIBIO API error updating by team leader person information (delete tech affiliation [personID,office_id]) :', [personID,data.technician_office_id]);
+                externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'people', personID,
+                                'LAQV API error updating by team leader person information (delete tech affiliation [personID,office_id]) :', [personID,data.technician_office_id]);
                 //checks remaining affiliations and finds earliest date
                 return queryGetLabs(req,res,next,personID,[], updateArr, deleteArr, updated, i,'technician delete');
             }
@@ -1501,6 +1522,10 @@ var queryUpdateScManHistory = function (req, res, next, peopleOfficeID,
                     sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                     return;
                 }
+                externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'people', personID,
+                                'UCIBIO API error updating by team leader person information (update sc. man. affiliation [personID,office_id]) :', [personID,data.science_manager_office_id]);
+                externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'people', personID,
+                                'LAQV API error updating by team leader person information (update sc. man. affiliation [personID,office_id]) :', [personID,data.science_manager_office_id]);
                 //checks remaining affiliations and finds earliest date
                 return queryGetLabs(req,res,next,personID,[], updateArr, deleteArr, updated, i,'scMan update');
             }
@@ -1559,6 +1584,10 @@ var queryDeleteScManHistory = function (req, res, next,
                     sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                     return;
                 }
+                externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'people', personID,
+                                'UCIBIO API error updating by team leader person information (delete sc. man. affiliation [personID,office_id]) :', [personID,data.science_manager_office_id]);
+                externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'people', personID,
+                                'LAQV API error updating by team leader person information (delete sc. man. affiliation [personID,office_id]) :', [personID,data.science_manager_office_id]);
                 //checks remaining affiliations and finds earliest date
                 return queryGetLabs(req,res,next,personID,[], updateArr, deleteArr, updated, i,'scMan delete');
             }
@@ -1732,6 +1761,10 @@ var queryUpdateAdmHistory = function (req, res, next, peopleOfficeID,
                     sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                     return;
                 }
+                externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'people', personID,
+                                'UCIBIO API error updating by team leader person information (update adm. affiliation [personID,office_id]) :', [personID,data.administrative_office_id]);
+                externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'people', personID,
+                                'LAQV API error updating by team leader person information (update adm. affiliation [personID,office_id]) :', [personID,data.administrative_office_id]);
                 //checks remaining affiliations and finds earliest date
                 return queryGetLabs(req,res,next,personID,[], updateArr, deleteArr, updated, i,'administrative update');
             }
@@ -1790,6 +1823,10 @@ var queryDeleteAdmHistory = function (req, res, next,
                     sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                     return;
                 }
+                externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'people', personID,
+                                'UCIBIO API error updating by team leader person information (delete adm. affiliation [personID,office_id]) :', [personID,data.administrative_office_id]);
+                externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'people', personID,
+                                'LAQV API error updating by team leader person information (delete adm. affiliation [personID,office_id]) :', [personID,data.administrative_office_id]);
                 //checks remaining affiliations and finds earliest date
                 return queryGetLabs(req,res,next,personID,[], updateArr, deleteArr, updated, i,'administrative delete');
             }

@@ -16,7 +16,8 @@
         vm.addRows = function (current,type) {
             var obj = {};
             if (type === 'affiliationsLab') {
-                obj = {lab_id: null, lab: null, dedication: null, lab_position_id: null,
+                obj = {lab_row: null, lab_id: null, lab: null, dedication: null, lab_position_id: null,
+                       lab_opened: null, lab_closed: null, group_opened: null, group_closed: null,
                        group_id: null, group_name: null, start: null, end: null,
                        unit_id: null, unit: null};
                 current.push(obj);
@@ -93,28 +94,57 @@
             for (var el in vm.thisPerson.researcher_data.affiliation_lab) {
                 // find the lab data to which this affiliation refers to
                 for (var elLab in vm.labs) {
-                    if (vm.labs[elLab].lab_id === vm.thisPerson.researcher_data.affiliation_lab[el].lab_id) {
+                    if (vm.labs[elLab].lab_row === vm.thisPerson.researcher_data.affiliation_lab[el].lab_row) {
                         var indLab = elLab;
                         break;
                     }
                 }
-                for (var elHist in vm.labs[indLab].lab_history) {
-                    var overlap = timeOverlap(vm.thisPerson.researcher_data.affiliation_lab[el].start,
-                                              vm.thisPerson.researcher_data.affiliation_lab[el].end,
-                                              vm.labs[indLab].lab_history[elHist].labs_groups_valid_from,
-                                              vm.labs[indLab].lab_history[elHist].labs_groups_valid_until);
-                    if (overlap) {
-                        var thisData = Object.assign({},vm.thisPerson.researcher_data.affiliation_lab[el]);
-                        thisData.start = processDate(overlap[0]);
-                        thisData.end = processDate(overlap[1]);
-                        thisData.people_lab_id = 'new';
-                        submitAffiliations.push(thisData);
+                var overlap = timeOverlap(vm.thisPerson.researcher_data.affiliation_lab[el].start,
+                                          vm.thisPerson.researcher_data.affiliation_lab[el].end,
+                                          vm.labs[indLab].labs_groups_valid_from,
+                                          vm.labs[indLab].labs_groups_valid_until);
+                if (overlap) {
+                    var thisData = Object.assign({},vm.thisPerson.researcher_data.affiliation_lab[el]);
+                    thisData.start = processDate(overlap[0]);
+                    thisData.end = processDate(overlap[1]);
+                    thisData.people_lab_id = 'new';
+                    submitAffiliations.push(thisData);
+                }
+
+            }
+            var unit = [];
+            for (var el in vm.thisPerson.researcher_data.affiliation_lab) {
+                if (vm.thisPerson.researcher_data.affiliation_lab[el].unit_id !== undefined) {
+                    if (unit.indexOf(vm.thisPerson.researcher_data.affiliation_lab[el].unit_id) === -1) {
+                        unit.push(vm.thisPerson.researcher_data.affiliation_lab[el].unit_id);
+                    }
+                }
+            }
+            for (var el in vm.thisPerson.technician_data.office) {
+                if (vm.thisPerson.technician_data.office[el].unit_id !== undefined) {
+                    if (unit.indexOf(vm.thisPerson.technician_data.office[el].unit_id) === -1) {
+                        unit.push(vm.thisPerson.technician_data.office[el].unit_id);
+                    }
+                }
+            }
+            for (var el in vm.thisPerson.science_manager_data.office) {
+                if (vm.thisPerson.science_manager_data.office[el].unit_id !== undefined) {
+                    if (unit.indexOf(vm.thisPerson.science_manager_data.office[el].unit_id) === -1) {
+                        unit.push(vm.thisPerson.science_manager_data.office[el].unit_id);
+                    }
+                }
+            }
+            for (var el in vm.thisPerson.administrative_data.office) {
+                if (vm.thisPerson.administrative_data.office[el].unit_id !== undefined) {
+                    if (unit.indexOf(vm.thisPerson.administrative_data.office[el].unit_id) === -1) {
+                        unit.push(vm.thisPerson.administrative_data.office[el].unit_id);
                     }
                 }
             }
             vm.thisPerson.researcher_data.affiliation_lab = submitAffiliations;
             data['changed_by'] = vm.currentUser.userID;
             data['earliest_date'] = findEarliestDate();
+            data['unit'] = unit;
             registrationData.addNewPersonData(data)
                 .then(function () {
                     if (ind > -1) {
@@ -525,7 +555,27 @@
                 });
             personData.labs()
                 .then(function (response) {
-                    vm.labs = response.data.result;
+                    var res = response.data.result;
+                    // expands results
+                    vm.labs = [];
+                    var labRow = 0;
+                    for (var ind in res) {
+                        for (var indHist in res[ind].lab_history) {
+                            labRow++;
+                            vm.labs.push({
+                                lab_row: labRow,
+                                lab_id: res[ind].lab_id,
+                                lab: res[ind].lab,
+                                lab_opened: res[ind].lab_opened,
+                                lab_closed: res[ind].lab_closed,
+                                group_id: res[ind].lab_history[indHist].group_id,
+                                group_name: res[ind].lab_history[indHist].group_name,
+                                labs_groups_valid_from: processDate(res[ind].lab_history[indHist].labs_groups_valid_from),
+                                labs_groups_valid_until: processDate(res[ind].lab_history[indHist].labs_groups_valid_until),
+                                unit_id: res[ind].lab_history[indHist].unit_id
+                            });
+                        }
+                    }
                 })
                 .catch(function (err) {
                     console.log(err);

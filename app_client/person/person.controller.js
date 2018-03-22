@@ -46,7 +46,8 @@
             'personORCIDAdd':           31,
             'personUpdateComm':         32,
             'personCommRemove':         33,
-            'personCommORCIDAdd':       34
+            'personCommORCIDAdd':       34,
+            'personCommAdd':            35
         };
         vm.changePhoto = false;
         vm.photoSize = {w: 196, h: 196};
@@ -1666,13 +1667,13 @@
         }
 
         /* For managing communications */
+        /* TODO: implement filter dates communications */
+        /* TODO: implement communications export to Excel */
         vm.submitPersonCommunications = function (ind) {
             vm.updateStatus[ind] = "Updating...";
             vm.messageType[ind] = 'message-updating';
             vm.hideMessage[ind] = false;
             var data = processChangedComm(vm.personCommunications,vm.originalPersonCommunications);
-            console.log(data)
-            alert('')
             publications.updateCommunicationsPerson(vm.currentUser.personID,{upd: data})
                 .then( function () {
                     getCommunications();
@@ -1712,6 +1713,33 @@
                     function () {}
                     );
             }
+            return false;
+        };
+        vm.submitAddCommunications = function(ind) {
+            vm.updateStatus[ind] = "Updating...";
+            vm.messageType[ind] = 'message-updating';
+            vm.hideMessage[ind] = false;
+            if (!vm.communicationDetails.international) {
+                vm.communicationDetails.country_id={};
+                vm.communicationDetails.country_id.country_id = 184;
+                vm.communicationDetails.international = false;
+            }
+            var data = {add: [vm.communicationDetails]};
+            publications.addCommunicationsPerson(vm.currentUser.personID,data)
+                .then( function () {
+                    vm.communicationsDetails = {};
+                    vm.updateStatus[ind] = "Updated!";
+                    vm.messageType[ind] = 'message-success';
+                    vm.hideMessage[ind] = false;
+                    $timeout(function () { vm.hideMessage[ind] = true; }, 1500);
+                    getCommunications(-1);
+                },
+                function () {
+                    vm.updateStatus[ind] = "Error!";
+                    vm.messageType[ind] = 'message-error';
+                },
+                function () {}
+                );
             return false;
         };
         vm.connectCommORCID = function() {
@@ -1813,11 +1841,18 @@
                 vm.currCommunications.push(Object.assign({}, vm.selectedCommunications[member]));
             }
         };
-        vm.communicationAuthorsList = function (str, num) {
+        vm.communicationAuthorsList = function (str, num, type) {
             var authors = str.split(';');
-            vm.communicationDetailsORCID[num].presenters = [];
-            for (var ind in authors) {
-                vm.communicationDetailsORCID[num].presenters.push(authors[ind].trim());
+            if (type === undefined) {
+                vm.communicationDetailsORCID[num].presenters = [];
+                for (var ind in authors) {
+                    vm.communicationDetailsORCID[num].presenters.push(authors[ind].trim());
+                }
+            } else {
+                vm.communicationDetails.presenters = [];
+                for (var ind in authors) {
+                    vm.communicationDetails.presenters.push(authors[ind].trim());
+                }
             }
         };
         vm.communicationORCIDintoDatabase = function(work) {
@@ -1859,6 +1894,7 @@
         };
         vm.showDetailsCommunication = function (work, pubNum) {
             var authors = work.authors_raw.split(';');
+            authors = authors.map(function (el) { return el.trim(); });
             var config = {
                 parent: angular.element(document.body),
                 controller: commDetailsCtrl,
@@ -2047,6 +2083,7 @@
         }
         function initializeVariablesCommunications() {
             vm.communicationDetailsORCID = [];
+            vm.communicationDetails = {};
             vm.addCommunicationsORCID = [];
 
             vm.deleteCommunications = [];
@@ -3166,6 +3203,12 @@
             templateUrl: 'person/productivity/communications/person.addCommunicationsORCID.html'
         };
     };
+    var personAddCommunications = function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'person/productivity/communications/person.addCommunications.html'
+        };
+    };
 
 
 
@@ -3298,6 +3341,7 @@
         .directive('personPublications', personPublications)
         .directive('personAddPublications', personAddPublications)
         .directive('personCommunications', personCommunications)
+        .directive('personAddCommunications', personAddCommunications)
         .directive('personAddCommunicationsOrcid', personAddCommunicationsOrcid)
         .directive('personAddPublicationsOrcid', personAddPublicationsOrcid)
         .directive('personPublicationDetail', personPublicationDetail)

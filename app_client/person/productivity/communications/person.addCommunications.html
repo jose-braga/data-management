@@ -1,0 +1,145 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Manually add a communication</span>
+        </md-card-title-text>
+    </md-card-title>
+    <md-card-content layout="column">
+        <form flex novalidate name="personAddCommunicationsForm"
+                ng-submit="personAddCommunicationsForm.$valid && vm.submitAddCommunications(vm.forms['personCommAdd'])">
+            <div layout="column" flex>
+                <div layout="column" flex>
+                    <div layout="row" layout-align="center" class="spacer-top">
+                        <div class="question"><span class="highlight">Title:</span></div>
+                        <div class="answer">
+                            <md-input-container class="input-compact">
+                                <input required ng-model="vm.communicationDetails.title" name="title">
+                            </md-input-container>
+                        </div>
+                    </div>
+                    <div layout="row" layout-align="none center">
+                        <div class="question"><span class="highlight">Authors list *<br>(separate with ;):</span></div>
+                        <div class="answer">
+                            <md-input-container class="input-compact">
+                                <input required ng-change="vm.communicationAuthorsList(vm.communicationDetails.authors_raw,0,'manual')"
+                                        ng-model="vm.communicationDetails.authors_raw" name="authors_raw">
+                            </md-input-container>
+                        </div>
+                    </div>
+                    <div layout="row" layout-align="none center">
+                        <div class="question"><span class="highlight">Presenter:</span></div>
+                        <div class="answer">
+                            <md-input-container class="select-container select-no-margin card-type">
+                                <md-select ng-model="vm.communicationDetails.presenter"
+                                        aria-label="presenter"
+                                        name="publication__presenter">
+                                    <md-option ng-repeat="presenter in vm.communicationDetails.presenters"
+                                            ng-value="presenter">{{presenter}}</md-option>
+                                </md-select>
+                            </md-input-container>
+                        </div>
+                    </div>
+                    <div layout="row" layout-align="none center">
+                        <div class="question"><span class="highlight">Date:</span></div>
+                        <div class="answer">
+                            <md-input-container>
+                                <md-datepicker required md-current-view="year" ng-model="vm.communicationDetails.date"
+                                        name="member_startDate"
+                                    md-placeholder="Enter date" md-hide-icons="calendar"></md-datepicker>
+                            </md-input-container>
+                        </div>
+                    </div>
+                    <div layout="row">
+                        <div class="question"><span class="highlight">Communication type*:</span></div>
+                        <div class="answer">
+                            <span>
+                                <md-input-container class="select-container select-no-margin card-type">
+                                    <md-select required ng-model="vm.communicationDetails.communication_type_id"
+                                            aria-label="publication type"
+                                            name="publication__communication_type">
+                                        <div class="scrollable">
+                                            <md-option ng-repeat="type in vm.communicationTypes"
+                                                    ng-value="type.id">{{type.name}}</md-option>
+                                        </div>
+                                    </md-select>
+                                </md-input-container>
+                            </span>
+                        </div>
+                    </div>
+                    <div layout="row" layout-align="none center">
+                        <div class="question"><span class="highlight">Conference/meeting name*:</span></div>
+                        <div class="answer">
+                            <md-input-container class="input-compact">
+                                <input required ng-model="vm.communicationDetails.conference" name="conference">
+                            </md-input-container>
+                        </div>
+                    </div>
+                    <div layout="row" layout-align="none center" class="spacer-top">
+                        <div class="question"><span class="highlight">Conference type*:</span></div>
+                        <div class="answer">
+                            <span>
+                                <md-input-container class="select-container select-no-margin card-type">
+                                    <md-select required ng-model="vm.communicationDetails.conference_type_id"
+                                            aria-label="publication type"
+                                            name="publication__conference_type">
+                                        <div class="scrollable">
+                                            <md-option ng-repeat="type in vm.conferenceTypes"
+                                                    ng-value="type.id">{{type.name}}</md-option>
+                                        </div>
+                                    </md-select>
+                                </md-input-container>
+                            </span>
+                        </div>
+                    </div>
+                    <div layout="row" layout-align="none center">
+                        <div class="question"><span class="highlight">International?</span></div>
+                        <div class="answer">
+                            <md-checkbox ng-model="vm.communicationDetails.international" aria-label="international"></md-checkbox>
+                            <md-input-container class="search-box select-container input-row"
+                                ng-if="vm.communicationDetails.international"
+                                ng-controller="CountrySelectCtrl as count">
+                                <label>Country</label>
+                                <md-select required ng-model="vm.communicationDetails.country_id"
+                                    ng-model-options="{trackBy: '$value.country_id'}">
+                                    <div class="anchored">
+                                        <md-select-header class="select-search-header">
+                                            <input ng-model="count.searchTerm" type="search"
+                                              placeholder="Search your countries"
+                                              class="md-text select-search-box">
+                                        </md-select-header>
+                                    </div>
+                                    <div class="scrollable">
+                                        <md-optgroup label="countries">
+                                            <md-option ng-repeat="country in count.countries | filter:count.searchTerm"
+                                                ng-value="country">{{country.name}}</md-option>
+                                        </md-optgroup>
+                                    </div>
+                                </md-select>
+                            </md-input-container>
+                        </div>
+                    </div>
+                    <div layout="row" layout-align="none center">
+                        <div class="question"><span class="highlight">City*:</span></div>
+                        <div class="answer">
+                            <md-input-container class="input-compact">
+                                <input required ng-model="vm.communicationDetails.city" name="city">
+                            </md-input-container>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="spacer-top"
+                    layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button type="submit"
+                    class="button-small md-raised md-primary">Add  Comm.</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personCommAdd']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['personCommAdd']]">
+                        {{vm.updateStatus[vm.forms['personCommAdd']]}}
+                    </span>
+                </div>
+            </div>
+        </form>
+
+
+    </md-card-content>
+</md-card>

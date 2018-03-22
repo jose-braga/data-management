@@ -128,6 +128,13 @@
                 }
             );
         };
+        var addCommunicationsPerson = function (personID, data) {
+            return $http.put('api/communications/person/' + personID + '/add', data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
         var updateCommunicationsPerson = function (personID, data) {
             return $http.put('api/communications/person/' + personID, data,
                 {
@@ -152,6 +159,7 @@
             getORCIDDetailsPublication: getORCIDDetailsPublication,
             addORCIDPublicationsPerson: addORCIDPublicationsPerson,
             addORCIDCommunicationsPerson: addORCIDCommunicationsPerson,
+            addCommunicationsPerson: addCommunicationsPerson,
             updateCommunicationsPerson: updateCommunicationsPerson,
             removePublicationsTeam: removePublicationsTeam
         };

@@ -128,6 +128,7 @@ router.get('/communications/person/:personID', auth, ctrlPublicationsData.listPe
 // PUT COMMUNICATION information (authenticated)
 router.put('/communications/person/:personID', auth, ctrlPublicationsData.updatePersonCommunications);
 router.put('/communications/person/:personID/add-orcid', auth, ctrlPublicationsData.addORCIDCommunicationsPerson);
+router.put('/communications/person/:personID/add', auth, ctrlPublicationsData.addORCIDCommunicationsPerson);
 
 // POST (Create) new user (authenticated)
 router.post('/registration', auth, ctrlRegistrationData.addPerson);

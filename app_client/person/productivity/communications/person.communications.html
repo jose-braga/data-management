@@ -2,19 +2,19 @@
     <md-card-title>
         <md-card-title-text>
             <span class="md-headline">Communications</span>
+            <span class="md-subhead">To add manually see next card, to add from ORCID see bottom.</span>
         </md-card-title-text>
     </md-card-title>
     <md-card-content layout="column">
         <div layout="row" layout-align="none center">
-            <!-- TODO: -->
             <span class="spacer-top-smaller">Filter:</span>
             <md-input-container class="input-row-longer">
                 <label>From year</label>
-                <input ng-model="vm.fromYearPub" ng-change="vm.renderCommunications('new')">
+                <input ng-model="vm.fromYearComm" ng-change="vm.renderCommunications('new')">
             </md-input-container>
             <md-input-container class="input-row-longer">
                 <label>To year</label>
-                <input ng-model="vm.toYearPub" ng-change="vm.renderCommunications('new')">
+                <input ng-model="vm.toYearComm" ng-change="vm.renderCommunications('new')">
             </md-input-container>
             <md-button class="s48" ng-click="vm.exportCommunicationsSpreadsheet()"
                         aria-label="Export selection"

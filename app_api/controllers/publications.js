@@ -1447,7 +1447,6 @@ module.exports.getLabPublicationInfo = function (req, res, next) {
                     ' journals.publisher, journals.publisher_city, journals.issn, journals.eissn ' +
                     'FROM labs_publications' +
                     ' LEFT JOIN publications ON labs_publications.publication_id = publications.id' +
-                    ' LEFT JOIN lab_selected_publications ON lab_selected_publications.publication_id = publications.id' +
                     ' LEFT JOIN journals ON publications.journal_id = journals.id' +
                     ' WHERE labs_publications.group_id = ? AND labs_publications.lab_id = ?' +
                     ' AND  labs_publications.public = 1;';

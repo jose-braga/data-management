@@ -1667,8 +1667,6 @@
         }
 
         /* For managing communications */
-        /* TODO: implement filter dates communications */
-        /* TODO: implement communications export to Excel */
         vm.submitPersonCommunications = function (ind) {
             vm.updateStatus[ind] = "Updating...";
             vm.messageType[ind] = 'message-updating';
@@ -1799,21 +1797,21 @@
             var toInclude = 0;
             var toIncludeDueFrom = 0;
             var toIncludeDueTo = 0;
-            vm.fromYearCommunications = parseInt(vm.fromYearCommunications,10);
-            vm.toYearCommunications = parseInt(vm.toYearCommunications,10);
+            vm.fromYearComm = parseInt(vm.fromYearComm,10);
+            vm.toYearComm = parseInt(vm.toYearComm,10);
             for (var ind in vm.personCommunications) {
                 toInclude = 0;
                 toIncludeDueFrom = 0;
                 toIncludeDueTo = 0;
-                if (Number.isInteger(vm.fromYearCommunications)) {
-                    if (vm.fromYearCommunications <= vm.personCommunications[ind].year) {
+                if (Number.isInteger(vm.fromYearComm)) {
+                    if (vm.fromYearComm <= moment(vm.personCommunications[ind].date).year()) {
                        toIncludeDueFrom = 1;
                     }
                 } else {
                     toIncludeDueFrom = 1;
                 }
-                if (Number.isInteger(vm.toYearCommunications)) {
-                    if (vm.toYearCommunications >= vm.personCommunications[ind].year) {
+                if (Number.isInteger(vm.toYearComm)) {
+                    if (vm.toYearComm >= moment(vm.personCommunications[ind].date).year()) {
                        toIncludeDueTo = 1;
                     }
                 } else {
@@ -1926,6 +1924,31 @@
                     break;
                 }
             }
+        };
+        vm.exportCommunicationsSpreadsheet = function() {
+            var type = 'xlsx';
+            var wsName = 'Data';
+            var wb = {};
+            var selectedCommunications = convertDataCommunications(vm.selectedCommunications);
+            var ws = XLSX.utils.json_to_sheet(selectedCommunications);
+            wb.SheetNames = [wsName];
+            wb.Sheets = {};
+            wb.Sheets[wsName] = ws;
+            var wbout = XLSX.write(wb, {bookType: type, bookSST: true, type: 'binary'});
+            var dateTime = momentToDate(moment(),undefined,'YYYYMMDD_HHmmss')
+            var from = vm.fromYearComm;
+            var to = vm.toYearComm;
+            if (vm.fromYearComm === undefined || isNaN(vm.fromYearComm)) {
+                from = 'all';
+            }
+            if (vm.toYearComm === undefined || isNaN(vm.toYearComm)) {
+                to = 'all';
+            }
+            var fname = 'my_communications_' + from + '_' + to
+                        + '_' + dateTime + '.' + type;
+            try {
+            	saveAs(new Blob([s2ab(wbout)],{type:"application/octet-stream"}), fname);
+            } catch(e) { if(typeof console != 'undefined') console.log(e, wbout); }
         };
 
         function getCommunications(ind) {
@@ -2882,7 +2905,7 @@
                             arrObj[el]['doc_type'] = arrObj[el].publication_type[ind].name_en;
                         }
                     }
-                    var if_last_year;
+                    var if_last_year = {impact_factor: 0};
                     for (var ind in arrObj[el].impact_factors) {
                         if (ind > 0) {
                             if (if_last_year.year < arrObj[el].impact_factors[ind].year) {
@@ -2892,7 +2915,7 @@
                             if_last_year = arrObj[el].impact_factors[ind];
                         }
                     }
-                    var citations_last_year;
+                    var citations_last_year = {citations: 0};
                     for (var ind in arrObj[el].citations) {
                         if (ind > 0) {
                             if (citations_last_year.year < arrObj[el].citations[ind].year) {
@@ -2904,7 +2927,7 @@
                     }
                     data.push({
                         "Authors": arrObj[el]['authors_raw'],
-                        "Tite": arrObj[el]['title'],
+                        "Title": arrObj[el]['title'],
                         "Year": arrObj[el]['year'],
                         "Publication Date": arrObj[el]['publication_date'],
                         "Journal Name": arrObj[el]['journal_name'],
@@ -2922,6 +2945,30 @@
                         "DOI": arrObj[el]['doi'],
                         "Citations": citations_last_year.citations,
                         "Impact Factors": if_last_year.impact_factor
+                    });
+                }
+                return data;
+            }
+            return data;
+        }
+        function convertDataCommunications(arrObj) {
+            // selects data for exporting
+            var data = [];
+            if (arrObj.length > 0) {
+                for (var el in arrObj) {
+                    data.push({
+                        "Conference type": arrObj[el]['conference_type_name'],
+                        "International": arrObj[el]['international'],
+                        "Communication type": arrObj[el]['communication_type_name'],
+                        "Authors": arrObj[el]['authors_raw'],
+                        "Presenter": arrObj[el]['presenter'],
+                        "Title": arrObj[el]['title'],
+                        "Conf. Title": arrObj[el]['conference_title'],
+                        "Year": momentToDate(arrObj[el]['date'],undefined,'YYYY'),
+                        "Comm. Date": momentToDate(arrObj[el]['date']),
+                        "City": arrObj[el]['city'],
+                        "Country": arrObj[el]['country_name'],
+                        "DOI": arrObj[el]['doi']
                     });
                 }
                 return data;

@@ -1,7 +1,7 @@
 var request = require('request');
 
 var baseURL = {1: 'https://dev.requimte.pt/ucibio/api',
-               2: 'https://dev.requimte.pt/laqv/api'};;
+               2: 'https://dev.requimte.pt/laqv/api'};
 /*if (process.env.NODE_ENV === 'production') {
     baseURL = {1: 'https://www.requimte.pt/ucibio/api',
                2: 'https://www.requimte.pt/laqv/api'};;

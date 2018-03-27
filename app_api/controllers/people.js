@@ -3889,7 +3889,10 @@ var queryResearcherInfoPerson = function (req, res, next, userCity) {
                                 ' WHERE NOT EXISTS (' +
                                   'SELECT * FROM `people_roles` WHERE person_id = ? AND role_id = ?);';
         places.push(personID,1,personID,1);
-
+        externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'people', personID,
+                                'UCIBIO API error updating person information (researcher data) :', personID);
+        externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'people', personID,
+                                'LAQV API error updating person information (researcher data) :', personID);
         escapedQuery(querySQL, places, req, res, next);
     } else {
         sendJSONResponse(res, 403, { message: 'This user is not authorized to this operation.' });
@@ -5079,8 +5082,6 @@ var queryUpdatePhotoDatabaseFinal = function (req, res, next, file, action) {
 
 /***************************** Public API Person Queries *****************************/
 
-/* TODO: Create endpoints to get technicians, science managers and administratives?*/
-
 module.exports.searchPeople = function (req, res, next) {
     var now = momentToDate(moment());
     var name;
@@ -5363,6 +5364,7 @@ module.exports.getPersonInfo = function (req, res, next) {
     var querySQL = 'SELECT people.id, people.name AS full_name, people.colloquial_name AS name,' +
                    ' people.active_from, people.active_until,' +
                    ' emails.email, phones.phone, phones.extension AS phone_extension,' +
+                   ' researchers.ORCID, researchers.researcherID,' +
                    ' people_labs.valid_from AS lab_start, people_labs.valid_until AS lab_end, people_labs.sort_order,' +
                    ' labs.id AS lab_id, labs.name AS lab_name,' +
                    ' labs_groups.valid_from AS labs_groups_valid_from, labs_groups.valid_until AS labs_groups_valid_until,' +
@@ -5385,6 +5387,7 @@ module.exports.getPersonInfo = function (req, res, next) {
                   ' FROM people' +
                   ' LEFT JOIN emails ON people.id = emails.person_id' +
                   ' LEFT JOIN phones ON people.id = phones.person_id' +
+                  ' LEFT JOIN researchers ON people.id = researchers.person_id' +
                   ' LEFT JOIN people_labs ON people.id = people_labs.person_id' +
                   ' LEFT JOIN labs ON labs.id = people_labs.lab_id' +
                   ' LEFT JOIN labs_groups ON labs_groups.lab_id = labs.id' +

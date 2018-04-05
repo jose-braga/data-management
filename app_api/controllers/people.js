@@ -1201,6 +1201,298 @@ var queryAffiliationDepEndDate = function (req,res,next,updated,created,changed_
 };
 
 */
+
+var queryURLsPerson = function (req, res, next, userCity) {
+    var hasPermission = getGeoPermissions(req, userCity);
+    if ((req.payload.personID !== req.params.personID && hasPermission)
+            || req.payload.personID === req.params.personID) {
+        var personID = req.params.personID;
+        var updateArr = req.body.updateURL;
+        var newArr = req.body.newURL;
+        var deleteArr = req.body.deleteURL;
+        if (updateArr.length > 0) {
+            return queryUpdateURLs(req, res, next, userCity, personID, updateArr,deleteArr,newArr, updateArr[0], 0);
+        } else if (deleteArr.length > 0) {
+            return queryDeleteURLs(req, res, next, userCity, personID, updateArr,deleteArr,newArr, deleteArr[0], 0);
+        } else if (newArr.length > 0) {
+            return queryAddURLs(req, res, next, userCity, personID, updateArr,deleteArr,newArr, newArr[0], 0);
+        }
+        if (deleteArr.length === 0 && updateArr.length == 0 && newArr.length === 0) {
+            sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
+            return;
+        }
+    } else {
+        sendJSONResponse(res, 403, { message: 'This user is not authorized to this operation.' });
+        return;
+    }
+};
+
+var queryUpdateURLs = function (req, res, next, userCity, personID,updateArr,deleteArr,newArr, data, i) {
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'UPDATE personal_urls' +
+                          ' SET url_type_id = ?,' +
+                          ' url = ?,' +
+                          ' description = ?' +
+                          ' WHERE id = ?';
+    querySQL = querySQL + '; ';
+    places.push(data.url_type_id, data.personal_url, data.description, data.personal_url_id);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'people', personID,
+                                'UCIBIO API error updating person information (update personal URLs) personID :', personID);
+                externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'people', personID,
+                                'LAQV API error updating person information (update personal URLs) personID :', personID);
+                if (i + 1 < updateArr.length) {
+                    return queryUpdateURLs(req, res, next, userCity, personID,
+                                updateArr,deleteArr,newArr, updateArr[i+1], i+1);
+                } else if (deleteArr.length > 0) {
+                    return queryDeleteURLs(req, res, next, userCity, personID,
+                                updateArr,deleteArr,newArr, deleteArr[0], 0);
+                } else if (newArr.length > 0) {
+                    return queryAddURLs(req, res, next, userCity, personID,
+                                updateArr,deleteArr,newArr, newArr[0], 0);
+                } else {
+                    sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
+                    return;
+                }
+            }
+        );
+    });
+};
+
+var queryDeleteURLs = function (req, res, next, userCity, personID,updateArr,deleteArr,newArr, data, i) {
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'DELETE FROM personal_urls' +
+                          ' WHERE id=?';
+    querySQL = querySQL + '; ';
+    places.push(data.personal_url_id);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'people', personID,
+                                'UCIBIO API error updating person information (delete personal URLs) personID :', personID);
+                externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'people', personID,
+                                'LAQV API error updating person information (delete personal URLs) personID :', personID);
+                if (i + 1 < deleteArr.length) {
+                    return queryDeleteURLs(req, res, next, userCity, personID,
+                                updateArr,deleteArr,newArr, deleteArr[i+1], i+1);
+                } else if (newArr.length > 0) {
+                    return queryAddURLs(req, res, next, userCity, personID,
+                                updateArr,deleteArr,newArr, newArr[0], 0);
+                } else {
+                    sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
+                    return;
+                }
+            }
+        );
+    });
+};
+
+var queryAddURLs = function (req, res, next, userCity, personID,updateArr,deleteArr,newArr, data, i) {
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'INSERT INTO personal_urls' +
+                          ' (person_id, url_type_id, url, description)' +
+                          ' VALUES (?, ?, ?, ?)';
+    querySQL = querySQL + '; ';
+    places.push(personID, data.url_type_id, data.personal_url, data.description);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'people', personID,
+                                'UCIBIO API error updating person information (add personal URLs) personID :', personID);
+                externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'people', personID,
+                                'LAQV API error updating person information (add personal URLs) personID :', personID);
+                if (i + 1 < newArr.length) {
+                    return queryAddURLs(req, res, next, userCity, personID,
+                                updateArr,deleteArr,newArr, newArr[i+1], i+1);
+                } else {
+                    sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
+                    return;
+                }
+            }
+        );
+    });
+};
+
+var queryResearchInterestsPerson = function (req, res, next, userCity) {
+    var hasPermission = getGeoPermissions(req, userCity);
+    if ((req.payload.personID !== req.params.personID && hasPermission)
+            || req.payload.personID === req.params.personID) {
+        var personID = req.params.personID;
+        var updateArr = req.body.updateRI;
+        var newArr = req.body.newRI;
+        var deleteArr = req.body.deleteRI;
+        if (updateArr.length > 0) {
+            return queryUpdateRI(req, res, next, userCity, personID, updateArr,deleteArr,newArr, updateArr[0], 0);
+        } else if (deleteArr.length > 0) {
+            return queryDeleteRI(req, res, next, userCity, personID, updateArr,deleteArr,newArr, deleteArr[0], 0);
+        } else if (newArr.length > 0) {
+            return queryAddRI(req, res, next, userCity, personID, updateArr,deleteArr,newArr, newArr[0], 0);
+        }
+        if (deleteArr.length === 0 && updateArr.length == 0 && newArr.length === 0) {
+            sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
+            return;
+        }
+    } else {
+        sendJSONResponse(res, 403, { message: 'This user is not authorized to this operation.' });
+        return;
+    }
+};
+
+var queryUpdateRI = function (req, res, next, userCity, personID,updateArr,deleteArr,newArr, data, i) {
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'UPDATE research_interests' +
+                          ' SET interests = ?,' +
+                          ' sort_order = ?' +
+                          ' WHERE id = ?';
+    querySQL = querySQL + '; ';
+    places.push(data.interests, data.sort_order,data.research_interest_id);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'people', personID,
+                                'UCIBIO API error updating person information (update research interests personID) :', personID);
+                externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'people', personID,
+                                'LAQV API error updating person information (update research interests personID) :', personID);
+                if (i + 1 < updateArr.length) {
+                    return queryUpdateRI(req, res, next, userCity, personID,
+                                updateArr,deleteArr,newArr, updateArr[i+1], i+1);
+                } else if (deleteArr.length > 0) {
+                    return queryDeleteRI(req, res, next, userCity, personID,
+                                updateArr,deleteArr,newArr, deleteArr[0], 0);
+                } else if (newArr.length > 0) {
+                    return queryAddRI(req, res, next, userCity, personID,
+                                updateArr,deleteArr,newArr, newArr[0], 0);
+                } else {
+                    sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
+                    return;
+                }
+            }
+        );
+    });
+};
+
+var queryDeleteRI = function (req, res, next, userCity, personID,updateArr,deleteArr,newArr, data, i) {
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'DELETE FROM research_interests' +
+                          ' WHERE id=?';
+    querySQL = querySQL + '; ';
+    places.push(data.research_interest_id);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'people', personID,
+                                'UCIBIO API error updating person information (delete research interests) :', personID);
+                externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'people', personID,
+                                'LAQV API error updating person information (delete research interests) :', personID);
+                if (i + 1 < deleteArr.length) {
+                    return queryDeleteRI(req, res, next, userCity, personID,
+                                updateArr,deleteArr,newArr, deleteArr[i+1], i+1);
+                } else if (newArr.length > 0) {
+                    return queryAddRI(req, res, next, userCity, personID,
+                                updateArr,deleteArr,newArr, newArr[0], 0);
+                } else {
+                    sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
+                    return;
+                }
+            }
+        );
+    });
+};
+
+var queryAddRI = function (req, res, next, userCity, personID,updateArr,deleteArr,newArr, data, i) {
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'INSERT INTO research_interests' +
+                          ' (person_id, interests, sort_order)' +
+                          ' VALUES (?, ?, ?)';
+    querySQL = querySQL + '; ';
+    places.push(personID, data.interests, data.sort_order);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'people', personID,
+                                'UCIBIO API error updating person information (add research interests) :', personID);
+                externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'people', personID,
+                                'LAQV API error updating person information (add research interests) :', personID);
+                if (i + 1 < newArr.length) {
+                    return queryAddRI(req, res, next, userCity, personID,
+                                updateArr,deleteArr,newArr, newArr[i+1], i+1);
+                } else {
+                    sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
+                    return;
+                }
+            }
+        );
+    });
+};
+
 var queryAffiliationsLabPerson = function (req, res, next, userCity) {
     var hasPermission = getGeoPermissions(req, userCity);
     if ((req.payload.personID !== req.params.personID && hasPermission)
@@ -4068,9 +4360,11 @@ var queryGetPersonalPhones = function (req,res,next, personID, row) {
 };
 
 var queryGetPersonalURLs = function (req,res,next, personID, row) {
-    var query = 'SELECT personal_urls.id AS personal_url_id, personal_urls.url AS personal_url' +
+    var query = 'SELECT personal_urls.id AS personal_url_id, personal_urls.url AS personal_url,' +
+                ' personal_urls.url_type_id, personal_url_types.type_en AS url_type, personal_urls.description' +
                 ' FROM people' +
                 ' LEFT JOIN personal_urls ON people.id = personal_urls.person_id' +
+                ' LEFT JOIN personal_url_types ON personal_urls.url_type_id = personal_url_types.id' +
                 ' WHERE people.id = ?;';
     var places = [personID];
     pool.getConnection(function(err, connection) {
@@ -4448,11 +4742,38 @@ var queryGetJobs = function (req,res,next, personID, row) {
                     return;
                 }
                 row = joinResponses(row,rowsQuery, 'job_data');
+                return queryGetResearchInterests(req,res,next, personID, row);
+            }
+        );
+    });
+};
+
+var queryGetResearchInterests = function (req,res,next, personID, row) {
+    var query = 'SELECT research_interests.id AS research_interest_id, research_interests.interests, research_interests.sort_order' +
+                ' FROM people' +
+                ' LEFT JOIN research_interests ON people.id = research_interests.person_id' +
+                ' WHERE people.id = ?;';
+    var places = [personID];
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(query,places,
+            function (err, rowsQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                row = joinResponses(row,rowsQuery, 'research_interests');
                 return queryGetLabs(req,res,next, personID, row);
             }
         );
     });
 };
+
 
 var queryGetLabs = function (req,res,next, personID, row) {
     var query = 'SELECT labs.id AS lab_id,' +
@@ -5295,6 +5616,12 @@ module.exports.getAllPeople = function (req, res, next) {
     var querySQL = 'SELECT people.id, people.name AS full_name, people.colloquial_name AS name,' +
                    ' people.active_from, people.active_until,' +
                    ' emails.email, phones.phone, phones.extension AS phone_extension,' +
+                   ' personal_urls.url, personal_urls.url_type_id, personal_url_types.type_en AS url_type, personal_urls.description AS url_description,' +
+                   ' degrees_people.start AS degree_start, degrees_people.end AS degree_end,' +
+                   ' degrees_people.degree_id AS degree_type_id, degrees.name_en AS degree,' +
+                   ' degrees_people.area AS degree_field, degrees_people.institution AS degree_institution,' +
+                   ' research_interests.interests, research_interests.sort_order AS interests_sort_order,' +
+                   ' researchers.ORCID, researchers.researcherID,' +
                    ' people_labs.sort_order, people_labs.valid_from AS lab_start, people_labs.valid_until AS lab_end,' +
                    ' labs.id AS lab_id, labs.name AS lab_name,' +
                    ' labs_groups.valid_from AS labs_groups_valid_from, labs_groups.valid_until AS labs_groups_valid_until,' +
@@ -5313,10 +5640,19 @@ module.exports.getAllPeople = function (req, res, next) {
                    ' people_administrative_offices.valid_from AS administrative_start, people_administrative_offices.valid_until AS administrative_end,' +
                    ' people_administrative_units.unit_id AS administrative_unit_id, administrative_units.name AS administrative_unit_name,' +
                    ' people_administrative_offices.administrative_position_id, administrative_positions.name_en AS administrative_position_name_en, administrative_positions.name_pt AS administrative_position_name_pt,' +
+                   ' jobs.category_id, categories.name_en AS category, jobs.organization, jobs.valid_from AS job_start, jobs.valid_until AS job_end,' +
                    ' personal_photo.url AS image_path' +
                   ' FROM people' +
                   ' LEFT JOIN emails ON people.id = emails.person_id' +
                   ' LEFT JOIN phones ON people.id = phones.person_id' +
+                  ' LEFT JOIN personal_urls ON people.id = personal_urls.person_id' +
+                  ' LEFT JOIN personal_url_types ON personal_urls.url_type_id = personal_url_types.id' +
+                  ' LEFT JOIN degrees_people ON people.id = degrees_people.person_id' +
+                  ' LEFT JOIN degrees ON degrees_people.degree_id = degrees.id' +
+                  ' LEFT JOIN jobs ON people.id = jobs.person_id' +
+                  ' LEFT JOIN categories ON jobs.category_id = categories.id' +
+                  ' LEFT JOIN research_interests ON people.id = research_interests.person_id' +
+                  ' LEFT JOIN researchers ON people.id = researchers.person_id' +
                   ' LEFT JOIN people_labs ON people.id = people_labs.person_id' +
                   ' LEFT JOIN labs ON labs.id = people_labs.lab_id' +
                   ' LEFT JOIN labs_groups ON labs_groups.lab_id = labs.id' +
@@ -5347,9 +5683,13 @@ module.exports.getAllPeople = function (req, res, next) {
         places.push(unitID,unitID,unitID,unitID);
     }
     var mergeRules = [
+                      ['personal_url_data', 'url', 'url_type_id', 'url_type', 'url_description'],
+                      ['degree_data', 'degree_start', 'degree_end', 'degree_type_id', 'degree', 'degree_field', 'degree_institution'],
+                      ['job_data', 'job_start', 'job_end', 'category_id', 'category', 'organization'],
+                      ['research_interests', 'interests', 'interests_sort_order'],
                       ['lab_data', 'lab_start', 'lab_end', 'lab_position_id','lab_position_name_en','lab_position_name_pt','sort_order',
                        'lab_id','lab_name','labs_groups_valid_from','labs_groups_valid_until','group_id','group_name','unit_id', 'unit_name'],
-                     ['technician_data', 'technician_start', 'technician_end', 'technician_position_id','technician_position_name_en','technician_position_name_pt',
+                      ['technician_data', 'technician_start', 'technician_end', 'technician_position_id','technician_position_name_en','technician_position_name_pt',
                        'technician_id','technician_office_id','technician_office_name','technician_unit_id','technician_unit_name'],
                       ['science_management_data', 'science_manager_start', 'science_manager_end', 'science_manager_position_id','science_manager_position_name_en','science_manager_position_name_pt',
                        'science_manager_id','science_manager_office_id','science_manager_office_name','science_manager_unit_id','science_manager_unit_name'],
@@ -5364,6 +5704,11 @@ module.exports.getPersonInfo = function (req, res, next) {
     var querySQL = 'SELECT people.id, people.name AS full_name, people.colloquial_name AS name,' +
                    ' people.active_from, people.active_until,' +
                    ' emails.email, phones.phone, phones.extension AS phone_extension,' +
+                   ' personal_urls.url, personal_urls.url_type_id, personal_url_types.type_en AS url_type, personal_urls.description AS url_description,' +
+                   ' degrees_people.start AS degree_start, degrees_people.end AS degree_end,' +
+                   ' degrees_people.degree_id AS degree_type_id, degrees.name_en AS degree,' +
+                   ' degrees_people.area AS degree_field, degrees_people.institution AS degree_institution,' +
+                   ' research_interests.interests, research_interests.sort_order AS interests_sort_order,' +
                    ' researchers.ORCID, researchers.researcherID,' +
                    ' people_labs.valid_from AS lab_start, people_labs.valid_until AS lab_end, people_labs.sort_order,' +
                    ' labs.id AS lab_id, labs.name AS lab_name,' +
@@ -5383,10 +5728,18 @@ module.exports.getPersonInfo = function (req, res, next) {
                    ' people_administrative_offices.valid_from AS administrative_start, people_administrative_offices.valid_until AS administrative_end,' +
                    ' people_administrative_units.unit_id AS administrative_unit_id, administrative_units.name AS administrative_unit_name,' +
                    ' people_administrative_offices.administrative_position_id, administrative_positions.name_en AS administrative_position_name_en, administrative_positions.name_pt AS administrative_position_name_pt,' +
+                   ' jobs.category_id, categories.name_en AS category, jobs.organization, jobs.valid_from AS job_start, jobs.valid_until AS job_end,' +
                    ' personal_photo.url AS image_path' +
                   ' FROM people' +
                   ' LEFT JOIN emails ON people.id = emails.person_id' +
                   ' LEFT JOIN phones ON people.id = phones.person_id' +
+                  ' LEFT JOIN personal_urls ON people.id = personal_urls.person_id' +
+                  ' LEFT JOIN personal_url_types ON personal_urls.url_type_id = personal_url_types.id' +
+                  ' LEFT JOIN degrees_people ON people.id = degrees_people.person_id' +
+                  ' LEFT JOIN degrees ON degrees_people.degree_id = degrees.id' +
+                  ' LEFT JOIN jobs ON people.id = jobs.person_id' +
+                  ' LEFT JOIN categories ON jobs.category_id = categories.id' +
+                  ' LEFT JOIN research_interests ON people.id = research_interests.person_id' +
                   ' LEFT JOIN researchers ON people.id = researchers.person_id' +
                   ' LEFT JOIN people_labs ON people.id = people_labs.person_id' +
                   ' LEFT JOIN labs ON labs.id = people_labs.lab_id' +
@@ -5414,6 +5767,10 @@ module.exports.getPersonInfo = function (req, res, next) {
                   ' WHERE people.id = ?;';
     var places = [personID];
     var mergeRules = [
+                      ['personal_url_data', 'url', 'url_type_id', 'url_type', 'url_description'],
+                      ['degree_data', 'degree_start', 'degree_end', 'degree_type_id', 'degree', 'degree_field', 'degree_institution'],
+                      ['job_data', 'job_start', 'job_end', 'category_id', 'category', 'organization'],
+                      ['research_interests', 'interests', 'interests_sort_order'],
                       ['lab_data', 'lab_start', 'lab_end', 'lab_position_id','lab_position_name_en','lab_position_name_pt', 'sort_order',
                        'lab_id','lab_name','labs_groups_valid_from','labs_groups_valid_until','group_id','group_name','unit_id', 'unit_name'],
                       ['technician_data', 'technician_start', 'technician_end', 'technician_position_id','technician_position_name_en','technician_position_name_pt',
@@ -5626,6 +5983,9 @@ module.exports.listOf = function (req, res, next) {
         getQueryResponse(querySQL, req, res, next);
     } else if (listOf === 'degree-types') {
         querySQL = 'SELECT degrees.id AS degree_type_id, degrees.name_en FROM degrees;';
+        getQueryResponse(querySQL, req, res, next);
+    } else if (listOf === 'url-types') {
+        querySQL = 'SELECT personal_url_types.id AS url_type_id, personal_url_types.type_en FROM personal_url_types;';
         getQueryResponse(querySQL, req, res, next);
     } else if (listOf === 'institution-cities') {
         querySQL = 'SELECT * FROM institution_city;';
@@ -5897,8 +6257,24 @@ module.exports.updateAffiliationsDepartmentPerson = function (req, res, next) {
     );
 };
 
+module.exports.updateURLsPerson = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30, 40],
+        function (req, res, username) {
+            getLocation(req, res, next, queryURLsPerson);
+        }
+    );
+};
+
+module.exports.updateResearchInterestsPerson = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30, 40],
+        function (req, res, username) {
+            getLocation(req, res, next, queryResearchInterestsPerson);
+        }
+    );
+};
+
 module.exports.updateAffiliationsLabPerson = function (req, res, next) {
-    getUser(req, res, [0, 5, 10, 15, 20, 30],
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
         function (req, res, username) {
             getLocation(req, res, next, queryAffiliationsLabPerson);
         }

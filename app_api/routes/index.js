@@ -62,6 +62,8 @@ router.put('/people/emergency-contacts/:personID', auth, ctrlPeopleData.updateEm
 router.put('/people/finished-degrees/:personID', auth, ctrlPeopleData.updateFinishedDegreesPerson);
 router.put('/people/ongoing-degrees/:personID', auth, ctrlPeopleData.updateOngoingDegreesPerson);
 router.put('/people/jobs/:personID', auth, ctrlPeopleData.updateJobsPerson);
+router.put('/people/personal-urls/:personID', auth, ctrlPeopleData.updateURLsPerson);
+router.put('/people/research-interests/:personID', auth, ctrlPeopleData.updateResearchInterestsPerson);
 router.put('/people/lab-affiliations/:personID', auth, ctrlPeopleData.updateAffiliationsLabPerson);
 router.put('/people/technician-affiliations/:personID', auth, ctrlPeopleData.updateTechnicianAffiliationsPerson);
 router.put('/people/science-manager-affiliations/:personID', auth, ctrlPeopleData.updateScienceManagerAffiliationsPerson);

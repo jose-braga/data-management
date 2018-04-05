@@ -13,6 +13,10 @@
         var cardTypes = function () {
             return $http.get('api/list/card-types');
         };
+        var urlTypes = function () {
+            return $http.get('api/list/url-types');
+        };
+
         var degreeTypes = function () {
             return $http.get('api/list/degree-types');
         };
@@ -197,6 +201,20 @@
                 }
             );
         };
+        var updateURLsPersonByID = function (personID, data) {
+            return $http.put('api/people/personal-urls/' + personID, data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var updateResearchInterestsPersonByID = function (personID, data) {
+            return $http.put('api/people/research-interests/' + personID, data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
         var updateAffiliationsLabPersonByID = function (personID, data) {
             return $http.put('api/people/lab-affiliations/' + personID, data,
                 {
@@ -306,6 +324,7 @@
             usernames: usernames,
             allCountries: allCountries,
             cardTypes: cardTypes,
+            urlTypes: urlTypes,
             degreeTypes: degreeTypes,
             managementEntities: managementEntities,
             professionalSituations: professionalSituations,
@@ -337,7 +356,9 @@
             permissions: permissions,
             updateInstitutionCityPersonByID: updateInstitutionCityPersonByID,
             updateJobsPersonByID: updateJobsPersonByID,
+            updateURLsPersonByID: updateURLsPersonByID,
             updateAffiliationsDepartmentPersonByID: updateAffiliationsDepartmentPersonByID,
+            updateResearchInterestsPersonByID: updateResearchInterestsPersonByID,
             updateAffiliationsLabPersonByID: updateAffiliationsLabPersonByID,
             updateCostCentersPersonByID: updateCostCentersPersonByID,
             updateTechnicianAffiliationsPersonByID: updateTechnicianAffiliationsPersonByID,

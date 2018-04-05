@@ -47,7 +47,9 @@
             'personUpdateComm':         32,
             'personCommRemove':         33,
             'personCommORCIDAdd':       34,
-            'personCommAdd':            35
+            'personCommAdd':            35,
+            'personResearchInterests':  36,
+            'personURLs':               37
         };
         vm.changePhoto = false;
         vm.photoSize = {w: 196, h: 196};
@@ -353,6 +355,43 @@
             // finds earliest date in department and lab/techn/... affiliation
             data['earliest_date'] = findEarliestDate(vm.thisPerson, vm.currentAffiliationsDepartment, 'department');
             personData.updateAffiliationsDepartmentPersonByID(vm.currentUser.personID,data)
+                .then( function () {
+                    getPersonData(vm.currentUser.personID, ind);
+                },
+                function () {
+                    vm.updateStatus[ind] = "Error!";
+                    vm.messageType[ind] = 'message-error';
+                },
+                function () {}
+                );
+            return false;
+        };
+        vm.submitURLs = function(ind) {
+            vm.updateStatus[ind] = "Updating...";
+            vm.messageType[ind] = 'message-updating';
+            vm.hideMessage[ind] = false;
+            var data = processDataRows(vm.currentURLs,vm.thisPerson.pers_url,
+                                  'personal_url_id', 'newURL','updateURL','deleteURL');
+
+            personData.updateURLsPersonByID(vm.currentUser.personID,data)
+                .then( function () {
+                    getPersonData(vm.currentUser.personID, ind);
+                },
+                function () {
+                    vm.updateStatus[ind] = "Error!";
+                    vm.messageType[ind] = 'message-error';
+                },
+                function () {}
+                );
+            return false;
+        };
+        vm.submitResearchInterests = function(ind) {
+            vm.updateStatus[ind] = "Updating...";
+            vm.messageType[ind] = 'message-updating';
+            vm.hideMessage[ind] = false;
+            var data = processDataRows(vm.currentResearchInterests,vm.thisPerson.research_interests,
+                                  'research_interest_id', 'newRI','updateRI','deleteRI');
+            personData.updateResearchInterestsPersonByID(vm.currentUser.personID,data)
                 .then( function () {
                     getPersonData(vm.currentUser.personID, ind);
                 },
@@ -844,6 +883,26 @@
                         supervisor_type_id:null,supervisor_type_name_en:null,
                         supervisor_name:null,supervisor_organization:null,
                         valid_from:null,valid_until:null};
+                    current.push(obj);
+                }
+            } else if (type === 'urls') {
+                if (current.length == 1 && current[0]['personal_url_id'] === null) {
+                    current[0]['personal_url_id'] = 'new';
+                } else {
+                    obj = {personal_url_id:'new',
+                        personal_url: null,
+                        url_type_id: null,
+                        url_type: null,
+                        description: null
+                    };
+                    current.push(obj);
+                }
+            } else if (type === 'researchInterests') {
+                if (current.length == 1 && current[0]['research_interest_id'] === null) {
+                    current[0]['research_interest_id'] = 'new';
+                } else {
+                    obj = {research_interest_id:'new',
+                        interests: null, sort_order:null};
                     current.push(obj);
                 }
             } else if (type === 'affiliationsLab') {
@@ -2476,6 +2535,10 @@
                     for (var id in vm.thisPerson.emergency_contacts) {
                         vm.currentEmergencyContacts.push(Object.assign({}, vm.thisPerson.emergency_contacts[id]));
                     }
+                    vm.currentURLs = [];
+                    for (var id in vm.thisPerson.pers_url) {
+                        vm.currentURLs.push(Object.assign({}, vm.thisPerson.pers_url[id]));
+                    }
                     vm.currentRolesTemp = JSON.parse(JSON.stringify(vm.thisPerson.roles_data));
                     vm.currentRoles = [];
                     for (var id in vm.currentRolesTemp) {
@@ -2517,6 +2580,12 @@
                     }
                     vm.initialFinishedDegrees = JSON.parse(JSON.stringify(vm.currentFinishedDegrees));
                     vm.initialOngoingDegrees = JSON.parse(JSON.stringify(vm.currentOngoingDegrees));
+
+                    vm.currentResearchInterests = [];
+                    vm.thisPerson.research_interests.sort(function(a,b) {return a.sort_order-b.sort_order;});
+                    for (var id in vm.thisPerson.research_interests) {
+                        vm.currentResearchInterests.push(Object.assign({}, vm.thisPerson.research_interests[id]));
+                    }
 
                     vm.currentAffiliationsLab = [];
                     for (var id in vm.thisPerson.lab_data) {
@@ -2620,6 +2689,13 @@
             personData.cardTypes()
                 .then(function (response) {
                     vm.cardTypes = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            personData.urlTypes()
+                .then(function (response) {
+                    vm.urlTypes = response.data.result;
                 })
                 .catch(function (err) {
                     console.log(err);
@@ -3136,6 +3212,18 @@
             templateUrl: 'person/personal/person.nuclearInfo.html'
         };
     };
+    var personUrls = function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'person/personal/person.personalURLs.html'
+        };
+    };
+    var personResearchInterests = function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'person/researcher/person.researchInterests.html'
+        };
+    };
     var personResearcherInfo = function () {
         return {
             restrict: 'E',
@@ -3257,8 +3345,6 @@
         };
     };
 
-
-
     var personWebsitePhoto = function () {
         return {
             restrict: 'E',
@@ -3370,6 +3456,8 @@
         .directive('personFinishedDegrees', personFinishedDegrees)
         .directive('personIdentificationsInfo', personIdentificationsInfo)
         .directive('personNuclearInfo', personNuclearInfo)
+        .directive('personUrls', personUrls)
+        .directive('personResearchInterests', personResearchInterests)
         .directive('personResearcherInfo', personResearcherInfo)
         .directive('personCostCenter', personCostCenter)
         .directive('personTechnicianInfo', personTechnicianInfo)

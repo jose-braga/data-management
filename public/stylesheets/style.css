@@ -62,13 +62,17 @@ a {
   padding-top: 0px;
 }
 
-.input-no-margin.simple-input.extra-small {
+.input-no-margin.simple-input.extra-small{
   height: 16px;
   width: 30px;
 }
 
-.input-no-margin.simple-input.extra-small input{
+.input-no-margin.simple-input.extra-small input {
   width: 30px;
+}
+
+.input-row.smaller {
+  width: 60px;
 }
 
 .input-no-margin .md-datepicker-triangle-button.md-icon-button.md-button {

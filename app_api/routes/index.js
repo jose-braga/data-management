@@ -30,11 +30,12 @@ router.get('/v1/science-management/:officeID/members', ctrlPeopleData.getScience
 router.get('/v1/administrative/:officeID/members', ctrlPeopleData.getAdministrativeOfficeMembers);
 // GET lists for several purposes
 router.get('/v1/list/:listOf', ctrlPeopleData.listOf);
-// GET search for person name
+// GET search for publications
 router.get('/v1/publication/all', ctrlPublicationsData.getAllPublications);
 router.get('/v1/publication/:pubID', ctrlPublicationsData.getPublicationInfo);
 router.get('/v1/publication/person/:personID', ctrlPublicationsData.getPersonPublicationInfo);
 router.get('/v1/publication/group/:groupID/lab/:labID', ctrlPublicationsData.getLabPublicationInfo);
+router.get('/v1/publication/group/:groupID', ctrlPublicationsData.getGroupPublicationInfo);
 
 
 /**************************** APP SPECIFIC ENDPOINTS ****************************/

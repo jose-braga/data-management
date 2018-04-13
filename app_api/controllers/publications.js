@@ -1107,6 +1107,10 @@ var queryORCIDInsertPublication = function (req, res, next,i, journalID) {
                     return;
                 }
                 var pubID = resQuery.insertId;
+                externalAPI.contact(WEBSITE_API_BASE_URL[1], 'create', 'publications', pubID,
+                                                'UCIBIO API error creating (adding association of publication to person, from ORCID) (id) :', pubID);
+                externalAPI.contact(WEBSITE_API_BASE_URL[2], 'create', 'publications', pubID,
+                                                'LAQV API error creating (adding association of publication to person, from ORCID) (id) :', pubID);
                 if (add[i].publication_type_id !== null && add[i].publication_type_id !== undefined) {
                     if (add[i].publication_type_id.length > 0) {
                         return queryORCIDInsertPublicationDescription(req,res,next,i, pubID);
@@ -1143,6 +1147,10 @@ var queryORCIDInsertPublicationDescription = function (req, res, next, i, pubID)
                     sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                     return;
                 }
+                externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'publications', pubID,
+                                                'UCIBIO API error updating (adding description, from ORCID) (id) :', pubID);
+                externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'publications', pubID,
+                                                'LAQV API error updating (adding description, from ORCID) (id) :', pubID);
                 return queryORCIDInsertPeoplePublications(req,res,next,i, pubID);
             }
         );
@@ -1171,10 +1179,10 @@ var queryORCIDInsertPeoplePublications = function (req, res, next, i, pubID) {
                     sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                     return;
                 }
-                externalAPI.contact(WEBSITE_API_BASE_URL[1], 'create', 'publications', pubID,
-                                        'UCIBIO API error updating highlight status (on) of publication (id, person) :', [pubID,personID]);
-                externalAPI.contact(WEBSITE_API_BASE_URL[2], 'create', 'publications', pubID,
-                                        'LAQV API error updating highlight status (on) of publication (id, person) :', [pubID,personID]);
+                externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'publications', pubID,
+                                                'UCIBIO API error updating (adding association to person, from ORCID) (id) :', pubID);
+                externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'publications', pubID,
+                                                'LAQV API error updating (adding association to person, from ORCID) (id) :', pubID);
                 if (i+1<add.length) {
                     return queryORCIDGetJournalID(req,res,next,i+1);
                 } else {

@@ -1493,6 +1493,9 @@ var queryAddRI = function (req, res, next, userCity, personID,updateArr,deleteAr
     });
 };
 
+/* TODO: IF PERSON DID NOT HAVE ROLES PREVIOUSLY (THEREFORE NO UNIT WOULD BE ATTACHED) THEN THIS WILL COUNT
+   AS A CREATION IN TERMS OF THE EXTERNAL api */
+
 var queryAffiliationsLabPerson = function (req, res, next, userCity) {
     var hasPermission = getGeoPermissions(req, userCity);
     if ((req.payload.personID !== req.params.personID && hasPermission)
@@ -2410,6 +2413,10 @@ var queryAddRole = function (req, res, next, personID, userCity, role, updated, 
                     sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                     return;
                 }
+                externalAPI.contact(WEBSITE_API_BASE_URL[1], 'create', 'people', personID,
+                                'UCIBIO API error updating person information (create person or person role [personID]) :', personID);
+                externalAPI.contact(WEBSITE_API_BASE_URL[2], 'create', 'people', personID,
+                                'LAQV API error updating person information (create person or person role [personID]) :', personID);
                 return queryPeopleGetRow(req, res, next, userCity, updated, created, changed_by);
             }
         );
@@ -2510,6 +2517,10 @@ var queryUpdateJob = function (req, res, next, userCity, jobUpdate, i) {
                         sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                         return;
                     }
+                    externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'people', req.params.personID,
+                                'UCIBIO API error updating person information (job category [personID]) :', req.params.personID);
+                    externalAPI.contact(WEBSITE_API_BASE_URL[2], 'create', 'people', req.params.personID,
+                                'LAQV API error updating person information (job category [personID]) :', req.params.personID);
                     if (originalRequiresContract === 0 && jobUpdate.job_situation_requires_unit_contract === 1) {
                         // add contract
                         return queryAddContractOnUpdate(req, res, next,userCity, jobUpdate,
@@ -2977,6 +2988,10 @@ var queryAddJob = function (req, res, next, userCity, jobAdd, i) {
                     return;
                 }
                 var jobID = resQuery.insertId;
+                externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'people', req.params.personID,
+                                'UCIBIO API error updating person information (job category create [personID]) :', req.params.personID);
+                externalAPI.contact(WEBSITE_API_BASE_URL[2], 'create', 'people', req.params.personID,
+                                'LAQV API error updating person information (job category create [personID]) :', req.params.personID);
                 if (jobAdd.job_situation_requires_unit_contract === 1) {
                     return queryAddContractOnAdd(req,res,next,userCity,jobAdd,jobID,i);
                 } else if (jobAdd.job_situation_requires_fellowship === 1) {
@@ -3161,6 +3176,10 @@ var queryDeleteJob = function (req, res, next, userCity, jobDelete,i) {
                     sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                     return;
                 }
+                externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'people', req.params.personID,
+                                'UCIBIO API error updating person information (job category delete [personID]) :', req.params.personID);
+                externalAPI.contact(WEBSITE_API_BASE_URL[2], 'create', 'people', req.params.personID,
+                                'LAQV API error updating person information (job category delete [personID]) :', req.params.personID);
                 if (i + 1 < req.body.deleteJobs.length) {
                     jobDelete = req.body.deleteJobs[i + 1];
                     return queryDeleteJob(req,res,next,userCity, jobDelete, i + 1);
@@ -3585,6 +3604,10 @@ var queryAddSupervisorPerson = function (req,res, next, userCity, otherSQL, othe
                         sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                         return;
                     }
+                    externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'people', req.params.personID,
+                                'UCIBIO API error updating person information (degree [personID]) :', req.params.personID);
+                    externalAPI.contact(WEBSITE_API_BASE_URL[2], 'create', 'people', req.params.personID,
+                                'LAQV API error updating person information (degree [personID]) :', req.params.personID);
                     if (i + 1 < newDegrees.length) {
                         return queryAddDegreePerson(req,res,next, userCity, otherSQL, otherPlaces, personID,
                                                     newDegrees, i+1);
@@ -3605,6 +3628,10 @@ var queryAddSupervisorPerson = function (req,res, next, userCity, otherSQL, othe
 };
 
 var queryAddDegreeFinalInfo = function (req,res, next, otherSQL, otherPlaces) {
+    externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'people', req.params.personID,
+                                'UCIBIO API error updating person information (degree [personID]) :', req.params.personID);
+    externalAPI.contact(WEBSITE_API_BASE_URL[2], 'create', 'people', req.params.personID,
+                                'LAQV API error updating person information (degree create [personID]) :', req.params.personID);
     if (otherPlaces.length > 0) {
         escapedQuery(otherSQL, otherPlaces, req, res, next);
     } else {
@@ -4063,6 +4090,11 @@ var queryAddOngoingDegreePerson = function (req,res, next, userCity, otherSQL, o
                     sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                     return;
                 }
+                externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'people', req.params.personID,
+                                'UCIBIO API error updating person information (degree [personID]) :', req.params.personID);
+                externalAPI.contact(WEBSITE_API_BASE_URL[2], 'create', 'people', req.params.personID,
+                                'LAQV API error updating person information (degree create [personID]) :', req.params.personID);
+
                 var degID = resQuery.insertId;
                 return queryAddOngoingSupervisorPerson(req,res,next, userCity, otherSQL, otherPlaces, personID,
                                                 newDegrees, degID, i);
@@ -4110,6 +4142,11 @@ var queryAddOngoingSupervisorPerson = function (req,res, next, userCity, otherSQ
                         sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                         return;
                     }
+                    externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'people', req.params.personID,
+                                'UCIBIO API error updating person information (degree [personID]) :', req.params.personID);
+                    externalAPI.contact(WEBSITE_API_BASE_URL[2], 'create', 'people', req.params.personID,
+                                'LAQV API error updating person information (degree create [personID]) :', req.params.personID);
+
                     if (i + 1 < newDegrees.length) {
                         return queryAddOngoingDegreePerson(req,res,next, userCity, otherSQL, otherPlaces, personID,
                                                     newDegrees, i+1);
@@ -4130,6 +4167,10 @@ var queryAddOngoingSupervisorPerson = function (req,res, next, userCity, otherSQ
 };
 
 var queryAddOngoingDegreeFinalInfo = function (req,res, next, otherSQL, otherPlaces) {
+    externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'people', req.params.personID,
+                                'UCIBIO API error updating person information (degree [personID]) :', req.params.personID);
+    externalAPI.contact(WEBSITE_API_BASE_URL[2], 'create', 'people', req.params.personID,
+                                'LAQV API error updating person information (degree create [personID]) :', req.params.personID);
     if (otherPlaces.length > 0) {
         escapedQuery(otherSQL, otherPlaces, req, res, next);
     } else {

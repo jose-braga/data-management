@@ -850,9 +850,9 @@ var queryAddPublicationsPerson = function (req, res, next) {
                         return;
                     }
                     for (var ind in add) {
-                        externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'publications', add[ind].id,
+                        externalAPI.contactCreateOrUpdate(WEBSITE_API_BASE_URL[1], 'publications', add[ind].id,
                                                 'UCIBIO API error updating (adding association of publication to person) (id, person) :', [add[ind].id, personID]);
-                        externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'publications', add[ind].id,
+                        externalAPI.contactCreateOrUpdate(WEBSITE_API_BASE_URL[2], 'publications', add[ind].id,
                                                 'LAQV API error updating (adding association of publication to person) (id, person) :', [add[ind].id, personID]);
                     }
                     sendJSONResponse(res, 200,
@@ -892,9 +892,9 @@ var queryAddPublicationsLab = function(req, res, next) {
                         return;
                     }
                     for (var ind in add) {
-                        externalAPI.contact(WEBSITE_API_BASE_URL[1], 'create', 'publications', add[ind].id,
+                        externalAPI.contactCreateOrUpdate(WEBSITE_API_BASE_URL[1], 'publications', add[ind].id,
                                                 'UCIBIO API error updating (adding association of publication to team) (id, lab, group) :', [add[ind].id, teamID, groupID]);
-                        externalAPI.contact(WEBSITE_API_BASE_URL[2], 'create', 'publications', add[ind].id,
+                        externalAPI.contactCreateOrUpdate(WEBSITE_API_BASE_URL[2], 'publications', add[ind].id,
                                                 'LAQV API error updating (adding association of publication to team) (id, lab, group) :', [add[ind].id, teamID, groupID]);
                     }
                     sendJSONResponse(res, 200,

@@ -2413,9 +2413,9 @@ var queryAddRole = function (req, res, next, personID, userCity, role, updated, 
                     sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                     return;
                 }
-                externalAPI.contact(WEBSITE_API_BASE_URL[1], 'create', 'people', personID,
+                externalAPI.contactCreateOrUpdate(WEBSITE_API_BASE_URL[1], 'people', personID,
                                 'UCIBIO API error updating person information (create person or person role [personID]) :', personID);
-                externalAPI.contact(WEBSITE_API_BASE_URL[2], 'create', 'people', personID,
+                externalAPI.contactCreateOrUpdate(WEBSITE_API_BASE_URL[2], 'people', personID,
                                 'LAQV API error updating person information (create person or person role [personID]) :', personID);
                 return queryPeopleGetRow(req, res, next, userCity, updated, created, changed_by);
             }

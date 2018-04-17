@@ -1326,9 +1326,10 @@ module.exports.getAllPublications = function (req, res, next) {
     if (req.query.hasOwnProperty('unit')) {
         unitID = req.query.unit;
     }
-    var querySQL = 'SELECT people_publications.person_id, people_publications.selected AS person_selected,' +
-                    ' labs_publications.lab_id,labs_publications.group_id, units.id AS unit_id,' +
-                    ' labs_publications.selected AS lab_selected,' +
+    var querySQL = 'SELECT people_publications.selected AS person_selected,' +
+                    ' labs_publications.selected AS lab_selected,'+
+                    ' people_publications.person_id, people_publications.public AS person_public,' +
+                    ' labs_publications.lab_id,labs_publications.group_id, units.id AS unit_id, labs_publications.public AS lab_public,' +
                     ' publications.*,' +
                     ' journals.name AS journal_name, journals.short_name AS journal_short_name, ' +
                     ' journals.publisher, journals.publisher_city, journals.issn, journals.eissn ' +

@@ -15,14 +15,21 @@ var contact = function (baseURL, operation, entityType, entityID, errorMessage, 
     // (might give additional information besides entityID)
     request(baseURL + '/' + operation + '/' + entityType + '/' + entityID,
         function (error, response, body) {
-            body = JSON.parse(body);
+            if (body.length >0) {
+                if (body[0] !== 'T') {
+                    body = JSON.parse(body);
+                }
+                else {
+                    body = {'statusCode': 5000};
+                }
+            }
             if (error !== null) {
                 console.log(errorMessage, errorIDs);
                 console.log('error:', error);
             }
             if (error === null && body.statusCode !== 200) {
                 console.log(errorMessage, errorIDs);
-                console.log('body:', body.statusCode);
+                console.log('statusCode:', body.statusCode);
             }
         });
 };
@@ -32,7 +39,14 @@ exports.contact = contact;
 exports.contactCreateOrUpdate = function (baseURL, entityType, entityID, errorMessage, errorIDs) {
     request(baseURL + '/' + 'create' + '/' + entityType + '/' + entityID,
         function (error, response, body) {
-            body = JSON.parse(body);
+            if (body.length >0) {
+                if (body[0] !== 'T') {
+                    body = JSON.parse(body);
+                }
+                else {
+                    body = {'statusCode': 5000};
+                }
+            }
             if (error !== null) {
                 console.log(errorMessage, errorIDs);
                 console.log('error:', error);

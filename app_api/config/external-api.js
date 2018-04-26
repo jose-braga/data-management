@@ -1,4 +1,4 @@
-var request = require('request');
+var request = require('requestretry');
 
 var baseURL = {1: 'https://www.requimte.pt/ucibio/api',
                2: 'https://dev.requimte.pt/laqv/api'};
@@ -13,14 +13,20 @@ var contact = function (baseURL, operation, entityType, entityID, errorMessage, 
     // Note: request is asynchronous !
     // errorIDs are the IDs associated with the request being done
     // (might give additional information besides entityID)
-    request(baseURL + '/' + operation + '/' + entityType + '/' + entityID,
-        function (error, response, body) {
-            if (body.length >0) {
-                if (body[0] !== 'T') {
-                    body = JSON.parse(body);
-                }
-                else {
-                    body = {'statusCode': 5000};
+    request({
+            url: baseURL + '/' + operation + '/' + entityType + '/' + entityID,
+            maxAttempts: 5,
+            retryDelay: 5000,
+            retryStrategy: request.RetryStrategies.HTTPOrNetworkError
+        }, function (error, response, body) {
+            if (body !== undefined) {
+                if (body.length >0) {
+                    if (body[0] !== 'T') {
+                        body = JSON.parse(body);
+                    }
+                    else {
+                        body = {'statusCode': 5000};
+                    }
                 }
             }
             if (error !== null) {
@@ -37,14 +43,20 @@ var contact = function (baseURL, operation, entityType, entityID, errorMessage, 
 exports.contact = contact;
 
 exports.contactCreateOrUpdate = function (baseURL, entityType, entityID, errorMessage, errorIDs) {
-    request(baseURL + '/' + 'create' + '/' + entityType + '/' + entityID,
-        function (error, response, body) {
-            if (body.length >0) {
-                if (body[0] !== 'T') {
-                    body = JSON.parse(body);
-                }
-                else {
-                    body = {'statusCode': 5000};
+    request({
+            url: baseURL + '/' + 'create' + '/' + entityType + '/' + entityID,
+            maxAttempts: 5,
+            retryDelay: 5000,
+            retryStrategy: request.RetryStrategies.HTTPOrNetworkError
+        }, function (error, response, body) {
+            if (body !== undefined) {
+                if (body.length >0) {
+                    if (body[0] !== 'T') {
+                        body = JSON.parse(body);
+                    }
+                    else {
+                        body = {'statusCode': 5000};
+                    }
                 }
             }
             if (error !== null) {

@@ -100,38 +100,63 @@ function processPublications(resQuery) {
     }
     var rowsSkip = [];
     var publications = [];
+    var found;
     for (var indRow in resQuery) {
         indRow = Number.parseInt(indRow,10);
         if (rowsSkip.indexOf(indRow) === -1) {
             rowsSkip.push(indRow);
             var person_selected = [];
             if (resQuery[indRow].person_selected === 1
-                && resQuery[indRow].person_public === 1) {person_selected.push(resQuery[indRow].person_id);}
+                && resQuery[indRow].person_public === 1
+                && person_selected.indexOf(resQuery[indRow].person_id) === -1) {person_selected.push(resQuery[indRow].person_id);}
             var lab_selected = [];
             if (resQuery[indRow].lab_selected === 1
-                && resQuery[indRow].lab_public === 1) {
-                lab_selected.push({
-                    lab_id: resQuery[indRow].lab_id,
-                    group_id: resQuery[indRow].group_id,
-                    unit_id: resQuery[indRow].unit_id
-                });
+                    && resQuery[indRow].lab_public === 1) {
+                found = false;
+                for (var elab in lab_selected) {
+                    if (lab_selected[elab].lab_id == resQuery[indRow].lab_id
+                            && lab_selected[elab].group_id == resQuery[indRow].group_id
+                            && lab_selected[elab].unit_id == resQuery[indRow].unit_id) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    lab_selected.push({
+                        lab_id: resQuery[indRow].lab_id,
+                        group_id: resQuery[indRow].group_id,
+                        unit_id: resQuery[indRow].unit_id
+                    });
+                }
             }
             var person = [];
             if (resQuery[indRow].person_id !== null
-                && resQuery[indRow].person_public === 1) {person.push(resQuery[indRow].person_id);}
+                && resQuery[indRow].person_public === 1
+                && person.indexOf(resQuery[indRow].person_id) === -1) {person.push(resQuery[indRow].person_id);}
             var lab = [];
             if (resQuery[indRow].lab_id !== null && resQuery[indRow].lab_public === 1) {
-                lab.push({
-                    lab_id: resQuery[indRow].lab_id,
-                    group_id: resQuery[indRow].group_id,
-                    unit_id: resQuery[indRow].unit_id
-                });
+                found = false;
+                for (var elab in lab) {
+                    if (lab[elab].lab_id == resQuery[indRow].lab_id
+                            && lab[elab].group_id == resQuery[indRow].group_id
+                            && lab[elab].unit_id == resQuery[indRow].unit_id) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    lab.push({
+                        lab_id: resQuery[indRow].lab_id,
+                        group_id: resQuery[indRow].group_id,
+                        unit_id: resQuery[indRow].unit_id
+                    });
+                }
             }
             for (var ind = indRow + 1; ind < resQuery.length; ind++) {
                 if (resQuery[ind].id == resQuery[indRow].id) {
                     rowsSkip.push(ind);
                     if (resQuery[ind].person_selected === 1 && resQuery[ind].person_public === 1) {
-                        if (person_selected.indexOf(resQuery[ind].person_selected) === -1) {
+                        if (person_selected.indexOf(resQuery[ind].person_id) === -1) {
                             person_selected.push(resQuery[ind].person_id);
                         }
                     }

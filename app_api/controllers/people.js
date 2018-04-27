@@ -5377,7 +5377,7 @@ var queryUpdatePhoto = function (req, res, next, userCity) {
                  return;
             }
             return queryUpdatePhotoDatabaseGetPrevious(req, res, next, req.file);
-        })
+        });
     }
 };
 

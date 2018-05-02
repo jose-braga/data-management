@@ -36,6 +36,7 @@ router.get('/v1/publication/:pubID', ctrlPublicationsData.getPublicationInfo);
 router.get('/v1/publication/person/:personID', ctrlPublicationsData.getPersonPublicationInfo);
 router.get('/v1/publication/group/:groupID/lab/:labID', ctrlPublicationsData.getLabPublicationInfo);
 router.get('/v1/publication/group/:groupID', ctrlPublicationsData.getGroupPublicationInfo);
+router.get('/v1/publication/unit/:unitID', ctrlPublicationsData.getUnitPublicationInfo);
 
 
 /**************************** APP SPECIFIC ENDPOINTS ****************************/

@@ -1256,57 +1256,63 @@ var queryUpdatePersonCommunications = function (req, res, next, i) {
     var upd = req.body.upd;
     var querySQL = '';
     var places = [];
-    var date = momentToDate(upd[i].date);
-    querySQL = querySQL + 'UPDATE  communications' +
-                ' SET authors_raw = ?,' +
-                ' presenter = ?,' +
-                ' title = ?,' +
-                ' type_id = ?,' +
-                ' conference_title = ?,' +
-                ' conference_type_id = ?,' +
-                ' international = ?, ' +
-                ' city = ?, ' +
-                ' country_id = ?,' +
-                ' date = ?,' +
-                ' doi = ?,' +
-                ' public = ?' +
-                ' WHERE id = ?;';
-    places.push(upd[i].authors_raw,
-                upd[i].presenter,
-                upd[i].title,
-                upd[i].communication_type_id,
-                upd[i].conference_title,
-                upd[i].conference_type_id,
-                upd[i].international,
-                upd[i].city,
-                upd[i].country_id,
-                date,
-                upd[i].doi,
-                upd[i].public,
-                upd[i].id);
-    pool.getConnection(function(err, connection) {
-        if (err) {
-            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
-            return;
-        }
-        connection.query(querySQL,places,
-            function (err, resQuery) {
-                // And done with the connection.
-                connection.release();
-                if (err) {
-                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
-                    return;
-                }
-                if (i+1 < upd.length) {
-                    return queryUpdatePersonCommunications(req,res,next,i+1);
-                } else {
-                    sendJSONResponse(res, 200,
-                        {"status": "success", "statusCode": 200, "count": 1,
-                         "result" : "all done"});
-                }
+    if (upd.length > 0) {
+        var date = momentToDate(upd[i].date);
+        querySQL = querySQL + 'UPDATE  communications' +
+                    ' SET authors_raw = ?,' +
+                    ' presenter = ?,' +
+                    ' title = ?,' +
+                    ' type_id = ?,' +
+                    ' conference_title = ?,' +
+                    ' conference_type_id = ?,' +
+                    ' international = ?, ' +
+                    ' city = ?, ' +
+                    ' country_id = ?,' +
+                    ' date = ?,' +
+                    ' doi = ?,' +
+                    ' public = ?' +
+                    ' WHERE id = ?;';
+        places.push(upd[i].authors_raw,
+                    upd[i].presenter,
+                    upd[i].title,
+                    upd[i].communication_type_id,
+                    upd[i].conference_title,
+                    upd[i].conference_type_id,
+                    upd[i].international,
+                    upd[i].city,
+                    upd[i].country_id,
+                    date,
+                    upd[i].doi,
+                    upd[i].public,
+                    upd[i].id);
+        pool.getConnection(function(err, connection) {
+            if (err) {
+                sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+                return;
             }
-        );
-    });
+            connection.query(querySQL,places,
+                function (err, resQuery) {
+                    // And done with the connection.
+                    connection.release();
+                    if (err) {
+                        sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                        return;
+                    }
+                    if (i+1 < upd.length) {
+                        return queryUpdatePersonCommunications(req,res,next,i+1);
+                    } else {
+                        sendJSONResponse(res, 200,
+                            {"status": "success", "statusCode": 200, "count": 1,
+                             "result" : "all done"});
+                    }
+                }
+            );
+        });
+    } else {
+        sendJSONResponse(res, 200,
+                            {"status": "no changes", "statusCode": 200, "count": 0,
+                             "result" : "all done"});
+    }
 };
 
 /************************* Public API Person Queries **************************/

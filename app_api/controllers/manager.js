@@ -217,6 +217,25 @@ function getGeoPermissions(req, userCity) {
     return geoPermissions;
 }
 
+function joinResponses(row, newRows, newKey, i, newSubRows, newSubKey) {
+    if (newKey !== undefined) {
+        if (newSubRows !== undefined && newSubKey !== undefined && i !== undefined) {
+            row[newKey][i][newSubKey] = newSubRows;
+            return row;
+        } else {
+            row[newKey] = newRows;
+            return row;
+        }
+    } else {
+        // this will be OK only if each row of newRows is different
+        for (var ind in newRows) {
+            Object.assign(row,newRows[ind]);
+        }
+        return row;
+    }
+}
+
+
 function momentToDate(timedate, timezone, timeformat) {
     if (timezone === undefined) {
         timezone = 'Europe/Lisbon';
@@ -1425,7 +1444,7 @@ var sendEmailsToUsers = function (req, res, next) {
 /*******************************************************************************/
 
 var listAllPeopleWithRolesDataRemaining = function (req,res,next, data) {
-    var querySQL = 'SELECT people.id AS person_id, people.name AS person_name,' +
+    var querySQL = 'SELECT people.id AS person_id, people.name AS person_name, people.colloquial_name, people.birth_date, people.gender,' +
                    ' people_institution_city.city_id AS pole_id, institution_city.city AS pole_name,' +
                    ' people_roles.role_id, people_roles.id AS people_roles_id,' +
                    ' technicians_info.association_key, technicians_info.ORCID,' +
@@ -1444,7 +1463,7 @@ var listAllPeopleWithRolesDataRemaining = function (req,res,next, data) {
                    ' WHERE people.status = 1' + ' AND ' + 'people_roles.role_id = ' + rolesObj['technical'] +
                    ' ORDER BY people.name';
     querySQL = querySQL + '; ';
-    querySQL = querySQL + 'SELECT people.id AS person_id, people.name AS person_name,' +
+    querySQL = querySQL + 'SELECT people.id AS person_id, people.name AS person_name, people.colloquial_name, people.birth_date, people.gender,' +
                    ' people_institution_city.city_id AS pole_id, institution_city.city AS pole_name,' +
                    ' people_roles.role_id, people_roles.id AS people_roles_id,' +
                    ' science_managers_info.association_key, science_managers_info.ORCID,' +
@@ -1463,7 +1482,7 @@ var listAllPeopleWithRolesDataRemaining = function (req,res,next, data) {
                    ' WHERE people.status = 1' + ' AND ' + 'people_roles.role_id = ' + rolesObj['scienceManagement'] +
                    ' ORDER BY people.name';
     querySQL = querySQL + '; ';
-    querySQL = querySQL + 'SELECT people.id AS person_id, people.name AS person_name,' +
+    querySQL = querySQL + 'SELECT people.id AS person_id, people.name AS person_name, people.colloquial_name, people.birth_date, people.gender,' +
                    ' people_institution_city.city_id AS pole_id, institution_city.city AS pole_name,' +
                    ' people_roles.role_id, people_roles.id AS people_roles_id,' +
                    ' administrative_info.association_key, NULL AS ORCID,' +
@@ -1501,9 +1520,7 @@ var listAllPeopleWithRolesDataRemaining = function (req,res,next, data) {
                 for (var el in rowsQuery) {
                     result.push(rowsQuery[el]);
                 }
-                sendJSONResponse(res, 200,
-                    {"status": "success", "statusCode": 200, "count": result.length,
-                     "result" : result});
+                return getMoreInfo(req, res, next, result, 0, 0);
             }
         );
     });
@@ -1516,7 +1533,7 @@ module.exports.listAllPeopleWithRolesData = function (req, res, next) {
     getUser(req, res, [0, 5, 10, 15, 16],
         function (req, res, username) {
             var places = [];
-            var querySQL = 'SELECT people.id AS person_id, people.name AS person_name,' +
+            var querySQL = 'SELECT people.id AS person_id, people.name AS person_name, people.colloquial_name, people.birth_date, people.gender,' +
                            ' people_institution_city.city_id AS pole_id, institution_city.city AS pole_name,' +
                            ' people_roles.role_id, people_roles.id AS people_roles_id,' +
                            ' researchers.association_key, researchers.ORCID,' +
@@ -1557,9 +1574,6 @@ module.exports.listAllPeopleWithRolesData = function (req, res, next) {
                             sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                             return;
                         }
-                        for (var ind in rowsQuery) {
-
-                        }
                         rowsQuery = filterLabTimes(rowsQuery);
                         return listAllPeopleWithRolesDataRemaining(req,res,next, rowsQuery);
                     }
@@ -1567,6 +1581,123 @@ module.exports.listAllPeopleWithRolesData = function (req, res, next) {
             });
         }
     );
+};
+
+var getMoreInfo = function (req, res, next, rows, i, irole) {
+    if (rows[irole].length > 0) {
+        return getDepartments(req, res, next, rows, i, irole);
+    } else if (irole + 1 < rows.length) {
+        return getMoreInfo(req, res, next, rows, 0, irole+1);
+    } else {
+        sendJSONResponse(res, 200,
+            {"status": "success", "statusCode": 200, "count": rows.length,
+             "result" : rows});
+    }
+};
+
+var getDepartments = function (req, res, next, rows, i, irole) {
+    var query = 'SELECT people_departments.id AS people_departments_id,' +
+                ' people_departments.department_id AS department_id, departments.name_en AS department,' +
+                ' people_departments.valid_from AS department_start, people_departments.valid_until AS department_end' +
+                ' FROM people' +
+                ' LEFT JOIN people_departments ON people.id = people_departments.person_id' +
+                ' LEFT JOIN departments ON people_departments.department_id = departments.id' +
+                ' WHERE people.id = ?';
+    var places = [rows[irole][i].person_id];
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(query,places,
+            function (err, rowsQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                rows[irole][i] = joinResponses(rows[irole][i], rowsQuery, 'departments');
+                return getDegrees(req, res, next, rows, i, irole);
+            }
+        );
+    });
+
+};
+
+var getDegrees = function (req, res, next, rows, i, irole) {
+    var query = 'SELECT degrees_people.id AS degrees_people_id, ' +
+                ' degrees_people.degree_id AS degree_type_id, degrees.name_en AS degree_name_en,' +
+                ' degrees_people.area AS degree_area, degrees_people.institution AS degree_institution,' +
+                ' degrees_people.program AS degree_program,' +
+                ' degrees_people.start AS degree_start, degrees_people.estimate_end AS degree_estimate_end, degrees_people.end AS degree_end,' +
+                ' degrees_people.title AS degree_title' +
+                ' FROM people' +
+                ' LEFT JOIN degrees_people ON people.id = degrees_people.person_id' +
+                ' LEFT JOIN degrees ON degrees_people.degree_id = degrees.id' +
+                ' WHERE people.id = ?;';
+    var places = [rows[irole][i].person_id];
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(query,places,
+            function (err, rowsQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                rows[irole][i] = joinResponses(rows[irole][i], rowsQuery, 'degrees');
+                return getJobs(req, res, next, rows, i, irole);
+            }
+        );
+    });
+
+};
+
+var getJobs = function (req, res, next, rows, i, irole) {
+    var query = 'SELECT jobs.id AS job_id,' +
+                ' jobs.category_id AS job_category_id, categories.name_en AS job_category_name_en,' +
+                ' jobs.organization AS job_organization, jobs.dedication AS job_dedication,' +
+                ' jobs.valid_from AS job_valid_from, jobs.valid_until AS job_valid_until' +
+
+                ' FROM people' +
+                ' LEFT JOIN jobs ON people.id = jobs.person_id' +
+                ' LEFT JOIN categories ON jobs.category_id = categories.id' +
+                ' WHERE people.id = ?';
+    var places = [rows[irole][i].person_id];
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(query,places,
+            function (err, rowsQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                rows[irole][i] = joinResponses(rows[irole][i], rowsQuery, 'jobs');
+                if (i + 1 < rows[irole].length) {
+                    return getMoreInfo(req, res, next, rows, i+1, irole);
+                } else {
+                    if (irole + 1 < rows.length) {
+                        return getMoreInfo(req, res, next, rows, 0, irole+1);
+                    } else {
+                        sendJSONResponse(res, 200,
+                            {"status": "success", "statusCode": 200, "count": rows.length,
+                             "result" : rows});
+                    }
+                }
+            }
+        );
+    });
+
 };
 
 module.exports.listAllPeopleNoRolesData = function (req, res, next) {

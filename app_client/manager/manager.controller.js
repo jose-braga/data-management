@@ -2290,6 +2290,28 @@
             }
             vm.accessPermission = authentication.access('manager');
             vm.currentUser = authentication.currentUser();
+            /*
+
+            // full name is always exported, colloquial name is optional
+            vm.exportOptions = {
+                'Colloquial name':    {isDefault: false, keys: ['colloquial_name']},
+                'Position':           {isDefault: true,  keys: ['lab_data','position_id']},
+                'Dedication':         {isDefault: true,  keys: ['lab_data','dedication']},
+                'Lab':                {isDefault: true,  keys: ['lab_data','lab']},
+                'Group':              {isDefault: true,  keys: ['lab_data','group_name']},
+                'Unit':               {isDefault: true,  keys: ['lab_data','unit']},
+                'Started':            {isDefault: true,  keys: ['lab_data','lab_start']},
+                'Ended':              {isDefault: true,  keys: ['lab_data','lab_end']},
+                'Pole':               {isDefault: true,  keys: ['institution_city_name']},
+                'Association Key':    {isDefault: true,  keys: ['researcher_data','association_key']},
+                'ORCID':              {isDefault: true,  keys: ['researcher_data','ORCID']},
+
+                'Birth date':         {isDefault: false, keys: ['birth_date']},
+                'Gender':             {isDefault: false, keys: ['gender']},
+                'Job':                {isDefault: false, keys: ['job_data','job_category_name_en']},
+            };
+            */
+
         }
         function getPersonData(personID, el, ind) {
             if (el === -1) {
@@ -2462,6 +2484,7 @@
                         vm.thisPerson[el].department_data[id]['department_end'] = processDate(vm.thisPerson[el].department_data[id]['department_end']);
                         vm.currentAffiliationsDepartment[el].push(Object.assign({}, vm.thisPerson[el].department_data[id]));
                     }
+
                     if (ind > -1) {
                         vm.updateStatus[ind] = "Updated!";
                         vm.messageType[ind] = 'message-success';
@@ -2608,10 +2631,10 @@
 
                             if (index == 0) {
                                 // for researchers
-                                newData.valid_from = processDate(newData.valid_from,undefined,'YYYY-MM-DD')
-                                newData.valid_until = processDate(newData.valid_until,undefined,'YYYY-MM-DD')
-                                newData.labs_groups_valid_from = processDate(newData.labs_groups_valid_from,undefined,'YYYY-MM-DD')
-                                newData.labs_groups_valid_until = processDate(newData.labs_groups_valid_until,undefined,'YYYY-MM-DD')
+                                newData.valid_from = processDate(newData.valid_from,undefined,'YYYY-MM-DD');
+                                newData.valid_until = processDate(newData.valid_until,undefined,'YYYY-MM-DD');
+                                newData.labs_groups_valid_from = processDate(newData.labs_groups_valid_from,undefined,'YYYY-MM-DD');
+                                newData.labs_groups_valid_until = processDate(newData.labs_groups_valid_until,undefined,'YYYY-MM-DD');
                                 for (var el in vm.labs) {
                                     if (vm.labs[el].lab_id === newData.lab_id
                                         && vm.labs[el].group_id === newData.group_id) {
@@ -2623,6 +2646,9 @@
                             vm.allPeople.push(newData);
                         }
                     }
+
+                    console.log(vm.allPeople[4])
+
                     vm.renderPeople();
                     if (ind !== undefined) {
                         if (ind > -1) {
@@ -2867,22 +2893,47 @@
             return null;
         }
         function convertData(arrObj) {
+            function stringFromArrObj(thisArrObj, key, dates) {
+                var str = '';
+                var initial = true;
+                for (var el in thisArrObj) {
+                    if (thisArrObj[el][key] !== null) {
+                        if (initial) {
+                            str = str + thisArrObj[el][key];
+                            initial = false;
+                        } else {
+                            str = str + ';\n' + thisArrObj[el][key];
+                        }
+                        if (dates !== undefined) {
+                            str = str + ' (' + momentToDate(thisArrObj[el][dates[0]]) +
+                                         ',' + momentToDate(thisArrObj[el][dates[1]]) + ')';
+                        }
+                    }
+                }
+                return str;
+            }
             // selects data for exporting
             var data = [];
             if (arrObj.length > 0) {
                 for (var el in arrObj) {
                     data.push({
                         "Person Name": arrObj[el]['person_name'],
-                        "Key": arrObj[el]['association_key'],
+                        "Colloquial Name": arrObj[el]['colloquial_name'],
+                        "Birth Date": momentToDate(arrObj[el]['birth_date']),
+                        "Gender": arrObj[el]['gender'],
                         "Position": getPosition(arrObj[el]['position_id'], arrObj[el]['role_id']),
                         "Dedication": arrObj[el]['dedication'],
                         "Lab": arrObj[el]['lab'],
                         "Group": getGroup(arrObj[el]['group_id'], arrObj[el]['role_id']),
                         "Unit": getUnit(arrObj[el]['unit_id'], arrObj[el]['role_id']),
+                        "Started": momentToDate(arrObj[el]['valid_from']),
+                        "Ended": momentToDate(arrObj[el]['valid_until']),
                         "Pole": arrObj[el]['pole_name'],
                         "ORCID": arrObj[el]['ORCID'],
-                        "Started": momentToDate(arrObj[el]['valid_from']),
-                        "Ended": momentToDate(arrObj[el]['valid_until'])
+                        "Key": arrObj[el]['association_key'],
+                        "Departments": stringFromArrObj(arrObj[el]['departments'],'department'),
+                        "Jobs": stringFromArrObj(arrObj[el]['jobs'],'job_category_name_en',['job_valid_from','job_valid_until']),
+                        "Degrees": stringFromArrObj(arrObj[el]['degrees'],'degree_name_en',['degree_start','degree_end'])
                     });
                 }
                 return data;

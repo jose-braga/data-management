@@ -75,6 +75,7 @@
                             class="s48"></md-icon>
                 </md-button>
             </div>
+            <md-progress-circular ng-if="vm.loadingAllPeople" md-mode="indeterminate"></md-progress-circular>
             <div class="small-screens" layout="column" ng-if="!vm.showTable()">
                 <div ng-repeat="(memberNum,member) in vm.currPeople track by $index">
                     <div layout="column">

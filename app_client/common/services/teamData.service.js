@@ -1,6 +1,15 @@
 (function(){
 var teamData = function ($http, authentication) {
     var currentUser = authentication.currentUser();
+
+    var allPeopleData = function () {
+        return $http.get('api/people/all-for-team',
+            {
+                headers: {Authorization: 'Bearer ' + authentication.getToken()}
+            }
+        );
+    };
+
     var thisLabPeopleData = function (groupID, teamID) {
         return $http.get('api/labs/' + groupID + '/' + teamID + '/people/',
             {
@@ -71,6 +80,7 @@ var teamData = function ($http, authentication) {
     };
 
     return {
+        allPeopleData: allPeopleData,
         thisLabPeopleData: thisLabPeopleData,
         thisTechPeopleData: thisTechPeopleData,
         thisScManPeopleData: thisScManPeopleData,

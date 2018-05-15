@@ -1,5 +1,8 @@
 <form flex novalidate name="teamPreRegistrationForm"
         ng-submit="teamPreRegistrationForm.$valid && vm.submitRegistration(vm.forms['teamPreRegistration'])">
+    <div flex layout-padding>
+            <team-pre-registration-search></team-pre-registration-search>
+    </div>
     <div layout-xs="column" layout="row" layout-padding>
         <div flex-xs flex-gt-xs="50" layout="column">
             <team-pre-registration-user></team-pre-registration-user>

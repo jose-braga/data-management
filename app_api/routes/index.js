@@ -44,6 +44,7 @@ router.get('/v1/publication/unit/:unitID', ctrlPublicationsData.getUnitPublicati
 // GET lists of non-confidential information about people
 router.get('/people', ctrlPeopleData.listActivePeople);
 router.get('/people/all', ctrlPeopleData.listAllPeople); //should come before GET /people/:personID
+router.get('/people/all-for-team', ctrlTeamData.listAllPeople); //gets data for team leader or team manager
 
 
 // GET specific data of a person

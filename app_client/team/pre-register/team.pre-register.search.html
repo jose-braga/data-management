@@ -1,0 +1,25 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Search database person</span>
+            <span class="md-subhead">Unless you are absolutely confident, check if person already exists in database before starting pre-registration.<br>
+                                    If no results show up, proceed to pre-registration.</span>
+        </md-card-title-text>
+    </md-card-title>
+    <md-card-content layout="column" flex>
+        <md-input-container flex>
+            <label>Name (> 3 char.)</label>
+            <input ng-model="vm.searchName" ng-change="vm.getSearchResults(vm.searchName)">
+        </md-input-container>
+        <div class="search-results">
+            <ul>
+                <li ng-repeat="person in vm.searchResults">
+                    <b>Name:</b> {{person.name}}, <b>Colloquial Name:</b> {{person.colloquial_name}}<br>
+                    <b>Lab/Office:</b> {{vm.showLabName(person)}}, <b>Unit:</b> {{vm.showUnitName(person)}}<br>
+                    <b>Email:</b> {{person.email}}<br>
+                </li>
+            </ul>
+
+        </div>
+    </md-card-content>
+</md-card>

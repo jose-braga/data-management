@@ -241,6 +241,39 @@ var escapedQuery = function(querySQL, place, req, res, next) {
     });
 };
 
+var escapedQueryPersonSearch = function(querySQL, req, res, next) {
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        // Use the connection
+        connection.query( querySQL, function(err, rows) {
+            // And done with the connection.
+            connection.release();
+            if (err) {
+                sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                return;
+            }
+            var newRows = [];
+            for (var el in rows) {
+
+                if (rows[el].lab_id !== null) {
+                   var thisRow = filterLabTimes([rows[el]],'team-leader');
+                   if (thisRow.length != 0) {
+                       newRows.push(rows[el]);
+                   }
+                } else {
+                    newRows.push(rows[el]);
+                }
+            }
+            sendJSONResponse(res, 200,
+                {"status": "success", "statusCode": 200, "count": newRows.length,
+                 "result" : newRows});
+        });
+    });
+};
+
 var getUser = function (req, res, permissions, callback) {
     // permissions - array containing which types of users can access resource
     if (req.payload && req.payload.username) {
@@ -363,7 +396,7 @@ var make_password = function(n, a) {
   return n > 0 ? a[index] + make_password(n - 1, a) : '';
 };
 
-function filterLabTimes(rows) {
+function filterLabTimes(rows, type) {
     // lab_start is when person started in the lab
     // lab_end is when person left the lab
 
@@ -376,13 +409,25 @@ function filterLabTimes(rows) {
     // 2. front-end - lab_start cannot be less than lab_opened, lab_end cannot be more than lab_closed
     var filteredRows = [];
     for (var ind in rows) {
-        var overlap = timeOverlap(rows[ind].valid_from,rows[ind].valid_until,
-            rows[ind].labs_groups_valid_from,rows[ind].labs_groups_valid_until);
-        if (overlap) {
-            // TODO: momentToDate???
-            rows[ind].valid_from = overlap[0];
-            rows[ind].valid_until = overlap[1];
-            filteredRows.push(rows[ind]);
+        var overlap;
+        if (type === undefined) {
+            overlap = timeOverlap(rows[ind].valid_from,rows[ind].valid_until,
+                rows[ind].labs_groups_valid_from,rows[ind].labs_groups_valid_until);
+            if (overlap) {
+                // TODO: momentToDate???
+                rows[ind].valid_from = overlap[0];
+                rows[ind].valid_until = overlap[1];
+                filteredRows.push(rows[ind]);
+            }
+        } else {
+            overlap = timeOverlap(rows[ind].lab_start,rows[ind].lab_end,
+                rows[ind].labs_groups_valid_from,rows[ind].labs_groups_valid_until);
+            if (overlap) {
+                // TODO: momentToDate???
+                rows[ind].valid_from = overlap[0];
+                rows[ind].valid_until = overlap[1];
+                filteredRows.push(rows[ind]);
+            }
         }
     }
     return filteredRows;
@@ -2405,8 +2450,61 @@ var sendEmailsToUsers = function (req, res, next, userID, personID,
 
 
 /**************************** SQL Generators **********************************/
+/* TODO: check if this is really needed */
 module.exports.listLabData = function (req, res, next) {
 
+};
+
+
+module.exports.listAllPeople = function (req, res, next) {
+    var querySQL = 'SELECT people.id, people.name, people.colloquial_name,' +
+                   ' people.active_from, people.active_until,' +
+                   ' emails.email,' +
+                   ' people_labs.sort_order, people_labs.valid_from AS lab_start, people_labs.valid_until AS lab_end,' +
+                   ' labs.id AS lab_id, labs.name AS lab_name,' +
+                   ' labs_groups.valid_from AS labs_groups_valid_from, labs_groups.valid_until AS labs_groups_valid_until,' +
+                   ' groups.id AS group_id, groups.name AS group_name,' +
+                   ' units.id AS unit_id, units.short_name AS unit_name,' +
+                   ' lab_positions.id AS lab_position_id, lab_positions.name_en AS lab_position_name_en, lab_positions.name_pt  AS lab_position_name_pt,' +
+                   ' technicians.id AS technician_id, technicians.technician_office_id, technician_offices.name_en AS technician_office_name,' +
+                   ' technicians.valid_from AS technician_start, technicians.valid_until AS technician_end,' +
+                   ' technicians_units.unit_id AS technician_unit_id, technician_units.short_name AS technician_unit_name,' +
+                   ' technicians.technician_position_id, technician_positions.name_en AS technician_position_name_en, technician_positions.name_pt AS technician_position_name_pt,' +
+                   ' science_managers.id AS science_manager_id, science_managers.science_manager_office_id, science_manager_offices.name_en AS science_manager_office_name,' +
+                   ' science_managers.valid_from AS science_manager_start, science_managers.valid_until AS science_manager_end,' +
+                   ' science_managers_units.unit_id AS science_manager_unit_id, science_manager_units.short_name AS science_manager_unit_name,' +
+                   ' science_managers.science_manager_position_id, science_manager_positions.name_en AS science_manager_position_name_en, science_manager_positions.name_pt AS science_manager_position_name_pt,' +
+                   ' people_administrative_offices.id AS administrative_id, people_administrative_offices.administrative_office_id, administrative_offices.name_en AS administrative_office_name,' +
+                   ' people_administrative_offices.valid_from AS administrative_start, people_administrative_offices.valid_until AS administrative_end,' +
+                   ' people_administrative_units.unit_id AS administrative_unit_id, administrative_units.short_name AS administrative_unit_name,' +
+                   ' people_administrative_offices.administrative_position_id, administrative_positions.name_en AS administrative_position_name_en, administrative_positions.name_pt AS administrative_position_name_pt' +
+                  ' FROM people' +
+                  ' LEFT JOIN emails ON people.id = emails.person_id' +
+                  ' LEFT JOIN people_labs ON people.id = people_labs.person_id' +
+                  ' LEFT JOIN labs ON labs.id = people_labs.lab_id' +
+                  ' LEFT JOIN labs_groups ON labs_groups.lab_id = labs.id' +
+                  ' LEFT JOIN groups ON labs_groups.group_id = groups.id' +
+                  ' LEFT JOIN groups_units ON groups_units.group_id = groups.id' +
+                  ' LEFT JOIN units ON groups_units.unit_id = units.id' +
+                  ' LEFT JOIN lab_positions ON lab_positions.id = people_labs.lab_position_id' +
+                  ' LEFT JOIN technicians ON technicians.person_id = people.id' +
+                  ' LEFT JOIN technician_offices ON technician_offices.id = technicians.technician_office_id' +
+                  ' LEFT JOIN technicians_units ON technicians_units.technician_id = technicians.id' +
+                  ' LEFT JOIN units AS technician_units ON technician_units.id = technicians_units.unit_id' +
+                  ' LEFT JOIN technician_positions ON technician_positions.id = technicians.technician_position_id' +
+                  ' LEFT JOIN science_managers ON science_managers.person_id = people.id' +
+                  ' LEFT JOIN science_manager_offices ON science_manager_offices.id = science_managers.science_manager_office_id' +
+                  ' LEFT JOIN science_managers_units ON science_managers_units.science_manager_id = science_managers.id' +
+                  ' LEFT JOIN units AS science_manager_units ON science_manager_units.id = science_managers_units.unit_id' +
+                  ' LEFT JOIN science_manager_positions ON science_manager_positions.id = science_managers.science_manager_position_id' +
+                  ' LEFT JOIN people_administrative_offices ON people_administrative_offices.person_id = people.id' +
+                  ' LEFT JOIN administrative_offices ON administrative_offices.id = people_administrative_offices.administrative_office_id' +
+                  ' LEFT JOIN people_administrative_units ON people_administrative_units.administrative_id = people_administrative_offices.id' +
+                  ' LEFT JOIN units AS administrative_units ON administrative_units.id = people_administrative_units.unit_id' +
+                  ' LEFT JOIN administrative_positions ON administrative_positions.id = people_administrative_offices.administrative_position_id' +
+                  ' WHERE people.status = 1' +
+                  ' ORDER BY people.colloquial_name;';
+    escapedQueryPersonSearch(querySQL, req, res, next);
 };
 
 module.exports.listLabPeopleData = function (req, res, next) {

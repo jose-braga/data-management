@@ -122,6 +122,49 @@
             return '';
         };
 
+        vm.getSearchResults = function(name) {
+            if (name === undefined) name = '';
+            name = name.toLowerCase();
+            vm.searchResults = [];
+            if (name.length > 3) {
+                for (var ind in vm.allPeople) {
+                    if (nameMatching(vm.allPeople[ind].name,vm.searchName) !== null) {
+                       vm.searchResults.push(vm.allPeople[ind]);
+                    }
+                }
+            }
+        };
+
+        vm.showLabName = function (person) {
+            if (person.lab_id !== null) {
+                return person.lab_name + '@' + person.group_name;
+            }
+            if (person.technician_office_id !== null) {
+                return person.technician_office_name;
+            }
+            if (person.science_manager_office_id !== null) {
+                return person.science_manager_office_name;
+            }
+            if (person.administrative_office_id !== null) {
+                return person.administrative_office_name;
+            }
+        };
+        vm.showUnitName = function (person) {
+            if (person.lab_id !== null) {
+                return person.unit_name;
+            }
+            if (person.technician_office_id !== null) {
+                return person.technician_unit_name;
+            }
+            if (person.science_manager_office_id !== null) {
+                return person.science_manager_unit_name;
+            }
+            if (person.administrative_office_id !== null) {
+                return person.administrative_unit_name;
+            }
+        };
+
+
         function findEarliestDate(){
             var dates = [];
             var minDate;
@@ -201,6 +244,16 @@
                 date = new Date(date);
             }
             return date;
+        }
+        function getAllPeopleData() {
+            teamData.allPeopleData()
+                .then(function (response) {
+                    vm.allPeople = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+
         }
         function getDataLists() {
              personData.usernames()
@@ -306,6 +359,7 @@
             vm.accessPermission = authentication.access('team');
             if (vm.accessPermission) {
                 getPersonAffiliations(vm.currentUser.personID);
+                getAllPeopleData();
                 getDataLists();
 
             }
@@ -486,9 +540,37 @@
                 }
             }
         }
+        function nameMatching(name1, str) {
+            var name1Final = prepareString(name1);
+            var strFinal = prepareString(str);
+            var strSplit = strFinal.split(' ');
+            for (var el in strSplit) {
+                if (name1Final.match(strSplit[el]) === null) {
+                    return null;
+                }
+            }
+            return true;
+        }
+        function prepareString(str) {
+            return str.toLowerCase()
+                      .replace(/[áàãâä]/g,'a')
+                      .replace(/[éèêë]/g,'e')
+                      .replace(/[íìîï]/g,'i')
+                      .replace(/[óòõôö]/g,'o')
+                      .replace(/[úùûü]/g,'u')
+                      .replace(/[ç]/g,'c')
+                      .replace(/[ñ]/g,'n')
+        }
     };
 
     /******************************** Directives **********************************/
+
+    var teamPreRegistrationSearch = function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'team/pre-register/team.pre-register.search.html'
+        };
+    };
 
     var teamPreRegisterMember = function () {
         return {
@@ -3220,6 +3302,7 @@
         .directive('teamPreRegisterMember', teamPreRegisterMember)
         .directive('teamPreRegistrationUser', teamPreRegistrationUser)
         .directive('teamAffiliationsMember', teamAffiliationsMember)
+        .directive('teamPreRegistrationSearch', teamPreRegistrationSearch)
 
         .directive('teamMembersPublications', teamMembersPublications)
         .directive('teamLabPublications', teamLabPublications)

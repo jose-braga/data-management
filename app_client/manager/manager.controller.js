@@ -11,6 +11,7 @@
 
         vm.photoSize = {w: 196, h: 196};
         vm.aspectRatio = (vm.photoSize.w*1.0)/(vm.photoSize.h*1.0);
+        vm.loadingAllPeople = true;
 
         // initialize variables
         initializeDetails();
@@ -2619,6 +2620,7 @@
                       .replace(/[ñ]/g,'n')
         }
         function getAllPeopleWithRoles(ind) {
+            vm.loadingAllPeople = true;
             managerData.allPeopleWithRolesData()
                 .then(function (response) {
                     vm.allPeople = [];
@@ -2646,9 +2648,7 @@
                             vm.allPeople.push(newData);
                         }
                     }
-
-                    console.log(vm.allPeople[4])
-
+                    vm.loadingAllPeople = false;
                     vm.renderPeople();
                     if (ind !== undefined) {
                         if (ind > -1) {

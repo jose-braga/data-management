@@ -1,7 +1,10 @@
  (function(){
     // Current version: 1.0.0
+    // TODO: Actualizar help
+    // TODO: I - Projects
+    // TODO: II - Other productivity measurements: Patents, outreach, startups, prizes, datasets, boards, theses
+    // TODO: III - Dashboards (visualization of indicators)
 
-    // TODO: Correct time filter on Manager!
     // TODO: (Check if this doesn't happen!!!) When adding from ORCID check if the publication was not already added by someone
 
     // TODO: (future) Add automatic PDF generator

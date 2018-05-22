@@ -8,14 +8,14 @@
         ng-submit="personNuclearInfoForm.$valid && vm.submitNuclearInfo(vm.forms['personNuclear'])">
         <md-card-content layout="column" flex>
             <md-input-container>
-                <label>Name</label>
+                <label>Full Name</label>
                 <input required ng-model="vm.thisPerson.name" name="name">
                 <div ng-messages="personNuclearInfoForm.name.$error">
                     <div ng-message="required">This is required.</div>
                 </div>
             </md-input-container>
             <md-input-container>
-                <label>Colloquial Name</label>
+                <label>Colloquial Name (minimum: name and surname)</label>
                 <input ng-model="vm.thisPerson.colloquial_name" name="colloquial_name">
             </md-input-container>
             <div layout="column" layout-gt-sm="row">

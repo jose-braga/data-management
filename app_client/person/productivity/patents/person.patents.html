@@ -1,0 +1,93 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Patents</span>
+        </md-card-title-text>
+    </md-card-title>
+    <form novalidate flex name="patentsForm"
+        ng-submit="patentsForm.$valid && vm.submitPatents(vm.forms['personPatents'])">
+        <md-card-content layout="column" flex>
+            <div ng-if="!vm.nothingToShow(vm.currentPatents,'people_patents_id')" layout="column">
+                <div ng-repeat="(num,patent) in vm.currentPatents track by $index"
+                    layout="column">
+                    <fieldset class="spacer">
+                        <div layout="column" layout-gt-sm="row">
+                            <md-input-container>
+                                <label>Patent type</label>
+                                <md-select ng-model="patent.patent_type_id" name="patent_type[num]">
+                                   <md-option ng-repeat="type in vm.patentTypes"
+                                        ng-value="type.id">{{type.name_en}}</md-option>
+                                </md-select>
+                            </md-input-container>
+                            <md-input-container>
+                                <label>Status</label>
+                                <md-select ng-model="patent.patent_status_id" name="patent_status[num]">
+                                   <md-option ng-repeat="type in vm.patentStatus"
+                                        ng-value="type.id">{{type.name_en}}</md-option>
+                                </md-select>
+                            </md-input-container>
+                            <md-input-container class="input-row-longer">
+                                <label>Date submission</label>
+                                <md-datepicker md-current-view="year"
+                                        ng-model="patent.status_date"
+                                        name="patent_date[num]" md-placeholder="Enter date"></md-datepicker>
+                            </md-input-container>
+                        </div>
+                        <div layout="column">
+                            <md-input-container>
+                                <label>Authors</label>
+                                <input required ng-model="patent.authors_raw"
+                                        name="patent_authors[num]">
+                            </md-input-container>
+                            <md-input-container>
+                                <label>Patent title</label>
+                                <input required ng-model="patent.title"
+                                        name="patent_title[num]">
+                            </md-input-container>
+                        </div>
+                        <div layout="column" layout-gt-sm="row">
+                            <md-input-container>
+                                <label>Patent Reference 1</label>
+                                <input ng-model="patent.reference1"
+                                        name="patent_ref1[num]">
+                            </md-input-container>
+                            <md-input-container>
+                                <label>Patent Reference 2</label>
+                                <input ng-model="patent.reference2"
+                                        name="patent_ref2[num]">
+                            </md-input-container>
+                        </div>
+                        <div layout="column">
+                            <md-input-container  class="md-block">
+                                <label>Description</label>
+                                <textarea ng-model="patent.description"
+                                        md-maxlength="1000" rows="2"
+                                        name="patent_description[num]"></textarea>
+                            </md-input-container>
+                            <div layout="row" layout-align="end center">
+                                <md-button ng-click="vm.removeRows(vm.currentPatents,$index)"
+                                        aria-label="Remove"
+                                        class="md-icon-button interaction-button">
+                                    <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
+                                </md-button>
+                                <md-button ng-if="$last" ng-click="vm.addRows(vm.currentPatents, 'patents')"
+                                        aria-label="Add more" class="md-icon-button interaction-button">
+                                    <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                                </md-button>
+                            </div>
+                        </div>
+
+                    </fieldset>
+                </div>
+            </div>
+            <div ng-if="vm.nothingToShow(vm.currentPatents,'people_patents_id')" layout="column">
+                 No data, press + to add
+                <md-button ng-click="vm.addRows(vm.currentPatents, 'patents')"
+                        aria-label="Add more" class="md-icon-button interaction-button">
+                    <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                </md-button>
+            </div>
+
+        </md-card-content>
+    </form>
+</md-card>

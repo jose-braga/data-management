@@ -2,7 +2,7 @@
     // Current version: 1.0.0
     // TODO: Actualizar help
     // TODO: 1 - Projects
-    // TODO: 2 - Other productivity measurements: Patents, outreach, startups, prizes, datasets, boards, theses
+    // TODO: 2 - Other productivity measurements: Patents, outreach, startups, prizes, datasets, boards
     // TODO: 3 - Dashboards (visualization of indicators)
 
     // TODO: (Check if this doesn't happen!!!) When adding from ORCID check if the publication was not already added by someone

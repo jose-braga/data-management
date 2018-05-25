@@ -143,6 +143,21 @@
             );
         };
 
+        var thisPersonPatents = function (personID) {
+            return $http.get('api/patents/person/' + personID,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var updatePatentsPerson = function (personID, data) {
+            return $http.put('api/patents/person/' + personID, data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+
         return {
             addMembersPublications: addMembersPublications,
             allPublications: allPublications,

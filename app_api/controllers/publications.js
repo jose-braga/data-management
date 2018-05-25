@@ -1315,6 +1315,49 @@ var queryUpdatePersonCommunications = function (req, res, next, i) {
     }
 };
 
+var queryPersonPatents = function (req, res, next) {
+    var personID = req.params.personID;
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'SELECT people_patents.*, patents.person_id, patents.authors_raw, ' +
+                          ' patents.title, patents.reference_number1, patents.reference_number2, ' +
+                          ' patents.patent_type_id, patent_types.name_en AS patent_type,' +
+                          ' patents.status_id AS patent_status_id, patent_status.name_en AS patent_status,' +
+                          ' patents.status_date AS status_date, patents.description ' +
+                          'FROM people_patents' +
+                          ' LEFT JOIN patent ON patent.id = people_patents.patent_id' +
+                          ' LEFT JOIN patent_types ON patent_types.id = patents.patent_type_id' +
+                          ' LEFT JOIN patent_status ON patent_status.id = patents.status_id' +
+                          ' WHERE people_patents.person_id = ?';
+    places.push(personID);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (resQuery.length === 0 || resQuery === undefined) {
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 0,
+                        "result" : []});
+                    return;
+                }
+                sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": resQuery.length,
+                        "result" : resQuery});
+                    return;
+            }
+        );
+    });
+};
+
 /************************* Public API Person Queries **************************/
 module.exports.getPublicationInfo = function (req, res, next) {
     var pubID = req.params.pubID;
@@ -1710,6 +1753,22 @@ module.exports.updatePersonCommunications = function (req, res, next) {
     getUser(req, res, [0, 5, 10, 15, 16],
         function (req, res, username) {
             queryUpdatePersonCommunications(req,res,next,0);
+        }
+    );
+};
+
+// modify
+module.exports.listPersonPatents = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16],
+        function (req, res, username) {
+            queryPersonPatents(req,res,next);
+        }
+    );
+};
+module.exports.updatePersonPatents = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16],
+        function (req, res, username) {
+            queryUpdatePersonPatents(req,res,next,0);
         }
     );
 };

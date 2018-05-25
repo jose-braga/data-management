@@ -6,14 +6,14 @@
     </md-card-title>
     <md-card-content layout="column" flex>
         <md-input-container>
-            <label>Name</label>
+            <label>Full name</label>
             <input required ng-model="vm.thisPerson.name" name="name">
             <div ng-messages="registrationPersonNuclearInfoForm.name.$error">
                 <div ng-message="required">This is required.</div>
             </div>
         </md-input-container>
         <md-input-container>
-            <label>Colloquial name</label>
+            <label>Colloquial name (minimum: name and surname)</label>
             <input required ng-model="vm.thisPerson.colloquialName" name="colloquialName">
             <div ng-messages="registrationPersonNuclearInfoForm.colloquialName.$error">
                 <div ng-message="required">This is required.</div>

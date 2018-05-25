@@ -49,7 +49,15 @@
             'personCommORCIDAdd':       34,
             'personCommAdd':            35,
             'personResearchInterests':  36,
-            'personURLs':               37
+            'personURLs':               37,
+            'personPatents':            38,
+            'personOutreach':           39,
+            'personDatasets':           40,
+            'personPrizes':             41,
+            'personStartups':           42,
+            'personBoards':             43,
+            'personProjects':           44
+
         };
         vm.changePhoto = false;
         vm.photoSize = {w: 196, h: 196};
@@ -72,6 +80,7 @@
             getPersonData(vm.currentUser.personID, -1);
             getPublications();
             getCommunications();
+            getPatents();
             getDataLists();
             initializeImages();
             initializeDetails();
@@ -989,6 +998,23 @@
                     };
                     current.push(obj);
                 }
+            } else if (type === 'patents') {
+                if (current.length == 1 && current[0]['people_patents_id'] === null) {
+                    current[0]['people_patents_id'] = 'new';
+                } else {
+                    obj = {
+                        people_patents_id: 'new',
+                        patent_type_id: null,
+                        patent_type_name: null,
+                        title: null,
+                        reference1: null,
+                        reference2: null,
+                        patent_status_id: null,
+                        patent_status_name: null,
+                        description: null
+                    };
+                    current.push(obj);
+                }
             }
 
         };
@@ -1725,7 +1751,7 @@
             return publications;
         }
 
-        /* For managing communications */
+        /* For managing communications and other productivity */
         vm.submitPersonCommunications = function (ind) {
             vm.updateStatus[ind] = "Updating...";
             vm.messageType[ind] = 'message-updating';
@@ -2040,6 +2066,28 @@
                         $timeout(function () { vm.hideMessage[ind] = true; }, 1500);
                     } else if (ind === -1) {
                         vm.connectCommORCID();
+                    }
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+        }
+
+        // TODO: WORK HERE...
+        function getPatents(ind) {
+            publications.thisPersonPatents(vm.currentUser.personID)
+                .then(function (response) {
+                    vm.originalPersonPatents = response.data.result;
+                    vm.currentPatents = [];
+                    for (var id in vm.originalPersonPatents) {
+                        vm.originalPersonPatents[id]['status_date'] = processDate(vm.originalPersonPatents[id]['status_date']);
+                        vm.currentPatents.push(Object.assign({}, vm.originalPersonPatents[id]));
+                    }
+                    if (ind > -1) {
+                        vm.updateStatus[ind] = "Updated!";
+                        vm.messageType[ind] = 'message-success';
+                        vm.hideMessage[ind] = false;
+                        $timeout(function () { vm.hideMessage[ind] = true; }, 1500);
                     }
                 })
                 .catch(function (err) {
@@ -2868,6 +2916,20 @@
                 .catch(function (err) {
                     console.log(err);
                 });
+            personData.patentTypes()
+                .then(function (response) {
+                    vm.patentTypes = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            personData.patentStatus()
+                .then(function (response) {
+                    vm.patentStatus = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
         }
         function processNationalities() {
             var newNationalities = [];
@@ -3345,6 +3407,49 @@
         };
     };
 
+    var personBoards = function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'person/productivity/boards/person.boards.html'
+        };
+    };
+
+    var personDatasets = function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'person/productivity/datasets/person.datasets.html'
+        };
+    };
+
+    var personOutreach = function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'person/productivity/outreach/person.outreach.html'
+        };
+    };
+
+    var personPatents = function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'person/productivity/patents/person.patents.html'
+        };
+    };
+
+    var personPrizes = function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'person/productivity/prizes/person.prizes.html'
+        };
+    };
+
+    var personStartups = function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'person/productivity/startups/person.startups.html'
+        };
+    };
+
+
     var personWebsitePhoto = function () {
         return {
             restrict: 'E',
@@ -3481,6 +3586,13 @@
         .directive('personAddPublicationsOrcid', personAddPublicationsOrcid)
         .directive('personPublicationDetail', personPublicationDetail)
         .directive('personWebsitePhoto', personWebsitePhoto)
+        .directive('personBoards', personBoards)
+        .directive('personDatasets', personDatasets)
+        .directive('personOutreach', personOutreach)
+        .directive('personPatents', personPatents)
+        .directive('personPrizes', personPrizes)
+        .directive('personStartups', personStartups)
+
 
         .directive('postalCodeValidate', postalCodeValidate)
         .directive('dedicationValidate', dedicationValidate)

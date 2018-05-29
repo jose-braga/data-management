@@ -2236,10 +2236,6 @@
             vm.currentPatents.push(Object.assign({}, patent));
         };
 
-
-
-
-
         /* Initialization functions */
         function initializeVariables() {
             vm.deletePublications = [];

@@ -112,6 +112,14 @@
             return $http.get('api/list/conference-types');
         };
 
+        var patentTypes = function () {
+            return $http.get('api/list/patent-types');
+        };
+
+        var patentStatus = function () {
+            return $http.get('api/list/patent-status');
+        };
+
         var permissions = function () {
             return $http.get('api/list/permissions');
         };
@@ -353,6 +361,8 @@
             publicationTypes: publicationTypes,
             communicationTypes: communicationTypes,
             conferenceTypes: conferenceTypes,
+            patentTypes: patentTypes,
+            patentStatus: patentStatus,
             permissions: permissions,
             updateInstitutionCityPersonByID: updateInstitutionCityPersonByID,
             updateJobsPersonByID: updateJobsPersonByID,

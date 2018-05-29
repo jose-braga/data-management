@@ -117,6 +117,9 @@ router.get('/publications/all', auth, ctrlPublicationsData.listAllPublications);
 router.get('/publications/person/:personID', auth, ctrlPublicationsData.listPersonPublications);
 router.get('/publications/team/:groupID/:teamID/members', auth, ctrlPublicationsData.listMembersPublications);
 router.get('/publications/team/:groupID/:teamID', auth, ctrlPublicationsData.listTeamPublications);
+router.get('/communications/person/:personID', auth, ctrlPublicationsData.listPersonCommunications);
+router.get('/patents/all', auth, ctrlPublicationsData.listPatents);
+router.get('/patents/person/:personID', auth, ctrlPublicationsData.listPersonPatents);
 
 // PUT PUBLICATION information (authenticated)
 router.put('/publications/person/:personID/selected', auth, ctrlPublicationsData.updatePersonSelectedPub);
@@ -127,13 +130,10 @@ router.put('/publications/person/:personID/add-orcid', auth, ctrlPublicationsDat
 router.put('/publications/team/:groupID/:teamID', auth, ctrlPublicationsData.addPublicationsLab);
 router.put('/publications/team/:groupID/:teamID/selected', auth, ctrlPublicationsData.updateTeamSelectedPub);
 router.put('/publications/team/:groupID/:teamID/delete', auth, ctrlPublicationsData.deletePublicationsTeam);
-
-// GET COMMUNICATION information (authenticated)
-router.get('/communications/person/:personID', auth, ctrlPublicationsData.listPersonCommunications);
-// PUT COMMUNICATION information (authenticated)
 router.put('/communications/person/:personID', auth, ctrlPublicationsData.updatePersonCommunications);
 router.put('/communications/person/:personID/add-orcid', auth, ctrlPublicationsData.addORCIDCommunicationsPerson);
 router.put('/communications/person/:personID/add', auth, ctrlPublicationsData.addORCIDCommunicationsPerson); // both use the same function
+router.put('/patents/person/:personID', auth, ctrlPublicationsData.updatePersonPatents);
 
 // POST (Create) new user (authenticated)
 router.post('/registration', auth, ctrlRegistrationData.addPerson);

@@ -221,6 +221,24 @@ function momentToDate(timedate, timezone, timeformat) {
     }
     return timedate !== null ? moment.tz(timedate,timezone).format(timeformat) : null;
 }
+function compactData(arr, key, aggregate_key) {
+    var used_keys = [];
+    var compact_arr = [];
+    for (var el in arr) {
+        if (used_keys.indexOf(arr[el][key]) === -1) {
+            used_keys.push(arr[el][key]);
+            var new_row = Object.assign({}, arr[el]);
+            new_row[aggregate_key] = [];
+            for (var el2 in arr) {
+                if (arr[el2][key] == arr[el][key]) {
+                    new_row[aggregate_key].push(arr[el2][aggregate_key]);
+                }
+            }
+            compact_arr.push(new_row);
+        }
+    }
+    return compact_arr;
+}
 
 /***************************** Query Functions ********************************/
 
@@ -1315,6 +1333,266 @@ var queryUpdatePersonCommunications = function (req, res, next, i) {
     }
 };
 
+var queryAllPatents = function (req, res, next) {
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'SELECT people_patents.*, patents.authors_raw, ' +
+                          ' patents.title, patents.reference_number1 AS reference1, patents.reference_number2 AS reference2, ' +
+                          ' patents.patent_type_id, patent_types.name_en AS patent_type,' +
+                          ' patents.status_id AS patent_status_id, patent_status.name_en AS patent_status,' +
+                          ' patents.status_date AS status_date, patents.description ' +
+                          'FROM people_patents' +
+                          ' LEFT JOIN patents ON patents.id = people_patents.patent_id' +
+                          ' LEFT JOIN patent_types ON patent_types.id = patents.patent_type_id' +
+                          ' LEFT JOIN patent_status ON patent_status.id = patents.status_id;';
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (resQuery.length === 0 || resQuery === undefined) {
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 0,
+                        "result" : []});
+                    return;
+                }
+                resQuery = compactData(resQuery, 'patent_id', 'person_id');
+                sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": resQuery.length,
+                        "result" : resQuery});
+                return;
+            }
+        );
+    });
+};
+var queryPersonPatents = function (req, res, next) {
+    var personID = req.params.personID;
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'SELECT people_patents.*, patents.authors_raw, ' +
+                          ' patents.title, patents.reference_number1 AS reference1, patents.reference_number2 AS reference2, ' +
+                          ' patents.patent_type_id, patent_types.name_en AS patent_type,' +
+                          ' patents.status_id AS patent_status_id, patent_status.name_en AS patent_status,' +
+                          ' patents.status_date AS status_date, patents.description ' +
+                          'FROM people_patents' +
+                          ' LEFT JOIN patents ON patents.id = people_patents.patent_id' +
+                          ' LEFT JOIN patent_types ON patent_types.id = patents.patent_type_id' +
+                          ' LEFT JOIN patent_status ON patent_status.id = patents.status_id' +
+                          ' WHERE people_patents.patent_id = ANY ' +
+                          ' (SELECT people_patents.patent_id FROM people_patents WHERE people_patents.person_id = ?);';
+    places.push(personID);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (resQuery.length === 0 || resQuery === undefined) {
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 0,
+                        "result" : []});
+                    return;
+                }
+                resQuery = compactData(resQuery, 'patent_id', 'person_id');
+                sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": resQuery.length,
+                        "result" : resQuery});
+                return;
+            }
+        );
+    });
+};
+var queryUpdatePersonPatents = function (req, res, next) {
+    var personID = req.params.personID;
+    var updateArr = req.body.updatePatent;
+    var newArr = req.body.newPatent;
+    var deleteArr = req.body.deletePatent;
+    if (updateArr.length > 0) {
+        return queryUpdatePatent(req, res, next, personID, updateArr,deleteArr,newArr, updateArr[0], 0);
+    } else if (deleteArr.length > 0) {
+        return queryDeletePatent(req, res, next, personID, updateArr,deleteArr,newArr, deleteArr[0], 0);
+    } else if (newArr.length > 0) {
+        return queryAddPatent(req, res, next, personID, updateArr,deleteArr,newArr, newArr[0], 0);
+    }
+    if (deleteArr.length === 0 && updateArr.length == 0 && newArr.length === 0) {
+        sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
+        return;
+    }
+};
+var queryUpdatePatent = function (req, res, next, personID,updateArr,deleteArr,newArr, data, i) {
+    var querySQL = '';
+    var places = [];
+    var status_date = momentToDate(data.status_date);
+    querySQL = querySQL + 'UPDATE patents' +
+                          ' SET patent_type_id = ?,' +
+                          ' authors_raw = ?,' +
+                          ' title = ?,' +
+                          ' reference_number1 = ?,' +
+                          ' reference_number2 = ?,' +
+                          ' status_id = ?,' +
+                          ' status_date = ?,' +
+                          ' description = ?' +
+                          ' WHERE id = ?;';
+    places.push(data.patent_type_id,
+                data.authors_raw,
+                data.title,
+                data.reference1,
+                data.reference2,
+                data.patent_status_id,
+                status_date,
+                data.description,
+                data.patent_id);
+    // first delete all ocurrences of patent in people_patent
+    querySQL = querySQL + 'DELETE FROM people_patents WHERE patent_id = ?;';
+    places.push(data.patent_id);
+    for (var el in data.person_id) {
+        querySQL = querySQL + 'INSERT INTO people_patents (patent_id, person_id) VALUES (?,?);';
+        places.push(data.patent_id, data.person_id[el]);
+    }
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (i + 1 < updateArr.length) {
+                    return queryUpdatePatent(req, res, next, personID,
+                                updateArr,deleteArr,newArr, updateArr[i+1], i+1);
+                } else if (deleteArr.length > 0) {
+                    return queryDeletePatent(req, res, next, personID,
+                                updateArr,deleteArr,newArr, deleteArr[0], 0);
+                } else if (newArr.length > 0) {
+                    return queryAddPatent(req, res, next, personID,
+                                updateArr,deleteArr,newArr, newArr[0], 0);
+                } else {
+                    sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
+                    return;
+                }
+            }
+        );
+    });
+};
+var queryDeletePatent = function (req, res, next, personID,updateArr,deleteArr,newArr, data, i) {
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'DELETE FROM people_patents' +
+                          ' WHERE person_id = ? AND patent_id = ?;';
+    places.push(personID, data.patent_id);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (i + 1 < deleteArr.length) {
+                    return queryDeletePatent(req, res, next, personID,
+                                updateArr,deleteArr,newArr, deleteArr[i+1], i+1);
+                } else if (newArr.length > 0) {
+                    return queryAddPatent(req, res, next, personID,
+                                updateArr,deleteArr,newArr, newArr[0], 0);
+                } else {
+                    sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
+                    return;
+                }
+            }
+        );
+    });
+};
+var queryAddPatent = function (req, res, next, personID,updateArr,deleteArr,newArr, data, i) {
+    var querySQL = '';
+    var places = [];
+    var status_date = momentToDate(data.status_date);
+    querySQL = querySQL + 'INSERT INTO patents' +
+                          ' (patent_type_id, authors_raw, title, reference_number1, reference_number2, status_id, status_date, description)' +
+                          ' VALUES (?, ?, ?, ?, ?, ?, ?, ?);';
+    places.push(data.patent_type_id,
+                data.authors_raw,
+                data.title,
+                data.reference1,
+                data.reference2,
+                data.patent_status_id,
+                status_date,
+                data.description);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                var patentID = resQuery.insertId;
+                return queryAddPatentPerson(req, res, next, personID,updateArr,deleteArr,newArr, data, i, patentID);
+            }
+        );
+    });
+};
+var queryAddPatentPerson = function (req, res, next, personID,updateArr,deleteArr,newArr, data, i, patentID) {
+    var querySQL = '';
+    var places = [];
+    for (var el in data.person_id) {
+        querySQL = querySQL + 'INSERT INTO people_patents (person_id, patent_id) VALUES (?,?);';
+        places.push(data.person_id[el], patentID);
+    }
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (i + 1 < newArr.length) {
+                    return queryAddPatent(req, res, next, personID,
+                                updateArr,deleteArr,newArr, newArr[i+1], i+1);
+                } else {
+                    sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
+                    return;
+                }
+            }
+        );
+    });
+};
+
 /************************* Public API Person Queries **************************/
 module.exports.getPublicationInfo = function (req, res, next) {
     var pubID = req.params.pubID;
@@ -1710,6 +1988,28 @@ module.exports.updatePersonCommunications = function (req, res, next) {
     getUser(req, res, [0, 5, 10, 15, 16],
         function (req, res, username) {
             queryUpdatePersonCommunications(req,res,next,0);
+        }
+    );
+};
+
+module.exports.listPatents = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16],
+        function (req, res, username) {
+            queryAllPatents(req,res,next);
+        }
+    );
+};
+module.exports.listPersonPatents = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16],
+        function (req, res, username) {
+            queryPersonPatents(req,res,next);
+        }
+    );
+};
+module.exports.updatePersonPatents = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30, 40],
+        function (req, res, username) {
+            queryUpdatePersonPatents(req,res,next,0);
         }
     );
 };

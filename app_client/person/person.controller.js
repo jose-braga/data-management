@@ -1006,6 +1006,8 @@
                         people_patents_id: 'new',
                         patent_type_id: null,
                         patent_type_name: null,
+                        status_date: null,
+                        authors_raw: null,
                         title: null,
                         reference1: null,
                         reference2: null,
@@ -2072,28 +2074,6 @@
                     console.log(err);
                 });
         }
-
-        // TODO: WORK HERE...
-        function getPatents(ind) {
-            publications.thisPersonPatents(vm.currentUser.personID)
-                .then(function (response) {
-                    vm.originalPersonPatents = response.data.result;
-                    vm.currentPatents = [];
-                    for (var id in vm.originalPersonPatents) {
-                        vm.originalPersonPatents[id]['status_date'] = processDate(vm.originalPersonPatents[id]['status_date']);
-                        vm.currentPatents.push(Object.assign({}, vm.originalPersonPatents[id]));
-                    }
-                    if (ind > -1) {
-                        vm.updateStatus[ind] = "Updated!";
-                        vm.messageType[ind] = 'message-success';
-                        vm.hideMessage[ind] = false;
-                        $timeout(function () { vm.hideMessage[ind] = true; }, 1500);
-                    }
-                })
-                .catch(function (err) {
-                    console.log(err);
-                });
-        }
         function processCommDetailsORCID(pub, data) {
             pub.edit_date = true;
             if (pub.year !== null && pub.month !== null && pub.day !== null) {
@@ -2189,6 +2169,74 @@
             }
             return upd;
         }
+
+
+        function getPatents(ind) {
+            publications.getAllPatents()
+                .then(function (response) {
+                    vm.allPatents = response.data.result;
+                    for (var id in vm.allPatents) {
+                        vm.allPatents[id]['status_date'] = processDate(vm.allPatents[id]['status_date']);
+                    }
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            publications.thisPersonPatents(vm.currentUser.personID)
+                .then(function (response) {
+                    vm.originalPersonPatents = response.data.result;
+                    vm.currentPatents = [];
+                    for (var id in vm.originalPersonPatents) {
+                        vm.originalPersonPatents[id]['status_date'] = processDate(vm.originalPersonPatents[id]['status_date']);
+                        vm.currentPatents.push(Object.assign({}, vm.originalPersonPatents[id]));
+                    }
+                    if (ind > -1) {
+                        vm.updateStatus[ind] = "Updated!";
+                        vm.messageType[ind] = 'message-success';
+                        vm.hideMessage[ind] = false;
+                        $timeout(function () { vm.hideMessage[ind] = true; }, 1500);
+                    }
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+        }
+        vm.submitPatents = function (ind) {
+            vm.updateStatus[ind] = "Updating...";
+            vm.messageType[ind] = 'message-updating';
+            vm.hideMessage[ind] = false;
+
+            var data = processDataRows(vm.currentPatents,vm.originalPersonPatents,
+                                  'patent_id', 'newPatent','updatePatent','deletePatent');
+
+            publications.updatePatentsPerson(vm.currentUser.personID,data)
+                .then( function () {
+                    getPatents(ind);
+                },
+                function () {
+                    vm.updateStatus[ind] = "Error!";
+                    vm.messageType[ind] = 'message-error';
+                },
+                function () {}
+                );
+            return false;
+        };
+        vm.renderPatents = function () {
+            vm.patentsToShow = [];
+            if (vm.searchPatent.length >2) {
+                for (var el in vm.allPatents) {
+                    if (nameMatching(vm.allPatents[el].title,vm.searchPatent) !== null) {
+                        vm.patentsToShow.push(vm.allPatents[el]);
+                    }
+                }
+            }
+        };
+        vm.addPatentSearch = function (patent) {
+            vm.originalPersonPatents.push(Object.assign({}, patent));
+            vm.currentPatents.push(Object.assign({}, patent));
+        };
+
+
 
 
 
@@ -3134,6 +3182,28 @@
         }
         return timedate !== null ? moment.tz(timedate,timezone).format(timeformat) : null;
 }
+        function nameMatching(name1, str) {
+            var name1Final = prepareString(name1);
+            var strFinal = prepareString(str);
+            var strSplit = strFinal.split(' ');
+            for (var el in strSplit) {
+                if (name1Final.match(strSplit[el]) === null) {
+                    return null;
+                }
+
+            }
+            return true;
+        }
+        function prepareString(str) {
+            return str.toLowerCase()
+                      .replace(/[áàãâä]/g,'a')
+                      .replace(/[éèêë]/g,'e')
+                      .replace(/[íìîï]/g,'i')
+                      .replace(/[óòõôö]/g,'o')
+                      .replace(/[úùûü]/g,'u')
+                      .replace(/[ç]/g,'c')
+                      .replace(/[ñ]/g,'n')
+        }
     };
 
     var CountrySelectCtrl = function ($scope, $element, personData) {

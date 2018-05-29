@@ -143,6 +143,13 @@
             );
         };
 
+        var getAllPatents = function () {
+            return $http.get('api/patents/all',
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
         var thisPersonPatents = function (personID) {
             return $http.get('api/patents/person/' + personID,
                 {
@@ -176,7 +183,10 @@
             addORCIDCommunicationsPerson: addORCIDCommunicationsPerson,
             addCommunicationsPerson: addCommunicationsPerson,
             updateCommunicationsPerson: updateCommunicationsPerson,
-            removePublicationsTeam: removePublicationsTeam
+            removePublicationsTeam: removePublicationsTeam,
+            getAllPatents: getAllPatents,
+            thisPersonPatents: thisPersonPatents,
+            updatePatentsPerson: updatePatentsPerson
         };
     };
 

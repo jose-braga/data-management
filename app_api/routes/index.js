@@ -118,6 +118,7 @@ router.get('/publications/person/:personID', auth, ctrlPublicationsData.listPers
 router.get('/publications/team/:groupID/:teamID/members', auth, ctrlPublicationsData.listMembersPublications);
 router.get('/publications/team/:groupID/:teamID', auth, ctrlPublicationsData.listTeamPublications);
 router.get('/communications/person/:personID', auth, ctrlPublicationsData.listPersonCommunications);
+router.get('/patents/all', auth, ctrlPublicationsData.listPatents);
 router.get('/patents/person/:personID', auth, ctrlPublicationsData.listPersonPatents);
 
 // PUT PUBLICATION information (authenticated)

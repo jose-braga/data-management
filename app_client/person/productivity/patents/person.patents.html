@@ -7,6 +7,22 @@
     <form novalidate flex name="patentsForm"
         ng-submit="patentsForm.$valid && vm.submitPatents(vm.forms['personPatents'])">
         <md-card-content layout="column" flex>
+            <div layout="row" layout-align="none center" flex>
+                <ng-md-icon icon="search" size="24"></ng-md-icon>
+                <md-input-container flex>
+                    <label>Search patent titles</label>
+                    <input ng-model="vm.searchPatent" ng-change="vm.renderPatents()">
+                </md-input-container>
+            </div>
+            <ul>
+                 <li ng-repeat="patent in vm.patentsToShow">
+                    {{patent.authors_raw}} - <b>{{patent.title}}</b>
+                    <md-button ng-click="vm.addPatentSearch(patent)"
+                            aria-label="Add more" class="md-icon-button interaction-button">
+                            <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                    </md-button>
+                </li>
+            </ul>
             <div ng-if="!vm.nothingToShow(vm.currentPatents,'people_patents_id')" layout="column">
                 <div ng-repeat="(num,patent) in vm.currentPatents track by $index"
                     layout="column">
@@ -35,9 +51,29 @@
                         </div>
                         <div layout="column">
                             <md-input-container>
-                                <label>Authors</label>
+                                <label>Authors (all, text)</label>
                                 <input required ng-model="patent.authors_raw"
                                         name="patent_authors[num]">
+                            </md-input-container>
+                            <md-input-container
+                                ng-controller="PeopleSelectCtrl as peop">
+                                <label>From which these are LAQV/UCIBIO: </label>
+                                <md-select ng-model="patent.person_id" multiple
+                                        name="patent_units_authors[num]">
+                                    <div class="anchored">
+                                        <md-select-header class="select-search-header">
+                                            <input ng-model="peop.searchTerm" type="search"
+                                              placeholder="Search authors"
+                                              class="md-text select-search-box">
+                                        </md-select-header>
+                                    </div>
+                                    <div class="scrollable">
+                                        <md-optgroup label="people">
+                                            <md-option ng-repeat="person in peop.people | filter:peop.searchTerm"
+                                                ng-value="person.id">{{person.colloquial_name}}</md-option>
+                                        </md-optgroup>
+                                    </div>
+                                </md-select>
                             </md-input-container>
                             <md-input-container>
                                 <label>Patent title</label>
@@ -87,7 +123,15 @@
                     <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
                 </md-button>
             </div>
-
+            <div layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button type="submit"
+                    class="button-small md-raised md-primary">Update</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personPatents']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['personPatents']]">
+                        {{vm.updateStatus[vm.forms['personPatents']]}}
+                    </span>
+                </div>
+            </div>
         </md-card-content>
     </form>
 </md-card>

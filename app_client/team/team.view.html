@@ -21,9 +21,9 @@
                 </md-content>
             </md-tab>
             <md-tab ng-if="vm.show('labs')" ng-repeat="lab in vm.personLab"
-                    label="Publications {{ lab.lab | limitTo : 10 }}...@{{lab.group_name | limitTo : 10}}...">
+                    label="Prod. {{ lab.lab | limitTo : 10 }}...@{{lab.group_name | limitTo : 10}}...">
                 <md-tabs md-selected="vm.selectedIndexPublications" md-dynamic-height md-border-bottom>
-                    <md-tab label='List'>
+                    <md-tab label='Publications'>
                         <md-content>
                             <div layout="row" layout-padding>
                                 <team-lab-publications
@@ -38,6 +38,86 @@
                                     data-group="{{lab.group_id}}"
                                 flex>
                                 </team-members-publications>
+                            </div>
+                        </md-content>
+                    </md-tab>
+                    <md-tab label='Communications'>
+                        <md-content>
+                            <div layout="row" layout-padding>
+                                Under construction
+                            </div>
+                            <div layout="row" layout-padding>
+
+                            </div>
+                        </md-content>
+                    </md-tab>
+                    <md-tab label='Projects'>
+                        <md-content>
+                            <div layout="row" layout-padding>
+                                Under construction
+                            </div>
+                            <div layout="row" layout-padding>
+
+                            </div>
+                        </md-content>
+                    </md-tab>
+                    <md-tab label='Patents'>
+                        <md-content>
+                            <div layout="row" layout-padding>
+                                Under construction
+                            </div>
+                            <div layout="row" layout-padding>
+
+                            </div>
+                        </md-content>
+                    </md-tab>
+                    <md-tab label='Prizes'>
+                        <md-content>
+                            <div layout="row" layout-padding>
+                                Under construction
+                            </div>
+                            <div layout="row" layout-padding>
+
+                            </div>
+                        </md-content>
+                    </md-tab>
+                    <md-tab label='Startups'>
+                        <md-content>
+                            <div layout="row" layout-padding>
+                                Under construction
+                            </div>
+                            <div layout="row" layout-padding>
+
+                            </div>
+                        </md-content>
+                    </md-tab>
+                    <md-tab label='Boards'>
+                        <md-content>
+                            <div layout="row" layout-padding>
+                                Under construction
+                            </div>
+                            <div layout="row" layout-padding>
+
+                            </div>
+                        </md-content>
+                    </md-tab>
+                    <md-tab label='Datasets'>
+                        <md-content>
+                            <div layout="row" layout-padding>
+                                Under construction
+                            </div>
+                            <div layout="row" layout-padding>
+
+                            </div>
+                        </md-content>
+                    </md-tab>
+                    <md-tab label='Outreach'>
+                        <md-content>
+                            <div layout="row" layout-padding>
+                                Under construction
+                            </div>
+                            <div layout="row" layout-padding>
+
                             </div>
                         </md-content>
                     </md-tab>

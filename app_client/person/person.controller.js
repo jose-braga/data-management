@@ -81,6 +81,7 @@
             getPublications();
             getCommunications();
             getPatents();
+            getPrizes();
             getDataLists();
             initializeImages();
             initializeDetails();
@@ -999,11 +1000,13 @@
                     current.push(obj);
                 }
             } else if (type === 'patents') {
-                if (current.length == 1 && current[0]['people_patents_id'] === null) {
-                    current[0]['people_patents_id'] = 'new';
+                if (current.length == 1 && current[0]['id'] === null) {
+                    current[0]['id'] = 'new';
                 } else {
                     obj = {
-                        people_patents_id: 'new',
+                        id: 'new',
+                        person_id: [],
+                        patent_id: null,
                         patent_type_id: null,
                         patent_type_name: null,
                         status_date: null,
@@ -1014,6 +1017,23 @@
                         patent_status_id: null,
                         patent_status_name: null,
                         description: null
+                    };
+                    current.push(obj);
+                }
+            } else if (type === 'prizes') {
+                if (current.length == 1 && current[0]['id'] === null) {
+                    current[0]['id'] = 'new';
+                } else {
+                    obj = {
+                        id: 'new',
+                        person_id: [],
+                        recipients: null,
+                        prize_id: null,
+                        name: null,
+                        organization: null,
+                        year: null,
+                        amount_euro: null,
+                        notes: null
                     };
                     current.push(obj);
                 }
@@ -2206,9 +2226,21 @@
             vm.messageType[ind] = 'message-updating';
             vm.hideMessage[ind] = false;
 
-            var data = processDataRows(vm.currentPatents,vm.originalPersonPatents,
-                                  'patent_id', 'newPatent','updatePatent','deletePatent');
+            // Add yourself to the list of new/update patents
 
+            var data = processDataRows(vm.currentPatents,vm.originalPersonPatents,
+                                  'id', 'newPatent','updatePatent','deletePatent');
+
+            for (var el in data.updatePatent) {
+                if (data.updatePatent[el].person_id.indexOf(vm.currentUser.personID) === -1) {
+                    data.updatePatent[el].person_id.push(vm.currentUser.personID);
+                }
+            }
+            for (var el in data.newPatent) {
+                if (data.newPatent[el].person_id.indexOf(vm.currentUser.personID) === -1) {
+                    data.newPatent[el].person_id.push(vm.currentUser.personID);
+                }
+            }
             publications.updatePatentsPerson(vm.currentUser.personID,data)
                 .then( function () {
                     getPatents(ind);
@@ -2232,8 +2264,98 @@
             }
         };
         vm.addPatentSearch = function (patent) {
-            vm.originalPersonPatents.push(Object.assign({}, patent));
-            vm.currentPatents.push(Object.assign({}, patent));
+            var alreadExists = false;
+            for (var el in vm.currentPatents) {
+                if (vm.currentPatents[el].title == patent.title) {
+                    alreadExists = true;
+                }
+            }
+            if (!alreadExists) {
+                vm.originalPersonPatents.push(Object.assign({}, patent));
+                vm.currentPatents.push(Object.assign({}, patent));
+            }
+        };
+
+        function getPrizes(ind) {
+            publications.getAllPrizes()
+                .then(function (response) {
+                    vm.allPrizes = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            publications.thisPersonPrizes(vm.currentUser.personID)
+                .then(function (response) {
+                    vm.originalPersonPrizes = response.data.result;
+                    vm.currentPrizes = [];
+                    for (var id in vm.originalPersonPrizes) {
+                        vm.currentPrizes.push(Object.assign({}, vm.originalPersonPrizes[id]));
+                    }
+                    if (ind > -1) {
+                        vm.updateStatus[ind] = "Updated!";
+                        vm.messageType[ind] = 'message-success';
+                        vm.hideMessage[ind] = false;
+                        $timeout(function () { vm.hideMessage[ind] = true; }, 1500);
+                    }
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+        }
+        vm.submitPrizes = function (ind) {
+            vm.updateStatus[ind] = "Updating...";
+            vm.messageType[ind] = 'message-updating';
+            vm.hideMessage[ind] = false;
+
+            var data = processDataRows(vm.currentPrizes,vm.originalPersonPrizes,
+                                  'id', 'newPrize','updatePrize','deletePrize');
+            for (var el in data.updatePrize) {
+                if (data.updatePrize[el].person_id.indexOf(vm.currentUser.personID) === -1) {
+                    data.updatePrize[el].person_id.push(vm.currentUser.personID);
+                }
+            }
+            for (var el in data.newPrize) {
+                if (data.newPrize[el].person_id.indexOf(vm.currentUser.personID) === -1) {
+                    data.newPrize[el].person_id.push(vm.currentUser.personID);
+                }
+            }
+
+            console.log(data)
+            alert()
+
+            publications.updatePrizesPerson(vm.currentUser.personID,data)
+                .then( function () {
+                    getPrizes(ind);
+                },
+                function () {
+                    vm.updateStatus[ind] = "Error!";
+                    vm.messageType[ind] = 'message-error';
+                },
+                function () {}
+                );
+            return false;
+        };
+        vm.renderPrizes = function () {
+            vm.prizesToShow = [];
+            if (vm.searchPrize.length >2) {
+                for (var el in vm.allPrizes) {
+                    if (nameMatching(vm.allPrizes[el].name,vm.searchPrize) !== null) {
+                        vm.prizesToShow.push(vm.allPrizes[el]);
+                    }
+                }
+            }
+        };
+        vm.addPrizeSearch = function (prize) {
+            var alreadExists = false;
+            for (var el in vm.currentPrizes) {
+                if (vm.currentPrizes[el].name == prize.name) {
+                    alreadExists = true;
+                }
+            }
+            if (!alreadExists) {
+                vm.originalPersonPrizes.push(Object.assign({}, prize));
+                vm.currentPrizes.push(Object.assign({}, prize));
+            }
         };
 
         /* Initialization functions */
@@ -3479,42 +3601,36 @@
             templateUrl: 'person/productivity/boards/person.boards.html'
         };
     };
-
     var personDatasets = function () {
         return {
             restrict: 'E',
             templateUrl: 'person/productivity/datasets/person.datasets.html'
         };
     };
-
     var personOutreach = function () {
         return {
             restrict: 'E',
             templateUrl: 'person/productivity/outreach/person.outreach.html'
         };
     };
-
     var personPatents = function () {
         return {
             restrict: 'E',
             templateUrl: 'person/productivity/patents/person.patents.html'
         };
     };
-
     var personPrizes = function () {
         return {
             restrict: 'E',
             templateUrl: 'person/productivity/prizes/person.prizes.html'
         };
     };
-
     var personStartups = function () {
         return {
             restrict: 'E',
             templateUrl: 'person/productivity/startups/person.startups.html'
         };
     };
-
 
     var personWebsitePhoto = function () {
         return {

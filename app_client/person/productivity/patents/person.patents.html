@@ -2,6 +2,7 @@
     <md-card-title>
         <md-card-title-text>
             <span class="md-headline">Patents</span>
+            <span class="md-subhead">Search first to check if patent is already in database.</span>
         </md-card-title-text>
     </md-card-title>
     <form novalidate flex name="patentsForm"
@@ -23,7 +24,7 @@
                     </md-button>
                 </li>
             </ul>
-            <div ng-if="!vm.nothingToShow(vm.currentPatents,'people_patents_id')" layout="column">
+            <div ng-if="!vm.nothingToShow(vm.currentPatents,'id')" layout="column">
                 <div ng-repeat="(num,patent) in vm.currentPatents track by $index"
                     layout="column">
                     <fieldset class="spacer">
@@ -116,7 +117,7 @@
                     </fieldset>
                 </div>
             </div>
-            <div ng-if="vm.nothingToShow(vm.currentPatents,'people_patents_id')" layout="column">
+            <div ng-if="vm.nothingToShow(vm.currentPatents,'id')" layout="column">
                  No data, press + to add
                 <md-button ng-click="vm.addRows(vm.currentPatents, 'patents')"
                         aria-label="Add more" class="md-icon-button interaction-button">

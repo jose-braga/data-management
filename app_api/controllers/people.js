@@ -2662,6 +2662,16 @@ var queryUpdateFellowship = function (req, res, next,userCity, jobUpdate,i) {
                   momentToDate(jobUpdate.job_valid_until),
                   momentToDate(jobUpdate.fellowship_maximum_extension),
                   jobUpdate.fellowship_id];
+    query = query + 'UPDATE fellowships_funding_agencies' +
+                    ' SET funding_agency_id = ?' +
+                    ' WHERE fellowship_id = ?;';
+    places.push(jobUpdate.funding_agency_id,
+                jobUpdate.fellowship_id);
+    query = query + 'UPDATE fellowships_management_entities' +
+                    ' SET management_entity_id = ?' +
+                    ' WHERE fellowship_id = ?;';
+    places.push(jobUpdate.management_entity_id,
+                jobUpdate.fellowship_id);
     pool.getConnection(function(err, connection) {
         if (err) {
             sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});

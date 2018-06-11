@@ -2319,10 +2319,6 @@
                     data.newPrize[el].person_id.push(vm.currentUser.personID);
                 }
             }
-
-            console.log(data)
-            alert()
-
             publications.updatePrizesPerson(vm.currentUser.personID,data)
                 .then( function () {
                     getPrizes(ind);

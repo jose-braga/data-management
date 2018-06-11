@@ -1619,7 +1619,7 @@ var queryAllPrizes = function (req, res, next) {
                         "result" : []});
                     return;
                 }
-                resQuery = compactData(resQuery, 'patent_id', 'person_id');
+                resQuery = compactData(resQuery, 'prize_id', 'person_id');
                 sendJSONResponse(res, 200,
                         {"status": "success", "statusCode": 200, "count": resQuery.length,
                         "result" : resQuery});

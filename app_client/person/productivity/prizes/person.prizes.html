@@ -1,0 +1,121 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Prizes</span>
+            <span class="md-subhead">Search first to check if prize is already in database.</span>
+        </md-card-title-text>
+    </md-card-title>
+    <form novalidate flex name="prizesForm"
+        ng-submit="prizesForm.$valid && vm.submitPrizes(vm.forms['personPrizes'])">
+        <md-card-content layout="column" flex>
+            <div layout="row" layout-align="none center" flex>
+                <ng-md-icon icon="search" size="24"></ng-md-icon>
+                <md-input-container flex>
+                    <label>Search prize name</label>
+                    <input ng-model="vm.searchPrize" ng-change="vm.renderPrizes()">
+                </md-input-container>
+            </div>
+            <ul>
+                 <li ng-repeat="prize in vm.prizesToShow">
+                     <b>{{prize.name}}</b> - {{prize.organization}}, {{prize.year}}
+                    <md-button ng-click="vm.addPrizeSearch(prize)"
+                            aria-label="Add more" class="md-icon-button interaction-button">
+                            <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                    </md-button>
+                </li>
+            </ul>
+            <div ng-if="!vm.nothingToShow(vm.currentPrizes,'id')" layout="column">
+                <div ng-repeat="(num,prize) in vm.currentPrizes track by $index"
+                    layout="column">
+                    <fieldset class="spacer">
+                        <div layout="column">
+                            <md-input-container>
+                                <label>Recipients</label>
+                                <input required ng-model="prize.recipients"
+                                        name="prize_recipients[num]">
+                            </md-input-container>
+                            <md-input-container
+                                ng-controller="PeopleSelectCtrl as peop">
+                                <label>From which these are LAQV/UCIBIO: </label>
+                                <md-select ng-model="prize.person_id" multiple
+                                        md-on-close="peop.searchTerm=''"
+                                        name="prize_units_recipients[num]">
+                                    <div class="anchored">
+                                        <md-select-header class="select-search-header">
+                                            <input ng-model="peop.searchTerm" type="search"
+                                              placeholder="Search authors"
+                                              class="md-text select-search-box">
+                                        </md-select-header>
+                                    </div>
+                                    <div class="scrollable">
+                                        <md-optgroup label="people">
+                                            <md-option ng-repeat="person in peop.people | filter:peop.searchTerm"
+                                                ng-value="person.id">{{person.colloquial_name}}</md-option>
+                                        </md-optgroup>
+                                    </div>
+                                </md-select>
+                            </md-input-container>
+                        </div>
+                        <div layout="column" layout-gt-sm="row">
+                            <md-input-container>
+                                <label>Prize name</label>
+                                <input required ng-model="prize.name"
+                                        name="prize_name[num]">
+                            </md-input-container>
+                            <md-input-container>
+                                <label>Entity giving prize</label>
+                                <input required ng-model="prize.organization"
+                                        name="prize_organization[num]">
+                            </md-input-container>
+                            <md-input-container>
+                                <label>Year</label>
+                                <input required ng-model="prize.year"
+                                        name="prize_year[num]" integer-validate>
+                            </md-input-container>
+                            <md-input-container>
+                                <label>Amount (€)</label>
+                                <input type="number" required ng-model="prize.amount_euro"
+                                        name="prize_amount[num]">
+                            </md-input-container>
+                        </div>
+                        <div layout="column">
+                            <md-input-container  class="md-block">
+                                <label>Notes</label>
+                                <textarea ng-model="prize.notes"
+                                        md-maxlength="500" rows="2"
+                                        name="prize_notes[num]"></textarea>
+                            </md-input-container>
+                            <div layout="row" layout-align="end center">
+                                <md-button ng-click="vm.removeRows(vm.currentPrizes,$index)"
+                                        aria-label="Remove"
+                                        class="md-icon-button interaction-button">
+                                    <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
+                                </md-button>
+                                <md-button ng-if="$last" ng-click="vm.addRows(vm.currentPrizes, 'prizes')"
+                                        aria-label="Add more" class="md-icon-button interaction-button">
+                                    <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                                </md-button>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+            <div ng-if="vm.nothingToShow (vm.currentPrizes,'id')" layout="column">
+                 No data, press + to add
+                <md-button ng-click="vm.addRows(vm.currentPrizes, 'prizes')"
+                        aria-label="Add more" class="md-icon-button interaction-button">
+                    <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                </md-button>
+            </div>
+            <div layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button type="submit"
+                    class="button-small md-raised md-primary">Update</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personPrizes']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['personPrizes']]">
+                        {{vm.updateStatus[vm.forms['personPrizes']]}}
+                    </span>
+                </div>
+            </div>
+        </md-card-content>
+    </form>
+</md-card>

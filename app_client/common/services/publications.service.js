@@ -165,6 +165,28 @@
             );
         };
 
+        var getAllPrizes = function () {
+            return $http.get('api/prizes/all',
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var thisPersonPrizes = function (personID) {
+            return $http.get('api/prizes/person/' + personID,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var updatePrizesPerson = function (personID, data) {
+            return $http.put('api/prizes/person/' + personID, data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+
         return {
             addMembersPublications: addMembersPublications,
             allPublications: allPublications,
@@ -186,7 +208,10 @@
             removePublicationsTeam: removePublicationsTeam,
             getAllPatents: getAllPatents,
             thisPersonPatents: thisPersonPatents,
-            updatePatentsPerson: updatePatentsPerson
+            updatePatentsPerson: updatePatentsPerson,
+            getAllPrizes: getAllPrizes,
+            thisPersonPrizes: thisPersonPrizes,
+            updatePrizesPerson: updatePrizesPerson
         };
     };
 

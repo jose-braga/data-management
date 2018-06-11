@@ -46,7 +46,11 @@ var contact = function (baseURL, operation, entityType, entityID, errorMessage, 
                         console.log('error response:', err);
                         body = {'statusCode': 5000};
                     }
+                }  else {
+                    body = {'statusCode': 5001};
                 }
+            } else {
+                body = {'statusCode': 5002};
             }
             if (error !== null) {
                 console.log(errorMessage, errorIDs);
@@ -77,7 +81,11 @@ exports.contactCreateOrUpdate = function (baseURL, entityType, entityID, errorMe
                         console.log('error response:', err);
                         body = {'statusCode': 5000};
                     }
+                } else {
+                    body = {'statusCode': 5001};
                 }
+            } else {
+                body = {'statusCode': 5002};
             }
             if (error !== null) {
                 console.log(errorMessage, errorIDs);

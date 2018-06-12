@@ -122,6 +122,8 @@ router.get('/patents/all', auth, ctrlPublicationsData.listPatents);
 router.get('/patents/person/:personID', auth, ctrlPublicationsData.listPersonPatents);
 router.get('/prizes/all', auth, ctrlPublicationsData.listPrizes);
 router.get('/prizes/person/:personID', auth, ctrlPublicationsData.listPersonPrizes);
+router.get('/datasets/all', auth, ctrlPublicationsData.listDatasets);
+router.get('/datasets/person/:personID', auth, ctrlPublicationsData.listPersonDatasets);
 
 // PUT PUBLICATION information (authenticated)
 router.put('/publications/person/:personID/selected', auth, ctrlPublicationsData.updatePersonSelectedPub);
@@ -137,6 +139,7 @@ router.put('/communications/person/:personID/add-orcid', auth, ctrlPublicationsD
 router.put('/communications/person/:personID/add', auth, ctrlPublicationsData.addORCIDCommunicationsPerson); // both use the same function
 router.put('/patents/person/:personID', auth, ctrlPublicationsData.updatePersonPatents);
 router.put('/prizes/person/:personID', auth, ctrlPublicationsData.updatePersonPrizes);
+router.put('/datasets/person/:personID', auth, ctrlPublicationsData.updatePersonDatasets);
 
 // POST (Create) new user (authenticated)
 router.post('/registration', auth, ctrlRegistrationData.addPerson);

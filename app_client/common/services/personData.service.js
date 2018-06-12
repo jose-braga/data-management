@@ -120,6 +120,10 @@
             return $http.get('api/list/patent-status');
         };
 
+        var datasetTypes = function () {
+            return $http.get('api/list/dataset-types');
+        };
+
         var permissions = function () {
             return $http.get('api/list/permissions');
         };
@@ -363,6 +367,7 @@
             conferenceTypes: conferenceTypes,
             patentTypes: patentTypes,
             patentStatus: patentStatus,
+            datasetTypes: datasetTypes,
             permissions: permissions,
             updateInstitutionCityPersonByID: updateInstitutionCityPersonByID,
             updateJobsPersonByID: updateJobsPersonByID,

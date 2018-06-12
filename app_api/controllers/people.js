@@ -6191,11 +6191,14 @@ module.exports.listOf = function (req, res, next) {
     } else if (listOf === 'conference-types') {
         querySQL = 'SELECT * FROM conference_types;';
         getQueryResponse(querySQL, req, res, next);
-    }  else if (listOf === 'patent-types') {
+    } else if (listOf === 'patent-types') {
         querySQL = 'SELECT * FROM patent_types;';
         getQueryResponse(querySQL, req, res, next);
-    }  else if (listOf === 'patent-status') {
+    } else if (listOf === 'patent-status') {
         querySQL = 'SELECT * FROM patent_status;';
+        getQueryResponse(querySQL, req, res, next);
+    } else if (listOf === 'dataset-types') {
+        querySQL = 'SELECT * FROM data_set_types;';
         getQueryResponse(querySQL, req, res, next);
     } else {
         var errorNum = 404;

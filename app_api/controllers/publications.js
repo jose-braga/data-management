@@ -1834,6 +1834,252 @@ var queryAddPrizePerson = function (req, res, next, personID,updateArr,deleteArr
     });
 };
 
+var queryAllDatasets = function (req, res, next) {
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'SELECT people_data_sets.*,' +
+                          ' data_sets.short_description, data_sets.number_sets, data_sets.data_set_type_id, data_set_types.name,' +
+                          ' data_sets.database_name, data_sets.url, data_sets.year ' +
+                          'FROM people_data_sets' +
+                          ' LEFT JOIN data_sets ON data_sets.id = people_data_sets.data_set_id'+
+                          ' LEFT JOIN data_set_types ON data_set_types.id = data_sets.data_set_type_id;';
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (resQuery.length === 0 || resQuery === undefined) {
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 0,
+                        "result" : []});
+                    return;
+                }
+                resQuery = compactData(resQuery, 'data_set_id', 'person_id');
+                sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": resQuery.length,
+                        "result" : resQuery});
+                return;
+            }
+        );
+    });
+};
+var queryPersonDatasets = function (req, res, next) {
+    var personID = req.params.personID;
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'SELECT people_data_sets.*, ' +
+                          ' data_sets.short_description, data_sets.number_sets, data_sets.data_set_type_id, data_set_types.name,' +
+                          ' data_sets.database_name, data_sets.url, data_sets.year ' +
+                          'FROM people_data_sets' +
+                          ' LEFT JOIN data_sets ON data_sets.id = people_data_sets.data_set_id' +
+                          ' LEFT JOIN data_set_types ON data_set_types.id = data_sets.data_set_type_id' +
+                          ' WHERE people_data_sets.data_set_id = ANY ' +
+                          ' (SELECT people_data_sets.data_set_id FROM people_data_sets WHERE people_data_sets.person_id = ?);';
+    places.push(personID);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (resQuery.length === 0 || resQuery === undefined) {
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 0,
+                        "result" : []});
+                    return;
+                }
+                resQuery = compactData(resQuery, 'data_set_id', 'person_id');
+                sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": resQuery.length,
+                        "result" : resQuery});
+                return;
+            }
+        );
+    });
+};
+var queryUpdatePersonDatasets = function (req, res, next) {
+    var personID = req.params.personID;
+    var updateArr = req.body.updateDataset;
+    var newArr = req.body.newDataset;
+    var deleteArr = req.body.deleteDataset;
+    if (updateArr.length > 0) {
+        return queryUpdateDataset(req, res, next, personID, updateArr,deleteArr,newArr, updateArr[0], 0);
+    } else if (deleteArr.length > 0) {
+        return queryDeleteDataset(req, res, next, personID, updateArr,deleteArr,newArr, deleteArr[0], 0);
+    } else if (newArr.length > 0) {
+        return queryAddDataset(req, res, next, personID, updateArr,deleteArr,newArr, newArr[0], 0);
+    }
+    if (deleteArr.length === 0 && updateArr.length == 0 && newArr.length === 0) {
+        sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
+        return;
+    }
+};
+var queryUpdateDataset = function (req, res, next, personID,updateArr,deleteArr,newArr, data, i) {
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'UPDATE data_sets' +
+                          ' SET short_description = ?,' +
+                          ' number_sets = ?,' +
+                          ' data_set_type_id = ?,' +
+                          ' database_name = ?,' +
+                          ' year = ?,' +
+                          ' url = ? ' +
+                          ' WHERE id = ?;';
+    places.push(data.short_description,
+                data.number_sets,
+                data.data_set_type_id,
+                data.database_name,
+                data.year,
+                data.url,
+                data.data_set_id);
+    // first delete all ocurrences of patent in people_patent
+    querySQL = querySQL + 'DELETE FROM people_data_sets WHERE data_set_id = ?;';
+    places.push(data.data_set_id);
+    for (var el in data.person_id) {
+        querySQL = querySQL + 'INSERT INTO people_data_sets (data_set_id, person_id) VALUES (?,?);';
+        places.push(data.data_set_id, data.person_id[el]);
+    }
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (i + 1 < updateArr.length) {
+                    return queryUpdateDataset(req, res, next, personID,
+                                updateArr,deleteArr,newArr, updateArr[i+1], i+1);
+                } else if (deleteArr.length > 0) {
+                    return queryDeleteDataset(req, res, next, personID,
+                                updateArr,deleteArr,newArr, deleteArr[0], 0);
+                } else if (newArr.length > 0) {
+                    return queryAddDataset(req, res, next, personID,
+                                updateArr,deleteArr,newArr, newArr[0], 0);
+                } else {
+                    sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
+                    return;
+                }
+            }
+        );
+    });
+};
+var queryDeleteDataset = function (req, res, next, personID,updateArr,deleteArr,newArr, data, i) {
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'DELETE FROM people_data_sets' +
+                          ' WHERE person_id = ? AND data_set_id = ?;';
+    places.push(personID, data.data_set_id);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (i + 1 < deleteArr.length) {
+                    return queryDeleteDataset(req, res, next, personID,
+                                updateArr,deleteArr,newArr, deleteArr[i+1], i+1);
+                } else if (newArr.length > 0) {
+                    return queryAddDataset(req, res, next, personID,
+                                updateArr,deleteArr,newArr, newArr[0], 0);
+                } else {
+                    sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
+                    return;
+                }
+            }
+        );
+    });
+};
+var queryAddDataset = function (req, res, next, personID,updateArr,deleteArr,newArr, data, i) {
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'INSERT INTO data_sets' +
+                          ' (short_description, number_sets, data_set_type_id, database_name, year, url)' +
+                          ' VALUES (?, ?, ?, ?, ?, ?);';
+    places.push(data.short_description,
+                data.number_sets,
+                data.data_set_type_id,
+                data.database_name,
+                data.year,
+                data.url);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                var datasetID = resQuery.insertId;
+                return queryAddDatasetPerson(req, res, next, personID,updateArr,deleteArr,newArr, data, i, datasetID);
+            }
+        );
+    });
+};
+var queryAddDatasetPerson = function (req, res, next, personID,updateArr,deleteArr,newArr, data, i, datasetID) {
+    var querySQL = '';
+    var places = [];
+    for (var el in data.person_id) {
+        querySQL = querySQL + 'INSERT INTO people_data_sets (person_id, data_set_id) VALUES (?,?);';
+        places.push(data.person_id[el], datasetID);
+    }
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (i + 1 < newArr.length) {
+                    return queryAddDataset(req, res, next, personID,
+                                updateArr,deleteArr,newArr, newArr[i+1], i+1);
+                } else {
+                    sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
+                    return;
+                }
+            }
+        );
+    });
+};
+
 
 /************************* Public API Person Queries **************************/
 module.exports.getPublicationInfo = function (req, res, next) {
@@ -2274,6 +2520,28 @@ module.exports.updatePersonPrizes = function (req, res, next) {
     getUser(req, res, [0, 5, 10, 15, 16, 20, 30, 40],
         function (req, res, username) {
             queryUpdatePersonPrizes(req,res,next,0);
+        }
+    );
+};
+
+module.exports.listDatasets = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30, 40],
+        function (req, res, username) {
+            queryAllDatasets(req,res,next);
+        }
+    );
+};
+module.exports.listPersonDatasets = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30, 40],
+        function (req, res, username) {
+            queryPersonDatasets(req,res,next);
+        }
+    );
+};
+module.exports.updatePersonDatasets = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30, 40],
+        function (req, res, username) {
+            queryUpdatePersonDatasets(req,res,next,0);
         }
     );
 };

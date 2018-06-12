@@ -187,6 +187,28 @@
             );
         };
 
+        var getAllDatasets = function () {
+            return $http.get('api/datasets/all',
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var thisPersonDatasets = function (personID) {
+            return $http.get('api/datasets/person/' + personID,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var updateDatasetsPerson = function (personID, data) {
+            return $http.put('api/datasets/person/' + personID, data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+
         return {
             addMembersPublications: addMembersPublications,
             allPublications: allPublications,
@@ -211,7 +233,10 @@
             updatePatentsPerson: updatePatentsPerson,
             getAllPrizes: getAllPrizes,
             thisPersonPrizes: thisPersonPrizes,
-            updatePrizesPerson: updatePrizesPerson
+            updatePrizesPerson: updatePrizesPerson,
+            getAllDatasets: getAllDatasets,
+            thisPersonDatasets: thisPersonDatasets,
+            updateDatasetsPerson: updateDatasetsPerson
         };
     };
 

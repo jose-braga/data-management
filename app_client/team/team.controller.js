@@ -1,5 +1,3 @@
-// TODO: solved "undefined" in lab affiliations groups
-
 (function(){
 /******************************* Controllers **********************************/
     var teamCtrl = function ($scope, $timeout, $mdMedia, $mdPanel,

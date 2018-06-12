@@ -82,6 +82,7 @@
             getCommunications();
             getPatents();
             getPrizes();
+            getDatasets();
             getDataLists();
             initializeImages();
             initializeDetails();
@@ -1034,6 +1035,22 @@
                         year: null,
                         amount_euro: null,
                         notes: null
+                    };
+                    current.push(obj);
+                }
+            } else if (type === 'datasets') {
+                if (current.length == 1 && current[0]['id'] === null) {
+                    current[0]['id'] = 'new';
+                } else {
+                    obj = {
+                        id: 'new',
+                        person_id: [],
+                        data_set_type_id: null,
+                        short_description: null,
+                        number_sets: null,
+                        database_name: null,
+                        url: null,
+                        year: null
                     };
                     current.push(obj);
                 }
@@ -2354,6 +2371,92 @@
             }
         };
 
+        function getDatasets(ind) {
+            publications.getAllDatasets()
+                .then(function (response) {
+                    vm.allDatasets = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            publications.thisPersonDatasets(vm.currentUser.personID)
+                .then(function (response) {
+                    vm.originalPersonDatasets = response.data.result;
+                    vm.currentDatasets = [];
+                    for (var id in vm.originalPersonDatasets) {
+                        vm.currentDatasets.push(Object.assign({}, vm.originalPersonDatasets[id]));
+                    }
+                    if (ind > -1) {
+                        vm.updateStatus[ind] = "Updated!";
+                        vm.messageType[ind] = 'message-success';
+                        vm.hideMessage[ind] = false;
+                        $timeout(function () { vm.hideMessage[ind] = true; }, 1500);
+                    }
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+        }
+        vm.submitDatasets = function (ind) {
+            vm.updateStatus[ind] = "Updating...";
+            vm.messageType[ind] = 'message-updating';
+            vm.hideMessage[ind] = false;
+
+            var data = processDataRows(vm.currentDatasets,vm.originalPersonDatasets,
+                                  'id', 'newDataset','updateDataset','deleteDataset');
+            for (var el in data.updateDataset) {
+                if (data.updateDataset[el].person_id.indexOf(vm.currentUser.personID) === -1) {
+                    data.updateDataset[el].person_id.push(vm.currentUser.personID);
+                }
+            }
+            for (var el in data.newDataset) {
+                if (data.newDataset[el].person_id.indexOf(vm.currentUser.personID) === -1) {
+                    data.newDataset[el].person_id.push(vm.currentUser.personID);
+                }
+            }
+
+            console.log(data)
+            alert()
+
+
+            publications.updateDatasetsPerson(vm.currentUser.personID,data)
+                .then( function () {
+                    getDatasets(ind);
+                },
+                function () {
+                    vm.updateStatus[ind] = "Error!";
+                    vm.messageType[ind] = 'message-error';
+                },
+                function () {}
+                );
+            return false;
+        };
+        vm.renderDatasets = function () {
+            vm.datasetsToShow = [];
+            if (vm.searchDataset.length >2) {
+                for (var el in vm.allDatasets) {
+                    if (nameMatching(vm.allDatasets[el].database_name,vm.searchDataset) !== null
+                        || nameMatching(vm.allDatasets[el].short_description,vm.searchDataset) !== null) {
+                        vm.datasetsToShow.push(vm.allDatasets[el]);
+                    }
+                }
+            }
+        };
+        vm.addDatasetSearch = function (dataset) {
+            var alreadExists = false;
+            for (var el in vm.currentDatasets) {
+                if (vm.currentDatasets[el].short_description == dataset.short_description
+                    && vm.currentDatasets[el].database_name == dataset.database_name
+                    && vm.currentDatasets[el].year == dataset.year) {
+                    alreadExists = true;
+                }
+            }
+            if (!alreadExists) {
+                vm.originalPersonDatasets.push(Object.assign({}, dataset));
+                vm.currentDatasets.push(Object.assign({}, dataset));
+            }
+        };
+
         /* Initialization functions */
         function initializeVariables() {
             vm.deletePublications = [];
@@ -3088,6 +3191,13 @@
             personData.patentStatus()
                 .then(function (response) {
                     vm.patentStatus = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            personData.datasetTypes()
+                .then(function (response) {
+                    vm.datasetTypes = response.data.result;
                 })
                 .catch(function (err) {
                     console.log(err);

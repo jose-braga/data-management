@@ -84,6 +84,7 @@
             getPrizes();
             getDatasets();
             getStartups();
+            getBoards();
             getDataLists();
             initializeImages();
             initializeDetails();
@@ -1076,6 +1077,24 @@
                     current[0]['id'] = 'new';
                 } else {
                     obj = {person_id: null, position_name: null};
+                    current.push(obj);
+                }
+            } else if (type === 'boards') {
+                if (current.length == 1 && current[0]['id'] === null) {
+                    current[0]['id'] = 'new';
+                } else {
+                    obj = {
+                        id: 'new',
+                        person_id: vm.currentUser.personID,
+                        board_id: null,
+                        board_type_id: null,
+                        board_name: null,
+                        short_description: null,
+                        role: null,
+                        international: 0,
+                        start_date: null,
+                        end_date: null
+                    };
                     current.push(obj);
                 }
             }
@@ -2585,6 +2604,49 @@
             }
         };
 
+        function getBoards(ind) {
+            publications.thisPersonBoards(vm.currentUser.personID)
+                .then(function (response) {
+                    vm.originalPersonBoards = response.data.result;
+                    vm.currentBoards = [];
+                    for (var id in vm.originalPersonBoards) {
+                        vm.currentBoards.push(Object.assign({}, vm.originalPersonBoards[id]));
+                    }
+                    if (ind > -1) {
+                        vm.updateStatus[ind] = "Updated!";
+                        vm.messageType[ind] = 'message-success';
+                        vm.hideMessage[ind] = false;
+                        $timeout(function () { vm.hideMessage[ind] = true; }, 1500);
+                    }
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+        }
+        vm.submitBoards = function (ind) {
+            vm.updateStatus[ind] = "Updating...";
+            vm.messageType[ind] = 'message-updating';
+            vm.hideMessage[ind] = false;
+
+            var data = processDataRows(vm.currentBoards,vm.originalPersonBoards,
+                                  'id', 'newBoard','updateBoard','deleteBoard');
+
+            console.log(data)
+            alert()
+
+            publications.updateBoardsPerson(vm.currentUser.personID,data)
+                .then( function () {
+                    getBoards(ind);
+                },
+                function () {
+                    vm.updateStatus[ind] = "Error!";
+                    vm.messageType[ind] = 'message-error';
+                },
+                function () {}
+                );
+            return false;
+        };
+
         /* Initialization functions */
         function initializeVariables() {
             vm.deletePublications = [];
@@ -3326,6 +3388,13 @@
             personData.datasetTypes()
                 .then(function (response) {
                     vm.datasetTypes = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            personData.boardTypes()
+                .then(function (response) {
+                    vm.boardTypes = response.data.result;
                 })
                 .catch(function (err) {
                     console.log(err);

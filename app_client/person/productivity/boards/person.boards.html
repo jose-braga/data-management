@@ -1,0 +1,95 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Boards</span>
+            <span class="md-subhead">Advisory, regulatory, editorial and others.</span>
+        </md-card-title-text>
+    </md-card-title>
+    <form novalidate flex name="boardsForm"
+        ng-submit="boardsForm.$valid && vm.submitBoards(vm.forms['personBoards'])">
+        <md-card-content layout="column" flex>
+            <div ng-if="!vm.nothingToShow(vm.currentBoards,'id')" layout="column">
+                <div ng-repeat="(num,board) in vm.currentBoards track by $index"
+                    layout="column">
+                    <fieldset class="spacer">
+                        <div layout="column" layout-gt-sm="row">
+                            <md-input-container>
+                                <label>Board type</label>
+                                <md-select ng-model="board.board_type_id" name="board_type[num]">
+                                   <md-option ng-repeat="type in vm.boardTypes"
+                                        ng-value="type.id">{{type.name}}</md-option>
+                                </md-select>
+                            </md-input-container>
+                            <md-input-container>
+                                <label>Role</label>
+                                <input ng-model="board.role"
+                                        md-maxlength="45"
+                                        name="board_role[num]">
+                            </md-input-container>
+                            <md-input-container>
+                                <label>Board name</label>
+                                <input required ng-model="board.board_name"
+                                        md-maxlength="100"
+                                        name="board_name[num]">
+                            </md-input-container>
+                        </div>
+                        <div layout="column">
+                            <md-input-container  class="md-block">
+                                <label>Short description</label>
+                                <textarea ng-model="board.short_description"
+                                        md-maxlength="400" rows="2"
+                                        name="board_description[num]"></textarea>
+                            </md-input-container>
+                        </div>
+                        <div layout="column"  layout-gt-sm="row">
+                            <md-switch ng-model="board.international"
+                                    ng-true-value="1" ng-false-value="0"
+                                    class="md-warn">
+                                 International: {{ vm.switchValue(board.international) }}
+                            </md-switch>
+                            <md-input-container class="input-row-longer">
+                                <label>Start</label>
+                                <md-datepicker md-current-view="year"
+                                        ng-model="board.start_date"
+                                        name="board_start[num]" md-placeholder="Enter date"></md-datepicker>
+                            </md-input-container>
+                            <md-input-container class="input-row-longer">
+                                <label>End</label>
+                                <md-datepicker md-current-view="year"
+                                        ng-model="board.end_date"
+                                        name="board_end[num]" md-placeholder="Enter date"></md-datepicker>
+                            </md-input-container>
+                            <div layout="row" layout-align="end center">
+                                <md-button ng-click="vm.removeRows(vm.currentBoards,$index)"
+                                        aria-label="Remove"
+                                        class="md-icon-button interaction-button">
+                                    <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
+                                </md-button>
+                                <md-button ng-if="$last" ng-click="vm.addRows(vm.currentBoards, 'boards')"
+                                        aria-label="Add more" class="md-icon-button interaction-button">
+                                    <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                                </md-button>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+            <div ng-if="vm.nothingToShow (vm.currentBoards,'id')" layout="column">
+                 No data, press + to add
+                <md-button ng-click="vm.addRows(vm.currentBoards, 'boards')"
+                        aria-label="Add more" class="md-icon-button interaction-button">
+                    <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                </md-button>
+            </div>
+            <div layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button type="submit"
+                    class="button-small md-raised md-primary">Update</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personBoards']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['personBoards']]">
+                        {{vm.updateStatus[vm.forms['personBoards']]}}
+                    </span>
+                </div>
+            </div>
+        </md-card-content>
+    </form>
+</md-card>

@@ -2345,6 +2345,213 @@ var queryAddStartupPerson = function (req, res, next, personID,updateArr,deleteA
     });
 };
 
+var queryPersonBoards = function (req, res, next) {
+    var personID = req.params.personID;
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'SELECT people_boards.*, ' +
+                          ' boards.short_description, boards.role, boards.board_type_id, boards.board_name, board_types.name,' +
+                          ' boards.international, boards.start_date, boards.end_date ' +
+                          'FROM people_boards' +
+                          ' LEFT JOIN boards ON boards.id = people_boards.board_id' +
+                          ' LEFT JOIN board_types ON board_types.id = boards.board_type_id' +
+                          ' WHERE people_boards.board_id = ANY ' +
+                          ' (SELECT people_boards.board_id FROM people_boards WHERE people_boards.person_id = ?);';
+    places.push(personID);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (resQuery.length === 0 || resQuery === undefined) {
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 0,
+                        "result" : []});
+                    return;
+                }
+                resQuery = compactData(resQuery, 'board_id', 'person_id');
+                sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": resQuery.length,
+                        "result" : resQuery});
+                return;
+            }
+        );
+    });
+};
+var queryUpdatePersonBoards = function (req, res, next) {
+    var personID = req.params.personID;
+    var updateArr = req.body.updateBoard;
+    var newArr = req.body.newBoard;
+    var deleteArr = req.body.deleteBoard;
+    if (updateArr.length > 0) {
+        return queryUpdateBoard(req, res, next, personID, updateArr,deleteArr,newArr, updateArr[0], 0);
+    } else if (deleteArr.length > 0) {
+        return queryDeleteBoard(req, res, next, personID, updateArr,deleteArr,newArr, deleteArr[0], 0);
+    } else if (newArr.length > 0) {
+        return queryAddBoard(req, res, next, personID, updateArr,deleteArr,newArr, newArr[0], 0);
+    }
+    if (deleteArr.length === 0 && updateArr.length == 0 && newArr.length === 0) {
+        sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
+        return;
+    }
+};
+var queryUpdateBoard = function (req, res, next, personID,updateArr,deleteArr,newArr, data, i) {
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'UPDATE boards' +
+                          ' SET short_description = ?,' +
+                          ' role = ?,' +
+                          ' board_type_id = ?,' +
+                          ' board_name = ?,' +
+                          ' international = ?,' +
+                          ' start_date = ?,' +
+                          ' end_date = ? ' +
+                          ' WHERE id = ?;';
+    places.push(data.short_description,
+                data.role,
+                data.board_type_id,
+                data.board_name,
+                data.international,
+                data.start_date,
+                data.end_date,
+                data.board_id);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (i + 1 < updateArr.length) {
+                    return queryUpdateBoard(req, res, next, personID,
+                                updateArr,deleteArr,newArr, updateArr[i+1], i+1);
+                } else if (deleteArr.length > 0) {
+                    return queryDeleteBoard(req, res, next, personID,
+                                updateArr,deleteArr,newArr, deleteArr[0], 0);
+                } else if (newArr.length > 0) {
+                    return queryAddBoard(req, res, next, personID,
+                                updateArr,deleteArr,newArr, newArr[0], 0);
+                } else {
+                    sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
+                    return;
+                }
+            }
+        );
+    });
+};
+var queryDeleteBoard = function (req, res, next, personID,updateArr,deleteArr,newArr, data, i) {
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'DELETE FROM people_boards' +
+                          ' WHERE person_id = ? AND board_id = ?;';
+    places.push(personID, data.board_id);
+    querySQL = querySQL + 'DELETE FROM boards' +
+                          ' WHERE id = ?;';
+    places.push(data.board_id);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (i + 1 < deleteArr.length) {
+                    return queryDeleteBoard(req, res, next, personID,
+                                updateArr,deleteArr,newArr, deleteArr[i+1], i+1);
+                } else if (newArr.length > 0) {
+                    return queryAddBoard(req, res, next, personID,
+                                updateArr,deleteArr,newArr, newArr[0], 0);
+                } else {
+                    sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
+                    return;
+                }
+            }
+        );
+    });
+};
+var queryAddBoard = function (req, res, next, personID,updateArr,deleteArr,newArr, data, i) {
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'INSERT INTO boards' +
+                          ' (short_description, role, board_type_id, board_name, international, start_date, end_date)' +
+                          ' VALUES (?, ?, ?, ?, ?, ?, ?);';
+    places.push(data.short_description,
+                data.role,
+                data.board_type_id,
+                data.board_name,
+                data.international,
+                data.start_date,
+                data.end_date);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                var boardID = resQuery.insertId;
+                return queryAddBoardPerson(req, res, next, personID,updateArr,deleteArr,newArr, data, i, boardID);
+            }
+        );
+    });
+};
+var queryAddBoardPerson = function (req, res, next, personID,updateArr,deleteArr,newArr, data, i, boardID) {
+    var querySQL = '';
+    var places = [];
+
+    querySQL = querySQL + 'INSERT INTO people_boards (person_id, board_id) VALUES (?,?);';
+    places.push(personID, boardID);
+
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (i + 1 < newArr.length) {
+                    return queryAddBoard(req, res, next, personID,
+                                updateArr,deleteArr,newArr, newArr[i+1], i+1);
+                } else {
+                    sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
+                    return;
+                }
+            }
+        );
+    });
+};
 
 /************************* Public API Person Queries **************************/
 module.exports.getPublicationInfo = function (req, res, next) {
@@ -2829,6 +3036,21 @@ module.exports.updatePersonStartups = function (req, res, next) {
     getUser(req, res, [0, 5, 10, 15, 16, 20, 30, 40],
         function (req, res, username) {
             queryUpdatePersonStartups(req,res,next,0);
+        }
+    );
+};
+
+module.exports.listPersonBoards = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30, 40],
+        function (req, res, username) {
+            queryPersonBoards(req,res,next);
+        }
+    );
+};
+module.exports.updatePersonBoards = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30, 40],
+        function (req, res, username) {
+            queryUpdatePersonBoards(req,res,next,0);
         }
     );
 };

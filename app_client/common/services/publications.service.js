@@ -231,6 +231,28 @@
             );
         };
 
+        var getAllBoards = function () {
+            return $http.get('api/boards/all',
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var thisPersonBoards = function (personID) {
+            return $http.get('api/boards/person/' + personID,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var updateBoardsPerson = function (personID, data) {
+            return $http.put('api/boards/person/' + personID, data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+
         return {
             addMembersPublications: addMembersPublications,
             allPublications: allPublications,
@@ -261,7 +283,10 @@
             updateDatasetsPerson: updateDatasetsPerson,
             getAllStartups: getAllStartups,
             thisPersonStartups: thisPersonStartups,
-            updateStartupsPerson: updateStartupsPerson
+            updateStartupsPerson: updateStartupsPerson,
+            getAllBoards: getAllBoards,
+            thisPersonBoards: thisPersonBoards,
+            updateBoardsPerson: updateBoardsPerson,
         };
     };
 

@@ -60,6 +60,7 @@
                                 ng-controller="PeopleSelectCtrl as peop">
                                 <label>From which these are LAQV/UCIBIO: </label>
                                 <md-select ng-model="patent.person_id" multiple
+                                        md-on-close="peop.searchTerm=''"
                                         name="patent_units_authors[num]">
                                     <div class="anchored">
                                         <md-select-header class="select-search-header">

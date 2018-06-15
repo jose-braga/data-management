@@ -209,6 +209,28 @@
             );
         };
 
+        var getAllStartups = function () {
+            return $http.get('api/startups/all',
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var thisPersonStartups = function (personID) {
+            return $http.get('api/startups/person/' + personID,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var updateStartupsPerson = function (personID, data) {
+            return $http.put('api/startups/person/' + personID, data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+
         return {
             addMembersPublications: addMembersPublications,
             allPublications: allPublications,
@@ -236,7 +258,10 @@
             updatePrizesPerson: updatePrizesPerson,
             getAllDatasets: getAllDatasets,
             thisPersonDatasets: thisPersonDatasets,
-            updateDatasetsPerson: updateDatasetsPerson
+            updateDatasetsPerson: updateDatasetsPerson,
+            getAllStartups: getAllStartups,
+            thisPersonStartups: thisPersonStartups,
+            updateStartupsPerson: updateStartupsPerson
         };
     };
 

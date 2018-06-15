@@ -224,17 +224,42 @@ function momentToDate(timedate, timezone, timeformat) {
 function compactData(arr, key, aggregate_key) {
     var used_keys = [];
     var compact_arr = [];
-    for (var el in arr) {
-        if (used_keys.indexOf(arr[el][key]) === -1) {
-            used_keys.push(arr[el][key]);
-            var new_row = Object.assign({}, arr[el]);
-            new_row[aggregate_key] = [];
-            for (var el2 in arr) {
-                if (arr[el2][key] == arr[el][key]) {
-                    new_row[aggregate_key].push(arr[el2][aggregate_key]);
+    var new_row;
+    if (Array.isArray(aggregate_key)) {
+        for (var el in arr) {
+            if (used_keys.indexOf(arr[el][key]) === -1) {
+                used_keys.push(arr[el][key]);
+                new_row = Object.assign({}, arr[el]);
+                // first of array is the name of the key in the final array
+                new_row[aggregate_key[0]] = [];
+                for (var el2 in arr) {
+                    if (arr[el2][key] == arr[el][key]) {
+                        var new_obj = {};
+                        for (var el_agg in aggregate_key) {
+                            new_obj[aggregate_key[el_agg]] = arr[el2][aggregate_key[el_agg]];
+                            if (aggregate_key[el_agg] !== aggregate_key[0]) {
+                                delete new_row[aggregate_key[el_agg]];
+                            }
+                        }
+                        new_row[aggregate_key[0]].push(new_obj);
+                    }
                 }
+                compact_arr.push(new_row);
             }
-            compact_arr.push(new_row);
+        }
+    } else {
+        for (var el in arr) {
+            if (used_keys.indexOf(arr[el][key]) === -1) {
+                used_keys.push(arr[el][key]);
+                new_row = Object.assign({}, arr[el]);
+                new_row[aggregate_key] = [];
+                for (var el2 in arr) {
+                    if (arr[el2][key] == arr[el][key]) {
+                        new_row[aggregate_key].push(arr[el2][aggregate_key]);
+                    }
+                }
+                compact_arr.push(new_row);
+            }
         }
     }
     return compact_arr;
@@ -1208,9 +1233,9 @@ var queryORCIDInsertPeoplePublications = function (req, res, next, i, pubID) {
                     sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                     return;
                 }
-                externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'publications', pubID,
+                externalAPI.contactCreateOrUpdate(WEBSITE_API_BASE_URL[1], 'publications', pubID,
                                                 'UCIBIO API error updating (adding association to person, from ORCID) (id) :', pubID);
-                externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'publications', pubID,
+                externalAPI.contactCreateOrUpdate(WEBSITE_API_BASE_URL[2], 'publications', pubID,
                                                 'LAQV API error updating (adding association to person, from ORCID) (id) :', pubID);
                 if (i+1<add.length) {
                     return queryORCIDGetJournalID(req,res,next,i+1);
@@ -1336,13 +1361,13 @@ var queryUpdatePersonCommunications = function (req, res, next, i) {
 var queryAllPatents = function (req, res, next) {
     var querySQL = '';
     var places = [];
-    querySQL = querySQL + 'SELECT people_patents.*, patents.authors_raw, ' +
+    querySQL = querySQL + 'SELECT people_patents.id, people_patents.person_id, patents.id AS patent_id, patents.authors_raw, ' +
                           ' patents.title, patents.reference_number1 AS reference1, patents.reference_number2 AS reference2, ' +
                           ' patents.patent_type_id, patent_types.name_en AS patent_type,' +
                           ' patents.status_id AS patent_status_id, patent_status.name_en AS patent_status,' +
                           ' patents.status_date AS status_date, patents.description ' +
                           'FROM people_patents' +
-                          ' LEFT JOIN patents ON patents.id = people_patents.patent_id' +
+                          ' RIGHT JOIN patents ON patents.id = people_patents.patent_id' +
                           ' LEFT JOIN patent_types ON patent_types.id = patents.patent_type_id' +
                           ' LEFT JOIN patent_status ON patent_status.id = patents.status_id;';
     pool.getConnection(function(err, connection) {
@@ -1596,10 +1621,10 @@ var queryAddPatentPerson = function (req, res, next, personID,updateArr,deleteAr
 var queryAllPrizes = function (req, res, next) {
     var querySQL = '';
     var places = [];
-    querySQL = querySQL + 'SELECT people_prizes.*,' +
+    querySQL = querySQL + 'SELECT people_prizes.id, people_prizes.person_id, prizes.id AS prize_id,' +
                           ' prizes.recipients, prizes.name, prizes.organization, prizes.year, prizes.amount_euro, prizes.notes ' +
                           'FROM people_prizes' +
-                          ' LEFT JOIN prizes ON prizes.id = people_prizes.prize_id;';
+                          ' RIGHT JOIN prizes ON prizes.id = people_prizes.prize_id;';
     pool.getConnection(function(err, connection) {
         if (err) {
             sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
@@ -1837,11 +1862,11 @@ var queryAddPrizePerson = function (req, res, next, personID,updateArr,deleteArr
 var queryAllDatasets = function (req, res, next) {
     var querySQL = '';
     var places = [];
-    querySQL = querySQL + 'SELECT people_data_sets.*,' +
+    querySQL = querySQL + 'SELECT people_data_sets.id, people_data_sets.person_id, data_sets.id AS data_set_id,' +
                           ' data_sets.short_description, data_sets.number_sets, data_sets.data_set_type_id, data_set_types.name,' +
                           ' data_sets.database_name, data_sets.url, data_sets.year ' +
                           'FROM people_data_sets' +
-                          ' LEFT JOIN data_sets ON data_sets.id = people_data_sets.data_set_id'+
+                          ' RIGHT JOIN data_sets ON data_sets.id = people_data_sets.data_set_id'+
                           ' LEFT JOIN data_set_types ON data_set_types.id = data_sets.data_set_type_id;';
     pool.getConnection(function(err, connection) {
         if (err) {
@@ -2070,6 +2095,246 @@ var queryAddDatasetPerson = function (req, res, next, personID,updateArr,deleteA
                 }
                 if (i + 1 < newArr.length) {
                     return queryAddDataset(req, res, next, personID,
+                                updateArr,deleteArr,newArr, newArr[i+1], i+1);
+                } else {
+                    sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
+                    return;
+                }
+            }
+        );
+    });
+};
+
+var queryAllStartups = function (req, res, next) {
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'SELECT people_startups.id, people_startups.person_id, startups.id AS startup_id,' +
+                          ' startups.short_description, startups.name, startups.start, startups.end ' +
+                          'FROM people_startups' +
+                          ' RIGHT JOIN startups ON startups.id = people_startups.startup_id';
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (resQuery.length === 0 || resQuery === undefined) {
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 0,
+                        "result" : []});
+                    return;
+                }
+                resQuery = compactData(resQuery, 'startup_id', ['person_id','position_name']);
+                sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": resQuery.length,
+                        "result" : resQuery});
+                return;
+            }
+        );
+    });
+};
+var queryPersonStartups = function (req, res, next) {
+    var personID = req.params.personID;
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'SELECT people_startups.*,' +
+                          ' startups.short_description, startups.name, startups.start, startups.end ' +
+                          'FROM people_startups' +
+                          ' LEFT JOIN startups ON startups.id = people_startups.startup_id' +
+                          ' WHERE people_startups.startup_id = ANY ' +
+                          ' (SELECT people_startups.startup_id FROM people_startups WHERE people_startups.person_id = ?);';
+    places.push(personID);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (resQuery.length === 0 || resQuery === undefined) {
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 0,
+                        "result" : []});
+                    return;
+                }
+                resQuery = compactData(resQuery, 'startup_id', ['person_id','position_name']);
+                sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": resQuery.length,
+                        "result" : resQuery});
+                return;
+            }
+        );
+    });
+};
+var queryUpdatePersonStartups = function (req, res, next) {
+    var personID = req.params.personID;
+    var updateArr = req.body.updateStartup;
+    var newArr = req.body.newStartup;
+    var deleteArr = req.body.deleteStartup;
+    if (updateArr.length > 0) {
+        return queryUpdateStartup(req, res, next, personID, updateArr,deleteArr,newArr, updateArr[0], 0);
+    } else if (deleteArr.length > 0) {
+        return queryDeleteStartup(req, res, next, personID, updateArr,deleteArr,newArr, deleteArr[0], 0);
+    } else if (newArr.length > 0) {
+        return queryAddStartup(req, res, next, personID, updateArr,deleteArr,newArr, newArr[0], 0);
+    }
+    if (deleteArr.length === 0 && updateArr.length == 0 && newArr.length === 0) {
+        sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
+        return;
+    }
+};
+var queryUpdateStartup = function (req, res, next, personID,updateArr,deleteArr,newArr, data, i) {
+    var start = momentToDate(data.start);
+    var end = momentToDate(data.end);
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'UPDATE startups' +
+                          ' SET name = ?,' +
+                          ' start = ?,' +
+                          ' end = ?,' +
+                          ' short_description = ?' +
+                          ' WHERE id = ?;';
+    places.push(data.name,
+                start,
+                end,
+                data.short_description,
+                data.startup_id);
+    // first delete all ocurrences of patent in people_patent
+    querySQL = querySQL + 'DELETE FROM people_startups WHERE startup_id = ?;';
+    places.push(data.startup_id);
+    for (var el in data.person_id) {
+        querySQL = querySQL + 'INSERT INTO people_startups (startup_id, person_id, position_name) VALUES (?,?,?);';
+        places.push(data.startup_id, data.person_id[el].person_id, data.person_id[el].position_name);
+    }
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (i + 1 < updateArr.length) {
+                    return queryUpdateStartup(req, res, next, personID,
+                                updateArr,deleteArr,newArr, updateArr[i+1], i+1);
+                } else if (deleteArr.length > 0) {
+                    return queryDeleteStartup(req, res, next, personID,
+                                updateArr,deleteArr,newArr, deleteArr[0], 0);
+                } else if (newArr.length > 0) {
+                    return queryAddStartup(req, res, next, personID,
+                                updateArr,deleteArr,newArr, newArr[0], 0);
+                } else {
+                    sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
+                    return;
+                }
+            }
+        );
+    });
+};
+var queryDeleteStartup = function (req, res, next, personID,updateArr,deleteArr,newArr, data, i) {
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'DELETE FROM people_startups' +
+                          ' WHERE person_id = ? AND startup_id = ?;';
+    places.push(personID, data.startup_id);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (i + 1 < deleteArr.length) {
+                    return queryDeleteStartup(req, res, next, personID,
+                                updateArr,deleteArr,newArr, deleteArr[i+1], i+1);
+                } else if (newArr.length > 0) {
+                    return queryAddStartup(req, res, next, personID,
+                                updateArr,deleteArr,newArr, newArr[0], 0);
+                } else {
+                    sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
+                    return;
+                }
+            }
+        );
+    });
+};
+var queryAddStartup = function (req, res, next, personID,updateArr,deleteArr,newArr, data, i) {
+    var querySQL = '';
+    var places = [];
+    var start = momentToDate(data.start);
+    var end = momentToDate(data.end);
+    querySQL = querySQL + 'INSERT INTO startups' +
+                          ' (name, start, end, short_description)' +
+                          ' VALUES (?, ?, ?, ?);';
+    places.push(data.name,
+                start,
+                end,
+                data.short_description);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                var startupID = resQuery.insertId;
+                return queryAddStartupPerson(req, res, next, personID,updateArr,deleteArr,newArr, data, i, startupID);
+            }
+        );
+    });
+};
+var queryAddStartupPerson = function (req, res, next, personID,updateArr,deleteArr,newArr, data, i, startupID) {
+    var querySQL = '';
+    var places = [];
+    for (var el in data.person_id) {
+        querySQL = querySQL + 'INSERT INTO people_startups (person_id, startup_id, position_name) VALUES (?,?,?);';
+        places.push(data.person_id[el].person_id, startupID, data.person_id[el].position_name);
+    }
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (i + 1 < newArr.length) {
+                    return queryAddStartup(req, res, next, personID,
                                 updateArr,deleteArr,newArr, newArr[i+1], i+1);
                 } else {
                     sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
@@ -2542,6 +2807,28 @@ module.exports.updatePersonDatasets = function (req, res, next) {
     getUser(req, res, [0, 5, 10, 15, 16, 20, 30, 40],
         function (req, res, username) {
             queryUpdatePersonDatasets(req,res,next,0);
+        }
+    );
+};
+
+module.exports.listStartups = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30, 40],
+        function (req, res, username) {
+            queryAllStartups(req,res,next);
+        }
+    );
+};
+module.exports.listPersonStartups = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30, 40],
+        function (req, res, username) {
+            queryPersonStartups(req,res,next);
+        }
+    );
+};
+module.exports.updatePersonStartups = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30, 40],
+        function (req, res, username) {
+            queryUpdatePersonStartups(req,res,next,0);
         }
     );
 };

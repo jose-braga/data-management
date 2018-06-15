@@ -1,0 +1,141 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Startups</span>
+            <span class="md-subhead">Startups related with your research at LAQV/UCIBIO.<br>
+                                     Search first to check if they are already in database.</span>
+        </md-card-title-text>
+    </md-card-title>
+    <form novalidate flex name="startupsForm"
+        ng-submit="startupsForm.$valid && vm.submitStartups(vm.forms['personStartups'])">
+        <md-card-content layout="column" flex>
+            <div layout="row" layout-align="none center" flex>
+                <ng-md-icon icon="search" size="24"></ng-md-icon>
+                <md-input-container flex>
+                    <label>Search startups</label>
+                    <input ng-model="vm.searchStartup" ng-change="vm.renderStartups()">
+                </md-input-container>
+            </div>
+            <ul>
+                 <li ng-repeat="startup in vm.startupsToShow">
+                     <b>{{startup.name}}</b> ({{startup.year_start}}-{{startup.year_end}}) - {{startup.short_description}}
+                    <md-button ng-click="vm.addStartupSearch(startup)"
+                            aria-label="Add more" class="md-icon-button interaction-button">
+                            <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                    </md-button>
+                </li>
+            </ul>
+            <div ng-if="!vm.nothingToShow(vm.currentStartups,'id')" layout="column">
+                <div ng-repeat="(num,startup) in vm.currentStartups track by $index"
+                    layout="column">
+                    <fieldset class="spacer">
+                        <div layout="column" layout-gt-sm="row">
+                            <md-input-container>
+                                <label>Startup name</label>
+                                <input required ng-model="startup.name"
+                                        name="startup_name[num]">
+                            </md-input-container>
+                            <md-input-container class="input-row-longer">
+                                <label>Created</label>
+                                <md-datepicker required md-current-view="year"
+                                        ng-model="startup.start"
+                                        name="startup_created[num]" md-placeholder="Enter date"></md-datepicker>
+                            </md-input-container>
+                            <md-input-container class="input-row-longer">
+                                <label>Closed</label>
+                                <md-datepicker md-current-view="year"
+                                        ng-model="startup.end"
+                                        name="startup_closed[num]" md-placeholder="Enter date"></md-datepicker>
+                            </md-input-container>
+                        </div>
+                        <div layout="column">
+                            <md-input-container  class="md-block">
+                                <label>Short description</label>
+                                <textarea ng-model="startup.short_description"
+                                        md-maxlength="500" rows="2"
+                                        name="startup_description[num]"></textarea>
+                            </md-input-container>
+                        </div>
+                        <div layout="column">
+                            <fieldset>
+                                <legend>LAQV/UCIBIO people associated</legend>
+                                <div ng-repeat="(npers,person_id) in startup.person_id track by $index"
+                                        layout="column" layout-gt-sm="row">
+                                    <md-input-container
+                                        ng-controller="PeopleSelectCtrl as peop">
+                                        <label>Person</label>
+                                        <md-select ng-model="person_id.person_id"
+                                                md-on-close="peop.searchTerm=''"
+                                                name="startup_units_person[num]">
+                                            <div class="anchored">
+                                                <md-select-header class="select-search-header">
+                                                    <input ng-model="peop.searchTerm" type="search"
+                                                      placeholder="Search authors"
+                                                      class="md-text select-search-box">
+                                                </md-select-header>
+                                            </div>
+                                            <div class="scrollable">
+                                                <md-optgroup label="people">
+                                                    <md-option ng-repeat="person in peop.people | filter:peop.searchTerm"
+                                                        ng-value="person.id">{{person.colloquial_name}}</md-option>
+                                                </md-optgroup>
+                                            </div>
+                                        </md-select>
+                                    </md-input-container>
+                                    <md-input-container  class="md-block">
+                                        <label>Position</label>
+                                        <input ng-model="person_id.position_name"
+                                                md-maxlength="100"
+                                                name="startup_position[num]">
+                                    </md-input-container>
+                                    <div layout="row"  layout-align="start center">
+                                        <span class="highlight"><h5>Remove person:</h5></span>
+                                        <md-button ng-click="vm.removeRows(startup.person_id,npers)"
+                                                aria-label="Remove"
+                                                class="md-icon-button interaction-button">
+                                            <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
+                                        </md-button>
+                                        <span ng-if="$last" class="highlight"><h5>Add person:</h5></span>
+                                        <md-button ng-if="$last" ng-click="vm.addRows(startup.person_id, 'startup_people')"
+                                                aria-label="Add more" class="md-icon-button interaction-button">
+                                            <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                                        </md-button>
+                                    </div>
+                                </div>
+                            </fieldset>
+                        </div>
+                        <div layout="column"  layout-gt-sm="row">
+                            <div layout="row" layout-align="end center">
+                                <md-button ng-click="vm.removeRows(vm.currentStartups,$index)"
+                                        aria-label="Remove"
+                                        class="md-icon-button interaction-button">
+                                    <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
+                                </md-button>
+                                <md-button ng-if="$last" ng-click="vm.addRows(vm.currentStartups, 'startups')"
+                                        aria-label="Add more" class="md-icon-button interaction-button">
+                                    <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                                </md-button>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+            <div ng-if="vm.nothingToShow (vm.currentStartups,'id')" layout="column">
+                 No data, press + to add
+                <md-button ng-click="vm.addRows(vm.currentStartups, 'startups')"
+                        aria-label="Add more" class="md-icon-button interaction-button">
+                    <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                </md-button>
+            </div>
+            <div layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button type="submit"
+                    class="button-small md-raised md-primary">Update</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personStartups']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['personStartups']]">
+                        {{vm.updateStatus[vm.forms['personStartups']]}}
+                    </span>
+                </div>
+            </div>
+        </md-card-content>
+    </form>
+</md-card>

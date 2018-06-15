@@ -83,6 +83,7 @@
             getPatents();
             getPrizes();
             getDatasets();
+            getStartups();
             getDataLists();
             initializeImages();
             initializeDetails();
@@ -1045,6 +1046,7 @@
                     obj = {
                         id: 'new',
                         person_id: [],
+                        data_set_id: null,
                         data_set_type_id: null,
                         short_description: null,
                         number_sets: null,
@@ -1054,8 +1056,29 @@
                     };
                     current.push(obj);
                 }
+            } else if (type === 'startups') {
+                if (current.length == 1 && current[0]['id'] === null) {
+                    current[0]['id'] = 'new';
+                } else {
+                    obj = {
+                        id: 'new',
+                        person_id: [{person_id: vm.currentUser.personID, position_name: null}],
+                        startup_id: null,
+                        short_description: null,
+                        name: null,
+                        start: null,
+                        end: null
+                    };
+                    current.push(obj);
+                }
+            } else if (type === 'startup_people') {
+                if (current.length == 1 && current[0]['id'] === null) {
+                    current[0]['id'] = 'new';
+                } else {
+                    obj = {person_id: null, position_name: null};
+                    current.push(obj);
+                }
             }
-
         };
         vm.removeRows = function (current, ind) {
             current.splice(ind,1);
@@ -2215,6 +2238,15 @@
                     for (var id in vm.allPatents) {
                         vm.allPatents[id]['status_date'] = processDate(vm.allPatents[id]['status_date']);
                     }
+                    for (var el in vm.allPatents) {
+                        var p_id = [];
+                        for (var el2 in vm.allPatents[el].person_id) {
+                            if (vm.allPatents[el].person_id[el2] !== null) {
+                                p_id.push(vm.allPatents[el].person_id[el2]);
+                            }
+                        }
+                        vm.allPatents[el].person_id = p_id;
+                    }
                 })
                 .catch(function (err) {
                     console.log(err);
@@ -2288,6 +2320,7 @@
                 }
             }
             if (!alreadExists) {
+                patent.id = 'new association';
                 vm.originalPersonPatents.push(Object.assign({}, patent));
                 vm.currentPatents.push(Object.assign({}, patent));
             }
@@ -2297,6 +2330,15 @@
             publications.getAllPrizes()
                 .then(function (response) {
                     vm.allPrizes = response.data.result;
+                    for (var el in vm.allPrizes) {
+                        var p_id = [];
+                        for (var el2 in vm.allPrizes[el].person_id) {
+                            if (vm.allPrizes[el].person_id[el2] !== null) {
+                                p_id.push(vm.allPrizes[el].person_id[el2]);
+                            }
+                        }
+                        vm.allPrizes[el].person_id = p_id;
+                    }
                 })
                 .catch(function (err) {
                     console.log(err);
@@ -2366,6 +2408,7 @@
                 }
             }
             if (!alreadExists) {
+                prize.id = 'new association';
                 vm.originalPersonPrizes.push(Object.assign({}, prize));
                 vm.currentPrizes.push(Object.assign({}, prize));
             }
@@ -2375,6 +2418,15 @@
             publications.getAllDatasets()
                 .then(function (response) {
                     vm.allDatasets = response.data.result;
+                    for (var el in vm.allDatasets) {
+                        var p_id = [];
+                        for (var el2 in vm.allDatasets[el].person_id) {
+                            if (vm.allDatasets[el].person_id[el2] !== null) {
+                                p_id.push(vm.allDatasets[el].person_id[el2]);
+                            }
+                        }
+                        vm.allDatasets[el].person_id = p_id;
+                    }
                 })
                 .catch(function (err) {
                     console.log(err);
@@ -2414,11 +2466,6 @@
                     data.newDataset[el].person_id.push(vm.currentUser.personID);
                 }
             }
-
-            console.log(data)
-            alert()
-
-
             publications.updateDatasetsPerson(vm.currentUser.personID,data)
                 .then( function () {
                     getDatasets(ind);
@@ -2452,8 +2499,89 @@
                 }
             }
             if (!alreadExists) {
+                dataset.id = 'new association';
                 vm.originalPersonDatasets.push(Object.assign({}, dataset));
                 vm.currentDatasets.push(Object.assign({}, dataset));
+            }
+        };
+
+        function getStartups(ind) {
+            publications.getAllStartups()
+                .then(function (response) {
+                    vm.allStartups = response.data.result;
+                    for (var id in vm.allStartups) {
+                        vm.allStartups[id]['start'] = processDate(vm.allStartups[id]['start']);
+                        vm.allStartups[id]['end'] = processDate(vm.allStartups[id]['end']);
+                    }
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            publications.thisPersonStartups(vm.currentUser.personID)
+                .then(function (response) {
+                    vm.originalPersonStartups = response.data.result;
+                    vm.currentStartups = [];
+                    for (var id in vm.originalPersonStartups) {
+                        vm.originalPersonStartups[id]['start'] = processDate(vm.originalPersonStartups[id]['start']);
+                        vm.originalPersonStartups[id]['end'] = processDate(vm.originalPersonStartups[id]['end']);
+                    }
+                    for (var id in vm.originalPersonStartups) {
+                        vm.currentStartups.push(Object.assign({}, vm.originalPersonStartups[id]));
+                    }
+                    if (ind > -1) {
+                        vm.updateStatus[ind] = "Updated!";
+                        vm.messageType[ind] = 'message-success';
+                        vm.hideMessage[ind] = false;
+                        $timeout(function () { vm.hideMessage[ind] = true; }, 1500);
+                    }
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+        }
+        vm.submitStartups = function (ind) {
+            vm.updateStatus[ind] = "Updating...";
+            vm.messageType[ind] = 'message-updating';
+            vm.hideMessage[ind] = false;
+            var data = processDataRows(vm.currentStartups,vm.originalPersonStartups,
+                                  'id', 'newStartup','updateStartup','deleteStartup');
+            publications.updateStartupsPerson(vm.currentUser.personID,data)
+                .then( function () {
+                    getStartups(ind);
+                },
+                function () {
+                    vm.updateStatus[ind] = "Error!";
+                    vm.messageType[ind] = 'message-error';
+                },
+                function () {}
+                );
+            return false;
+        };
+        vm.renderStartups = function () {
+            vm.startupsToShow = [];
+            if (vm.searchStartup.length >2) {
+                for (var el in vm.allStartups) {
+                    if (nameMatching(vm.allStartups[el].name,vm.searchStartup) !== null
+                        || nameMatching(vm.allStartups[el].short_description,vm.searchStartup) !== null) {
+                        vm.allStartups[el].year_start = momentToDate(vm.allStartups[el].start,undefined,'YYYY');
+                        vm.allStartups[el].year_end = momentToDate(vm.allStartups[el].end,undefined,'YYYY');
+                        vm.startupsToShow.push(vm.allStartups[el]);
+                    }
+                }
+            }
+        };
+        vm.addStartupSearch = function (startup) {
+            var alreadExists = false;
+            for (var el in vm.currentStartups) {
+                if (vm.currentStartups[el].short_description == startup.short_description
+                    && vm.currentStartups[el].name == startup.name) {
+                    alreadExists = true;
+                }
+            }
+            if (!alreadExists) {
+                startup.id = 'new association';
+                vm.originalPersonStartups.push(Object.assign({}, startup));
+                vm.currentStartups.push(Object.assign({}, startup));
             }
         };
 

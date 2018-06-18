@@ -1,0 +1,76 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Outreach</span>
+            <!-- <span class="md-subhead"></span> -->
+        </md-card-title-text>
+    </md-card-title>
+    <form novalidate flex name="outreachesForm"
+        ng-submit="outreachesForm.$valid && vm.submitOutreaches(vm.forms['personOutreaches'])">
+        <md-card-content layout="column" flex>
+            <div ng-if="!vm.nothingToShow(vm.currentOutreaches,'id')" layout="column">
+                <div ng-repeat="(num,outreach) in vm.currentOutreaches track by $index"
+                    layout="column">
+                    <fieldset class="spacer">
+                        <div layout="column" layout-gt-sm="row">
+                            <md-input-container flex>
+                                <label>Event name</label>
+                                <input required ng-model="outreach.name"
+                                        md-maxlength="100"
+                                        name="outreach_name[num]">
+                            </md-input-container>
+                        </div>
+                        <div layout="column">
+                            <md-input-container  class="md-block">
+                                <label>Short description</label>
+                                <textarea ng-model="outreach.description"
+                                        md-maxlength="500" rows="2"
+                                        name="outreach_description[num]"></textarea>
+                            </md-input-container>
+                        </div>
+                        <div layout="column"  layout-gt-sm="row">
+                            <md-switch ng-model="outreach.international"
+                                    ng-true-value="1" ng-false-value="0"
+                                    class="md-warn">
+                                 International: {{ vm.switchValue(outreach.international) }}
+                            </md-switch>
+                            <md-input-container class="input-row-longer">
+                                <label>Date</label>
+                                <md-datepicker md-current-view="year"
+                                        ng-model="outreach.event_date"
+                                        name="outreach_start[num]" md-placeholder="Enter date"></md-datepicker>
+                            </md-input-container>
+                            <div layout="row" layout-align="end center">
+                                <md-button ng-click="vm.removeRows(vm.currentOutreaches,$index)"
+                                        aria-label="Remove"
+                                        class="md-icon-button interaction-button">
+                                    <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
+                                </md-button>
+                                <md-button ng-if="$last" ng-click="vm.addRows(vm.currentOutreaches, 'outreaches')"
+                                        aria-label="Add more" class="md-icon-button interaction-button">
+                                    <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                                </md-button>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+            <div ng-if="vm.nothingToShow (vm.currentOutreaches,'id')" layout="column">
+                 No data, press + to add
+                <md-button ng-click="vm.addRows(vm.currentOutreaches, 'outreaches')"
+                        aria-label="Add more" class="md-icon-button interaction-button">
+                    <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                </md-button>
+            </div>
+            <div layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button type="submit"
+                    class="button-small md-raised md-primary">Update</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personOutreaches']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['personOutreaches']]">
+                        {{vm.updateStatus[vm.forms['personOutreaches']]}}
+                    </span>
+                </div>
+            </div>
+        </md-card-content>
+    </form>
+</md-card>

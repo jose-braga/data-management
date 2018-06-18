@@ -127,6 +127,7 @@ router.get('/datasets/person/:personID', auth, ctrlPublicationsData.listPersonDa
 router.get('/startups/all', auth, ctrlPublicationsData.listStartups);
 router.get('/startups/person/:personID', auth, ctrlPublicationsData.listPersonStartups);
 router.get('/boards/person/:personID', auth, ctrlPublicationsData.listPersonBoards);
+router.get('/outreaches/person/:personID', auth, ctrlPublicationsData.listPersonOutreaches);
 
 // PUT PUBLICATION information (authenticated)
 router.put('/publications/person/:personID/selected', auth, ctrlPublicationsData.updatePersonSelectedPub);
@@ -145,6 +146,7 @@ router.put('/prizes/person/:personID', auth, ctrlPublicationsData.updatePersonPr
 router.put('/datasets/person/:personID', auth, ctrlPublicationsData.updatePersonDatasets);
 router.put('/startups/person/:personID', auth, ctrlPublicationsData.updatePersonStartups);
 router.put('/boards/person/:personID', auth, ctrlPublicationsData.updatePersonBoards);
+router.put('/outreaches/person/:personID', auth, ctrlPublicationsData.updatePersonOutreaches);
 
 // POST (Create) new user (authenticated)
 router.post('/registration', auth, ctrlRegistrationData.addPerson);

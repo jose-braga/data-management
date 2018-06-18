@@ -51,7 +51,7 @@
             'personResearchInterests':  36,
             'personURLs':               37,
             'personPatents':            38,
-            'personOutreach':           39,
+            'personOutreaches':         39,
             'personDatasets':           40,
             'personPrizes':             41,
             'personStartups':           42,
@@ -85,6 +85,7 @@
             getDatasets();
             getStartups();
             getBoards();
+            getOutreaches();
             getDataLists();
             initializeImages();
             initializeDetails();
@@ -1094,6 +1095,21 @@
                         international: 0,
                         start_date: null,
                         end_date: null
+                    };
+                    current.push(obj);
+                }
+            } else if (type === 'outreaches') {
+                if (current.length == 1 && current[0]['id'] === null) {
+                    current[0]['id'] = 'new';
+                } else {
+                    obj = {
+                        id: 'new',
+                        person_id: vm.currentUser.personID,
+                        outreach_id: null,
+                        name: null,
+                        description: null,
+                        international: 0,
+                        event_date: null
                     };
                     current.push(obj);
                 }
@@ -2610,6 +2626,8 @@
                     vm.originalPersonBoards = response.data.result;
                     vm.currentBoards = [];
                     for (var id in vm.originalPersonBoards) {
+                        vm.originalPersonBoards[id]['start_date'] = processDate(vm.originalPersonBoards[id]['start_date']);
+                        vm.originalPersonBoards[id]['end_date'] = processDate(vm.originalPersonBoards[id]['end_date']);
                         vm.currentBoards.push(Object.assign({}, vm.originalPersonBoards[id]));
                     }
                     if (ind > -1) {
@@ -2630,13 +2648,49 @@
 
             var data = processDataRows(vm.currentBoards,vm.originalPersonBoards,
                                   'id', 'newBoard','updateBoard','deleteBoard');
-
-            console.log(data)
-            alert()
-
             publications.updateBoardsPerson(vm.currentUser.personID,data)
                 .then( function () {
                     getBoards(ind);
+                },
+                function () {
+                    vm.updateStatus[ind] = "Error!";
+                    vm.messageType[ind] = 'message-error';
+                },
+                function () {}
+                );
+            return false;
+        };
+
+        function getOutreaches(ind) {
+            publications.thisPersonOutreaches(vm.currentUser.personID)
+                .then(function (response) {
+                    vm.originalPersonOutreaches = response.data.result;
+                    vm.currentOutreaches = [];
+                    for (var id in vm.originalPersonOutreaches) {
+                        vm.originalPersonOutreaches[id]['event_date'] = processDate(vm.originalPersonOutreaches[id]['event_date']);
+                        vm.currentOutreaches.push(Object.assign({}, vm.originalPersonOutreaches[id]));
+                    }
+                    if (ind > -1) {
+                        vm.updateStatus[ind] = "Updated!";
+                        vm.messageType[ind] = 'message-success';
+                        vm.hideMessage[ind] = false;
+                        $timeout(function () { vm.hideMessage[ind] = true; }, 1500);
+                    }
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+        }
+        vm.submitOutreaches = function (ind) {
+            vm.updateStatus[ind] = "Updating...";
+            vm.messageType[ind] = 'message-updating';
+            vm.hideMessage[ind] = false;
+
+            var data = processDataRows(vm.currentOutreaches,vm.originalPersonOutreaches,
+                                  'id', 'newOutreach','updateOutreach','deleteOutreach');
+            publications.updateOutreachesPerson(vm.currentUser.personID,data)
+                .then( function () {
+                    getOutreaches(ind);
                 },
                 function () {
                     vm.updateStatus[ind] = "Error!";

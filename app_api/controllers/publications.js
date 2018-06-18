@@ -2420,8 +2420,8 @@ var queryUpdateBoard = function (req, res, next, personID,updateArr,deleteArr,ne
                 data.board_type_id,
                 data.board_name,
                 data.international,
-                data.start_date,
-                data.end_date,
+                momentToDate(data.start_date),
+                momentToDate(data.end_date),
                 data.board_id);
     pool.getConnection(function(err, connection) {
         if (err) {
@@ -2500,8 +2500,8 @@ var queryAddBoard = function (req, res, next, personID,updateArr,deleteArr,newAr
                 data.board_type_id,
                 data.board_name,
                 data.international,
-                data.start_date,
-                data.end_date);
+                momentToDate(data.start_date),
+                momentToDate(data.end_date));
     pool.getConnection(function(err, connection) {
         if (err) {
             sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
@@ -2543,6 +2543,204 @@ var queryAddBoardPerson = function (req, res, next, personID,updateArr,deleteArr
                 }
                 if (i + 1 < newArr.length) {
                     return queryAddBoard(req, res, next, personID,
+                                updateArr,deleteArr,newArr, newArr[i+1], i+1);
+                } else {
+                    sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
+                    return;
+                }
+            }
+        );
+    });
+};
+
+var queryPersonOutreaches = function (req, res, next) {
+    var personID = req.params.personID;
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'SELECT people_outreach.*, ' +
+                          ' outreach.name, outreach.description,' +
+                          ' outreach.international, outreach.event_date ' +
+                          'FROM people_outreach' +
+                          ' LEFT JOIN outreach ON outreach.id = people_outreach.outreach_id' +
+                          ' WHERE people_outreach.outreach_id = ANY ' +
+                          ' (SELECT people_outreach.outreach_id FROM people_outreach WHERE people_outreach.person_id = ?);';
+    places.push(personID);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (resQuery.length === 0 || resQuery === undefined) {
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 0,
+                        "result" : []});
+                    return;
+                }
+                resQuery = compactData(resQuery, 'outreach_id', 'person_id');
+                sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": resQuery.length,
+                        "result" : resQuery});
+                return;
+            }
+        );
+    });
+};
+var queryUpdatePersonOutreaches = function (req, res, next) {
+    var personID = req.params.personID;
+    var updateArr = req.body.updateOutreach;
+    var newArr = req.body.newOutreach;
+    var deleteArr = req.body.deleteOutreach;
+    if (updateArr.length > 0) {
+        return queryUpdateOutreach(req, res, next, personID, updateArr,deleteArr,newArr, updateArr[0], 0);
+    } else if (deleteArr.length > 0) {
+        return queryDeleteOutreach(req, res, next, personID, updateArr,deleteArr,newArr, deleteArr[0], 0);
+    } else if (newArr.length > 0) {
+        return queryAddOutreach(req, res, next, personID, updateArr,deleteArr,newArr, newArr[0], 0);
+    }
+    if (deleteArr.length === 0 && updateArr.length == 0 && newArr.length === 0) {
+        sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
+        return;
+    }
+};
+var queryUpdateOutreach = function (req, res, next, personID,updateArr,deleteArr,newArr, data, i) {
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'UPDATE outreach' +
+                          ' SET description = ?,' +
+                          ' name = ?,' +
+                          ' international = ?,' +
+                          ' event_date = ?' +
+                          ' WHERE id = ?;';
+    places.push(data.description,
+                data.name,
+                data.international,
+                momentToDate(data.event_date),
+                data.outreach_id);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (i + 1 < updateArr.length) {
+                    return queryUpdateOutreach(req, res, next, personID,
+                                updateArr,deleteArr,newArr, updateArr[i+1], i+1);
+                } else if (deleteArr.length > 0) {
+                    return queryDeleteOutreach(req, res, next, personID,
+                                updateArr,deleteArr,newArr, deleteArr[0], 0);
+                } else if (newArr.length > 0) {
+                    return queryAddOutreach(req, res, next, personID,
+                                updateArr,deleteArr,newArr, newArr[0], 0);
+                } else {
+                    sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
+                    return;
+                }
+            }
+        );
+    });
+};
+var queryDeleteOutreach = function (req, res, next, personID,updateArr,deleteArr,newArr, data, i) {
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'DELETE FROM people_outreach' +
+                          ' WHERE person_id = ? AND outreach_id = ?;';
+    places.push(personID, data.outreach_id);
+    querySQL = querySQL + 'DELETE FROM outreach' +
+                          ' WHERE id = ?;';
+    places.push(data.outreach_id);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (i + 1 < deleteArr.length) {
+                    return queryDeleteOutreach(req, res, next, personID,
+                                updateArr,deleteArr,newArr, deleteArr[i+1], i+1);
+                } else if (newArr.length > 0) {
+                    return queryAddOutreach(req, res, next, personID,
+                                updateArr,deleteArr,newArr, newArr[0], 0);
+                } else {
+                    sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
+                    return;
+                }
+            }
+        );
+    });
+};
+var queryAddOutreach = function (req, res, next, personID,updateArr,deleteArr,newArr, data, i) {
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'INSERT INTO outreach' +
+                          ' (description, name, international, event_date)' +
+                          ' VALUES (?, ?, ?, ?);';
+    places.push(data.description,
+                data.name,
+                data.international,
+                momentToDate(data.event_date));
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                var outreachID = resQuery.insertId;
+                return queryAddOutreachPerson(req, res, next, personID,updateArr,deleteArr,newArr, data, i, outreachID);
+            }
+        );
+    });
+};
+var queryAddOutreachPerson = function (req, res, next, personID,updateArr,deleteArr,newArr, data, i, outreachID) {
+    var querySQL = '';
+    var places = [];
+
+    querySQL = querySQL + 'INSERT INTO people_outreach (person_id, outreach_id) VALUES (?,?);';
+    places.push(personID, outreachID);
+
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (i + 1 < newArr.length) {
+                    return queryAddOutreach(req, res, next, personID,
                                 updateArr,deleteArr,newArr, newArr[i+1], i+1);
                 } else {
                     sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
@@ -3051,6 +3249,21 @@ module.exports.updatePersonBoards = function (req, res, next) {
     getUser(req, res, [0, 5, 10, 15, 16, 20, 30, 40],
         function (req, res, username) {
             queryUpdatePersonBoards(req,res,next,0);
+        }
+    );
+};
+
+module.exports.listPersonOutreaches = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30, 40],
+        function (req, res, username) {
+            queryPersonOutreaches(req,res,next);
+        }
+    );
+};
+module.exports.updatePersonOutreaches = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30, 40],
+        function (req, res, username) {
+            queryUpdatePersonOutreaches(req,res,next,0);
         }
     );
 };

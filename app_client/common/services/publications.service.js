@@ -253,6 +253,21 @@
             );
         };
 
+        var thisPersonOutreaches = function (personID) {
+            return $http.get('api/outreaches/person/' + personID,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var updateOutreachesPerson = function (personID, data) {
+            return $http.put('api/outreaches/person/' + personID, data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+
         return {
             addMembersPublications: addMembersPublications,
             allPublications: allPublications,
@@ -287,6 +302,8 @@
             getAllBoards: getAllBoards,
             thisPersonBoards: thisPersonBoards,
             updateBoardsPerson: updateBoardsPerson,
+            thisPersonOutreaches: thisPersonOutreaches,
+            updateOutreachesPerson: updateOutreachesPerson
         };
     };
 

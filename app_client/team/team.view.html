@@ -15,7 +15,7 @@
                         <team-people-lab-presentation
                             data-lab="{{lab.lab_id}}"
                             data-group="{{lab.group_id}}"
-                        flex>
+                            flex>
                         </team-people-lab-presentation>
                     </div>
                 </md-content>
@@ -29,14 +29,14 @@
                                 <team-lab-publications
                                     data-lab="{{lab.lab_id}}"
                                     data-group="{{lab.group_id}}"
-                                flex>
+                                    flex>
                                 </team-lab-publications>
                             </div>
                             <div layout="row" layout-padding>
                                 <team-members-publications
                                     data-lab="{{lab.lab_id}}"
                                     data-group="{{lab.group_id}}"
-                                flex>
+                                    flex>
                                 </team-members-publications>
                             </div>
                         </md-content>
@@ -44,10 +44,18 @@
                     <md-tab label='Communications'>
                         <md-content>
                             <div layout="row" layout-padding>
-                                Under construction
+                                <team-lab-communications
+                                    data-lab="{{lab.lab_id}}"
+                                    data-group="{{lab.group_id}}"
+                                    flex>
+                                </team-lab-communications>
                             </div>
                             <div layout="row" layout-padding>
-
+                                <team-members-communications
+                                    data-lab="{{lab.lab_id}}"
+                                    data-group="{{lab.group_id}}"
+                                flex>
+                                </team-members-communications>
                             </div>
                         </md-content>
                     </md-tab>

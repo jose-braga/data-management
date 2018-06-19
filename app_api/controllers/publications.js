@@ -341,100 +341,6 @@ var queryPersonPublications = function (req, res, next) {
         );
     });
 };
-var queryTeamPublications = function (req, res, next) {
-    var teamID = req.params.teamID;
-    var groupID = req.params.groupID;
-    var querySQL = '';
-    var places = [];
-    querySQL = querySQL + 'SELECT labs_publications.id AS labs_publications_id, publications.*,' +
-                                ' labs_publications.selected AS selected, labs_publications.public AS public,' +
-                                ' journals.name AS journal_name, journals.short_name AS journal_short_name, ' +
-                                ' journals.publisher, journals.publisher_city, journals.issn, journals.eissn ' +
-                          'FROM labs_publications' +
-                          ' LEFT JOIN publications ON labs_publications.publication_id = publications.id' +
-                          ' LEFT JOIN journals ON publications.journal_id = journals.id' +
-                          ' WHERE labs_publications.group_id = ? AND labs_publications.lab_id = ?;';
-    places.push(groupID, teamID);
-    pool.getConnection(function(err, connection) {
-        if (err) {
-            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
-            return;
-        }
-        connection.query(querySQL,places,
-            function (err, resQuery) {
-                // And done with the connection.
-                connection.release();
-                if (err) {
-                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
-                    return;
-                }
-                if (resQuery.length === 0 || resQuery === undefined) {
-                    sendJSONResponse(res, 200,
-                        {"status": "success", "statusCode": 200, "count": 0,
-                        "result" : []});
-                    return;
-                }
-                return queryPublicationDescription(req,res,next,resQuery,0);
-            }
-        );
-    });
-};
-var queryMembersPublications = function (req, res, next) {
-    var teamID = req.params.teamID;
-    var groupID = req.params.groupID;
-    var querySQL = '';
-    var places = [];
-    querySQL = querySQL + 'SELECT publications.*, journals.short_name AS journal_short_name, journals.name AS journal_name,' +
-                          ' journals.publisher, journals.publisher_city, journals.eissn AS eissn, journals.issn AS issn' +
-                          ' FROM publications' +
-                          ' LEFT JOIN journals ON journals.id = publications.journal_id' +
-                          ' LEFT JOIN people_publications ON people_publications.publication_id = publications.id' +
-                          ' LEFT JOIN people_labs ON people_labs.person_id = people_publications.person_id' +
-                          ' LEFT JOIN labs ON labs.id = people_labs.lab_id' +
-                          ' LEFT JOIN labs_groups ON labs_groups.lab_id = labs.id' +
-                          ' LEFT JOIN groups ON labs_groups.group_id = groups.id' +
-                          ' WHERE groups.id = ? AND labs.id = ?;';
-    places.push(groupID, teamID);
-    pool.getConnection(function(err, connection) {
-        if (err) {
-            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
-            return;
-        }
-        connection.query(querySQL,places,
-            function (err, resQuery) {
-                // And done with the connection.
-                connection.release();
-                if (err) {
-                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
-                    return;
-                }
-                if (resQuery.length === 0 || resQuery === undefined) {
-                    sendJSONResponse(res, 200,
-                        {"status": "success", "statusCode": 200, "count": 0,
-                        "result" : []});
-                    return;
-                }
-                var non_duplicates = [];
-                var id_collection = [];
-                for (var ind in resQuery) {
-                    if (id_collection.indexOf(resQuery[ind].id) === -1) {
-                        id_collection.push(resQuery[ind].id);
-                        non_duplicates.push(resQuery[ind]);
-                    }
-                }
-
-                sendJSONResponse(res, 200,
-                {
-                    "status": "success",
-                    "statusCode": 200,
-                    "count": non_duplicates.length,
-                    "result": non_duplicates
-                });
-                return;
-            }
-        );
-    });
-};
 var queryPersonCommunications = function (req, res, next) {
     var personID = req.params.personID;
     var querySQL = '';
@@ -1357,6 +1263,278 @@ var queryUpdatePersonCommunications = function (req, res, next, i) {
                              "result" : "all done"});
     }
 };
+
+var queryTeamPublications = function (req, res, next) {
+    var teamID = req.params.teamID;
+    var groupID = req.params.groupID;
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'SELECT labs_publications.id AS labs_publications_id, publications.*,' +
+                                ' labs_publications.selected AS selected, labs_publications.public AS public,' +
+                                ' journals.name AS journal_name, journals.short_name AS journal_short_name, ' +
+                                ' journals.publisher, journals.publisher_city, journals.issn, journals.eissn ' +
+                          'FROM labs_publications' +
+                          ' LEFT JOIN publications ON labs_publications.publication_id = publications.id' +
+                          ' LEFT JOIN journals ON publications.journal_id = journals.id' +
+                          ' WHERE labs_publications.group_id = ? AND labs_publications.lab_id = ?;';
+    places.push(groupID, teamID);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (resQuery.length === 0 || resQuery === undefined) {
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 0,
+                        "result" : []});
+                    return;
+                }
+                return queryPublicationDescription(req,res,next,resQuery,0);
+            }
+        );
+    });
+};
+var queryMembersPublications = function (req, res, next) {
+    var teamID = req.params.teamID;
+    var groupID = req.params.groupID;
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'SELECT publications.*, journals.short_name AS journal_short_name, journals.name AS journal_name,' +
+                          ' journals.publisher, journals.publisher_city, journals.eissn AS eissn, journals.issn AS issn' +
+                          ' FROM publications' +
+                          ' LEFT JOIN journals ON journals.id = publications.journal_id' +
+                          ' LEFT JOIN people_publications ON people_publications.publication_id = publications.id' +
+                          ' LEFT JOIN people_labs ON people_labs.person_id = people_publications.person_id' +
+                          ' LEFT JOIN labs ON labs.id = people_labs.lab_id' +
+                          ' LEFT JOIN labs_groups ON labs_groups.lab_id = labs.id' +
+                          ' LEFT JOIN groups ON labs_groups.group_id = groups.id' +
+                          ' WHERE groups.id = ? AND labs.id = ?;';
+    places.push(groupID, teamID);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (resQuery.length === 0 || resQuery === undefined) {
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 0,
+                        "result" : []});
+                    return;
+                }
+                var non_duplicates = [];
+                var id_collection = [];
+                for (var ind in resQuery) {
+                    if (id_collection.indexOf(resQuery[ind].id) === -1) {
+                        id_collection.push(resQuery[ind].id);
+                        non_duplicates.push(resQuery[ind]);
+                    }
+                }
+
+                sendJSONResponse(res, 200,
+                {
+                    "status": "success",
+                    "statusCode": 200,
+                    "count": non_duplicates.length,
+                    "result": non_duplicates
+                });
+                return;
+            }
+        );
+    });
+};
+
+var queryTeamCommunications = function (req, res, next) {
+    var teamID = req.params.teamID;
+    var groupID = req.params.groupID;
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'SELECT labs_communications.id AS labs_communications_id, communications.*,' +
+                                ' communication_types.name AS communication_type_name, ' +
+                                ' conference_types.name AS conference_type, ' +
+                                ' countries.name AS country_name ' +
+                          'FROM labs_communications' +
+                          ' LEFT JOIN communications ON labs_communications.communication_id = communications.id' +
+                          ' LEFT JOIN countries ON communications.country_id = countries.id' +
+                          ' LEFT JOIN communication_types ON communication_types.id = communications.type_id' +
+                          ' LEFT JOIN conference_types ON conference_types.id = communications.conference_type_id' +
+                          ' WHERE labs_communications.group_id = ? AND labs_communications.lab_id = ?;';
+    places.push(groupID, teamID);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (resQuery.length === 0 || resQuery === undefined) {
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 0,
+                        "result" : []});
+                    return;
+                }
+                sendJSONResponse(res, 200,
+                    {
+                        "status": "success",
+                        "statusCode": 200,
+                        "count": resQuery.length,
+                        "result": resQuery
+                    });
+                return;
+            }
+        );
+    });
+};
+var queryMembersCommunications = function (req, res, next) {
+    var teamID = req.params.teamID;
+    var groupID = req.params.groupID;
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'SELECT communications.*, ' +
+                            ' communication_types.name AS communication_type_name, ' +
+                            ' conference_types.name AS conference_type, ' +
+                            ' countries.name AS country_name ' +
+                          ' FROM communications' +
+                          ' LEFT JOIN countries ON communications.country_id = countries.id' +
+                          ' LEFT JOIN communication_types ON communication_types.id = communications.type_id' +
+                          ' LEFT JOIN conference_types ON conference_types.id = communications.conference_type_id' +
+                          ' LEFT JOIN people_labs ON people_labs.person_id = communications.person_id' +
+                          ' LEFT JOIN labs ON labs.id = people_labs.lab_id' +
+                          ' LEFT JOIN labs_groups ON labs_groups.lab_id = labs.id' +
+                          ' LEFT JOIN groups ON labs_groups.group_id = groups.id' +
+                          ' WHERE groups.id = ? AND labs.id = ?;';
+    places.push(groupID, teamID);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (resQuery.length === 0 || resQuery === undefined) {
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 0,
+                        "result" : []});
+                    return;
+                }
+                var non_duplicates = [];
+                var id_collection = [];
+                for (var ind in resQuery) {
+                    if (id_collection.indexOf(resQuery[ind].id) === -1) {
+                        id_collection.push(resQuery[ind].id);
+                        non_duplicates.push(resQuery[ind]);
+                    }
+                }
+                sendJSONResponse(res, 200,
+                    {
+                        "status": "success",
+                        "statusCode": 200,
+                        "count": non_duplicates.length,
+                        "result": non_duplicates
+                    });
+                return;
+            }
+        );
+    });
+};
+var queryAddCommunicationsLab = function(req, res, next) {
+    var groupID = req.params.groupID;
+    var teamID = req.params.teamID;
+    var add = req.body.addCommunications;
+    var querySQL = '';
+    var places = [];
+    for (var ind in add) {
+        querySQL = querySQL + 'INSERT INTO labs_communications (lab_id, group_id, communication_id)' +
+                              ' VALUES (?,?,?);';
+        places.push(teamID,groupID, add[ind].id);
+    }
+    if (querySQL !== '') {
+        pool.getConnection(function(err, connection) {
+            if (err) {
+                sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+                return;
+            }
+            connection.query(querySQL,places,
+                function (err, resQuery) {
+                    // And done with the connection.
+                    connection.release();
+                    if (err) {
+                        sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                        return;
+                    }
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 1,
+                         "result" : "OK!"});
+                }
+            );
+        });
+    } else {
+        sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "message": "No changes"});
+    }
+};
+var queryDeleteCommunicationsTeam = function (req, res, next) {
+    var del = req.body.deleteCommunications;
+    var querySQL = '';
+    var places = [];
+    for (var ind in del) {
+        querySQL = querySQL + 'DELETE FROM labs_communications' +
+                              ' WHERE id = ?;';
+        places.push(del[ind].labs_communications_id);
+    }
+    if (querySQL !== '') {
+        pool.getConnection(function(err, connection) {
+            if (err) {
+                sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+                return;
+            }
+            connection.query(querySQL,places,
+                function (err, resQuery) {
+                    // And done with the connection.
+                    connection.release();
+                    if (err) {
+                        sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                        return;
+                    }
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 1,
+                         "result" : "OK!"});
+                }
+            );
+        });
+    } else {
+        sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "message": "No changes"});
+    }
+};
+
 
 var queryAllPatents = function (req, res, next) {
     var querySQL = '';
@@ -3058,20 +3236,6 @@ module.exports.listPersonPublications = function (req, res, next) {
         }
     );
 };
-module.exports.listTeamPublications = function (req, res, next) {
-    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
-        function (req, res, username) {
-            queryTeamPublications(req,res,next);
-        }
-    );
-};
-module.exports.listMembersPublications = function (req, res, next) {
-    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
-        function (req, res, username) {
-            queryMembersPublications(req,res,next);
-        }
-    );
-};
 module.exports.updatePersonSelectedPub = function (req, res, next) {
     getUser(req, res, [0, 5, 10, 15, 16, 20, 30, 40],
         function (req, res, username) {
@@ -3264,6 +3428,51 @@ module.exports.updatePersonOutreaches = function (req, res, next) {
     getUser(req, res, [0, 5, 10, 15, 16, 20, 30, 40],
         function (req, res, username) {
             queryUpdatePersonOutreaches(req,res,next,0);
+        }
+    );
+};
+
+
+module.exports.listTeamPublications = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
+        function (req, res, username) {
+            queryTeamPublications(req,res,next);
+        }
+    );
+};
+module.exports.listMembersPublications = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
+        function (req, res, username) {
+            queryMembersPublications(req,res,next);
+        }
+    );
+};
+
+module.exports.listTeamCommunications = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
+        function (req, res, username) {
+            queryTeamCommunications(req,res,next);
+        }
+    );
+};
+module.exports.listMembersCommunications = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
+        function (req, res, username) {
+            queryMembersCommunications(req,res,next);
+        }
+    );
+};
+module.exports.addCommunicationsLab = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
+        function (req, res, username) {
+            queryAddCommunicationsLab(req,res,next);
+        }
+    );
+};
+module.exports.deleteCommunicationsTeam = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
+        function (req, res, username) {
+            queryDeleteCommunicationsTeam(req,res,next);
         }
     );
 };

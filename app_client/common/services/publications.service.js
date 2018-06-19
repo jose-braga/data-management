@@ -19,7 +19,6 @@
                 }
             );
         };
-
         var thisPersonCommunications = function (personID) {
             return $http.get('api/communications/person/' + personID,
                 {
@@ -268,6 +267,35 @@
             );
         };
 
+        var thisTeamCommunications = function (groupID, teamID) {
+            return $http.get('api/communications/team/' + groupID + '/' + teamID,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var thisMembersCommunications = function (groupID, teamID) {
+            return $http.get('api/communications/team/' + groupID + '/' + teamID + '/members',
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var addMembersCommunications = function (groupID, teamID, data) {
+            return $http.put('api/communications/team/' + groupID + '/' + teamID, data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var removeCommunicationsTeam = function (groupID, teamID, data) {
+            return $http.put('api/communications/team/' + groupID + '/' + teamID + '/delete', data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+
         return {
             addMembersPublications: addMembersPublications,
             allPublications: allPublications,
@@ -303,7 +331,13 @@
             thisPersonBoards: thisPersonBoards,
             updateBoardsPerson: updateBoardsPerson,
             thisPersonOutreaches: thisPersonOutreaches,
-            updateOutreachesPerson: updateOutreachesPerson
+            updateOutreachesPerson: updateOutreachesPerson,
+
+            thisTeamCommunications: thisTeamCommunications,
+            thisMembersCommunications: thisMembersCommunications,
+            addMembersCommunications: addMembersCommunications,
+            removeCommunicationsTeam: removeCommunicationsTeam
+
         };
     };
 

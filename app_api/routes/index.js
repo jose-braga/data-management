@@ -115,8 +115,13 @@ router.put('/manager/people/all', auth, ctrlManagerData.updateAllPeopleData);
 // GET PUBLICATION information (authenticated)
 router.get('/publications/all', auth, ctrlPublicationsData.listAllPublications);
 router.get('/publications/person/:personID', auth, ctrlPublicationsData.listPersonPublications);
+
 router.get('/publications/team/:groupID/:teamID/members', auth, ctrlPublicationsData.listMembersPublications);
 router.get('/publications/team/:groupID/:teamID', auth, ctrlPublicationsData.listTeamPublications);
+router.get('/communications/team/:groupID/:teamID/members', auth, ctrlPublicationsData.listMembersCommunications);
+router.get('/communications/team/:groupID/:teamID', auth, ctrlPublicationsData.listTeamCommunications);
+
+
 router.get('/communications/person/:personID', auth, ctrlPublicationsData.listPersonCommunications);
 router.get('/patents/all', auth, ctrlPublicationsData.listPatents);
 router.get('/patents/person/:personID', auth, ctrlPublicationsData.listPersonPatents);
@@ -138,6 +143,10 @@ router.put('/publications/person/:personID/add-orcid', auth, ctrlPublicationsDat
 router.put('/publications/team/:groupID/:teamID', auth, ctrlPublicationsData.addPublicationsLab);
 router.put('/publications/team/:groupID/:teamID/selected', auth, ctrlPublicationsData.updateTeamSelectedPub);
 router.put('/publications/team/:groupID/:teamID/delete', auth, ctrlPublicationsData.deletePublicationsTeam);
+
+router.put('/communications/team/:groupID/:teamID', auth, ctrlPublicationsData.addCommunicationsLab);
+router.put('/communications/team/:groupID/:teamID/delete', auth, ctrlPublicationsData.deleteCommunicationsTeam);
+
 router.put('/communications/person/:personID', auth, ctrlPublicationsData.updatePersonCommunications);
 router.put('/communications/person/:personID/add-orcid', auth, ctrlPublicationsData.addORCIDCommunicationsPerson);
 router.put('/communications/person/:personID/add', auth, ctrlPublicationsData.addORCIDCommunicationsPerson); // both use the same function

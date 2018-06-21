@@ -11,7 +11,7 @@ var auth = jwt({
 var ctrlPeopleData = require('../controllers/people.js');
 var ctrlTeamData = require('../controllers/team.js');
 var ctrlManagerData = require('../controllers/manager.js');
-var ctrlPublicationsData = require('../controllers/publications.js');
+var ctrlProductivityData = require('../controllers/productivity.js');
 
 var ctrlRegistrationData = require('../controllers/registration.js');
 var ctrlPreRegistrationData = require('../controllers/pre-registration.js');
@@ -31,12 +31,12 @@ router.get('/v1/administrative/:officeID/members', ctrlPeopleData.getAdministrat
 // GET lists for several purposes
 router.get('/v1/list/:listOf', ctrlPeopleData.listOf);
 // GET search for publications
-router.get('/v1/publication/all', ctrlPublicationsData.getAllPublications);
-router.get('/v1/publication/:pubID', ctrlPublicationsData.getPublicationInfo);
-router.get('/v1/publication/person/:personID', ctrlPublicationsData.getPersonPublicationInfo);
-router.get('/v1/publication/group/:groupID/lab/:labID', ctrlPublicationsData.getLabPublicationInfo);
-router.get('/v1/publication/group/:groupID', ctrlPublicationsData.getGroupPublicationInfo);
-router.get('/v1/publication/unit/:unitID', ctrlPublicationsData.getUnitPublicationInfo);
+router.get('/v1/publication/all', ctrlProductivityData.getAllPublications);
+router.get('/v1/publication/:pubID', ctrlProductivityData.getPublicationInfo);
+router.get('/v1/publication/person/:personID', ctrlProductivityData.getPersonPublicationInfo);
+router.get('/v1/publication/group/:groupID/lab/:labID', ctrlProductivityData.getLabPublicationInfo);
+router.get('/v1/publication/group/:groupID', ctrlProductivityData.getGroupPublicationInfo);
+router.get('/v1/publication/unit/:unitID', ctrlProductivityData.getUnitPublicationInfo);
 
 
 /**************************** APP SPECIFIC ENDPOINTS ****************************/
@@ -113,49 +113,54 @@ router.put('/manager/people/user-permissions/:personID', auth, ctrlManagerData.u
 router.put('/manager/people/all', auth, ctrlManagerData.updateAllPeopleData);
 
 // GET PUBLICATION information (authenticated)
-router.get('/publications/all', auth, ctrlPublicationsData.listAllPublications);
-router.get('/publications/person/:personID', auth, ctrlPublicationsData.listPersonPublications);
+router.get('/publications/all', auth, ctrlProductivityData.listAllPublications);
+router.get('/publications/person/:personID', auth, ctrlProductivityData.listPersonPublications);
 
-router.get('/publications/team/:groupID/:teamID/members', auth, ctrlPublicationsData.listMembersPublications);
-router.get('/publications/team/:groupID/:teamID', auth, ctrlPublicationsData.listTeamPublications);
-router.get('/communications/team/:groupID/:teamID/members', auth, ctrlPublicationsData.listMembersCommunications);
-router.get('/communications/team/:groupID/:teamID', auth, ctrlPublicationsData.listTeamCommunications);
+router.get('/publications/team/:groupID/:teamID/members', auth, ctrlProductivityData.listMembersPublications);
+router.get('/publications/team/:groupID/:teamID', auth, ctrlProductivityData.listTeamPublications);
+router.get('/communications/team/:groupID/:teamID/members', auth, ctrlProductivityData.listMembersCommunications);
+router.get('/communications/team/:groupID/:teamID', auth, ctrlProductivityData.listTeamCommunications);
+router.get('/patents/team/:groupID/:teamID/members', auth, ctrlProductivityData.listMembersPatents);
+router.get('/patents/team/:groupID/:teamID', auth, ctrlProductivityData.listTeamPatents);
 
 
-router.get('/communications/person/:personID', auth, ctrlPublicationsData.listPersonCommunications);
-router.get('/patents/all', auth, ctrlPublicationsData.listPatents);
-router.get('/patents/person/:personID', auth, ctrlPublicationsData.listPersonPatents);
-router.get('/prizes/all', auth, ctrlPublicationsData.listPrizes);
-router.get('/prizes/person/:personID', auth, ctrlPublicationsData.listPersonPrizes);
-router.get('/datasets/all', auth, ctrlPublicationsData.listDatasets);
-router.get('/datasets/person/:personID', auth, ctrlPublicationsData.listPersonDatasets);
-router.get('/startups/all', auth, ctrlPublicationsData.listStartups);
-router.get('/startups/person/:personID', auth, ctrlPublicationsData.listPersonStartups);
-router.get('/boards/person/:personID', auth, ctrlPublicationsData.listPersonBoards);
-router.get('/outreaches/person/:personID', auth, ctrlPublicationsData.listPersonOutreaches);
+router.get('/communications/person/:personID', auth, ctrlProductivityData.listPersonCommunications);
+router.get('/patents/all', auth, ctrlProductivityData.listPatents);
+router.get('/patents/person/:personID', auth, ctrlProductivityData.listPersonPatents);
+router.get('/prizes/all', auth, ctrlProductivityData.listPrizes);
+router.get('/prizes/person/:personID', auth, ctrlProductivityData.listPersonPrizes);
+router.get('/datasets/all', auth, ctrlProductivityData.listDatasets);
+router.get('/datasets/person/:personID', auth, ctrlProductivityData.listPersonDatasets);
+router.get('/startups/all', auth, ctrlProductivityData.listStartups);
+router.get('/startups/person/:personID', auth, ctrlProductivityData.listPersonStartups);
+router.get('/boards/person/:personID', auth, ctrlProductivityData.listPersonBoards);
+router.get('/outreaches/person/:personID', auth, ctrlProductivityData.listPersonOutreaches);
 
 // PUT PUBLICATION information (authenticated)
-router.put('/publications/person/:personID/selected', auth, ctrlPublicationsData.updatePersonSelectedPub);
-router.put('/publications/person/:personID/author-names', auth, ctrlPublicationsData.updatePersonAuthorNames);
-router.put('/publications/person/:personID/delete', auth, ctrlPublicationsData.deletePublicationsPerson);
-router.put('/publications/person/:personID/add', auth, ctrlPublicationsData.addPublicationsPerson);
-router.put('/publications/person/:personID/add-orcid', auth, ctrlPublicationsData.addORCIDPublicationsPerson);
-router.put('/publications/team/:groupID/:teamID', auth, ctrlPublicationsData.addPublicationsLab);
-router.put('/publications/team/:groupID/:teamID/selected', auth, ctrlPublicationsData.updateTeamSelectedPub);
-router.put('/publications/team/:groupID/:teamID/delete', auth, ctrlPublicationsData.deletePublicationsTeam);
+router.put('/publications/person/:personID/selected', auth, ctrlProductivityData.updatePersonSelectedPub);
+router.put('/publications/person/:personID/author-names', auth, ctrlProductivityData.updatePersonAuthorNames);
+router.put('/publications/person/:personID/delete', auth, ctrlProductivityData.deletePublicationsPerson);
+router.put('/publications/person/:personID/add', auth, ctrlProductivityData.addPublicationsPerson);
+router.put('/publications/person/:personID/add-orcid', auth, ctrlProductivityData.addORCIDPublicationsPerson);
+router.put('/publications/team/:groupID/:teamID', auth, ctrlProductivityData.addPublicationsLab);
+router.put('/publications/team/:groupID/:teamID/selected', auth, ctrlProductivityData.updateTeamSelectedPub);
+router.put('/publications/team/:groupID/:teamID/delete', auth, ctrlProductivityData.deletePublicationsTeam);
 
-router.put('/communications/team/:groupID/:teamID', auth, ctrlPublicationsData.addCommunicationsLab);
-router.put('/communications/team/:groupID/:teamID/delete', auth, ctrlPublicationsData.deleteCommunicationsTeam);
+router.put('/communications/team/:groupID/:teamID', auth, ctrlProductivityData.addCommunicationsLab);
+router.put('/communications/team/:groupID/:teamID/delete', auth, ctrlProductivityData.deleteCommunicationsTeam);
+router.put('/patents/team/:groupID/:teamID', auth, ctrlProductivityData.addPatentsLab);
+router.put('/patents/team/:groupID/:teamID/delete', auth, ctrlProductivityData.deletePatentsTeam);
 
-router.put('/communications/person/:personID', auth, ctrlPublicationsData.updatePersonCommunications);
-router.put('/communications/person/:personID/add-orcid', auth, ctrlPublicationsData.addORCIDCommunicationsPerson);
-router.put('/communications/person/:personID/add', auth, ctrlPublicationsData.addORCIDCommunicationsPerson); // both use the same function
-router.put('/patents/person/:personID', auth, ctrlPublicationsData.updatePersonPatents);
-router.put('/prizes/person/:personID', auth, ctrlPublicationsData.updatePersonPrizes);
-router.put('/datasets/person/:personID', auth, ctrlPublicationsData.updatePersonDatasets);
-router.put('/startups/person/:personID', auth, ctrlPublicationsData.updatePersonStartups);
-router.put('/boards/person/:personID', auth, ctrlPublicationsData.updatePersonBoards);
-router.put('/outreaches/person/:personID', auth, ctrlPublicationsData.updatePersonOutreaches);
+
+router.put('/communications/person/:personID', auth, ctrlProductivityData.updatePersonCommunications);
+router.put('/communications/person/:personID/add-orcid', auth, ctrlProductivityData.addORCIDCommunicationsPerson);
+router.put('/communications/person/:personID/add', auth, ctrlProductivityData.addORCIDCommunicationsPerson); // both use the same function
+router.put('/patents/person/:personID', auth, ctrlProductivityData.updatePersonPatents);
+router.put('/prizes/person/:personID', auth, ctrlProductivityData.updatePersonPrizes);
+router.put('/datasets/person/:personID', auth, ctrlProductivityData.updatePersonDatasets);
+router.put('/startups/person/:personID', auth, ctrlProductivityData.updatePersonStartups);
+router.put('/boards/person/:personID', auth, ctrlProductivityData.updatePersonBoards);
+router.put('/outreaches/person/:personID', auth, ctrlProductivityData.updatePersonOutreaches);
 
 // POST (Create) new user (authenticated)
 router.post('/registration', auth, ctrlRegistrationData.addPerson);

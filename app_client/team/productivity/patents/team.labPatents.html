@@ -1,0 +1,104 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">This Lab Patents</span>
+            <span> Note: Scroll down to add patents from the list of patents reported by your team members.</span>
+        </md-card-title-text>
+    </md-card-title>
+    <md-card-content layout="column">
+        <div layout="row" layout-align="none center">
+            <span class="spacer-top-smaller">Filter:</span>
+            <md-input-container class="input-row-longer">
+                <label>From year</label>
+                <input ng-model="fromYearWork" ng-change="renderPatents('new')">
+            </md-input-container>
+            <md-input-container class="input-row-longer">
+                <label>To year</label>
+                <input ng-model="toYearWork" ng-change="renderPatents('new')">
+            </md-input-container>
+            <md-button class="s48" ng-click="exportPatentsSpreadsheet()"
+                        aria-label="Export selection"
+                        class="md-icon-button interaction-button">
+                <md-tooltip>Export filtered results to spreadsheet</md-tooltip>
+                <md-icon md-svg-src="images/icons/spreadsheet.svg"
+                        class="s48"></md-icon>
+            </md-button>
+        </div>
+        <form flex novalidate name="teamPatentsForm"
+                ng-submit="teamPatentsForm.$valid && submitPatentRemoval(forms['teamWorkRemove'])">
+            <div layout="row" class="paginator">
+                <md-input-container class="input-no-margin wider">
+                    <label>Results/page</label>
+                    <md-select ng-model="pageSize"
+                            md-on-close="renderPatents('new')"
+                            aria-label="pageSize"
+                            name="pageSize">
+                            <md-option ng-value="10">10</md-option>
+                            <md-option ng-value="20">20</md-option>
+                            <md-option ng-value="50">50</md-option>
+                    </md-select>
+                </md-input-container>
+                <md-input-container class="input-no-margin">
+                    <label>Page</label>
+                    <md-select ng-model="currentPage"
+                            md-on-close="renderPatents('page')"
+                            aria-label="currentPage"
+                            name="currentPage">
+                            <md-option ng-repeat="page in pages" ng-value="page">{{page}}</md-option>
+                    </md-select>
+                </md-input-container>
+            </div>
+            This list contains <strong>{{selectedPatents.length}} patents</strong>.
+            <ul>
+                <li class="spacer-top" ng-repeat="(pubNum,work) in currPatents track by $index">
+                    <div layout="column" layout-gt-sm="row">
+                        <div flex-gt-sm="80">
+                            {{work.patent_type_name}}: {{work.authors_raw}}. "{{work.title}}".
+                            {{work.patent_status_name}} ({{work.status_date | date : 'yyyy-MM-dd'}}).
+                            Ref.: {{work.reference_number1}}. {{work.description}}.
+                        </div>
+                        <div flex-gt-sm="20" layout="row">
+                            <md-button ng-click="removePatent(work)"
+                                        aria-label="Remove"
+                                        class="md-icon-button interaction-button">
+                                <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
+                            </md-button>
+                        </div>
+                    </div>
+                    <md-divider class="spacer-top"></md-divider>
+                </li>
+            </ul>
+            <div layout="row" class="paginator">
+                <md-input-container class="input-no-margin wider">
+                    <label>Results/page</label>
+                    <md-select ng-model="pageSize"
+                            md-on-close="renderPatents('new')"
+                            aria-label="pageSize"
+                            name="pageSize">
+                            <md-option ng-value="10">10</md-option>
+                            <md-option ng-value="20">20</md-option>
+                            <md-option ng-value="50">50</md-option>
+                    </md-select>
+                </md-input-container>
+                <md-input-container class="input-no-margin">
+                    <label>Page</label>
+                    <md-select ng-model="currentPage"
+                            md-on-close="renderPatents('page')"
+                            aria-label="currentPage"
+                            name="currentPage">
+                            <md-option ng-repeat="page in pages" ng-value="page">{{page}}</md-option>
+                    </md-select>
+                </md-input-container>
+            </div>
+            <div layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button type="submit"
+                    class="button-small md-raised md-primary">Confirm removal</md-button>
+                <div class="status-message" ng-hide="hideMessage[forms['teamWorkRemove']]">
+                    <span class="message" ng-class="messageType[forms['teamWorkRemove']]">
+                        {{updateStatus[forms['teamWorkRemove']]}}
+                    </span>
+                </div>
+            </div>
+        </form>
+    </md-card-content>
+</md-card>

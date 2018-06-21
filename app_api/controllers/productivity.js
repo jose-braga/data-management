@@ -1535,6 +1535,177 @@ var queryDeleteCommunicationsTeam = function (req, res, next) {
     }
 };
 
+var queryTeamPatents = function (req, res, next) {
+    var teamID = req.params.teamID;
+    var groupID = req.params.groupID;
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'SELECT labs_patents.id AS labs_patents_id, patents.*,' +
+                            ' patent_types.name_en AS patent_type_name, patent_status.name_en AS patent_status_name ' +
+                          'FROM labs_patents' +
+                          ' LEFT JOIN patents ON labs_patents.patent_id = patents.id' +
+                          ' LEFT JOIN patent_types ON patent_types.id = patents.patent_type_id' +
+                          ' LEFT JOIN patent_status ON patent_status.id = patents.status_id' +
+                          ' WHERE labs_patents.group_id = ? AND labs_patents.lab_id = ?;';
+    places.push(groupID, teamID);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (resQuery.length === 0 || resQuery === undefined) {
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 0,
+                        "result" : []});
+                    return;
+                }
+                sendJSONResponse(res, 200,
+                    {
+                        "status": "success",
+                        "statusCode": 200,
+                        "count": resQuery.length,
+                        "result": resQuery
+                    });
+                return;
+            }
+        );
+    });
+};
+var queryMembersPatents = function (req, res, next) {
+    var teamID = req.params.teamID;
+    var groupID = req.params.groupID;
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'SELECT patents.*,' +
+                            ' patent_types.name_en AS patent_type_name, patent_status.name_en AS patent_status_name ' +
+                          ' FROM patents' +
+                          ' LEFT JOIN patent_types ON patent_types.id = patents.patent_type_id' +
+                          ' LEFT JOIN patent_status ON patent_status.id = patents.status_id' +
+                          ' LEFT JOIN people_patents ON people_patents.patent_id = patents.id' +
+                          ' LEFT JOIN people_labs ON people_labs.person_id = people_patents.person_id' +
+                          ' LEFT JOIN labs ON labs.id = people_labs.lab_id' +
+                          ' LEFT JOIN labs_groups ON labs_groups.lab_id = labs.id' +
+                          ' LEFT JOIN groups ON labs_groups.group_id = groups.id' +
+                          ' WHERE groups.id = ? AND labs.id = ?;';
+    places.push(groupID, teamID);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (resQuery.length === 0 || resQuery === undefined) {
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 0,
+                        "result" : []});
+                    return;
+                }
+                var non_duplicates = [];
+                var id_collection = [];
+                for (var ind in resQuery) {
+                    if (id_collection.indexOf(resQuery[ind].id) === -1) {
+                        id_collection.push(resQuery[ind].id);
+                        non_duplicates.push(resQuery[ind]);
+                    }
+                }
+                sendJSONResponse(res, 200,
+                    {
+                        "status": "success",
+                        "statusCode": 200,
+                        "count": non_duplicates.length,
+                        "result": non_duplicates
+                    });
+                return;
+            }
+        );
+    });
+};
+var queryAddPatentsLab = function(req, res, next) {
+    var groupID = req.params.groupID;
+    var teamID = req.params.teamID;
+    var add = req.body.addPatents;
+    var querySQL = '';
+    var places = [];
+    for (var ind in add) {
+        querySQL = querySQL + 'INSERT INTO labs_patents (lab_id, group_id, patent_id)' +
+                              ' VALUES (?,?,?);';
+        places.push(teamID,groupID, add[ind].id);
+    }
+    if (querySQL !== '') {
+        pool.getConnection(function(err, connection) {
+            if (err) {
+                sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+                return;
+            }
+            connection.query(querySQL,places,
+                function (err, resQuery) {
+                    // And done with the connection.
+                    connection.release();
+                    if (err) {
+                        sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                        return;
+                    }
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 1,
+                         "result" : "OK!"});
+                }
+            );
+        });
+    } else {
+        sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "message": "No changes"});
+    }
+};
+var queryDeletePatentsTeam = function (req, res, next) {
+    var del = req.body.deletePatents;
+    var querySQL = '';
+    var places = [];
+    for (var ind in del) {
+        querySQL = querySQL + 'DELETE FROM labs_patents' +
+                              ' WHERE id = ?;';
+        places.push(del[ind].labs_patents_id);
+    }
+    if (querySQL !== '') {
+        pool.getConnection(function(err, connection) {
+            if (err) {
+                sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+                return;
+            }
+            connection.query(querySQL,places,
+                function (err, resQuery) {
+                    // And done with the connection.
+                    connection.release();
+                    if (err) {
+                        sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                        return;
+                    }
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 1,
+                         "result" : "OK!"});
+                }
+            );
+        });
+    } else {
+        sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "message": "No changes"});
+    }
+};
+
 
 var queryAllPatents = function (req, res, next) {
     var querySQL = '';
@@ -3473,6 +3644,35 @@ module.exports.deleteCommunicationsTeam = function (req, res, next) {
     getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
         function (req, res, username) {
             queryDeleteCommunicationsTeam(req,res,next);
+        }
+    );
+};
+
+module.exports.listTeamPatents = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
+        function (req, res, username) {
+            queryTeamPatents(req,res,next);
+        }
+    );
+};
+module.exports.listMembersPatents = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
+        function (req, res, username) {
+            queryMembersPatents(req,res,next);
+        }
+    );
+};
+module.exports.addPatentsLab = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
+        function (req, res, username) {
+            queryAddPatentsLab(req,res,next);
+        }
+    );
+};
+module.exports.deletePatentsTeam = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
+        function (req, res, username) {
+            queryDeletePatentsTeam(req,res,next);
         }
     );
 };

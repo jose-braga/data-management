@@ -296,6 +296,35 @@
             );
         };
 
+        var thisTeamPatents = function (groupID, teamID) {
+            return $http.get('api/patents/team/' + groupID + '/' + teamID,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var thisMembersPatents = function (groupID, teamID) {
+            return $http.get('api/patents/team/' + groupID + '/' + teamID + '/members',
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var addMembersPatents = function (groupID, teamID, data) {
+            return $http.put('api/patents/team/' + groupID + '/' + teamID, data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var removePatentsTeam = function (groupID, teamID, data) {
+            return $http.put('api/patents/team/' + groupID + '/' + teamID + '/delete', data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+
         return {
             addMembersPublications: addMembersPublications,
             allPublications: allPublications,
@@ -336,7 +365,12 @@
             thisTeamCommunications: thisTeamCommunications,
             thisMembersCommunications: thisMembersCommunications,
             addMembersCommunications: addMembersCommunications,
-            removeCommunicationsTeam: removeCommunicationsTeam
+            removeCommunicationsTeam: removeCommunicationsTeam,
+
+            thisTeamPatents: thisTeamPatents,
+            thisMembersPatents: thisMembersPatents,
+            addMembersPatents: addMembersPatents,
+            removePatentsTeam: removePatentsTeam
 
         };
     };

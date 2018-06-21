@@ -72,10 +72,18 @@
                     <md-tab label='Patents'>
                         <md-content>
                             <div layout="row" layout-padding>
-                                Under construction
+                                <team-lab-patents
+                                    data-lab="{{lab.lab_id}}"
+                                    data-group="{{lab.group_id}}"
+                                    flex>
+                                </team-lab-patents>
                             </div>
                             <div layout="row" layout-padding>
-
+                                <team-members-patents
+                                    data-lab="{{lab.lab_id}}"
+                                    data-group="{{lab.group_id}}"
+                                flex>
+                                </team-members-patents>
                             </div>
                         </md-content>
                     </md-tab>

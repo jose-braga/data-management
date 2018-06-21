@@ -122,6 +122,8 @@ router.get('/communications/team/:groupID/:teamID/members', auth, ctrlProductivi
 router.get('/communications/team/:groupID/:teamID', auth, ctrlProductivityData.listTeamCommunications);
 router.get('/patents/team/:groupID/:teamID/members', auth, ctrlProductivityData.listMembersPatents);
 router.get('/patents/team/:groupID/:teamID', auth, ctrlProductivityData.listTeamPatents);
+router.get('/prizes/team/:groupID/:teamID/members', auth, ctrlProductivityData.listMembersPrizes);
+router.get('/prizes/team/:groupID/:teamID', auth, ctrlProductivityData.listTeamPrizes);
 
 
 router.get('/communications/person/:personID', auth, ctrlProductivityData.listPersonCommunications);
@@ -150,6 +152,8 @@ router.put('/communications/team/:groupID/:teamID', auth, ctrlProductivityData.a
 router.put('/communications/team/:groupID/:teamID/delete', auth, ctrlProductivityData.deleteCommunicationsTeam);
 router.put('/patents/team/:groupID/:teamID', auth, ctrlProductivityData.addPatentsLab);
 router.put('/patents/team/:groupID/:teamID/delete', auth, ctrlProductivityData.deletePatentsTeam);
+router.put('/prizes/team/:groupID/:teamID', auth, ctrlProductivityData.addPrizesLab);
+router.put('/prizes/team/:groupID/:teamID/delete', auth, ctrlProductivityData.deletePrizesTeam);
 
 
 router.put('/communications/person/:personID', auth, ctrlProductivityData.updatePersonCommunications);

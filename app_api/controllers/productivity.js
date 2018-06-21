@@ -1706,6 +1706,171 @@ var queryDeletePatentsTeam = function (req, res, next) {
     }
 };
 
+var queryTeamPrizes = function (req, res, next) {
+    var teamID = req.params.teamID;
+    var groupID = req.params.groupID;
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'SELECT labs_prizes.id AS labs_prizes_id, prizes.* ' +
+                          'FROM labs_prizes' +
+                          ' LEFT JOIN prizes ON labs_prizes.prize_id = prizes.id' +
+                          ' WHERE labs_prizes.group_id = ? AND labs_prizes.lab_id = ?;';
+    places.push(groupID, teamID);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (resQuery.length === 0 || resQuery === undefined) {
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 0,
+                        "result" : []});
+                    return;
+                }
+                sendJSONResponse(res, 200,
+                    {
+                        "status": "success",
+                        "statusCode": 200,
+                        "count": resQuery.length,
+                        "result": resQuery
+                    });
+                return;
+            }
+        );
+    });
+};
+var queryMembersPrizes = function (req, res, next) {
+    var teamID = req.params.teamID;
+    var groupID = req.params.groupID;
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'SELECT prizes.*' +
+                          ' FROM prizes' +
+                          ' LEFT JOIN people_prizes ON people_prizes.prize_id = prizes.id' +
+                          ' LEFT JOIN people_labs ON people_labs.person_id = people_prizes.person_id' +
+                          ' LEFT JOIN labs ON labs.id = people_labs.lab_id' +
+                          ' LEFT JOIN labs_groups ON labs_groups.lab_id = labs.id' +
+                          ' LEFT JOIN groups ON labs_groups.group_id = groups.id' +
+                          ' WHERE groups.id = ? AND labs.id = ?;';
+    places.push(groupID, teamID);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (resQuery.length === 0 || resQuery === undefined) {
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 0,
+                        "result" : []});
+                    return;
+                }
+                var non_duplicates = [];
+                var id_collection = [];
+                for (var ind in resQuery) {
+                    if (id_collection.indexOf(resQuery[ind].id) === -1) {
+                        id_collection.push(resQuery[ind].id);
+                        non_duplicates.push(resQuery[ind]);
+                    }
+                }
+                sendJSONResponse(res, 200,
+                    {
+                        "status": "success",
+                        "statusCode": 200,
+                        "count": non_duplicates.length,
+                        "result": non_duplicates
+                    });
+                return;
+            }
+        );
+    });
+};
+var queryAddPrizesLab = function(req, res, next) {
+    var groupID = req.params.groupID;
+    var teamID = req.params.teamID;
+    var add = req.body.addPrizes;
+    var querySQL = '';
+    var places = [];
+    for (var ind in add) {
+        querySQL = querySQL + 'INSERT INTO labs_prizes (lab_id, group_id, prize_id)' +
+                              ' VALUES (?,?,?);';
+        places.push(teamID,groupID, add[ind].id);
+    }
+    if (querySQL !== '') {
+        pool.getConnection(function(err, connection) {
+            if (err) {
+                sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+                return;
+            }
+            connection.query(querySQL,places,
+                function (err, resQuery) {
+                    // And done with the connection.
+                    connection.release();
+                    if (err) {
+                        sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                        return;
+                    }
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 1,
+                         "result" : "OK!"});
+                }
+            );
+        });
+    } else {
+        sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "message": "No changes"});
+    }
+};
+var queryDeletePrizesTeam = function (req, res, next) {
+    var del = req.body.deletePrizes;
+    var querySQL = '';
+    var places = [];
+    for (var ind in del) {
+        querySQL = querySQL + 'DELETE FROM labs_prizes' +
+                              ' WHERE id = ?;';
+        places.push(del[ind].labs_prizes_id);
+    }
+    if (querySQL !== '') {
+        pool.getConnection(function(err, connection) {
+            if (err) {
+                sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+                return;
+            }
+            connection.query(querySQL,places,
+                function (err, resQuery) {
+                    // And done with the connection.
+                    connection.release();
+                    if (err) {
+                        sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                        return;
+                    }
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 1,
+                         "result" : "OK!"});
+                }
+            );
+        });
+    } else {
+        sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "message": "No changes"});
+    }
+};
+
 
 var queryAllPatents = function (req, res, next) {
     var querySQL = '';
@@ -3673,6 +3838,35 @@ module.exports.deletePatentsTeam = function (req, res, next) {
     getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
         function (req, res, username) {
             queryDeletePatentsTeam(req,res,next);
+        }
+    );
+};
+
+module.exports.listTeamPrizes = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
+        function (req, res, username) {
+            queryTeamPrizes(req,res,next);
+        }
+    );
+};
+module.exports.listMembersPrizes = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
+        function (req, res, username) {
+            queryMembersPrizes(req,res,next);
+        }
+    );
+};
+module.exports.addPrizesLab = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
+        function (req, res, username) {
+            queryAddPrizesLab(req,res,next);
+        }
+    );
+};
+module.exports.deletePrizesTeam = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
+        function (req, res, username) {
+            queryDeletePrizesTeam(req,res,next);
         }
     );
 };

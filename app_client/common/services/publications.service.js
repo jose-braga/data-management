@@ -325,6 +325,35 @@
             );
         };
 
+        var thisTeamPrizes = function (groupID, teamID) {
+            return $http.get('api/prizes/team/' + groupID + '/' + teamID,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var thisMembersPrizes = function (groupID, teamID) {
+            return $http.get('api/prizes/team/' + groupID + '/' + teamID + '/members',
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var addMembersPrizes = function (groupID, teamID, data) {
+            return $http.put('api/prizes/team/' + groupID + '/' + teamID, data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var removePrizesTeam = function (groupID, teamID, data) {
+            return $http.put('api/prizes/team/' + groupID + '/' + teamID + '/delete', data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+
         return {
             addMembersPublications: addMembersPublications,
             allPublications: allPublications,
@@ -370,7 +399,12 @@
             thisTeamPatents: thisTeamPatents,
             thisMembersPatents: thisMembersPatents,
             addMembersPatents: addMembersPatents,
-            removePatentsTeam: removePatentsTeam
+            removePatentsTeam: removePatentsTeam,
+
+            thisTeamPrizes: thisTeamPrizes,
+            thisMembersPrizes: thisMembersPrizes,
+            addMembersPrizes: addMembersPrizes,
+            removePrizesTeam: removePrizesTeam
 
         };
     };

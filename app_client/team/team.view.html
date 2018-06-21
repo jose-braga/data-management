@@ -90,10 +90,18 @@
                     <md-tab label='Prizes'>
                         <md-content>
                             <div layout="row" layout-padding>
-                                Under construction
+                                <team-lab-prizes
+                                    data-lab="{{lab.lab_id}}"
+                                    data-group="{{lab.group_id}}"
+                                    flex>
+                                </team-lab-prizes>
                             </div>
                             <div layout="row" layout-padding>
-
+                                <team-members-prizes
+                                    data-lab="{{lab.lab_id}}"
+                                    data-group="{{lab.group_id}}"
+                                flex>
+                                </team-members-prizes>
                             </div>
                         </md-content>
                     </md-tab>

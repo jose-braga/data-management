@@ -383,6 +383,35 @@
             );
         };
 
+        var thisTeamStartups = function (groupID, teamID) {
+            return $http.get('api/startups/team/' + groupID + '/' + teamID,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var thisMembersStartups = function (groupID, teamID) {
+            return $http.get('api/startups/team/' + groupID + '/' + teamID + '/members',
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var addMembersStartups = function (groupID, teamID, data) {
+            return $http.put('api/startups/team/' + groupID + '/' + teamID, data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var removeStartupsTeam = function (groupID, teamID, data) {
+            return $http.put('api/startups/team/' + groupID + '/' + teamID + '/delete', data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+
         return {
             addMembersPublications: addMembersPublications,
             allPublications: allPublications,
@@ -438,8 +467,12 @@
             thisTeamDatasets: thisTeamDatasets,
             thisMembersDatasets: thisMembersDatasets,
             addMembersDatasets: addMembersDatasets,
-            removeDatasetsTeam: removeDatasetsTeam
+            removeDatasetsTeam: removeDatasetsTeam,
 
+            thisTeamStartups: thisTeamStartups,
+            thisMembersStartups: thisMembersStartups,
+            addMembersStartups: addMembersStartups,
+            removeStartupsTeam: removeStartupsTeam
         };
     };
 

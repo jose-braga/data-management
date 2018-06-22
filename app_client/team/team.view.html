@@ -108,10 +108,18 @@
                     <md-tab label='Startups'>
                         <md-content>
                             <div layout="row" layout-padding>
-                                Under construction
+                                <team-lab-startups
+                                    data-lab="{{lab.lab_id}}"
+                                    data-group="{{lab.group_id}}"
+                                    flex>
+                                </team-lab-startups>
                             </div>
                             <div layout="row" layout-padding>
-
+                                <team-members-startups
+                                    data-lab="{{lab.lab_id}}"
+                                    data-group="{{lab.group_id}}"
+                                flex>
+                                </team-members-startups>
                             </div>
                         </md-content>
                     </md-tab>

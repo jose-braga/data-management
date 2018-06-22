@@ -412,6 +412,35 @@
             );
         };
 
+        var thisTeamBoards = function (groupID, teamID) {
+            return $http.get('api/boards/team/' + groupID + '/' + teamID,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var thisMembersBoards = function (groupID, teamID) {
+            return $http.get('api/boards/team/' + groupID + '/' + teamID + '/members',
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var addMembersBoards = function (groupID, teamID, data) {
+            return $http.put('api/boards/team/' + groupID + '/' + teamID, data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var removeBoardsTeam = function (groupID, teamID, data) {
+            return $http.put('api/boards/team/' + groupID + '/' + teamID + '/delete', data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+
         return {
             addMembersPublications: addMembersPublications,
             allPublications: allPublications,
@@ -472,7 +501,12 @@
             thisTeamStartups: thisTeamStartups,
             thisMembersStartups: thisMembersStartups,
             addMembersStartups: addMembersStartups,
-            removeStartupsTeam: removeStartupsTeam
+            removeStartupsTeam: removeStartupsTeam,
+
+            thisTeamBoards: thisTeamBoards,
+            thisMembersBoards: thisMembersBoards,
+            addMembersBoards: addMembersBoards,
+            removeBoardsTeam: removeBoardsTeam
         };
     };
 

@@ -2203,6 +2203,172 @@ var queryDeleteStartupsTeam = function (req, res, next) {
     }
 };
 
+var queryTeamBoards = function (req, res, next) {
+    var teamID = req.params.teamID;
+    var groupID = req.params.groupID;
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'SELECT labs_boards.id AS labs_boards_id, boards.*, board_types.name AS board_type_name ' +
+                          ' FROM labs_boards' +
+                          ' LEFT JOIN boards ON labs_boards.board_id = boards.id' +
+                          ' LEFT JOIN board_types ON board_types.id = boards.board_type_id' +
+                          ' WHERE labs_boards.group_id = ? AND labs_boards.lab_id = ?;';
+    places.push(groupID, teamID);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (resQuery.length === 0 || resQuery === undefined) {
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 0,
+                        "result" : []});
+                    return;
+                }
+                sendJSONResponse(res, 200,
+                    {
+                        "status": "success",
+                        "statusCode": 200,
+                        "count": resQuery.length,
+                        "result": resQuery
+                    });
+                return;
+            }
+        );
+    });
+};
+var queryMembersBoards = function (req, res, next) {
+    var teamID = req.params.teamID;
+    var groupID = req.params.groupID;
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'SELECT boards.*, board_types.name AS board_type_name ' +
+                          ' FROM boards' +
+                          ' LEFT JOIN board_types ON board_types.id = boards.board_type_id' +
+                          ' LEFT JOIN people_boards ON people_boards.board_id = boards.id' +
+                          ' LEFT JOIN people_labs ON people_labs.person_id = people_boards.person_id' +
+                          ' LEFT JOIN labs ON labs.id = people_labs.lab_id' +
+                          ' LEFT JOIN labs_groups ON labs_groups.lab_id = labs.id' +
+                          ' LEFT JOIN groups ON labs_groups.group_id = groups.id' +
+                          ' WHERE groups.id = ? AND labs.id = ?;';
+    places.push(groupID, teamID);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (resQuery.length === 0 || resQuery === undefined) {
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 0,
+                        "result" : []});
+                    return;
+                }
+                var non_duplicates = [];
+                var id_collection = [];
+                for (var ind in resQuery) {
+                    if (id_collection.indexOf(resQuery[ind].id) === -1) {
+                        id_collection.push(resQuery[ind].id);
+                        non_duplicates.push(resQuery[ind]);
+                    }
+                }
+                sendJSONResponse(res, 200,
+                    {
+                        "status": "success",
+                        "statusCode": 200,
+                        "count": non_duplicates.length,
+                        "result": non_duplicates
+                    });
+                return;
+            }
+        );
+    });
+};
+var queryAddBoardsLab = function(req, res, next) {
+    var groupID = req.params.groupID;
+    var teamID = req.params.teamID;
+    var add = req.body.addBoards;
+    var querySQL = '';
+    var places = [];
+    for (var ind in add) {
+        querySQL = querySQL + 'INSERT INTO labs_boards (lab_id, group_id, board_id)' +
+                              ' VALUES (?,?,?);';
+        places.push(teamID,groupID, add[ind].id);
+    }
+    if (querySQL !== '') {
+        pool.getConnection(function(err, connection) {
+            if (err) {
+                sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+                return;
+            }
+            connection.query(querySQL,places,
+                function (err, resQuery) {
+                    // And done with the connection.
+                    connection.release();
+                    if (err) {
+                        sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                        return;
+                    }
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 1,
+                         "result" : "OK!"});
+                }
+            );
+        });
+    } else {
+        sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "message": "No changes"});
+    }
+};
+var queryDeleteBoardsTeam = function (req, res, next) {
+    var del = req.body.deleteBoards;
+    var querySQL = '';
+    var places = [];
+    for (var ind in del) {
+        querySQL = querySQL + 'DELETE FROM labs_boards' +
+                              ' WHERE id = ?;';
+        places.push(del[ind].labs_boards_id);
+    }
+    if (querySQL !== '') {
+        pool.getConnection(function(err, connection) {
+            if (err) {
+                sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+                return;
+            }
+            connection.query(querySQL,places,
+                function (err, resQuery) {
+                    // And done with the connection.
+                    connection.release();
+                    if (err) {
+                        sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                        return;
+                    }
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 1,
+                         "result" : "OK!"});
+                }
+            );
+        });
+    } else {
+        sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "message": "No changes"});
+    }
+};
 
 var queryAllPatents = function (req, res, next) {
     var querySQL = '';
@@ -4257,6 +4423,35 @@ module.exports.deleteStartupsTeam = function (req, res, next) {
     getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
         function (req, res, username) {
             queryDeleteStartupsTeam(req,res,next);
+        }
+    );
+};
+
+module.exports.listTeamBoards = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
+        function (req, res, username) {
+            queryTeamBoards(req,res,next);
+        }
+    );
+};
+module.exports.listMembersBoards = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
+        function (req, res, username) {
+            queryMembersBoards(req,res,next);
+        }
+    );
+};
+module.exports.addBoardsLab = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
+        function (req, res, username) {
+            queryAddBoardsLab(req,res,next);
+        }
+    );
+};
+module.exports.deleteBoardsTeam = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
+        function (req, res, username) {
+            queryDeleteBoardsTeam(req,res,next);
         }
     );
 };

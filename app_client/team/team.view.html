@@ -126,10 +126,18 @@
                     <md-tab label='Boards'>
                         <md-content>
                             <div layout="row" layout-padding>
-                                Under construction
+                                <team-lab-boards
+                                    data-lab="{{lab.lab_id}}"
+                                    data-group="{{lab.group_id}}"
+                                    flex>
+                                </team-lab-boards>
                             </div>
                             <div layout="row" layout-padding>
-
+                                <team-members-boards
+                                    data-lab="{{lab.lab_id}}"
+                                    data-group="{{lab.group_id}}"
+                                flex>
+                                </team-members-boards>
                             </div>
                         </md-content>
                     </md-tab>

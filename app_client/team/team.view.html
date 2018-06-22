@@ -128,10 +128,18 @@
                     <md-tab label='Datasets'>
                         <md-content>
                             <div layout="row" layout-padding>
-                                Under construction
+                                <team-lab-datasets
+                                    data-lab="{{lab.lab_id}}"
+                                    data-group="{{lab.group_id}}"
+                                    flex>
+                                </team-lab-datasets>
                             </div>
                             <div layout="row" layout-padding>
-
+                                <team-members-datasets
+                                    data-lab="{{lab.lab_id}}"
+                                    data-group="{{lab.group_id}}"
+                                flex>
+                                </team-members-datasets>
                             </div>
                         </md-content>
                     </md-tab>

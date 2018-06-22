@@ -1,5 +1,5 @@
 (function(){
-    var teamMembersPrizes =
+    var teamMembersDatasets =
     ['personData','teamData','publications','authentication','$timeout', '$mdMedia','$mdPanel','$rootScope',
     function (personData,teamData,publications,authentication, $timeout, $mdMedia, $mdPanel,$rootScope) {
         return {
@@ -8,13 +8,13 @@
                 lab: '@',
                 group: '@'
             },
-            templateUrl: 'team/productivity/prizes/team.membersPrizes.html',
+            templateUrl: 'team/productivity/datasets/team.membersDatasets.html',
             link:
             function (scope,element,attrs) {
                 //this._mdPanel = $mdPanel;
 
-                scope.teamPrizes = [];
-                scope.membersPrizes = [];
+                scope.teamDatasets = [];
+                scope.membersDatasets = [];
 
                 scope.forms = {
                     'membersWork': 0,
@@ -29,37 +29,37 @@
                     scope.hideMessage.push(true);
                 }
 
-                $rootScope.$on('removedLabPrizesMessage', function (event,data) {
-                    getPrizes();
+                $rootScope.$on('removedLabDatasetsMessage', function (event,data) {
+                    getDatasets();
                 });
 
-                getPrizes();
+                getDatasets();
 
-                scope.renderPrizes = function (str, ind) {
+                scope.renderDatasets = function (str, ind) {
                     if (str === 'new') {
                         scope.currentPage = 1;
                     }
-                    scope.totalPrizes = scope.membersPrizes.length;
-                    scope.selectedPrizes = [];
+                    scope.totalDatasets = scope.membersDatasets.length;
+                    scope.selectedDatasets = [];
                     var toInclude = 0;
                     var toIncludeDueFrom = 0;
                     var toIncludeDueTo = 0;
                     scope.fromYearWork = parseInt(scope.fromYearWork,10);
                     scope.toYearWork = parseInt(scope.toYearWork,10);
-                    for (var ind in scope.membersPrizes) {
-                        //scope.membersPrizes[ind]['year'] = momentToDate(scope.membersPrizes[ind]['status_date'],undefined,'YYYY');
+                    for (var ind in scope.membersDatasets) {
+                        //scope.membersDatasets[ind]['year'] = momentToDate(scope.membersDatasets[ind]['status_date'],undefined,'YYYY');
                         toInclude = 0;
                         toIncludeDueFrom = 0;
                         toIncludeDueTo = 0;
                         if (Number.isInteger(scope.fromYearWork)) {
-                            if (scope.fromYearWork <= scope.membersPrizes[ind].year) {
+                            if (scope.fromYearWork <= scope.membersDatasets[ind].year) {
                                toIncludeDueFrom = 1;
                             }
                         } else {
                             toIncludeDueFrom = 1;
                         }
                         if (Number.isInteger(scope.toYearWork)) {
-                            if (scope.toYearWork >= scope.membersPrizes[ind].year) {
+                            if (scope.toYearWork >= scope.membersDatasets[ind].year) {
                                toIncludeDueTo = 1;
                             }
                         } else {
@@ -67,10 +67,10 @@
                         }
                         toInclude = toIncludeDueFrom * toIncludeDueTo;
                         if (toInclude === 1) {
-                            scope.selectedPrizes.push(scope.membersPrizes[ind]);
+                            scope.selectedDatasets.push(scope.membersDatasets[ind]);
                         }
                     }
-                    scope.totalFromSearch = scope.selectedPrizes.length;
+                    scope.totalFromSearch = scope.selectedDatasets.length;
 
                     scope.totalPages = Math.ceil(scope.totalFromSearch / scope.pageSize);
                     scope.pages = [];
@@ -79,23 +79,23 @@
                     }
                     // Sort selectedPeople according to defined order, before
                     // defining page contents
-                    scope.selectedPrizes = scope.selectedPrizes.sort(sorter);
-                    scope.currPrizes = [];
+                    scope.selectedDatasets = scope.selectedDatasets.sort(sorter);
+                    scope.currDatasets = [];
                     for (var member = (scope.currentPage - 1) * scope.pageSize;
                             member < scope.currentPage * scope.pageSize && member < scope.totalFromSearch;
                             member++) {
-                        scope.currPrizes.push(Object.assign({}, scope.selectedPrizes[member]));
+                        scope.currDatasets.push(Object.assign({}, scope.selectedDatasets[member]));
                     }
                 };
-                scope.submitMembersPrizes = function (ind) {
+                scope.submitMembersDatasets = function (ind) {
                     scope.updateStatus[ind] = "Updating...";
                     scope.messageType[ind] = 'message-updating';
                     scope.hideMessage[ind] = false;
-                    var data = {addPrizes: scope.newLabPrizes};
-                    publications.addMembersPrizes(scope.group,scope.lab,data)
+                    var data = {addDatasets: scope.newLabDatasets};
+                    publications.addMembersDatasets(scope.group,scope.lab,data)
                         .then( function () {
-                            getPrizes();
-                            $rootScope.$broadcast('updateLabPrizesMessage', data);
+                            getDatasets();
+                            $rootScope.$broadcast('updateLabDatasetsMessage', data);
                             if (ind > -1) {
                                 scope.updateStatus[ind] = "Updated!";
                                 scope.messageType[ind] = 'message-success';
@@ -111,35 +111,35 @@
                         );
                     return false;
                 };
-                scope.addPrize = function (pub) {
-                    var alreadyAdded = scope.newLabPrizes.filter(
+                scope.addDataset = function (pub) {
+                    var alreadyAdded = scope.newLabDatasets.filter(
                             function(el) {
                                 return el.id === pub.id;
                             });
                     if (alreadyAdded.length === 0) {
-                        scope.newLabPrizes.push(pub);
+                        scope.newLabDatasets.push(pub);
                     }
                 };
                 scope.removeRow = function (current, ind) {
                     current.splice(ind,1);
                 };
 
-                function getPrizes() {
-                    publications.thisTeamPrizes(scope.group, scope.lab)
+                function getDatasets() {
+                    publications.thisTeamDatasets(scope.group, scope.lab)
                         .then(function (response) {
-                            scope.teamPrizes = response.data.result;
-                            getMembersPrizes();
+                            scope.teamDatasets = response.data.result;
+                            getMembersDatasets();
                         })
                         .catch(function (err) {
                             console.log(err);
                         });
                 }
-                function getMembersPrizes() {
-                    publications.thisMembersPrizes(scope.group, scope.lab)
+                function getMembersDatasets() {
+                    publications.thisMembersDatasets(scope.group, scope.lab)
                         .then(function (response) {
-                            scope.membersPrizesAll = response.data.result;
-                            var labPubIDs = scope.teamPrizes.map(function(obj){return obj.id;});
-                            scope.membersPrizes = scope.membersPrizesAll.filter(
+                            scope.membersDatasetsAll = response.data.result;
+                            var labPubIDs = scope.teamDatasets.map(function(obj){return obj.id;});
+                            scope.membersDatasets = scope.membersDatasetsAll.filter(
                                     function (obj) { return labPubIDs.indexOf(obj.id) === -1;});
                             initializeVariables();
                         })
@@ -154,23 +154,23 @@
                     scope.currentPage = 1;
                     scope.pageSize = 10;
 
-                    scope.newLabPrizes = [];
+                    scope.newLabDatasets = [];
 
                     // computes the number of pages
-                    scope.totalPrizes = scope.membersPrizes.length;
-                    scope.totalPages = Math.ceil(scope.totalPrizes / scope.pageSize);
+                    scope.totalDatasets = scope.membersDatasets.length;
+                    scope.totalPages = Math.ceil(scope.totalDatasets / scope.pageSize);
                     scope.pages = [];
                     for (var num=1; num<=scope.totalPages; num++) {
                         scope.pages.push(num);
                     }
-                    scope.renderPrizes();
+                    scope.renderDatasets();
                 }
                 function sorter(a,b) {
                     if (scope.sortType === 'year') {
                         if (scope.sortReverse) {
-                            return b[scope.sortType]-a[scope.sortType];
+                            return a-b;
                         } else {
-                            return a[scope.sortType]-b[scope.sortType];
+                            return b-a;
                         }
                     } else {
                         if (scope.sortReverse) {
@@ -184,12 +184,12 @@
                 }
 
                 /* for exporting */
-                scope.exportPrizesSpreadsheet = function() {
+                scope.exportDatasetsSpreadsheet = function() {
                     var type = 'xlsx';
                     var wsName = 'Data';
                     var wb = {};
-                    var selectedPrizes = convertData(scope.selectedPrizes);
-                    var ws = XLSX.utils.json_to_sheet(selectedPrizes);
+                    var selectedDatasets = convertData(scope.selectedDatasets);
+                    var ws = XLSX.utils.json_to_sheet(selectedDatasets);
                     wb.SheetNames = [wsName];
                     wb.Sheets = {};
                     wb.Sheets[wsName] = ws;
@@ -207,7 +207,7 @@
                     } else {
                         to = scope.toYearWork;
                     }
-                    var fname = 'team_members_prizes_' + from + '_' + to
+                    var fname = 'team_members_datasets_' + from + '_' + to
                                 + '_' + dateTime + '.' + type;
                     try {
                     	saveAs(new Blob([s2ab(wbout)],{type:"application/octet-stream"}), fname);
@@ -232,12 +232,12 @@
                     if (arrObj.length > 0) {
                         for (var el in arrObj) {
                             data.push({
-                                "Prize": arrObj[el]['name'],
-                                "Year": arrObj[el]['year'],
-                                "Recipients": arrObj[el]['recipients'],
-                                "Organization": arrObj[el]['organization'],
-                                "Amount (€)": arrObj[el]['amount_euro'],
-                                "Notes": arrObj[el]['notes']
+                                "Data type": arrObj[el]['data_set_type_name'],
+                                "Database": arrObj[el]['database_name'],
+                                "URL": arrObj[el]['url'],
+                                "Num. sets": arrObj[el]['number_sets'],
+                                "Description": arrObj[el]['short_description'],
+                                "Year": arrObj[el]['year']
                             });
                         }
                         return data;
@@ -257,7 +257,7 @@
         };
     }];
 
-    var teamLabPrizes =
+    var teamLabDatasets =
     ['personData','teamData','publications','authentication',
      '$timeout', '$mdMedia','$mdPanel','$rootScope',
     function (personData,teamData,publications,authentication,
@@ -268,11 +268,11 @@
                 lab: '@',
                 group: '@'
             },
-            templateUrl: 'team/productivity/prizes/team.labPrizes.html',
+            templateUrl: 'team/productivity/datasets/team.labDatasets.html',
             link:
             function (scope,element,attrs) {
 
-                scope.teamPrizes = [];
+                scope.teamDatasets = [];
 
                 scope.forms = {
                     'teamWorkRemove': 0,
@@ -287,37 +287,37 @@
                     scope.hideMessage.push(true);
                 }
 
-                $rootScope.$on('updateLabPrizesMessage', function (event,data) {
-                    getPrizes();
+                $rootScope.$on('updateLabDatasetsMessage', function (event,data) {
+                    getDatasets();
                     initializeDetails();
                 });
 
-                getPrizes();
+                getDatasets();
                 initializeDetails();
 
-                scope.removePrize = function (pub) {
-                    for (var ind in scope.teamPrizes) {
-                        if (pub.labs_prizes_id === scope.teamPrizes[ind].labs_prizes_id) {
-                            scope.teamPrizes.splice(ind,1);
-                            scope.deletePrizes.push(pub);
+                scope.removeDataset = function (pub) {
+                    for (var ind in scope.teamDatasets) {
+                        if (pub.labs_datasets_id === scope.teamDatasets[ind].labs_datasets_id) {
+                            scope.teamDatasets.splice(ind,1);
+                            scope.deleteDatasets.push(pub);
                             break;
                         }
                     }
-                    scope.renderPrizes('');
+                    scope.renderDatasets('');
                 };
-                scope.submitPrizeRemoval = function(ind) {
-                    if (scope.deletePrizes.length > 0) {
-                        alert("This won't remove the prizes from the database." +
-                          "\nIt will simply remove the connection of this lab with these prizes.");
+                scope.submitDatasetRemoval = function(ind) {
+                    if (scope.deleteDatasets.length > 0) {
+                        alert("This won't remove the datasets from the database." +
+                          "\nIt will simply remove the connection of this lab with these datasets.");
                         scope.updateStatus[ind] = "Updating...";
                         scope.messageType[ind] = 'message-updating';
                         scope.hideMessage[ind] = false;
-                        var data = {deletePrizes: scope.deletePrizes};
-                        publications.removePrizesTeam(scope.group,scope.lab,data)
+                        var data = {deleteDatasets: scope.deleteDatasets};
+                        publications.removeDatasetsTeam(scope.group,scope.lab,data)
                             .then( function () {
                                 initializeDetails();
-                                getPrizes(ind);
-                                $rootScope.$broadcast('removedLabPrizesMessage', data);
+                                getDatasets(ind);
+                                $rootScope.$broadcast('removedLabDatasetsMessage', data);
                                 if (ind > -1) {
                                     scope.updateStatus[ind] = "Updated!";
                                     scope.messageType[ind] = 'message-success';
@@ -336,31 +336,32 @@
 
                 };
 
-                scope.renderPrizes = function (str, ind) {
+                scope.renderDatasets = function (str, ind) {
                     if (str === 'new') {
                         scope.currentPage = 1;
                     }
-                    scope.totalPrizes = scope.teamPrizes.length;
-                    scope.selectedPrizes = [];
+
+                    scope.totalDatasets = scope.teamDatasets.length;
+                    scope.selectedDatasets = [];
                     var toInclude = 0;
                     var toIncludeDueFrom = 0;
                     var toIncludeDueTo = 0;
                     scope.fromYearWork = parseInt(scope.fromYearWork,10);
                     scope.toYearWork = parseInt(scope.toYearWork,10);
-                    for (var ind in scope.teamPrizes) {
-                        //scope.teamPrizes[ind]['year'] = momentToDate(scope.teamPrizes[ind]['status_date'],undefined,'YYYY');
+                    for (var ind in scope.teamDatasets) {
+                        //scope.teamDatasets[ind]['year'] = momentToDate(scope.teamDatasets[ind]['status_date'],undefined,'YYYY');
                         toInclude = 0;
                         toIncludeDueFrom = 0;
                         toIncludeDueTo = 0;
                         if (Number.isInteger(scope.fromYearWork)) {
-                            if (scope.fromYearWork <= scope.teamPrizes[ind].year) {
+                            if (scope.fromYearWork <= scope.teamDatasets[ind].year) {
                                toIncludeDueFrom = 1;
                             }
                         } else {
                             toIncludeDueFrom = 1;
                         }
                         if (Number.isInteger(scope.toYearWork)) {
-                            if (scope.toYearWork >= scope.teamPrizes[ind].year) {
+                            if (scope.toYearWork >= scope.teamDatasets[ind].year) {
                                toIncludeDueTo = 1;
                             }
                         } else {
@@ -368,10 +369,10 @@
                         }
                         toInclude = toIncludeDueFrom * toIncludeDueTo;
                         if (toInclude === 1) {
-                            scope.selectedPrizes.push(scope.teamPrizes[ind]);
+                            scope.selectedDatasets.push(scope.teamDatasets[ind]);
                         }
                     }
-                    scope.totalFromSearch = scope.selectedPrizes.length;
+                    scope.totalFromSearch = scope.selectedDatasets.length;
 
                     scope.totalPages = Math.ceil(scope.totalFromSearch / scope.pageSize);
                     scope.pages = [];
@@ -380,20 +381,21 @@
                     }
                     // Sort selectedPeople according to defined order, before
                     // defining page contents
-                    scope.selectedPrizes = scope.selectedPrizes.sort(sorter);
-                    scope.currPrizes = [];
+                    scope.selectedDatasets = scope.selectedDatasets.sort(sorter);
+
+                    scope.currDatasets = [];
                     for (var member = (scope.currentPage - 1) * scope.pageSize;
                             member < scope.currentPage * scope.pageSize && member < scope.totalFromSearch;
                             member++) {
-                        scope.currPrizes.push(Object.assign({}, scope.selectedPrizes[member]));
+                        scope.currDatasets.push(Object.assign({}, scope.selectedDatasets[member]));
                     }
                 };
 
-                function getPrizes() {
-                    publications.thisTeamPrizes(scope.group, scope.lab)
+                function getDatasets() {
+                    publications.thisTeamDatasets(scope.group, scope.lab)
                         .then(function (response) {
-                            scope.teamPrizes = response.data.result;
-                            scope.originalTeamPrizes = JSON.parse(JSON.stringify(scope.teamPrizes));
+                            scope.teamDatasets = response.data.result;
+                            scope.originalTeamDatasets = JSON.parse(JSON.stringify(scope.teamDatasets));
                             initializeVariables();
                         })
                         .catch(function (err) {
@@ -401,24 +403,24 @@
                         });
                 }
                 function initializeVariables() {
-                    scope.deletePrizes = [];
+                    scope.deleteDatasets = [];
                     scope.sortReverse = true;
                     scope.sortType = 'year';
                     scope.currentPage = 1;
                     scope.pageSize = 10;
 
                     // computes the number of pages
-                    scope.totalPrizes = scope.teamPrizes.length;
-                    scope.totalPages = Math.ceil(scope.totalPrizes / scope.pageSize);
+                    scope.totalDatasets = scope.teamDatasets.length;
+                    scope.totalPages = Math.ceil(scope.totalDatasets / scope.pageSize);
                     scope.pages = [];
                     for (var num=1; num<=scope.totalPages; num++) {
                         scope.pages.push(num);
                     }
-                    scope.renderPrizes();
+                    scope.renderDatasets();
                 }
                 function initializeDetails() {
                     /*scope.pubTitles = [];
-                    scope.thisprize = [];*/
+                    scope.thisdataset = [];*/
                 }
                 function sorter(a,b) {
                     if (scope.sortType === 'year') {
@@ -439,12 +441,12 @@
                 }
 
                 /* for exporting */
-                scope.exportPrizesSpreadsheet = function() {
+                scope.exportDatasetsSpreadsheet = function() {
                     var type = 'xlsx';
                     var wsName = 'Data';
                     var wb = {};
-                    var selectedPrizes = convertData(scope.selectedPrizes);
-                    var ws = XLSX.utils.json_to_sheet(selectedPrizes);
+                    var selectedDatasets = convertData(scope.selectedDatasets);
+                    var ws = XLSX.utils.json_to_sheet(selectedDatasets);
                     wb.SheetNames = [wsName];
                     wb.Sheets = {};
                     wb.Sheets[wsName] = ws;
@@ -462,7 +464,7 @@
                     } else {
                         to = scope.toYearWork;
                     }
-                    var fname = 'lab_prizes_' + from + '_' + to
+                    var fname = 'lab_datasets_' + from + '_' + to
                                 + '_' + dateTime + '.' + type;
                     try {
                     	saveAs(new Blob([s2ab(wbout)],{type:"application/octet-stream"}), fname);
@@ -487,12 +489,12 @@
                     if (arrObj.length > 0) {
                         for (var el in arrObj) {
                             data.push({
-                                "Prize": arrObj[el]['name'],
-                                "Year": arrObj[el]['year'],
-                                "Recipients": arrObj[el]['recipients'],
-                                "Organization": arrObj[el]['organization'],
-                                "Amount (€)": arrObj[el]['amount_euro'],
-                                "Notes": arrObj[el]['notes']
+                                "Data type": arrObj[el]['data_set_type_name'],
+                                "Database": arrObj[el]['database_name'],
+                                "URL": arrObj[el]['url'],
+                                "Num. sets": arrObj[el]['number_sets'],
+                                "Description": arrObj[el]['short_description'],
+                                "Year": arrObj[el]['year']
                             });
                         }
                         return data;
@@ -513,6 +515,6 @@
     }];
 
     angular.module('managementApp')
-        .directive('teamMembersPrizes', teamMembersPrizes)
-        .directive('teamLabPrizes', teamLabPrizes)
+        .directive('teamMembersDatasets', teamMembersDatasets)
+        .directive('teamLabDatasets', teamLabDatasets);
 })();

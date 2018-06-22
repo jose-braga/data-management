@@ -354,6 +354,35 @@
             );
         };
 
+        var thisTeamDatasets = function (groupID, teamID) {
+            return $http.get('api/datasets/team/' + groupID + '/' + teamID,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var thisMembersDatasets = function (groupID, teamID) {
+            return $http.get('api/datasets/team/' + groupID + '/' + teamID + '/members',
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var addMembersDatasets = function (groupID, teamID, data) {
+            return $http.put('api/datasets/team/' + groupID + '/' + teamID, data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var removeDatasetsTeam = function (groupID, teamID, data) {
+            return $http.put('api/datasets/team/' + groupID + '/' + teamID + '/delete', data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+
         return {
             addMembersPublications: addMembersPublications,
             allPublications: allPublications,
@@ -404,7 +433,12 @@
             thisTeamPrizes: thisTeamPrizes,
             thisMembersPrizes: thisMembersPrizes,
             addMembersPrizes: addMembersPrizes,
-            removePrizesTeam: removePrizesTeam
+            removePrizesTeam: removePrizesTeam,
+
+            thisTeamDatasets: thisTeamDatasets,
+            thisMembersDatasets: thisMembersDatasets,
+            addMembersDatasets: addMembersDatasets,
+            removeDatasetsTeam: removeDatasetsTeam
 
         };
     };

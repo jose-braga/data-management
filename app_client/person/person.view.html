@@ -114,7 +114,7 @@
             </md-tab>
             <md-tab label='Productivity'>
                 <md-tabs md-selected="vm.selectedIndexPublications" md-dynamic-height md-border-bottom>
-                    <md-tab label='List Pub.'>
+                    <md-tab label='Pub. List'>
                         <md-content>
                             <div layout="row" layout-padding>
                                 <person-publications></person-publications>
@@ -128,7 +128,7 @@
                             </div>
                         </md-content>
                     </md-tab>
-                    <md-tab label='Add Pub.' md-on-select="vm.getAllPublications()">
+                    <md-tab label='Pub. Add' md-on-select="vm.getAllPublications()">
                         <md-content>
                             <div layout-padding>
                                 <person-add-publications></person-add-publications>
@@ -149,24 +149,49 @@
                         <md-content>
                             <div layout-padding>
                                 Under Construction
+                            </div>
+                        </md-content>
+                    </md-tab>
+                    <md-tab label='Patents' md-on-select="">
+                        <md-content>
+                            <div layout-padding>
+                                <person-patents></person-patents>
+                            </div>
+                        </md-content>
+                    </md-tab>
+                    <md-tab label='Datasets' md-on-select="">
+                        <md-content>
+                            <div layout-padding>
+                                <person-datasets></person-datasets>
 
                             </div>
                         </md-content>
                     </md-tab>
-                    <md-tab label='Other' md-on-select="">
+                    <md-tab label='Startups' md-on-select="">
                         <md-content>
-                            <div layout-xs="column" layout="row" layout-padding>
-                                <div flex-xs flex-gt-xs="50" layout="column">
-                                    <person-patents></person-patents>
-                                    <person-datasets></person-datasets>
-                                    <person-startups></person-startups>
-
-                                </div>
-                                <div flex-xs flex-gt-xs="50" layout="column">
-                                    <person-prizes></person-prizes>
-                                    <person-boards></person-boards>
-                                    <person-outreach></person-outreach>
-                                </div>
+                            <div layout-padding>
+                                <person-startups></person-startups>
+                            </div>
+                        </md-content>
+                    </md-tab>
+                    <md-tab label='Prizes' md-on-select="">
+                        <md-content>
+                            <div layout-padding>
+                                <person-prizes></person-prizes>
+                            </div>
+                        </md-content>
+                    </md-tab>
+                    <md-tab label='Boards' md-on-select="">
+                        <md-content>
+                            <div layout-padding>
+                                <person-boards></person-boards>
+                            </div>
+                        </md-content>
+                    </md-tab>
+                    <md-tab label='Outreach' md-on-select="">
+                        <md-content>
+                            <div layout-padding>
+                                <person-outreach></person-outreach>
                             </div>
                         </md-content>
                     </md-tab>

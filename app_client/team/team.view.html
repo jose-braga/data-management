@@ -162,10 +162,18 @@
                     <md-tab label='Outreach'>
                         <md-content>
                             <div layout="row" layout-padding>
-                                Under construction
+                                <team-lab-outreaches
+                                    data-lab="{{lab.lab_id}}"
+                                    data-group="{{lab.group_id}}"
+                                    flex>
+                                </team-lab-outreaches>
                             </div>
                             <div layout="row" layout-padding>
-
+                                <team-members-outreaches
+                                    data-lab="{{lab.lab_id}}"
+                                    data-group="{{lab.group_id}}"
+                                flex>
+                                </team-members-outreaches>
                             </div>
                         </md-content>
                     </md-tab>

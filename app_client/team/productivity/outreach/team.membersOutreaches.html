@@ -1,26 +1,26 @@
 <md-card>
     <md-card-title>
         <md-card-title-text>
-            <span class="md-headline">Prizes reported by team members</span>
+            <span class="md-headline">Outreach events reported by team members</span>
             <span> Note 1: Not al of these should be associated with your lab.</span>
-            <span> Note 2: A missing prize requires that you or a team member adds it to his/her personal prizes in 'Myself'</span>
+            <span> Note 2: A missing event requires that you or a team member adds it to his/her personal outreach events boards in 'Myself'</span>
         </md-card-title-text>
     </md-card-title>
     <md-card-content layout="column">
         <div class="search-header spacer-top space-left">
-            <span>Lab members prizes</span>
+            <span>Lab members outreach events</span>
         </div>
         <div layout="row" layout-align="none center">
             <span class="spacer-top-smaller">Filter:</span>
             <md-input-container class="input-row-longer">
                 <label>From year</label>
-                <input ng-model="fromYearWork" ng-change="renderPrizes('new')">
+                <input ng-model="fromYearWork" ng-change="renderOutreaches('new')">
             </md-input-container>
             <md-input-container class="input-row-longer">
                 <label>To year</label>
-                <input ng-model="toYearWork" ng-change="renderPrizes('new')">
+                <input ng-model="toYearWork" ng-change="renderOutreaches('new')">
             </md-input-container>
-            <md-button class="s48" ng-click="exportPrizesSpreadsheet()"
+            <md-button class="s48" ng-click="exportOutreachesSpreadsheet()"
                         aria-label="Export selection"
                         class="md-icon-button interaction-button">
                 <md-tooltip>Export filtered results to spreadsheet</md-tooltip>
@@ -28,13 +28,13 @@
                         class="s48"></md-icon>
             </md-button>
         </div>
-        <form flex novalidate name="membersPrizesForm"
-                ng-submit="membersPrizesForm.$valid && submitMembersPrizes(forms['membersWork'])">
+        <form flex novalidate name="membersOutreachesForm"
+                ng-submit="membersOutreachesForm.$valid && submitMembersOutreaches(forms['membersWork'])">
             <div layout="row" class="paginator spacer-bottom">
                 <md-input-container class="input-no-margin wider">
                     <label>Results/page</label>
                     <md-select ng-model="pageSize"
-                            md-on-close="renderPrizes('new')"
+                            md-on-close="renderOutreaches('new')"
                             aria-label="pageSize"
                             name="pageSize">
                             <md-option ng-value="10">10</md-option>
@@ -45,24 +45,23 @@
                 <md-input-container class="input-no-margin">
                     <label>Page</label>
                     <md-select ng-model="currentPage"
-                            md-on-close="renderPrizes('page')"
+                            md-on-close="renderOutreaches('page')"
                             aria-label="currentPage"
                             name="currentPage">
                             <md-option ng-repeat="page in pages" ng-value="page">{{page}}</md-option>
                     </md-select>
                 </md-input-container>
             </div>
-            This list contains <strong>{{selectedPrizes.length}} prizes</strong>.
+            This list contains <strong>{{selectedOutreaches.length}} outreach events</strong>.
             <ul>
-                <li class="spacer-top" ng-repeat="(pubNum,work) in currPrizes track by $index">
+                <li class="spacer-top" ng-repeat="(pubNum,work) in currOutreaches track by $index">
                     <div layout="column" layout-gt-sm="row">
                         <div flex-gt-sm="80">
-                            {{work.name}} ({{work.year}}) - {{work.recipients}}: {{work.organization}}.
-                            Amount: {{work.amount_euro}} €. Notes: {{work.notes}}.
+                            {{work.name}} - ({{work.event_date | date : 'yyyy-MM-dd'}}). {{work.description}}.
                         </div>
                         <div flex-gt-sm="20" layout="row">
-                            <md-button ng-click="addPrize(work)"
-                                        aria-label="Add prize"
+                            <md-button ng-click="addOutreach(work)"
+                                        aria-label="Add event"
                                         class="md-icon-button interaction-button">
                                 <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
                             </md-button>
@@ -76,7 +75,7 @@
                 <md-input-container class="input-no-margin wider">
                     <label>Results/page</label>
                     <md-select ng-model="pageSize"
-                            md-on-close="renderPrizes('new')"
+                            md-on-close="renderOutreaches('new')"
                             aria-label="pageSize"
                             name="pageSize">
                             <md-option ng-value="10">10</md-option>
@@ -87,29 +86,24 @@
                 <md-input-container class="input-no-margin">
                     <label>Page</label>
                     <md-select ng-model="currentPage"
-                            md-on-close="renderPrizes('page')"
+                            md-on-close="renderOutreaches('page')"
                             aria-label="currentPage"
                             name="currentPage">
                             <md-option ng-repeat="page in pages" ng-value="page">{{page}}</md-option>
                     </md-select>
                 </md-input-container>
             </div>
-
-            <!-- Prizes to be added to Lab -->
-
-
             <div class="search-header spacer-top space-left">
-                <span>Prizes to be added:</span>
+                <span>Outreaches to be added:</span>
             </div>
             <ul>
-                <li class="spacer-top" ng-repeat="(pubNum,work) in newLabPrizes track by $index">
+                <li class="spacer-top" ng-repeat="(pubNum,work) in newLabOutreaches track by $index">
                     <div layout="column" layout-gt-sm="row">
                         <div flex-gt-sm="80">
-                            {{work.name}} ({{work.year}}) - {{work.recipients}}: {{work.organization}}.
-                            Amount: {{work.amount_euro}} €. Notes: {{work.notes}}.
+                            {{work.name}} - ({{work.event_date | date : 'yyyy-MM-dd'}}). {{work.description}}.
                         </div>
                         <div flex-gt-sm="20" layout="row">
-                            <md-button ng-click="removeRow(newLabPrizes,$index)"
+                            <md-button ng-click="removeRow(newLabOutreaches,$index)"
                                         aria-label="Details"
                                         class="md-icon-button interaction-button">
                                 <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
@@ -122,7 +116,7 @@
 
             <div class="spacer-top" layout="column" layout-gt-sm="row" layout-align="none center">
                 <md-button type="submit"
-                    class="button-small md-raised md-primary">Add prizes</md-button>
+                    class="button-small md-raised md-primary">Add events</md-button>
                 <div class="status-message" ng-hide="hideMessage[forms['membersWork']]">
                     <span class="message" ng-class="messageType[forms['membersWork']]">
                         {{updateStatus[forms['membersWork']]}}

@@ -130,6 +130,8 @@ router.get('/startups/team/:groupID/:teamID/members', auth, ctrlProductivityData
 router.get('/startups/team/:groupID/:teamID', auth, ctrlProductivityData.listTeamStartups);
 router.get('/boards/team/:groupID/:teamID/members', auth, ctrlProductivityData.listMembersBoards);
 router.get('/boards/team/:groupID/:teamID', auth, ctrlProductivityData.listTeamBoards);
+router.get('/outreaches/team/:groupID/:teamID/members', auth, ctrlProductivityData.listMembersOutreaches);
+router.get('/outreaches/team/:groupID/:teamID', auth, ctrlProductivityData.listTeamOutreaches);
 
 router.get('/communications/person/:personID', auth, ctrlProductivityData.listPersonCommunications);
 router.get('/patents/all', auth, ctrlProductivityData.listPatents);
@@ -165,7 +167,8 @@ router.put('/startups/team/:groupID/:teamID', auth, ctrlProductivityData.addStar
 router.put('/startups/team/:groupID/:teamID/delete', auth, ctrlProductivityData.deleteStartupsTeam);
 router.put('/boards/team/:groupID/:teamID', auth, ctrlProductivityData.addBoardsLab);
 router.put('/boards/team/:groupID/:teamID/delete', auth, ctrlProductivityData.deleteBoardsTeam);
-
+router.put('/outreaches/team/:groupID/:teamID', auth, ctrlProductivityData.addOutreachesLab);
+router.put('/outreaches/team/:groupID/:teamID/delete', auth, ctrlProductivityData.deleteOutreachesTeam);
 
 router.put('/communications/person/:personID', auth, ctrlProductivityData.updatePersonCommunications);
 router.put('/communications/person/:personID/add-orcid', auth, ctrlProductivityData.addORCIDCommunicationsPerson);

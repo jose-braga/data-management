@@ -441,6 +441,35 @@
             );
         };
 
+        var thisTeamOutreaches = function (groupID, teamID) {
+            return $http.get('api/outreaches/team/' + groupID + '/' + teamID,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var thisMembersOutreaches = function (groupID, teamID) {
+            return $http.get('api/outreaches/team/' + groupID + '/' + teamID + '/members',
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var addMembersOutreaches = function (groupID, teamID, data) {
+            return $http.put('api/outreaches/team/' + groupID + '/' + teamID, data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var removeOutreachesTeam = function (groupID, teamID, data) {
+            return $http.put('api/outreaches/team/' + groupID + '/' + teamID + '/delete', data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+
         return {
             addMembersPublications: addMembersPublications,
             allPublications: allPublications,
@@ -506,7 +535,12 @@
             thisTeamBoards: thisTeamBoards,
             thisMembersBoards: thisMembersBoards,
             addMembersBoards: addMembersBoards,
-            removeBoardsTeam: removeBoardsTeam
+            removeBoardsTeam: removeBoardsTeam,
+
+            thisTeamOutreaches: thisTeamOutreaches,
+            thisMembersOutreaches: thisMembersOutreaches,
+            addMembersOutreaches: addMembersOutreaches,
+            removeOutreachesTeam: removeOutreachesTeam
         };
     };
 

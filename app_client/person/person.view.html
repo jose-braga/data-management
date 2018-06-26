@@ -24,7 +24,7 @@
                     </div>
                 </md-content>
             </md-tab>
-            <md-tab label='Academic'>
+            <md-tab label='Academic' md-on-select="vm.initializeAcademic()">
                 <md-content>
                     <div layout-xs="column" layout="row" layout-padding>
                         <div flex-xs flex-gt-xs="50" layout="column">
@@ -36,7 +36,7 @@
                     </div>
                 </md-content>
             </md-tab>
-            <md-tab label='Institutional'>
+            <md-tab label='Institutional' md-on-select="vm.initializeInstitutional()">
                 <md-content>
                     <div layout-xs="column" layout="row" layout-padding>
                         <div flex-xs flex-gt-xs="50" layout="column">
@@ -51,6 +51,7 @@
                 </md-content>
             </md-tab>
             <md-tab ng-repeat='role in vm.currentRoles | orderBy:"role_id"'
+                    md-on-select="vm.initializeRoles()"
                     label='{{role.name_en}}'
                     class="darker-tab">
                 <md-content>
@@ -100,7 +101,7 @@
                     </div>
                 </md-content>
             </md-tab>
-            <md-tab label='Professional'>
+            <md-tab label='Professional' md-on-select="vm.initializeProfessional()">
                 <md-content>
                     <div layout-xs="column" layout="row" layout-padding>
                         <div flex-xs flex-gt-xs="50" layout="column">
@@ -114,7 +115,7 @@
             </md-tab>
             <md-tab label='Productivity'>
                 <md-tabs md-selected="vm.selectedIndexPublications" md-dynamic-height md-border-bottom>
-                    <md-tab label='Pub. List'>
+                    <md-tab label='Pub. List' md-on-select="vm.initializePublications()">
                         <md-content>
                             <div layout="row" layout-padding>
                                 <person-publications></person-publications>
@@ -136,7 +137,7 @@
                             </div>
                         </md-content>
                     </md-tab>
-                    <md-tab label='Communications' md-on-select="">
+                    <md-tab label='Communications' md-on-select="vm.initializeCommunications()">
                         <md-content>
                             <div layout-padding>
                                 <person-communications></person-communications>
@@ -152,14 +153,14 @@
                             </div>
                         </md-content>
                     </md-tab>
-                    <md-tab label='Patents' md-on-select="">
+                    <md-tab label='Patents' md-on-select="vm.initializePatents()">
                         <md-content>
                             <div layout-padding>
                                 <person-patents></person-patents>
                             </div>
                         </md-content>
                     </md-tab>
-                    <md-tab label='Datasets' md-on-select="">
+                    <md-tab label='Datasets' md-on-select="vm.initializeDatasets()">
                         <md-content>
                             <div layout-padding>
                                 <person-datasets></person-datasets>
@@ -167,28 +168,28 @@
                             </div>
                         </md-content>
                     </md-tab>
-                    <md-tab label='Startups' md-on-select="">
+                    <md-tab label='Startups' md-on-select="vm.initializeStartups()">
                         <md-content>
                             <div layout-padding>
                                 <person-startups></person-startups>
                             </div>
                         </md-content>
                     </md-tab>
-                    <md-tab label='Prizes' md-on-select="">
+                    <md-tab label='Prizes' md-on-select="vm.initializePrizes()">
                         <md-content>
                             <div layout-padding>
                                 <person-prizes></person-prizes>
                             </div>
                         </md-content>
                     </md-tab>
-                    <md-tab label='Boards' md-on-select="">
+                    <md-tab label='Boards' md-on-select="vm.initializeBoards()">
                         <md-content>
                             <div layout-padding>
                                 <person-boards></person-boards>
                             </div>
                         </md-content>
                     </md-tab>
-                    <md-tab label='Outreach' md-on-select="">
+                    <md-tab label='Outreach' md-on-select="vm.initializeOutreaches()">
                         <md-content>
                             <div layout-padding>
                                 <person-outreach></person-outreach>

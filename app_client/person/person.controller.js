@@ -78,14 +78,6 @@
                 vm.hideMessage.push(true);
             }
             getPersonData(vm.currentUser.personID, -1);
-            getPublications();
-            getCommunications();
-            getPatents();
-            getPrizes();
-            getDatasets();
-            getStartups();
-            getBoards();
-            getOutreaches();
             getDataLists();
             initializeImages();
             initializeDetails();
@@ -1143,6 +1135,165 @@
 
         };
 
+        vm.initializeAcademic = function () {
+            personData.degreeTypes()
+                .then(function (response) {
+                    vm.degreeTypes = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            personData.supervisorTypes()
+                .then(function (response) {
+                    vm.supervisorTypes = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+
+
+        };
+        vm.initializeInstitutional = function () {
+            personData.departments()
+                .then(function (response) {
+                    vm.departments = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            personData.roles()
+                .then(function (response) {
+                    vm.roles = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            personData.institutionCities()
+                .then(function (response) {
+                    vm.institutionCities = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+        };
+        vm.initializeRoles = function () {
+            personData.units()
+                .then(function (response) {
+                    vm.units = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            personData.groups()
+                .then(function (response) {
+                    vm.groups = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            personData.labs()
+                .then(function (response) {
+                    vm.labs = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            personData.facilities()
+                .then(function (response) {
+                    vm.facilities = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            personData.scienceManagementOffices()
+                .then(function (response) {
+                    vm.scienceManagementOffices = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            personData.administrativeOffices()
+                .then(function (response) {
+                    vm.administrativeOffices = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            personData.labPositions()
+                .then(function (response) {
+                    vm.labPositions = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            personData.costCenters()
+                .then(function (response) {
+                    vm.costCenters = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            personData.technicianPositions()
+                .then(function (response) {
+                    vm.technicianPositions = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            personData.scienceManagementPositions()
+                .then(function (response) {
+                    vm.scienceManagementPositions = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            personData.administrativePositions()
+                .then(function (response) {
+                    vm.administrativePositions = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+        };
+        vm.initializeProfessional = function () {
+            personData.professionalSituations()
+                .then(function (response) {
+                    vm.professionalSituations = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            personData.professionalCategories()
+                .then(function (response) {
+                    vm.professionalCategories = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            personData.fellowshipTypes()
+                .then(function (response) {
+                    vm.fellowshipTypes = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            personData.fundingAgencies()
+                .then(function (response) {
+                    vm.fundingAgencies = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            personData.managementEntities()
+                .then(function (response) {
+                    vm.managementEntities = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+        };
+
+
         vm.departmentNames = function (department) {
             var name = '';
             if (department !== undefined) {
@@ -1319,6 +1470,26 @@
             }
         };
 
+        vm.initializeCommunications = function () {
+            vm.sortType='date';
+            vm.sortReverse=true;
+            personData.communicationTypes()
+                .then(function (response) {
+                    vm.communicationTypes = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            personData.conferenceTypes()
+                .then(function (response) {
+                    vm.conferenceTypes = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+
+            getCommunications();
+        };
         vm.showDetailsORCID = function (pub) {
             publications.getORCIDDetailsPublication(pub.path)
                 .then(function (response) {
@@ -1409,6 +1580,7 @@
         };
         vm.getAllPublications = function() {
             // gets all publications from DB and excludes the ones that are already attributed to you
+            vm.sortType = 'year';
             vm.progressORCID = false;
             vm.addPublications = [];
 
@@ -1605,6 +1777,25 @@
             vm.renderPublications('');
         };
 
+        vm.initializePublications = function () {
+            vm.sortType='year';
+            vm.sortReverse=false;
+            personData.publicationTypes()
+                .then(function (response) {
+                    vm.publicationTypes = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            personData.authorTypes()
+                .then(function (response) {
+                    vm.authorTypes = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            getPublications();
+        };
         function getPublications(ind) {
             publications.thisPersonPublications(vm.currentUser.personID)
                 .then(function (response) {
@@ -2265,7 +2456,25 @@
             return upd;
         }
 
-
+        vm.initializePatents = function () {
+            vm.sortType='status_date';
+            vm.sortReverse=true;
+            personData.patentTypes()
+                .then(function (response) {
+                    vm.patentTypes = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            personData.patentStatus()
+                .then(function (response) {
+                    vm.patentStatus = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            getPatents();
+        };
         function getPatents(ind) {
             publications.getAllPatents()
                 .then(function (response) {
@@ -2294,6 +2503,10 @@
                         vm.originalPersonPatents[id]['status_date'] = processDate(vm.originalPersonPatents[id]['status_date']);
                         vm.currentPatents.push(Object.assign({}, vm.originalPersonPatents[id]));
                     }
+
+                    vm.originalPersonPatents = vm.originalPersonPatents.sort(sorter);
+                    vm.currentPatents = vm.currentPatents.sort(sorter);
+
                     if (ind > -1) {
                         vm.updateStatus[ind] = "Updated!";
                         vm.messageType[ind] = 'message-success';
@@ -2361,6 +2574,11 @@
             }
         };
 
+        vm.initializePrizes = function () {
+            vm.sortType='year';
+            vm.sortReverse=false;
+            getPrizes();
+        };
         function getPrizes(ind) {
             publications.getAllPrizes()
                 .then(function (response) {
@@ -2381,6 +2599,7 @@
             publications.thisPersonPrizes(vm.currentUser.personID)
                 .then(function (response) {
                     vm.originalPersonPrizes = response.data.result;
+                    vm.originalPersonPrizes = vm.originalPersonPrizes.sort(sorter);
                     vm.currentPrizes = [];
                     for (var id in vm.originalPersonPrizes) {
                         vm.currentPrizes.push(Object.assign({}, vm.originalPersonPrizes[id]));
@@ -2449,6 +2668,18 @@
             }
         };
 
+        vm.initializeDatasets = function () {
+            vm.sortType='year';
+            vm.sortReverse=false;
+            personData.datasetTypes()
+                .then(function (response) {
+                    vm.datasetTypes = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            getDatasets();
+        };
         function getDatasets(ind) {
             publications.getAllDatasets()
                 .then(function (response) {
@@ -2469,6 +2700,7 @@
             publications.thisPersonDatasets(vm.currentUser.personID)
                 .then(function (response) {
                     vm.originalPersonDatasets = response.data.result;
+                    vm.originalPersonDatasets = vm.originalPersonDatasets.sort(sorter);
                     vm.currentDatasets = [];
                     for (var id in vm.originalPersonDatasets) {
                         vm.currentDatasets.push(Object.assign({}, vm.originalPersonDatasets[id]));
@@ -2540,6 +2772,11 @@
             }
         };
 
+        vm.initializeStartups = function () {
+            vm.sortType='start';
+            vm.sortReverse=true;
+            getStartups();
+        };
         function getStartups(ind) {
             publications.getAllStartups()
                 .then(function (response) {
@@ -2555,6 +2792,7 @@
             publications.thisPersonStartups(vm.currentUser.personID)
                 .then(function (response) {
                     vm.originalPersonStartups = response.data.result;
+                    vm.originalPersonStartups = vm.originalPersonStartups.sort(sorter);
                     vm.currentStartups = [];
                     for (var id in vm.originalPersonStartups) {
                         vm.originalPersonStartups[id]['start'] = processDate(vm.originalPersonStartups[id]['start']);
@@ -2620,10 +2858,23 @@
             }
         };
 
+        vm.initializeBoards = function () {
+            vm.sortType='start_date';
+            vm.sortReverse=true;
+            personData.boardTypes()
+                .then(function (response) {
+                    vm.boardTypes = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            getBoards();
+        };
         function getBoards(ind) {
             publications.thisPersonBoards(vm.currentUser.personID)
                 .then(function (response) {
                     vm.originalPersonBoards = response.data.result;
+                    vm.originalPersonBoards = vm.originalPersonBoards.sort(sorter);
                     vm.currentBoards = [];
                     for (var id in vm.originalPersonBoards) {
                         vm.originalPersonBoards[id]['start_date'] = processDate(vm.originalPersonBoards[id]['start_date']);
@@ -2661,10 +2912,16 @@
             return false;
         };
 
+        vm.initializeOutreaches = function () {
+            vm.sortType='event_date';
+            vm.sortReverse=true;
+            getOutreaches();
+        };
         function getOutreaches(ind) {
             publications.thisPersonOutreaches(vm.currentUser.personID)
                 .then(function (response) {
                     vm.originalPersonOutreaches = response.data.result;
+                    vm.originalPersonOutreaches = vm.originalPersonOutreaches.sort(sorter);
                     vm.currentOutreaches = [];
                     for (var id in vm.originalPersonOutreaches) {
                         vm.originalPersonOutreaches[id]['event_date'] = processDate(vm.originalPersonOutreaches[id]['event_date']);
@@ -2721,6 +2978,8 @@
             vm.renderPublications();
         }
         function initializeVariablesCommunications() {
+            vm.sortReverse = true;
+            vm.sortType = 'date';
             vm.communicationDetailsORCID = [];
             vm.communicationDetails = {};
             vm.addCommunicationsORCID = [];
@@ -2754,13 +3013,35 @@
             }, true);
         }
         function sorter(a,b) {
-            if (vm.sortType === 'year') {
+            if (vm.sortType == 'year') {
                 if (vm.sortReverse) {
                     return (a[vm.sortType] ? String(a[vm.sortType]) : String(9999))
                         .localeCompare(b[vm.sortType] ? String(b[vm.sortType]) : String(9999));
                 } else {
-                    return -(a[vm.sortType] ? String(a[vm.sortType]) : String(2000))
-                        .localeCompare(b[vm.sortType] ? String(b[vm.sortType]) : String(2000));
+                    return -(a[vm.sortType] ? String(a[vm.sortType]) : String(1000))
+                        .localeCompare(b[vm.sortType] ? String(b[vm.sortType]) : String(1000));
+                }
+            } else if (vm.sortType == 'date'
+                        || vm.sortType == 'status_date'
+                        || vm.sortType == 'start'
+                        || vm.sortType == 'start_date'
+                        || vm.sortType == 'event_date') {
+                if (vm.sortReverse) {
+                    if ((moment(a[vm.sortType]).isValid() ? moment(a[vm.sortType]) : moment(0))
+                            .isBefore(moment(b[vm.sortType]).isValid() ? moment(b[vm.sortType]) : moment(0))) {
+                        return 1;
+                    } else if ((moment(a[vm.sortType]).isValid() ? moment(a[vm.sortType]) : moment(0))
+                            .isAfter(moment(b[vm.sortType]).isValid() ? moment(b[vm.sortType]) : moment(0))) {
+                        return -1;
+                    }
+                } else {
+                    if ((moment(a[vm.sortType]).isValid() ? moment(a[vm.sortType]) : moment().add(100, 'years'))
+                            .isAfter(moment(b[vm.sortType]).isValid() ? moment(b[vm.sortType]) : moment().add(100, 'years'))) {
+                        return 1;
+                    } else if ((moment(a[vm.sortType]).isValid() ? moment(a[vm.sortType]) : moment().add(100, 'years'))
+                            .isBefore(moment(b[vm.sortType]).isValid() ? moment(b[vm.sortType]) : moment().add(100, 'years'))) {
+                        return -1;
+                    }
                 }
             } else {
                 if (vm.sortReverse) {
@@ -3236,13 +3517,6 @@
                 .catch(function (err) {
                     console.log(err);
                 });
-            personData.institutionCities()
-                .then(function (response) {
-                    vm.institutionCities = response.data.result;
-                })
-                .catch(function (err) {
-                    console.log(err);
-                });
             personData.cardTypes()
                 .then(function (response) {
                     vm.cardTypes = response.data.result;
@@ -3253,202 +3527,6 @@
             personData.urlTypes()
                 .then(function (response) {
                     vm.urlTypes = response.data.result;
-                })
-                .catch(function (err) {
-                    console.log(err);
-                });
-            personData.degreeTypes()
-                .then(function (response) {
-                    vm.degreeTypes = response.data.result;
-                })
-                .catch(function (err) {
-                    console.log(err);
-                });
-            personData.units()
-                .then(function (response) {
-                    vm.units = response.data.result;
-                })
-                .catch(function (err) {
-                    console.log(err);
-                });
-            personData.groups()
-                .then(function (response) {
-                    vm.groups = response.data.result;
-                })
-                .catch(function (err) {
-                    console.log(err);
-                });
-            personData.labs()
-                .then(function (response) {
-                    vm.labs = response.data.result;
-                })
-                .catch(function (err) {
-                    console.log(err);
-                });
-            personData.facilities()
-                .then(function (response) {
-                    vm.facilities = response.data.result;
-                })
-                .catch(function (err) {
-                    console.log(err);
-                });
-            personData.scienceManagementOffices()
-                .then(function (response) {
-                    vm.scienceManagementOffices = response.data.result;
-                })
-                .catch(function (err) {
-                    console.log(err);
-                });
-            personData.administrativeOffices()
-                .then(function (response) {
-                    vm.administrativeOffices = response.data.result;
-                })
-                .catch(function (err) {
-                    console.log(err);
-                });
-            personData.departments()
-                .then(function (response) {
-                    vm.departments = response.data.result;
-                })
-                .catch(function (err) {
-                    console.log(err);
-                });
-            personData.roles()
-                .then(function (response) {
-                    vm.roles = response.data.result;
-                })
-                .catch(function (err) {
-                    console.log(err);
-                });
-            personData.labPositions()
-                .then(function (response) {
-                    vm.labPositions = response.data.result;
-                })
-                .catch(function (err) {
-                    console.log(err);
-                });
-            personData.costCenters()
-                .then(function (response) {
-                    vm.costCenters = response.data.result;
-                })
-                .catch(function (err) {
-                    console.log(err);
-                });
-            personData.technicianPositions()
-                .then(function (response) {
-                    vm.technicianPositions = response.data.result;
-                })
-                .catch(function (err) {
-                    console.log(err);
-                });
-            personData.scienceManagementPositions()
-                .then(function (response) {
-                    vm.scienceManagementPositions = response.data.result;
-                })
-                .catch(function (err) {
-                    console.log(err);
-                });
-            personData.administrativePositions()
-                .then(function (response) {
-                    vm.administrativePositions = response.data.result;
-                })
-                .catch(function (err) {
-                    console.log(err);
-                });
-            personData.supervisorTypes()
-                .then(function (response) {
-                    vm.supervisorTypes = response.data.result;
-                })
-                .catch(function (err) {
-                    console.log(err);
-                });
-            personData.professionalSituations()
-                .then(function (response) {
-                    vm.professionalSituations = response.data.result;
-                })
-                .catch(function (err) {
-                    console.log(err);
-                });
-            personData.professionalCategories()
-                .then(function (response) {
-                    vm.professionalCategories = response.data.result;
-                })
-                .catch(function (err) {
-                    console.log(err);
-                });
-            personData.fellowshipTypes()
-                .then(function (response) {
-                    vm.fellowshipTypes = response.data.result;
-                })
-                .catch(function (err) {
-                    console.log(err);
-                });
-            personData.fundingAgencies()
-                .then(function (response) {
-                    vm.fundingAgencies = response.data.result;
-                })
-                .catch(function (err) {
-                    console.log(err);
-                });
-            personData.managementEntities()
-                .then(function (response) {
-                    vm.managementEntities = response.data.result;
-                })
-                .catch(function (err) {
-                    console.log(err);
-                });
-            personData.authorTypes()
-                .then(function (response) {
-                    vm.authorTypes = response.data.result;
-                })
-                .catch(function (err) {
-                    console.log(err);
-                });
-            personData.publicationTypes()
-                .then(function (response) {
-                    vm.publicationTypes = response.data.result;
-                })
-                .catch(function (err) {
-                    console.log(err);
-                });
-            personData.communicationTypes()
-                .then(function (response) {
-                    vm.communicationTypes = response.data.result;
-                })
-                .catch(function (err) {
-                    console.log(err);
-                });
-            personData.conferenceTypes()
-                .then(function (response) {
-                    vm.conferenceTypes = response.data.result;
-                })
-                .catch(function (err) {
-                    console.log(err);
-                });
-            personData.patentTypes()
-                .then(function (response) {
-                    vm.patentTypes = response.data.result;
-                })
-                .catch(function (err) {
-                    console.log(err);
-                });
-            personData.patentStatus()
-                .then(function (response) {
-                    vm.patentStatus = response.data.result;
-                })
-                .catch(function (err) {
-                    console.log(err);
-                });
-            personData.datasetTypes()
-                .then(function (response) {
-                    vm.datasetTypes = response.data.result;
-                })
-                .catch(function (err) {
-                    console.log(err);
-                });
-            personData.boardTypes()
-                .then(function (response) {
-                    vm.boardTypes = response.data.result;
                 })
                 .catch(function (err) {
                     console.log(err);

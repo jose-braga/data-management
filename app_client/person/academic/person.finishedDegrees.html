@@ -61,7 +61,7 @@
                         </div>
                         <fieldset>
                             <legend>Supervisors</legend>
-                            <span class="group"><h4>Internal supervisors</h4></span>
+                            <span class="group"><h4>LAQV/UCIBIO supervisors</h4></span>
                             <div ng-if="!vm.nothingToShow(vm.currentFinishedDegrees[num].supervisors,'degrees_supervisors_id')">
                                 <div ng-repeat="(nSup,sup) in vm.currentFinishedDegrees[num].supervisors track by $index"
                                     layout="column">
@@ -136,7 +136,7 @@
                                     <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
                                 </md-button>
                             </div>
-                            <span class="group"><h4>External supervisors</h4></span>
+                            <span class="group"><h4>Supervisors, other institutions</h4></span>
                             <div ng-if="!vm.nothingToShow(vm.currentFinishedDegrees[num].external_supervisors,'degrees_ext_supervisors_id')">
                                 <div ng-repeat="(nSup,sup) in vm.currentFinishedDegrees[num].external_supervisors track by $index"
                                     layout="column">

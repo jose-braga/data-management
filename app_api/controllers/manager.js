@@ -1408,8 +1408,14 @@ var queryUpdateUserPermissions = function (req, res, next) {
     }
 };
 
+/*
+sendJSONResponse(res, 400, { message: 'Email not sent for this user: no email defined.' });
+return;
+*/
+/* TODO: add below warnings for email problems  */
 
 var sendEmailsToUsers = function (req, res, next) {
+    var mailError = [];
     if (process.env.NODE_ENV === 'production') {
         if (req.body.personal_email !== null) {
             var recipients = req.body.personal_email;
@@ -1426,19 +1432,70 @@ var sendEmailsToUsers = function (req, res, next) {
             // send mail with defined transport object
             transporter.sendMail(mailOptions, (error, info) => {
                 if (error) {
-                    return console.log(error);
+                    console.log('Message to person %s not sent due to error below.', req.body.person_id);
+                    console.log(error);
+                    mailError.push('Not send to user: sending problem.');
                 }
-                console.log('Message %s sent: %s', info.messageId, info.response);
+                console.log('Message %s was sent to person %s with response: %s', info.messageId, req.body.person_id, info.response);
             });
         } else {
-            console.log('User validation warning: email not set for user %s',
-                         req.body.user_id);
-            sendJSONResponse(res, 400, { message: 'Email not set for this user.' });
-            return;
+            console.log('User validation warning: email not set for person %s',
+                         req.body.person_id);
+            mailError.push('Not send to user: email not defined.');
         }
+    } else {
+        // just for testing purposes
     }
-    sendJSONResponse(res, 200, {"status": "All done!", "statusCode": 200});
-    return;
+    return sendEmailsCar(req, res, next, mailError);
+
+};
+
+var sendEmailsCar = function (req, res, next, mailError) {
+    if (process.env.NODE_ENV === 'production') {
+        if (req.body.datum.cars.length !== 0) {
+            if (req.body.city_id == 1) {
+                var recipients = nodemailer.emailRecipients.car;
+                let mailOptions = {
+                    from: '"Admin" <admin@laqv-ucibio.info>', // sender address
+                    to: recipients, // list of receivers (comma-separated)
+                    subject: 'Permissão de circulação no campus FCT- User: ' + req.data.colloquial_name +
+                             ', ID: ' +  req.data.person_id, // Subject line
+                    text: 'Olá ,\n\n' +
+                          'O utilizador requer autorização para circular no campus FCT.\n\n' +
+                          'Dirija-se a https://laqv-ucibio.info/manager para recolher a informação necessária.\n\n' +
+                          'Com os melhores cumprimentos,\nAdmin',
+                };
+                // send mail with defined transport object
+                transporter.sendMail(mailOptions, (error, info) => {
+                    if (error) {
+                        console.log('Message to car manager (Lisboa) for person %s not sent due to error below.', req.body.person_id);
+                        console.log(error);
+                        mailError.push('Not send to car manager (Lisboa).');
+                    }
+                    console.log('Message %s was sent to car manager (Lisboa) for person %s with response: %s',
+                                info.messageId, req.body.person_id, info.response);
+                });
+            }
+        }
+    } else {
+        // just for testing purposes
+    }
+    return sendEmailsEmail(req, res, next, mailError);
+};
+
+var sendEmailsEmail = function (req, res, next, mailError) {
+
+    // in the end send response
+    if (mailError.length == 0) {
+        sendJSONResponse(res, 200, {"status": "All done!", "statusCode": 200});
+        return;
+
+    } else {
+        sendJSONResponse(res, 400, {"status": mailError, "statusCode": 400});
+        return;
+    }
+
+
 };
 
 /*******************************************************************************/

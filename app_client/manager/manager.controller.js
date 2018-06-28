@@ -1635,6 +1635,7 @@
             }
             var data = {
                 "name": datum.name,
+                "person_id": datum.id,
                 "user_id": datum.user_id,
                 "colloquial_name": datum.colloquial_name,
                 "birth_date": datum.birth_date,
@@ -1644,7 +1645,8 @@
                 "city_id": datum.institution_city_id,
                 "changed_by": vm.currentUser.userID,
                 "personal_email": datum.pers_email[0].personal_email,
-                "unit": unit
+                "unit": unit,
+                "datum": datum
             };
             managerData.validatePerson(datum.id, data)
                 .then( function () {
@@ -1658,9 +1660,18 @@
                     vm.hideMessage[ind] = false;
                     $timeout(function () { vm.hideMessage[ind] = true; }, 1500);
                 },
-                function () {
-                    vm.updateStatus[ind] = "Error!";
+                function (error) {
+                    vm.updateStatus[ind] = "Error! Contact admin." + error.data.status;
                     vm.messageType[ind] = 'message-error';
+                    vm.hideMessage[ind] = false;
+                    $timeout(function () {
+                        vm.hideMessage[ind] = true;
+                        vm.watchImageValidate[indDetail]();
+                        initializeDetails();
+                        getAllPeopleWithRoles();
+                        getAllPeopleNoRoles();
+                        getAllPeopleToValidate();
+                    }, 10000);
                 },
                 function () {}
                 );

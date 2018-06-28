@@ -147,6 +147,13 @@
             if (type === 'identifications') {
                 obj = {card_id: 'new', card_type: null, card_type_id: null, card_number: null, card_valid_until: null};
                 current.push(obj);
+            }  else if (type === 'cars') {
+                obj = {
+                    id: 'new',
+                    license: null, brand: null, model: null,
+                    color: null, plate: null
+                };
+                current.push(obj);
             } else if (type === 'affiliationsLab') {
                 obj = {lab_id: null, lab: null, dedication: null, lab_position_id: null,
                        group_id: null, group_name: null, start: null, end: null,
@@ -302,6 +309,7 @@
                     vm.thisPerson.birth_date = null;
                     vm.thisPerson.nationalities = [];
                     vm.thisPerson.identifications = [];
+                    vm.thisPerson.cars = [];
                     vm.thisPerson.affiliationsDepartment = [];
                     vm.thisPerson.personal_phone = [];
                     vm.thisPerson.work_phone = [];
@@ -527,6 +535,12 @@
             templateUrl: 'pre-register/essential/pre-registration.identificationsInfo.html'
         };
     };
+    var preRegistrationCars = function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'pre-register/essential/pre-registration.carsInfo.html'
+        };
+    };
     var preRegistrationInstitutionalContactsInfo = function () {
         return {
             restrict: 'E',
@@ -606,6 +620,7 @@
         .directive('preRegistrationContactInfo', preRegistrationContactInfo)
         .directive('preRegistrationInstitutionalContactsInfo', preRegistrationInstitutionalContactsInfo)
         .directive('preRegistrationIdentifications', preRegistrationIdentifications)
+        .directive('preRegistrationCars', preRegistrationCars)
         .directive('preRegistrationPersonRoles', preRegistrationPersonRoles)
         .directive('preRegistrationResearcherInfo', preRegistrationResearcherInfo)
         .directive('preRegistrationAdministrativeInfo', preRegistrationAdministrativeInfo)

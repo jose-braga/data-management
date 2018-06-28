@@ -623,6 +623,7 @@ var queryAddRemainingInfo = function (req, res, next, userID, personID, querySQL
                                      hasLabAffiliation,hasTechnicianAffiliation,hasScienceManagerAffiliation,hasAdministrativeAffiliation,
                                      created, changed_by) {
     var identifications = req.body.identifications;
+    var cars = req.body.cars;
     var responsibles = req.body.responsibles;
     var nationalities = req.body.nationalities;
     var address = req.body.address;
@@ -648,6 +649,13 @@ var queryAddRemainingInfo = function (req, res, next, userID, personID, querySQL
                     'VALUES (?,?,?,?);';
         places.push(personID, identifications[ind].card_type_id,identifications[ind].card_number,
                     momentToDate(identifications[ind].card_valid_until));
+    }
+    //cars
+    for (var ind in cars) {
+        querySQL = querySQL +
+                    'INSERT INTO cars (person_id,license,brand,model,color,plate) ' +
+                    'VALUES (?,?,?,?,?,?);';
+        places.push(personID, cars[ind].license,cars[ind].brand,cars[ind].model,cars[ind].color,cars[ind].plate);
     }
     //responsibles
     for (var ind in responsibles) {

@@ -1183,24 +1183,6 @@ var queryAffiliationsEndDate = function (req,res,next,updated,created,changed_by
         return;
     }
 };
-/*
-var queryAffiliationTechEndDate = function (req,res,next,updated,created,changed_by) {
-
-};
-
-var queryAffiliationScManEndDate = function (req,res,next,updated,created,changed_by) {
-
-};
-
-var queryAffiliationAdmEndDate = function (req,res,next,updated,created,changed_by) {
-
-};
-
-var queryAffiliationDepEndDate = function (req,res,next,updated,created,changed_by) {
-
-};
-
-*/
 
 var queryURLsPerson = function (req, res, next, userCity) {
     var hasPermission = getGeoPermissions(req, userCity);
@@ -1492,9 +1474,6 @@ var queryAddRI = function (req, res, next, userCity, personID,updateArr,deleteAr
         );
     });
 };
-
-/* TODO: IF PERSON DID NOT HAVE ROLES PREVIOUSLY (THEREFORE NO UNIT WOULD BE ATTACHED) THEN THIS WILL COUNT
-   AS A CREATION IN TERMS OF THE EXTERNAL api */
 
 var queryAffiliationsLabPerson = function (req, res, next, userCity) {
     var hasPermission = getGeoPermissions(req, userCity);
@@ -3724,6 +3703,67 @@ var queryIdentificationsInfoPerson = function (req, res, next, userCity) {
 
 };
 
+var queryCarsPerson = function (req, res, next, userCity) {
+    var hasPermission = getGeoPermissions(req, userCity);
+    if ((req.payload.personID !== req.params.personID && hasPermission)
+            || req.payload.personID === req.params.personID) {
+        // data to be added/updated to resource
+        var personID = req.params.personID;
+        var updateCars = req.body.updateCars;
+        var newCars = req.body.newCars;
+        var deleteCars = req.body.deleteCars;
+        var places = [];
+        var querySQL = '';
+        if (updateCars.length > 0) {
+            for (var ind in updateCars) {
+                querySQL = querySQL + 'UPDATE cars' +
+                                      ' SET license = ?,' +
+                                      ' brand = ?,' +
+                                      ' model = ?,' +
+                                      ' color = ?,' +
+                                      ' plate = ?' +
+                                      ' WHERE id = ?;';
+                places.push(updateCars[ind].license,
+                            updateCars[ind].brand,
+                            updateCars[ind].model,
+                            updateCars[ind].color,
+                            updateCars[ind].plate,
+                            updateCars[ind].id);
+            }
+        }
+        if (newCars.length > 0) {
+            for (var ind in newCars) {
+                querySQL = querySQL + 'INSERT INTO cars (person_id, license, brand, model, color, plate)' +
+                                      ' VALUES (?, ?, ?, ?, ?, ?);';
+                places.push(personID,
+                            newCars[ind].license,
+                            newCars[ind].brand,
+                            newCars[ind].model,
+                            newCars[ind].color,
+                            newCars[ind].plate);
+            }
+        }
+        if (deleteCars.length > 0) {
+            for (var ind in deleteCars) {
+                querySQL = querySQL + 'DELETE FROM cars' +
+                                      ' WHERE id=?;';
+                places.push(deleteCars[ind].id);
+            }
+        }
+        if (updateCars.length === 0
+            && newCars.length === 0
+            && deleteCars.length === 0) {
+            sendJSONResponse(res, 200, { message: 'No changes.' });
+        } else {
+            escapedQuery(querySQL, places, req, res, next);
+        }
+    } else {
+        sendJSONResponse(res, 403, { message: 'This user is not authorized to this operation.' });
+    }
+
+
+};
+
 var queryCostCentersPerson = function (req, res, next, userCity) {
     var hasPermission = getGeoPermissions(req, userCity);
     if ((req.payload.personID !== req.params.personID && hasPermission)
@@ -4503,6 +4543,31 @@ var queryGetIdentifications = function (req,res,next, personID, row) {
                     return;
                 }
                 row = joinResponses(row,rowsQuery,'identifications');
+                return queryGetCars(req,res,next, personID, row);
+            }
+        );
+    });
+};
+
+var queryGetCars = function (req,res,next, personID, row) {
+    var query = 'SELECT *' +
+                ' FROM cars' +
+                ' WHERE person_id = ?';
+    var places = [personID];
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(query,places,
+            function (err, rowsQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                row = joinResponses(row,rowsQuery,'cars');
                 return queryGetWorkEmails(req,res,next, personID, row);
             }
         );
@@ -4836,7 +4901,6 @@ var queryGetResearchInterests = function (req,res,next, personID, row) {
         );
     });
 };
-
 
 var queryGetLabs = function (req,res,next, personID, row) {
     var query = 'SELECT labs.id AS lab_id,' +
@@ -6231,6 +6295,14 @@ module.exports.updateIdentificationsInfoPerson = function (req, res, next) {
     getUserPermitSelf(req, res, [0, 5, 10, 15, 16],
         function (req, res, username) {
             getLocation(req, res, next, queryIdentificationsInfoPerson);
+        }
+    );
+};
+
+module.exports.updateCarsPerson = function (req, res, next) {
+    getUserPermitSelf(req, res, [0, 5, 10, 15, 16],
+        function (req, res, username) {
+            getLocation(req, res, next, queryCarsPerson);
         }
     );
 };

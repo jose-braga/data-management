@@ -60,6 +60,7 @@ router.get('/list/:listOf', ctrlPeopleData.listOf);
 router.put('/people/nuclear-info/:personID', auth, ctrlPeopleData.updateNuclearInfoPerson);
 router.put('/people/contact-info/:personID', auth, ctrlPeopleData.updateContactInfoPerson);
 router.put('/people/identifications/:personID', auth, ctrlPeopleData.updateIdentificationsInfoPerson);
+router.put('/people/cars/:personID', auth, ctrlPeopleData.updateCarsPerson);
 router.put('/people/institutional-contacts/:personID', auth, ctrlPeopleData.updateInstitutionalContactsPerson);
 router.put('/people/emergency-contacts/:personID', auth, ctrlPeopleData.updateEmergencyContactsPerson);
 router.put('/people/finished-degrees/:personID', auth, ctrlPeopleData.updateFinishedDegreesPerson);

@@ -161,6 +161,13 @@
                 }
             );
         };
+        var updateCarsPersonByID = function (personID, data) {
+            return $http.put('api/people/cars/' + personID, data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
         var updateInstitutionalContactsPersonByID = function (personID, data) {
             return $http.put('api/people/institutional-contacts/' + personID, data,
                 {
@@ -387,6 +394,7 @@
             updateNuclearInfoPersonByID: updateNuclearInfoPersonByID,
             updateContactInfoPersonByID: updateContactInfoPersonByID,
             updateIdentificationsPersonByID: updateIdentificationsPersonByID,
+            updateCarsPersonByID: updateCarsPersonByID,
             updateInstitutionalContactsPersonByID: updateInstitutionalContactsPersonByID,
             updateEmergencyContactsPersonByID: updateEmergencyContactsPersonByID,
             updateFinishedDegreesPersonByID: updateFinishedDegreesPersonByID,

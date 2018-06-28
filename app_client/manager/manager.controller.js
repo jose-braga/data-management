@@ -528,6 +528,7 @@
                 vm.thisPerson.push({});
                 vm.selectedNationalities.push([]);
                 vm.currentIDs.push([]);
+                vm.currentCars.push([]);
 
                 vm.newAuthorNames.push([]);
                 vm.delAuthorNames.push([]);
@@ -572,6 +573,7 @@
                 vm.thisPersonValidate.push({});
                 vm.selectedNationalitiesValidate.push([]);
                 vm.currentIDsValidate.push([]);
+                vm.currentCarsValidate.push([]);
 
                 vm.hasPhotoValidate.push(false);
                 vm.changePhotoValidate.push(false);
@@ -1013,6 +1015,36 @@
                                   'card_id', 'newIDs','updateIDs','deleteIDs');
             }
             personData.updateIdentificationsPersonByID(datum.id,data)
+                .then( function () {
+                    if (validate === true) {
+                        getPersonDataValidate(datum.id, indDetail, ind);
+                    } else {
+                        getPersonData(datum.id, indDetail, ind);
+                    }
+                },
+                function () {
+                    vm.updateStatus[ind] = "Error!";
+                    vm.messageType[ind] = 'message-error';
+                },
+                function () {}
+                );
+            return false;
+        };
+        vm.submitCarsInfo = function (ind, indDetail, datum, validate) {
+            vm.updateStatus[ind] = "Updating...";
+            vm.messageType[ind] = 'message-updating';
+            vm.hideMessage[ind] = false;
+            var data;
+            if (validate === true) {
+                data = processDataRows(vm.currentCarsValidate[indDetail],
+                                  datum.cars,
+                                  'id', 'newCars','updateCars','deleteCars');
+            } else {
+                data = processDataRows(vm.currentCars[indDetail],
+                                  datum.cars,
+                                  'id', 'newCars','updateCars','deleteCars');
+            }
+            personData.updateCarsPersonByID(datum.id,data)
                 .then( function () {
                     if (validate === true) {
                         getPersonDataValidate(datum.id, indDetail, ind);
@@ -1842,6 +1874,21 @@
                     };
                     current.push(obj);
                 }
+            } else if (type === 'cars') {
+                if (current.length == 1 && current[0]['id'] === null) {
+                    current[0]['id'] = 'new';
+                } else {
+                    obj = {
+                        id: 'new',
+                        person_id: null,
+                        license: null,
+                        brand: null,
+                        model: null,
+                        color: null,
+                        plate: null
+                    };
+                    current.push(obj);
+                }
             }
 
         };
@@ -2097,6 +2144,7 @@
             vm.thisPerson = [];
             vm.selectedNationalities = [];
             vm.currentIDs = [];
+            vm.currentCars = [];
 
             vm.newAuthorNames = [];
             vm.delAuthorNames = [];
@@ -2139,6 +2187,7 @@
             vm.thisPersonValidate = [];
             vm.selectedNationalitiesValidate = [];
             vm.currentIDsValidate = [];
+            vm.currentCarsValidate = [];
 
             vm.currentFinishedDegreesValidate = [];
             vm.initialFinishedDegreesValidate = [];
@@ -2275,7 +2324,9 @@
                 'validatePhoto': 58,
                 'personUserPermissions': 59,
                 'validateUserPermissions': 60,
-                'personCostCenter': 61
+                'personCostCenter': 61,
+                'personCars': 62,
+                'validateCars': 63
             };
 
             if (ind === undefined) {
@@ -2341,6 +2392,10 @@
                     for (var id in vm.thisPerson[el].identifications) {
                         vm.thisPerson[el].identifications[id]['card_valid_until'] = processDate(vm.thisPerson[el].identifications[id]['card_valid_until']);
                         vm.currentIDs[el].push(Object.assign({}, vm.thisPerson[el].identifications[id]));
+                    }
+                    vm.currentCars[el] = [];
+                    for (var id in vm.thisPerson[el].cars) {
+                        vm.currentCars[el].push(Object.assign({}, vm.thisPerson[el].cars[id]));
                     }
                     var authors = [];
                     for (var id in vm.thisPerson[el].author_data) {
@@ -2520,6 +2575,10 @@
                     for (var id in vm.thisPersonValidate[el].identifications) {
                         vm.thisPersonValidate[el].identifications[id]['card_valid_until'] = processDate(vm.thisPersonValidate[el].identifications[id]['card_valid_until']);
                         vm.currentIDsValidate[el].push(Object.assign({}, vm.thisPersonValidate[el].identifications[id]));
+                    }
+                    vm.currentCarsValidate[el] = [];
+                    for (var id in vm.thisPersonValidate[el].cars) {
+                        vm.currentCarsValidate[el].push(Object.assign({}, vm.thisPersonValidate[el].cars[id]));
                     }
 
                     vm.currentEmergencyContactsValidate[el] = [];
@@ -3037,6 +3096,13 @@
         };
     };
 
+    var managerPersonCarsInfo = function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'manager/person_details/manager.personCarsInfo.html'
+        };
+    };
+
     var managerPersonEmergencyContactsInfo = function () {
         return {
             restrict: 'E',
@@ -3219,6 +3285,13 @@
         };
     };
 
+    var validatePersonCarsInfo = function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'manager/validate_details/validate.personCarsInfo.html'
+        };
+    };
+
     var validatePersonEmergencyContactsInfo = function () {
         return {
             restrict: 'E',
@@ -3353,6 +3426,7 @@
         .directive('managerPersonNuclearInfo', managerPersonNuclearInfo)
         .directive('managerPersonContactInfo', managerPersonContactInfo)
         .directive('managerPersonIdentificationsInfo', managerPersonIdentificationsInfo)
+        .directive('managerPersonCarsInfo', managerPersonCarsInfo)
         .directive('managerPersonEmergencyContactsInfo', managerPersonEmergencyContactsInfo)
         .directive('managerPersonInstitutionalContactsInfo', managerPersonInstitutionalContactsInfo)
         .directive('managerPersonCurrentRoles', managerPersonCurrentRoles)
@@ -3381,6 +3455,7 @@
         .directive('validatePersonNuclearInfo', validatePersonNuclearInfo)
         .directive('validatePersonContactInfo', validatePersonContactInfo)
         .directive('validatePersonIdentificationsInfo', validatePersonIdentificationsInfo)
+        .directive('validatePersonCarsInfo', validatePersonCarsInfo)
         .directive('validatePersonEmergencyContactsInfo', validatePersonEmergencyContactsInfo)
         .directive('validatePersonInstitutionalContactsInfo', validatePersonInstitutionalContactsInfo)
         .directive('validatePersonCurrentRoles', validatePersonCurrentRoles)

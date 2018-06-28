@@ -56,7 +56,8 @@
             'personPrizes':             41,
             'personStartups':           42,
             'personBoards':             43,
-            'personProjects':           44
+            'personProjects':           44,
+            'personCars':               45
 
         };
         vm.changePhoto = false;
@@ -248,6 +249,24 @@
             var data = processDataRows(vm.currentIDs,vm.thisPerson.identifications,
                                   'card_id', 'newIDs','updateIDs','deleteIDs');
             personData.updateIdentificationsPersonByID(vm.currentUser.personID,data)
+                .then( function () {
+                    getPersonData(vm.currentUser.personID, ind);
+                },
+                function () {
+                    vm.updateStatus[ind] = "Error!";
+                    vm.messageType[ind] = 'message-error';
+                },
+                function () {}
+                );
+            return false;
+        };
+        vm.submitCarsInfo = function (ind) {
+            vm.updateStatus[ind] = "Updating...";
+            vm.messageType[ind] = 'message-updating';
+            vm.hideMessage[ind] = false;
+            var data = processDataRows(vm.currentCars,vm.thisPerson.cars,
+                                  'id', 'newCars','updateCars','deleteCars');
+            personData.updateCarsPersonByID(vm.currentUser.personID,data)
                 .then( function () {
                     getPersonData(vm.currentUser.personID, ind);
                 },
@@ -1102,6 +1121,21 @@
                         description: null,
                         international: 0,
                         event_date: null
+                    };
+                    current.push(obj);
+                }
+            } else if (type === 'cars') {
+                if (current.length == 1 && current[0]['id'] === null) {
+                    current[0]['id'] = 'new';
+                } else {
+                    obj = {
+                        id: 'new',
+                        person_id: vm.currentUser.personID,
+                        license: null,
+                        brand: null,
+                        model: null,
+                        color: null,
+                        plate: null
                     };
                     current.push(obj);
                 }
@@ -3354,6 +3388,10 @@
                     for (var nat in vm.thisPerson.nationalities) {
                         vm.selectedNationalities.push(Object.assign({}, vm.thisPerson.nationalities[nat]));
                     }
+                    vm.currentCars = [];
+                    for (var id in vm.thisPerson.cars) {
+                        vm.currentCars.push(Object.assign({}, vm.thisPerson.cars[id]));
+                    }
                     vm.currentIDs = [];
                     for (var id in vm.thisPerson.identifications) {
                         if (vm.thisPerson.identifications[id]['card_valid_until'] !== null) {
@@ -3873,6 +3911,12 @@
             templateUrl: 'person/personal/person.emergencyInfo.html'
         };
     };
+    var personCars = function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'person/personal/person.carsInfo.html'
+        };
+    };
     var personFinishedDegrees = function () {
         return {
             restrict: 'E',
@@ -4174,6 +4218,7 @@
         .directive('personAffiliationLab', personAffiliationLab)
         .directive('personAffiliationDepartment', personAffiliationDepartment)
         .directive('personContactInfo', personContactInfo)
+        .directive('personCars', personCars)
         .directive('personEmergencyContacts', personEmergencyContacts)
         .directive('personFinishedDegrees', personFinishedDegrees)
         .directive('personIdentificationsInfo', personIdentificationsInfo)

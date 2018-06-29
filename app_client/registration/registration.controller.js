@@ -60,6 +60,9 @@
             } else if (type === 'volunteer') {
                 obj = {start: null, end: null};
                 current.push(obj);
+            }  else if (type === 'cars') {
+                obj = { license: null, brand: null, model: null, color: null, plate: null};
+                current.push(obj);
             }
         };
         vm.nothingToShow = function (arrObj) {
@@ -158,29 +161,16 @@
                         }, 1500);
                     }
                 },
-                function () {
-                    vm.updateStatus[ind] = "Error!";
+                function (error) {
+                    vm.updateStatus[ind] = "Error! Contact admin." + error.data.status;
                     vm.messageType[ind] = 'message-error';
-                    /* For handling errors on registration
-                    registrationData.deletePersonErrorData(data.username)
-                        .then(function () {
-                            vm.updateStatus[ind] = "Error! Check data and try again.";
-                            vm.messageType[ind] = 'message-error';
-                            $timeout(function () {
-                                    vm.hideMessage[ind] = true;
-                            }, 1500);
-                        },
-                        function () {
-                            vm.updateStatus[ind] = "Critical error! Defective data could not be deleted!";
-                            vm.messageType[ind] = 'message-error';
-                        },
-                        function () {}
-                        );
-                    */
+                    vm.hideMessage[ind] = false;
+                    $timeout(function () {
+                        vm.hideMessage[ind] = true;
+                    }, 10000);
                 },
                 function () {}
                 );
-
         };
         vm.switchValue = function (val) {
             if (val === 1 || val === true || val === 'Yes') return 'Yes';
@@ -437,6 +427,7 @@
             vm.thisPerson = {
                     birth_date: null,
                     nationalities: [],
+                    cars: [],
                     affiliationsDepartment: [],
                     roles: [],
                     personal_phone: [],
@@ -653,6 +644,12 @@
             templateUrl: 'registration/essential/registration.contactInfo.html'
         };
     };
+    var registrationCarsInfo = function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'registration/essential/registration.carsInfo.html'
+        };
+    };
     var registrationProfessionalSituation = function () {
         return {
             restrict: 'E',
@@ -744,6 +741,7 @@
         .directive('registrationPersonNuclearInfo', registrationPersonNuclearInfo)
         .directive('registrationContactInfo', registrationContactInfo)
         .directive('registrationUserCreation', registrationUserCreation)
+        .directive('registrationCarsInfo', registrationCarsInfo)
         .directive('registrationInstitutionalContactsInfo', registrationInstitutionalContactsInfo)
         .directive('registrationPersonRoles', registrationPersonRoles)
         .directive('registrationResearcherInfo', registrationResearcherInfo)

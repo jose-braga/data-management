@@ -678,6 +678,7 @@ var queryAddRemainingInfo = function (req, res, next, userID, personID, querySQL
     var unit = req.body.unit;
     var responsibles = req.body.responsibles;
     var nationalities = req.body.nationalities;
+    var cars = req.body.cars;
     var address = req.body.address;
     var postalCode = req.body.postal_code;
     var city = req.body.city;
@@ -686,7 +687,6 @@ var queryAddRemainingInfo = function (req, res, next, userID, personID, querySQL
     var workPhone = req.body.work_phone;
     var workEmail = req.body.work_email;
     var institutionCity = req.body.institution_city.id;
-    var institutionCityName = req.body.institution_city.city;
     var roles = req.body.roles;
     var managerAssociationKey = req.body.science_manager_data.association_key;
     var managerResearcherID = req.body.science_manager_data.researcherID;
@@ -705,14 +705,21 @@ var queryAddRemainingInfo = function (req, res, next, userID, personID, querySQL
                     momentToDate(responsibles[ind].valid_from),
                     momentToDate(responsibles[ind].valid_until));
     }
-
-
     //nationalities
     for (var ind in nationalities) {
         querySQL = querySQL +
                     'INSERT INTO `people_countries` (`person_id`,`country_id`) ' +
                     'VALUES (?,?);';
         places.push(personID, nationalities[ind].country_id);
+    }
+    //cars
+    for (var ind in cars) {
+        querySQL = querySQL +
+                    'INSERT INTO cars (person_id,license,brand,model,color,plate) ' +
+                    'VALUES (?,?,?,?,?,?);';
+        places.push(personID,
+                    cars[ind].license,cars[ind].brand,
+                    cars[ind].model,cars[ind].color,cars[ind].plate);
     }
     //personal_addresses
     querySQL = querySQL +
@@ -766,15 +773,40 @@ var queryAddRemainingInfo = function (req, res, next, userID, personID, querySQL
             places.push(personID, administrativeAssociationKey);
         }
     }
-    if (process.env.NODE_ENV === 'production') {
-        var recipients;
-        if (institutionCityName === 'Lisboa') {
-            recipients = 'tsc@fct.unl.pt, jasl@fct.unl.pt, josebraga@fct.unl.pt';
-        } else if (institutionCityName === 'Porto') {
-            recipients = 'josebraga@fct.unl.pt, jasl@fct.unl.pt';
-        } else if (institutionCityName === 'Aveiro') {
-            recipients = 'josebraga@fct.unl.pt, jasl@fct.unl.pt';
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
         }
+        connection.query(querySQL, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                for (var ind in unit) {
+                    if (unit[ind] == 1) {
+                        externalAPI.contact(WEBSITE_API_BASE_URL[1], 'create', 'people', personID,
+                                'UCIBIO API error creation of person :', personID);
+                    }
+                    if (unit[ind] == 2) {
+                        externalAPI.contact(WEBSITE_API_BASE_URL[2], 'create', 'people', personID,
+                                'LAQV API error creation of person :', personID);
+                    }
+                }
+                return sendEmailsToManagers(req, res, next, personID);
+            }
+        );
+    });
+};
+
+var sendEmailsToManagers = function (req, res, next, personID) {
+    var institutionCityName = req.body.institution_city.city;
+    var mailError = [];
+    var recipients = nodemailer.emailRecipients.managers[institutionCityName];
+    if (process.env.NODE_ENV === 'production') {
         let mailOptions = {
             from: '"Admin" <admin@laqv-ucibio.info>', // sender address
             to: recipients, // list of receivers (comma-separated)
@@ -790,22 +822,59 @@ var queryAddRemainingInfo = function (req, res, next, userID, personID, querySQL
         // send mail with defined transport object
         transporter.sendMail(mailOptions, (error, info) => {
             if (error) {
-                return console.log(error);
+                console.log('Message for managers from person %s registration not sent due to error below.', personID);
+                console.log(error);
+                mailError.push('Mail not send to managers: sending problem.');
             }
             console.log('Message %s sent: %s', info.messageId, info.response);
         });
+    } else {
+        // just for testing purposes
     }
-    for (var ind in unit) {
-        if (unit[ind] == 1) {
-            externalAPI.contact(WEBSITE_API_BASE_URL[1], 'create', 'people', personID,
-                    'UCIBIO API error creation of person :', personID);
+    return sendEmailsCar(req, res, next, personID, mailError);
+};
+
+var sendEmailsCar = function (req, res, next, personID, mailError) {
+    var institutionCity = req.body.institution_city.id;
+    if (process.env.NODE_ENV === 'production') {
+        if (req.body.cars.length !== 0) {
+            if (institutionCity == 1) {
+                var recipients = nodemailer.emailRecipients.car;
+                let mailOptions = {
+                    from: '"Admin" <admin@laqv-ucibio.info>', // sender address
+                    to: recipients, // list of receivers (comma-separated)
+                    subject: 'Permissão de circulação no campus FCT - User: ' + req.body.colloquialName +
+                             ', ID: ' +  personID, // Subject line
+                    text: 'Olá ,\n\n' +
+                          'O utilizador requer autorização para circular no campus FCT.\n\n' +
+                          'Dirija-se a https://laqv-ucibio.info/manager para recolher a informação necessária.\n\n' +
+                          'Com os melhores cumprimentos,\nAdmin',
+                };
+                // send mail with defined transport object
+                transporter.sendMail(mailOptions, (error, info) => {
+                    if (error) {
+                        console.log('Message to car manager (Lisboa) for person %s not sent due to error below.', personID);
+                        console.log(error);
+                        mailError.push('Not send to car manager (Lisboa).');
+                    }
+                    console.log('Message %s was sent to car manager (Lisboa) for person %s with response: %s',
+                                info.messageId, personID, info.response);
+                });
+            }
         }
-        if (unit[ind] == 2) {
-            externalAPI.contact(WEBSITE_API_BASE_URL[2], 'create', 'people', personID,
-                    'LAQV API error creation of person :', personID);
-        }
+    } else {
+        // just for testing purposes
     }
-    escapedQuery(querySQL, places, req, res, next);
+    // in the end send response
+    if (mailError.length == 0) {
+        sendJSONResponse(res, 200, {"status": "All done!", "statusCode": 200});
+        return;
+
+    } else {
+        sendJSONResponse(res, 400, {"status": mailError, "statusCode": 400});
+        return;
+    }
+
 };
 
 var queryAddJob = function (req, res, next,userID, personID, job, i, querySQL, places,

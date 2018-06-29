@@ -1412,7 +1412,6 @@ var queryUpdateUserPermissions = function (req, res, next) {
 sendJSONResponse(res, 400, { message: 'Email not sent for this user: no email defined.' });
 return;
 */
-/* TODO: add below warnings for email problems  */
 
 var sendEmailsToUsers = function (req, res, next) {
     var mailError = [];
@@ -1458,7 +1457,7 @@ var sendEmailsCar = function (req, res, next, mailError) {
                 let mailOptions = {
                     from: '"Admin" <admin@laqv-ucibio.info>', // sender address
                     to: recipients, // list of receivers (comma-separated)
-                    subject: 'Permissão de circulação no campus FCT- User: ' + req.data.colloquial_name +
+                    subject: 'Permissão de circulação no campus FCT - User: ' + req.data.colloquial_name +
                              ', ID: ' +  req.data.person_id, // Subject line
                     text: 'Olá ,\n\n' +
                           'O utilizador requer autorização para circular no campus FCT.\n\n' +

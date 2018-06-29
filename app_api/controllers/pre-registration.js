@@ -733,13 +733,13 @@ var queryAddRemainingInfo = function (req, res, next, userID, personID, querySQL
                     sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                     return;
                 }
-                return finalizeSendEmail(req,res,next,userID,personID,created,changed_by);
+                return finalizePersonUpdate(req,res,next,userID,personID,created,changed_by);
             }
         );
     });
 };
 
-var finalizeSendEmail = function (req, res,next,userID,personID,updated,changed_by) {
+var finalizePersonUpdate = function (req, res,next,userID,personID,updated,changed_by) {
     var name = req.body.name;
     var colloquialName = req.body.colloquialName;
     var gender = req.body.gender;
@@ -768,39 +768,53 @@ var finalizeSendEmail = function (req, res,next,userID,personID,updated,changed_
                     sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                     return;
                 }
-                var institutionCityName = req.body.institution_city_name;
-                if (process.env.NODE_ENV === 'production') {
-                    var recipients;
-                    if (institutionCityName === 'Lisboa') {
-                        recipients = 'tsc@fct.unl.pt, jd.ribeiro@fct.unl.pt, jasl@fct.unl.pt, josebraga@fct.unl.pt';
-                    } else if (institutionCityName === 'Porto') {
-                        recipients = 'josebraga@fct.unl.pt, jasl@fct.unl.pt'; // TODO: Change this!!!!
-                    }
-                    let mailOptions = {
-                        from: '"Admin" <admin@laqv-ucibio.info>', // sender address
-                        to: recipients, // list of receivers (comma-separated)
-                        subject: 'Request for validation: ' + req.body.name, // Subject line
-                        text: 'Hi,\n\n' +
-                              'The user ' + (req.body.name) +
-                              ' is requesting validation of his pre-registration.\n\n' +
-                              'He/She added the following remarks:\n\n' +
-                              '"' + req.body.comments +'"\n\n' +
-                              'Check further details on web app.\n\n' +
-                              'Best regards,\nAdmin',
-                    };
-                    // send mail with defined transport object
-                    transporter.sendMail(mailOptions, (error, info) => {
-                        if (error) {
-                            return console.log(error);
-                        }
-                        console.log('Message %s sent: %s', info.messageId, info.response);
-                    });
-                }
-                sendJSONResponse(res, 200, { message: 'All done.' });
-                return;
+                return sendEmailsToManagers(req, res, next, personID);
             }
         );
     });
+};
+
+var sendEmailsToManagers = function (req, res, next, personID) {
+    var institutionCityName = req.body.institution_city_name;
+    var mailError = [];
+    var recipients = nodemailer.emailRecipients.managers[institutionCityName];
+    if (process.env.NODE_ENV === 'production') {
+        let mailOptions = {
+            from: '"Admin" <admin@laqv-ucibio.info>', // sender address
+            to: recipients, // list of receivers (comma-separated)
+            subject: 'Request for validation: ' + req.body.name, // Subject line
+            text: 'Hi,\n\n' +
+                  'The user ' + (req.body.name) +
+                  ' is requesting validation of his pre-registration.\n\n' +
+                  'He/She added the following remarks:\n\n' +
+                  '"' + req.body.comments +'"\n\n' +
+                  'Check further details on web app.\n\n' +
+                  'Best regards,\nAdmin',
+        };
+        // send mail with defined transport object
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                console.log('Message for managers from person %s pre-registration not sent due to error below.', personID);
+                console.log(error);
+                mailError.push('Mail not send to managers: sending problem.');
+            }
+            console.log('Message %s sent: %s', info.messageId, info.response);
+        });
+    } else {
+        // just for testing purposes
+    }
+    // if further emails add function to 'return' below and move '//in the end ...' to final function
+    // return;
+
+    // in the end send response
+    if (mailError.length == 0) {
+        sendJSONResponse(res, 200, {"status": "All done!", "statusCode": 200});
+        return;
+
+    } else {
+        sendJSONResponse(res, 400, {"status": mailError, "statusCode": 400});
+        return;
+    }
 };
 
 var queryAddJob = function (req, res, next,userID, personID, job, i, querySQL, places,

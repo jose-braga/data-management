@@ -59,13 +59,21 @@
                             </div>
                         </md-content>
                     </md-tab>
-                    <md-tab label='Projects'>
+                    <md-tab label='Funding'>
                         <md-content>
                             <div layout="row" layout-padding>
-                                Under construction
+                                <team-lab-projects
+                                    data-lab="{{lab.lab_id}}"
+                                    data-group="{{lab.group_id}}"
+                                    flex>
+                                </team-lab-projects>
                             </div>
                             <div layout="row" layout-padding>
-
+                                <team-members-projects
+                                    data-lab="{{lab.lab_id}}"
+                                    data-group="{{lab.group_id}}"
+                                flex>
+                                </team-members-projects>
                             </div>
                         </md-content>
                     </md-tab>

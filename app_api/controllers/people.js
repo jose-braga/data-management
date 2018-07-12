@@ -2072,8 +2072,7 @@ var queryAddScienceManagerAffiliations = function (req, res, next, userCity, per
     data.sc_man_valid_until = momentToDate(data.sc_man_valid_until);
     querySQL = querySQL + 'INSERT INTO `science_managers`' +
                           ' (`person_id`,`science_manager_office_id`,`science_manager_position_id`,`dedication`,`valid_from`,`valid_until`)' +
-                          ' VALUES (?, ?, ?, ?, ?, ?)';
-    querySQL = querySQL + '; ';
+                          ' VALUES (?, ?, ?, ?, ?, ?);';
     places.push(personID, data.sc_man_office_id, data.sc_man_position_id, data.sc_man_dedication,
                 data.sc_man_valid_from, data.sc_man_valid_until);
     pool.getConnection(function(err, connection) {
@@ -6254,6 +6253,15 @@ module.exports.listOf = function (req, res, next) {
         getQueryResponse(querySQL, req, res, next);
     } else if (listOf === 'conference-types') {
         querySQL = 'SELECT * FROM conference_types;';
+        getQueryResponse(querySQL, req, res, next);
+    } else if (listOf === 'project-types') {
+        querySQL = 'SELECT * FROM project_types;';
+        getQueryResponse(querySQL, req, res, next);
+    } else if (listOf === 'call-types') {
+        querySQL = 'SELECT * FROM call_types;';
+        getQueryResponse(querySQL, req, res, next);
+    } else if (listOf === 'project-positions') {
+        querySQL = 'SELECT * FROM person_project_positions;';
         getQueryResponse(querySQL, req, res, next);
     } else if (listOf === 'patent-types') {
         querySQL = 'SELECT * FROM patent_types;';

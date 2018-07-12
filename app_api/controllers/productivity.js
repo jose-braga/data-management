@@ -2535,6 +2535,579 @@ var queryDeleteOutreachesTeam = function (req, res, next) {
     }
 };
 
+var queryAllProjects = function (req, res, next) {
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'SELECT people_projects.id, people_projects.person_id,  people_projects.position_id, person_project_positions.name_en AS position_name,' +
+                          ' projects.id AS project_id, projects.title, projects.acronym, projects.reference,' +
+                          ' projects.project_type_id, project_types.name AS project_type,' +
+                          ' projects.call_type_id, call_types.name AS call_type,' +
+                          ' projects_other_call_types.id AS other_call_type_id, projects_other_call_types.name AS other_call_type,' +
+                          ' projects_funding_entities.id AS project_funding_entity_id, projects_funding_entities.funding_entity_id,' +
+                          ' funding_agencies.official_name AS funding_entity_official_name, funding_agencies.short_name AS funding_entity_short_name,' +
+                          ' projects_other_funding_entities.id AS project_other_funding_entity_id, projects_other_funding_entities.name AS other_funding_entity,' +
+                          ' projects_management_entities.id AS project_management_entity_id, projects_management_entities.management_entity_id,' +
+                          ' management_entities.official_name AS management_entity_official_name, management_entities.short_name AS management_entity_short_name,' +
+                          ' projects.start, projects.end, projects.global_amount,' +
+                          ' projects.website, projects.notes ' +
+                          'FROM people_projects' +
+                          ' RIGHT JOIN projects ON projects.id = people_projects.project_id' +
+                          ' LEFT JOIN project_types ON project_types.id = projects.project_type_id' +
+                          ' LEFT JOIN person_project_positions ON person_project_positions.id = people_projects.position_id' +
+                          ' LEFT JOIN call_types ON call_types.id = projects.call_type_id' +
+                          ' LEFT JOIN projects_other_call_types ON projects_other_call_types.project_id = projects.id' +
+                          ' LEFT JOIN projects_funding_entities ON projects_funding_entities.project_id = projects.id' +
+                          ' LEFT JOIN funding_agencies ON projects_funding_entities.funding_entity_id = funding_agencies.id' +
+                          ' LEFT JOIN projects_management_entities ON projects_management_entities.project_id = projects.id' +
+                          ' LEFT JOIN management_entities ON projects_management_entities.management_entity_id = management_entities.id' +
+                          ' LEFT JOIN projects_other_funding_entities ON projects_other_funding_entities.project_id = projects.id;';
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (resQuery.length === 0 || resQuery === undefined) {
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 0,
+                        "result" : []});
+                    return;
+                }
+                return queryGetResearchAreasProjects(req, res, next, resQuery, 0);
+            }
+        );
+    });
+};
+var queryPersonProjects = function (req, res, next) {
+    var personID = req.params.personID;
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'SELECT people_projects.id, people_projects.person_id,  people_projects.position_id, person_project_positions.name_en AS position_name,' +
+                          ' projects.id AS project_id, projects.title, projects.acronym, projects.reference,' +
+                          ' projects.project_type_id, project_types.name AS project_type,' +
+                          ' projects.call_type_id, call_types.name AS call_type,' +
+                          ' projects_other_call_types.id AS other_call_type_id, projects_other_call_types.name AS other_call_type,' +
+                          ' projects_funding_entities.id AS project_funding_entity_id, projects_funding_entities.funding_entity_id,' +
+                          ' funding_agencies.official_name AS funding_agency_official_name, funding_agencies.short_name AS funding_agency_short_name,' +
+                          ' projects_other_funding_entities.id AS project_other_funding_entity_id, projects_other_funding_entities.name AS other_funding_entity,' +
+                          ' projects_management_entities.id AS project_management_entity_id, projects_management_entities.management_entity_id,' +
+                          ' management_entities.official_name AS management_entity_official_name, management_entities.short_name AS management_entity_short_name,' +
+                          ' projects.start, projects.end, projects.global_amount,' +
+                          ' projects.website, projects.notes ' +
+                          'FROM people_projects' +
+                          ' LEFT JOIN projects ON projects.id = people_projects.project_id' +
+                          ' LEFT JOIN project_types ON project_types.id = projects.project_type_id' +
+                          ' LEFT JOIN person_project_positions ON person_project_positions.id = people_projects.position_id' +
+                          ' LEFT JOIN call_types ON call_types.id = projects.call_type_id' +
+                          ' LEFT JOIN projects_other_call_types ON projects_other_call_types.project_id = projects.id' +
+                          ' LEFT JOIN projects_funding_entities ON projects_funding_entities.project_id = projects.id' +
+                          ' LEFT JOIN funding_agencies ON projects_funding_entities.funding_entity_id = funding_agencies.id' +
+                          ' LEFT JOIN projects_other_funding_entities ON projects_other_funding_entities.project_id = projects.id' +
+                          ' LEFT JOIN projects_management_entities ON projects_management_entities.project_id = projects.id' +
+                          ' LEFT JOIN management_entities ON projects_management_entities.management_entity_id = management_entities.id' +
+                          ' WHERE people_projects.project_id = ANY ' +
+                          ' (SELECT people_projects.project_id FROM people_projects WHERE people_projects.person_id = ?);';
+    places.push(personID);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (resQuery.length === 0 || resQuery === undefined) {
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 0,
+                        "result" : []});
+                    return;
+                }
+                resQuery = compactData(resQuery, 'project_id', ['person_id','position_id','position_name']);
+                return queryGetResearchAreasProjects(req, res, next, resQuery, 0);
+            }
+        );
+    });
+};
+var queryGetResearchAreasProjects  = function (req, res, next, rows, i) {
+    var projectID = rows[i].project_id;
+    var querySQL =  'SELECT research_area AS area ' +
+                'FROM project_areas ' +
+                'WHERE project_id = ?;';
+    var places = [projectID];
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                rows[i].project_areas = resQuery;
+                if (i + 1 < rows.length) {
+                    return queryGetResearchAreasProjects(req, res, next, rows, i+1);
+                } else {
+                    sendJSONResponse(res, 200,
+                            {"status": "success", "statusCode": 200, "count": rows.length,
+                            "result" : rows});
+                    return;
+                }
+            }
+        );
+    });
+};
+var queryUpdatePersonProjects = function (req, res, next) {
+    var personID = req.params.personID;
+    var updateArr = req.body.updateProject;
+    var newArr = req.body.newProject;
+    var deleteArr = req.body.deleteProject;
+    if (updateArr.length > 0) {
+        return queryUpdateProject(req, res, next, personID, updateArr,deleteArr,newArr, updateArr[0], 0);
+    } else if (deleteArr.length > 0) {
+        return queryDeleteProject(req, res, next, personID, updateArr,deleteArr,newArr, deleteArr[0], 0);
+    } else if (newArr.length > 0) {
+        return queryAddProject(req, res, next, personID, updateArr,deleteArr,newArr, newArr[0], 0);
+    }
+    if (deleteArr.length === 0 && updateArr.length == 0 && newArr.length === 0) {
+        sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
+        return;
+    }
+};
+var queryUpdateProject = function (req, res, next, personID,updateArr,deleteArr,newArr, data, i) {
+    var querySQL = '';
+    var places = [];
+    var start = momentToDate(data.start);
+    var end = momentToDate(data.end);
+    var call_type;
+    if (data.call_type_id === 'other' || data.call_type_id === null) {
+        call_type = null;
+    } else {
+        call_type = data.call_type_id;
+    }
+    querySQL = querySQL + 'UPDATE projects' +
+                          ' SET project_type_id = ?,' +
+                          ' call_type_id = ?,' +
+                          ' title = ?,' +
+                          ' acronym = ?,' +
+                          ' reference = ?,' +
+                          ' start = ?,' +
+                          ' end = ?,' +
+                          ' global_amount = ?,' +
+                          ' website = ?,' +
+                          ' notes = ?' +
+                          ' WHERE id = ?;';
+    places.push(data.project_type_id,
+                call_type,
+                data.title,
+                data.acronym,
+                data.reference,
+                start,
+                end,
+                data.global_amount,
+                data.website,
+                data.notes,
+                data.project_id);
+    // first delete all ocurrences of project in people_project
+    querySQL = querySQL + 'DELETE FROM people_projects WHERE project_id = ?;';
+    places.push(data.project_id);
+    for (var el in data.person_id) {
+        querySQL = querySQL + 'INSERT INTO people_projects (person_id, position_id, project_id) VALUES (?, ?, ?);';
+        places.push(data.person_id[el].person_id, data.person_id[el].position_id, data.project_id);
+    }
+    querySQL = querySQL + 'DELETE FROM project_areas WHERE project_id = ?;';
+    places.push(data.project_id);
+    for (var el in data.project_areas) {
+        querySQL = querySQL + 'INSERT INTO project_areas (project_id, research_area) VALUES (?, ?);';
+        places.push(data.project_id, data.project_areas[el].area);
+    }
+    // always delete (it could be initially an 'other call type' changed to a pre-defined cal type)
+    querySQL = querySQL + 'DELETE FROM projects_other_call_types WHERE project_id = ?;';
+    places.push(data.project_id);
+    if (data.call_type_id === 'other') {
+        querySQL = querySQL + 'INSERT INTO projects_other_call_types (project_id, name) VALUES (?, ?);';
+        places.push(data.project_id, data.other_call_type);
+    }
+    querySQL = querySQL + 'DELETE FROM projects_funding_entities WHERE project_id = ?;';
+    places.push(data.project_id);
+    querySQL = querySQL + 'DELETE FROM projects_other_funding_entities WHERE project_id = ?;';
+    places.push(data.project_id);
+    if (data.funding_entity_id !== null && data.funding_entity_id !== 'other') {
+        querySQL = querySQL + 'INSERT INTO projects_funding_entities (project_id, funding_entity_id) VALUES (?, ?);';
+        places.push(data.project_id, data.funding_entity_id);
+    }
+    if (data.funding_entity_id === 'other') {
+        querySQL = querySQL + 'INSERT INTO projects_other_funding_entities (project_id, name) VALUES (?, ?);';
+        places.push(data.project_id, data.other_funding_entity);
+    }
+    querySQL = querySQL + 'DELETE FROM projects_management_entities WHERE project_id = ?;';
+    places.push(data.project_id);
+    if (data.management_entity_id !== null) {
+        querySQL = querySQL + 'INSERT INTO projects_management_entities (project_id, management_entity_id) VALUES (?, ?);';
+        places.push(data.project_id, data.management_entity_id);
+    }
+
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (i + 1 < updateArr.length) {
+                    return queryUpdateProject(req, res, next, personID,
+                                updateArr,deleteArr,newArr, updateArr[i+1], i+1);
+                } else if (deleteArr.length > 0) {
+                    return queryDeleteProject(req, res, next, personID,
+                                updateArr,deleteArr,newArr, deleteArr[0], 0);
+                } else if (newArr.length > 0) {
+                    return queryAddProject(req, res, next, personID,
+                                updateArr,deleteArr,newArr, newArr[0], 0);
+                } else {
+                    sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
+                    return;
+                }
+            }
+        );
+    });
+};
+var queryDeleteProject = function (req, res, next, personID,updateArr,deleteArr,newArr, data, i) {
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'DELETE FROM people_projects' +
+                          ' WHERE person_id = ? AND project_id = ?;';
+    places.push(personID, data.project_id);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (i + 1 < deleteArr.length) {
+                    return queryDeleteProject(req, res, next, personID,
+                                updateArr,deleteArr,newArr, deleteArr[i+1], i+1);
+                } else if (newArr.length > 0) {
+                    return queryAddProject(req, res, next, personID,
+                                updateArr,deleteArr,newArr, newArr[0], 0);
+                } else {
+                    sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
+                    return;
+                }
+            }
+        );
+    });
+};
+var queryAddProject = function (req, res, next, personID,updateArr,deleteArr,newArr, data, i) {
+    var querySQL = '';
+    var places = [];
+    var start = momentToDate(data.start);
+    var end = momentToDate(data.end);
+
+    querySQL = querySQL + 'INSERT INTO projects' +
+                          ' (project_type_id, call_type_id, title, acronym, reference, start, end, global_amount, website, notes)' +
+                          ' VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);';
+    var call_type;
+    if (data.call_type_id === 'other' || data.call_type_id === null) {
+        call_type = null;
+    } else {
+        call_type = data.call_type_id;
+    }
+    places.push(data.project_type_id,
+                call_type,
+                data.title,
+                data.acronym,
+                data.reference,
+                start,
+                end,
+                data.global_amount,
+                data.website,
+                data.notes);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                var projectID = resQuery.insertId;
+                return queryAddProjectPerson(req, res, next, personID,updateArr,deleteArr,newArr, data, i, projectID);
+            }
+        );
+    });
+};
+var queryAddProjectPerson = function (req, res, next, personID,updateArr,deleteArr,newArr, data, i, projectID) {
+    var querySQL = '';
+    var places = [];
+    for (var el in data.person_id) {
+        querySQL = querySQL + 'INSERT INTO people_projects (person_id, position_id, project_id) VALUES (?, ?, ?);';
+        places.push(data.person_id[el].person_id, data.person_id[el].position_id, projectID);
+    }
+    // Add remaining info
+    for (var el in data.project_areas) {
+        querySQL = querySQL + 'INSERT INTO project_areas (project_id, research_area) VALUES (?, ?);';
+        places.push(projectID, data.project_areas[el].area);
+    }
+    if (data.call_type_id === 'other') {
+        querySQL = querySQL + 'INSERT INTO projects_other_call_types (project_id, name) VALUES (?, ?);';
+        places.push(projectID, data.other_call_type);
+    }
+    if (data.funding_entity_id !== null && data.funding_entity_id !== 'other') {
+        querySQL = querySQL + 'INSERT INTO projects_funding_entities (project_id, funding_entity_id) VALUES (?, ?);';
+        places.push(projectID, data.funding_entity_id);
+    }
+    if (data.funding_entity_id === 'other') {
+        querySQL = querySQL + 'INSERT INTO projects_other_funding_entities (project_id, name) VALUES (?, ?);';
+        places.push(projectID, data.other_funding_entity);
+    }
+    if (data.management_entity_id !== null) {
+        querySQL = querySQL + 'INSERT INTO projects_management_entities (project_id, management_entity_id) VALUES (?, ?);';
+        places.push(projectID, data.management_entity_id);
+    }
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (i + 1 < newArr.length) {
+                    return queryAddProject(req, res, next, personID,
+                                updateArr,deleteArr,newArr, newArr[i+1], i+1);
+                } else {
+                    sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
+                    return;
+                }
+            }
+        );
+    });
+};
+var queryTeamProjects = function (req, res, next) {
+    var teamID = req.params.teamID;
+    var groupID = req.params.groupID;
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'SELECT labs_projects.id AS labs_projects_id,' +
+                          ' people_projects.person_id, people.colloquial_name, people_projects.position_id, person_project_positions.name_en AS position_name,'  +
+                          ' projects.id AS project_id, projects.title, projects.acronym, projects.reference,' +
+                          ' projects.project_type_id, project_types.name AS project_type,' +
+                          ' projects.call_type_id, call_types.name AS call_type,' +
+                          ' projects_other_call_types.id AS other_call_type_id, projects_other_call_types.name AS other_call_type,' +
+                          ' projects_funding_entities.id AS project_funding_entity_id, projects_funding_entities.funding_entity_id,' +
+                          ' funding_agencies.official_name AS funding_agency_official_name, funding_agencies.short_name AS funding_agency_short_name,' +
+                          ' projects_other_funding_entities.id AS project_other_funding_entity_id, projects_other_funding_entities.name AS other_funding_entity,' +
+                          ' projects_management_entities.id AS project_management_entity_id, projects_management_entities.management_entity_id,' +
+                          ' management_entities.official_name AS management_entity_official_name, management_entities.short_name AS management_entity_short_name,' +
+                          ' projects.start, projects.end, projects.global_amount,' +
+                          ' projects.website, projects.notes,' +
+                          ' labs_projects.amount, labs_projects.percentage_hire_postdoc, percentage_hire_student' +
+                          ' FROM labs_projects' +
+                          ' LEFT JOIN projects ON labs_projects.project_id = projects.id' +
+                          ' LEFT JOIN people_projects ON labs_projects.project_id = people_projects.project_id' +
+                          ' LEFT JOIN people ON people.id = people_projects.person_id' +
+                          ' LEFT JOIN project_types ON project_types.id = projects.project_type_id' +
+                          ' LEFT JOIN person_project_positions ON person_project_positions.id = people_projects.position_id' +
+                          ' LEFT JOIN call_types ON call_types.id = projects.call_type_id' +
+                          ' LEFT JOIN projects_other_call_types ON projects_other_call_types.project_id = projects.id' +
+                          ' LEFT JOIN projects_funding_entities ON projects_funding_entities.project_id = projects.id' +
+                          ' LEFT JOIN funding_agencies ON projects_funding_entities.funding_entity_id = funding_agencies.id' +
+                          ' LEFT JOIN projects_other_funding_entities ON projects_other_funding_entities.project_id = projects.id' +
+                          ' LEFT JOIN projects_management_entities ON projects_management_entities.project_id = projects.id' +
+                          ' LEFT JOIN management_entities ON projects_management_entities.management_entity_id = management_entities.id' +
+                          ' WHERE labs_projects.group_id = ? AND labs_projects.lab_id = ?;';
+    places.push(groupID, teamID);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (resQuery.length === 0 || resQuery === undefined) {
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 0,
+                        "result" : []});
+                    return;
+                }
+                resQuery = compactData(resQuery, 'project_id', ['person_id','colloquial_name','position_id','position_name']);
+                return queryGetResearchAreasProjects(req, res, next, resQuery, 0);
+            }
+        );
+    });
+};
+var queryMembersProjects = function (req, res, next) {
+    var teamID = req.params.teamID;
+    var groupID = req.params.groupID;
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'SELECT projects.* ' +
+                          ' FROM projects' +
+                          ' LEFT JOIN people_projects ON people_projects.project_id = projects.id' +
+                          ' LEFT JOIN people_labs ON people_labs.person_id = people_projects.person_id' +
+                          ' LEFT JOIN labs ON labs.id = people_labs.lab_id' +
+                          ' LEFT JOIN labs_groups ON labs_groups.lab_id = labs.id' +
+                          ' LEFT JOIN groups ON labs_groups.group_id = groups.id' +
+                          ' WHERE groups.id = ? AND labs.id = ?;';
+    places.push(groupID, teamID);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (resQuery.length === 0 || resQuery === undefined) {
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 0,
+                        "result" : []});
+                    return;
+                }
+                var non_duplicates = [];
+                var id_collection = [];
+                for (var ind in resQuery) {
+                    if (id_collection.indexOf(resQuery[ind].id) === -1) {
+                        id_collection.push(resQuery[ind].id);
+                        non_duplicates.push(resQuery[ind]);
+                    }
+                }
+                sendJSONResponse(res, 200,
+                    {
+                        "status": "success",
+                        "statusCode": 200,
+                        "count": non_duplicates.length,
+                        "result": non_duplicates
+                    });
+                return;
+            }
+        );
+    });
+};
+var queryAddProjectsLab = function(req, res, next) {
+    var groupID = req.params.groupID;
+    var teamID = req.params.teamID;
+    var add = req.body.addProjects;
+    var querySQL = '';
+    var places = [];
+    for (var ind in add) {
+        querySQL = querySQL + 'INSERT INTO labs_projects (lab_id, group_id, project_id, amount, percentage_hire_postdoc, percentage_hire_student)' +
+                              ' VALUES (?,?,?,?,?,?);';
+        places.push(teamID,groupID, add[ind].id, add[ind].amount, add[ind].percentage_hire_postdoc, add[ind].percentage_hire_student);
+    }
+    if (querySQL !== '') {
+        pool.getConnection(function(err, connection) {
+            if (err) {
+                sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+                return;
+            }
+            connection.query(querySQL,places,
+                function (err, resQuery) {
+                    // And done with the connection.
+                    connection.release();
+                    if (err) {
+                        sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                        return;
+                    }
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 1,
+                         "result" : "OK!"});
+                }
+            );
+        });
+    } else {
+        sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "message": "No changes"});
+    }
+};
+var queryDeleteProjectsTeam = function (req, res, next) {
+    var del = req.body.deleteProjects;
+    var querySQL = '';
+    var places = [];
+    for (var ind in del) {
+        querySQL = querySQL + 'DELETE FROM labs_projects' +
+                              ' WHERE id = ?;';
+        places.push(del[ind].labs_projects_id);
+    }
+    if (querySQL !== '') {
+        pool.getConnection(function(err, connection) {
+            if (err) {
+                sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+                return;
+            }
+            connection.query(querySQL,places,
+                function (err, resQuery) {
+                    // And done with the connection.
+                    connection.release();
+                    if (err) {
+                        sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                        return;
+                    }
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 1,
+                         "result" : "OK!"});
+                }
+            );
+        });
+    } else {
+        sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "message": "No changes"});
+    }
+};
+
+
+
+
+
 var queryAllPatents = function (req, res, next) {
     var querySQL = '';
     var places = [];
@@ -4471,6 +5044,56 @@ module.exports.deleteCommunicationsTeam = function (req, res, next) {
     getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
         function (req, res, username) {
             queryDeleteCommunicationsTeam(req,res,next);
+        }
+    );
+};
+
+module.exports.listProjects = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30, 40],
+        function (req, res, username) {
+            queryAllProjects(req,res,next);
+        }
+    );
+};
+module.exports.listPersonProjects = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16],
+        function (req, res, username) {
+            queryPersonProjects(req,res,next);
+        }
+    );
+};
+module.exports.updatePersonProjects = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30, 40],
+        function (req, res, username) {
+            queryUpdatePersonProjects(req,res,next,0);
+        }
+    );
+};
+module.exports.listTeamProjects = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
+        function (req, res, username) {
+            queryTeamProjects(req,res,next);
+        }
+    );
+};
+module.exports.listMembersProjects = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
+        function (req, res, username) {
+            queryMembersProjects(req,res,next);
+        }
+    );
+};
+module.exports.addProjectsLab = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
+        function (req, res, username) {
+            queryAddProjectsLab(req,res,next);
+        }
+    );
+};
+module.exports.deleteProjectsTeam = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
+        function (req, res, username) {
+            queryDeleteProjectsTeam(req,res,next);
         }
     );
 };

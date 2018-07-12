@@ -70,11 +70,14 @@
                     var position = $mdPanel.newPanelPosition()
                                         .absolute()
                                         .center();
+                    var pubDetailsCtrl = function(mdPanelRef) {
+                        this._mdPanelRef = mdPanelRef;
+                    };
                     var config = {
                         //attachTo: angular.element(document.body),
                         controller: pubDetailsCtrl,
                         controllerAs: 'ctrl',
-                        templateUrl: 'team/productivity/publications/team.membersPublicationDetail.html',
+                        templateUrl: 'team/productivity/publications/team.membersPublicationDetails.html',
                         locals: {pub: pub},
                         hasBackdrop: true,
                         panelClass: 'publication-details',
@@ -518,6 +521,9 @@
                     var position = $mdPanel.newPanelPosition()
                                         .absolute()
                                         .center();
+                    var pubDetailsCtrl = function(mdPanelRef) {
+                        this._mdPanelRef = mdPanelRef;
+                    };
                     var config = {
                         //attachTo: angular.element(document.body),
                         controller: pubDetailsCtrl,
@@ -795,7 +801,6 @@
                                 "DOI": arrObj[el]['doi'],
                                 "WOS": arrObj[el]['wos'],
                                 "PubMed ID": arrObj[el]['pubmed_id'],
-                                "DOI": arrObj[el]['doi'],
                                 "Citations": citations_last_year.citations,
                                 "Impact Factors": if_last_year.impact_factor
                             });

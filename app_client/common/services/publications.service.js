@@ -296,6 +296,56 @@
             );
         };
 
+        var getAllProjects = function () {
+            return $http.get('api/projects/all',
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var thisPersonProjects = function (personID) {
+            return $http.get('api/projects/person/' + personID,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var updateProjectsPerson = function (personID, data) {
+            return $http.put('api/projects/person/' + personID, data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var thisTeamProjects = function (groupID, teamID) {
+            return $http.get('api/projects/team/' + groupID + '/' + teamID,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var thisMembersProjects = function (groupID, teamID) {
+            return $http.get('api/projects/team/' + groupID + '/' + teamID + '/members',
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var addMembersProjects = function (groupID, teamID, data) {
+            return $http.put('api/projects/team/' + groupID + '/' + teamID, data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var removeProjectsTeam = function (groupID, teamID, data) {
+            return $http.put('api/projects/team/' + groupID + '/' + teamID + '/delete', data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+
         var thisTeamPatents = function (groupID, teamID) {
             return $http.get('api/patents/team/' + groupID + '/' + teamID,
                 {
@@ -540,7 +590,15 @@
             thisTeamOutreaches: thisTeamOutreaches,
             thisMembersOutreaches: thisMembersOutreaches,
             addMembersOutreaches: addMembersOutreaches,
-            removeOutreachesTeam: removeOutreachesTeam
+            removeOutreachesTeam: removeOutreachesTeam,
+
+            getAllProjects: getAllProjects,
+            thisPersonProjects: thisPersonProjects,
+            updateProjectsPerson: updateProjectsPerson,
+            thisTeamProjects: thisTeamProjects,
+            thisMembersProjects: thisMembersProjects,
+            addMembersProjects: addMembersProjects,
+            removeProjectsTeam: removeProjectsTeam
         };
     };
 

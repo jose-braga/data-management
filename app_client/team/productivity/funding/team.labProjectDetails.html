@@ -1,0 +1,96 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Project details</span>
+        </md-card-title-text>
+    </md-card-title>
+    <md-card-content layout="column">
+        <div layout="column" flex>
+            <div layout="row" layout-align="center" class="publication-spacer">
+                <div class="question"><span class="highlight">Project title:</span></div>
+                <div class="answer"><span>{{ctrl.pub.title}}</span></div>
+            </div>
+            <div layout="row" layout-align="center" class="publication-spacer">
+                <div class="question"><span class="highlight">Acronym:</span></div>
+                <div class="answer"><span>{{ctrl.pub.acronym}}</span></div>
+            </div>
+            <div layout="row" layout-align="center" class="publication-spacer">
+                <div class="question"><span class="highlight">Reference:</span></div>
+                <div class="answer"><span>{{ctrl.pub.reference}}</span></div>
+            </div>
+            <div layout="row" layout-align="center" class="publication-spacer">
+                <div class="question"><span class="highlight">Project type:</span></div>
+                <div class="answer"><span>{{ctrl.pub.project_type}}</span></div>
+            </div>
+            <div layout="row" layout-align="center" class="publication-spacer">
+                <div class="question"><span class="highlight">Call type:</span></div>
+                <div ng-if="ctrl.pub.call_type_id != 'other'" class="answer"><span>{{ctrl.pub.call_type}}</span></div>
+                <div ng-if="ctrl.pub.call_type_id == 'other'" class="answer"><span>{{ctrl.pub.other_call_type}}</span></div>
+            </div>
+            <div layout="row" layout-align="center" class="publication-spacer">
+                <div class="question"><span class="highlight">LAQV/UCIBIO people involved:</span></div>
+                <div class="answer">
+                    <div ng-repeat="person in ctrl.pub.person_id">
+                        <span>{{person.colloquial_name}}<br></span>
+                    </div>
+                </div>
+            </div>
+            <div layout="row" layout-align="center" class="publication-spacer">
+                <div class="question"><span class="highlight">Project areas:</span></div>
+                <div class="answer">
+                    <div ng-repeat="parea in ctrl.pub.project_areas">
+                        <span>{{parea.area}}<br></span>
+                    </div>
+                </div>
+            </div>
+            <div layout="row" layout-align="center" class="publication-spacer">
+                <div class="question"><span class="highlight">Global amount (€):</span></div>
+                <div class="answer"><span>{{ctrl.pub.global_amount}}</span></div>
+            </div>
+            <div layout="row" layout-align="center" class="publication-spacer">
+                <div class="question"><span class="highlight">Team amount (€):</span></div>
+                <div class="answer"><span>{{ctrl.pub.amount}}</span></div>
+            </div>
+            <div layout="row" layout-align="center" class="publication-spacer">
+                <div class="question"><span class="highlight">% hire postdocs:</span></div>
+                <div class="answer"><span>{{ctrl.pub.percentage_hire_postdoc}}</span></div>
+            </div>
+            <div layout="row" layout-align="center" class="publication-spacer">
+                <div class="question"><span class="highlight">% hire students:</span></div>
+                <div class="answer"><span>{{ctrl.pub.percentage_hire_student}}</span></div>
+            </div>
+            <div layout="row" layout-align="center" class="publication-spacer">
+                <div class="question"><span class="highlight">Funding agency:</span></div>
+                <div ng-if="ctrl.pub.funding_entity_id != 'other'" class="answer"><span>{{ctrl.pub.funding_agency_official_name}}</span></div>
+                <div ng-if="ctrl.pub.funding_entity_id == 'other'" class="answer"><span>{{ctrl.pub.other_funding_entity}}</span></div>
+            </div>
+            <div layout="row" layout-align="center" class="publication-spacer">
+                <div class="question"><span class="highlight">Management entity:</span></div>
+                <div class="answer"><span>{{ctrl.pub.management_entity_official_name}}</span></div>
+            </div>
+            <div layout="row" layout-align="center" class="publication-spacer">
+                <div class="question"><span class="highlight">Date started:</span></div>
+                <div class="answer"><span>{{ctrl.pub.start | date: 'yyyy-MM-dd'}}</span></div>
+            </div>
+            <div layout="row" layout-align="center" class="publication-spacer">
+                <div class="question"><span class="highlight">Date ended:</span></div>
+                <div class="answer"><span>{{ctrl.pub.end | date: 'yyyy-MM-dd'}}</span></div>
+            </div>
+            <div layout="row" layout-align="center" class="publication-spacer">
+                <div class="question"><span class="highlight">Website:</span></div>
+                <div class="answer">
+                    <span>
+                        <a href="{{ctrl.pub.website}}"
+                                target="_blank">{{ctrl.pub.website}}
+                        </a>
+                    </span>
+                </div>
+            </div>
+            <div layout="row" layout-align="center" class="publication-spacer">
+                <div class="question"><span class="highlight">Notes:</span></div>
+                <div class="answer"><span>{{ctrl.pub.notes}}</span></div>
+            </div>
+
+        </div>
+    </md-card-content>
+</md-card>

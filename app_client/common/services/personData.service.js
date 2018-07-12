@@ -103,27 +103,30 @@
         var publicationTypes = function () {
             return $http.get('api/list/publication-types');
         };
-
         var communicationTypes = function () {
             return $http.get('api/list/communication-types');
         };
-
+        var projectTypes = function () {
+            return $http.get('api/list/project-types');
+        };
+        var callTypes = function () {
+            return $http.get('api/list/call-types');
+        };
+        var projectPositions = function () {
+            return $http.get('api/list/project-positions');
+        };
         var conferenceTypes = function () {
             return $http.get('api/list/conference-types');
         };
-
         var patentTypes = function () {
             return $http.get('api/list/patent-types');
         };
-
         var patentStatus = function () {
             return $http.get('api/list/patent-status');
         };
-
         var datasetTypes = function () {
             return $http.get('api/list/dataset-types');
         };
-
         var boardTypes = function () {
             return $http.get('api/list/board-types');
         };
@@ -376,6 +379,9 @@
             publicationTypes: publicationTypes,
             communicationTypes: communicationTypes,
             conferenceTypes: conferenceTypes,
+            projectTypes: projectTypes,
+            callTypes: callTypes,
+            projectPositions: projectPositions,
             patentTypes: patentTypes,
             patentStatus: patentStatus,
             datasetTypes: datasetTypes,

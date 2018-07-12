@@ -53,7 +53,7 @@
                 <li class="spacer-top" ng-repeat="(pubNum,work) in currProjects track by $index">
                     <div layout="column" layout-gt-sm="row">
                         <div flex-gt-sm="80">
-                            {{work.start | date : 'yyyy'}}-{{work.end | date : 'yyyy'}} : <b>{{work.title}}</b>, {{work.acronym}}. Ref: {{work.reference}}. Amount: {{work.amount}} €<br>
+                            {{work.start | date : 'yyyy'}}-{{work.end | date : 'yyyy'}} : <b>{{work.title}}</b>, {{work.acronym}}. Ref: {{work.reference}}. Global Amount: {{work.global_amount}} €. Team Amount: {{work.amount}} €<br>
                         </div>
                         <div flex-gt-sm="20" layout="row">
                             <md-button ng-click="showDetailsProject(work)"

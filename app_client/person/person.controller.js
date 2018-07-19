@@ -1,6 +1,6 @@
 (function(){
 /******************************* Controllers **********************************/
-    var personCtrl = function ($scope, $timeout, $mdMedia, $mdDialog,
+    var personCtrl = function ($scope, $timeout, $mdMedia, $mdDialog, $location, $anchorScroll,
                                Upload, personData, publications, authentication) {
 
         var vm = this;
@@ -1054,8 +1054,6 @@
                         project_type: null,
                         call_type_id: null,
                         call_type: null,
-                        other_call_type_id: null,
-                        other_call_type: null,
                         project_areas: [{area:null}],
                         project_funding_entity_id: null,
                         funding_entity_id: null,
@@ -1067,6 +1065,7 @@
                         management_entity_id: null,
                         management_entity_official_name: null,
                         management_entity_short_name: null,
+                        entity_amount: null,
                         other_funding_entity: null,
                         global_amount: null,
                         website: null,
@@ -1081,6 +1080,84 @@
                 current.push(obj);
             } else if (type === 'project_areas') {
                 obj = {area: null};
+                current.push(obj);
+            } else if (type === 'agreements') {
+                if (current.length == 1 && current[0]['id'] === null) {
+                    current[0]['id'] = 'new';
+                } else {
+                    obj = {
+                        id: 'new',
+                        person_id: [{
+                            person_id: vm.currentUser.personID
+                            }],
+                        confidential: null,
+                        title: null,
+                        acronym: null,
+                        reference: null,
+                        agreement_id: null,
+                        agreement_type_id: null,
+                        agreement_type: null,
+                        agreement_areas: [{area:null}],
+                        agreement_partners: [{
+                            partner_id: null,
+                            name: null,
+                            country_id: null
+                            }],
+                        agreement_management_entity_id: null,
+                        management_entity_id: null,
+                        management_entity_official_name: null,
+                        management_entity_short_name: null,
+                        entity_amount: null,
+                        global_amount: null,
+                        website: null,
+                        start: null,
+                        end: null,
+                        notes: null
+                    };
+                    current.push(obj);
+                }
+            } else if (type === 'agreement_people') {
+                obj = {person_id: null, position_id: null, position_name: null};
+                current.push(obj);
+            } else if (type === 'agreement_areas') {
+                obj = {area: null};
+                current.push(obj);
+            } else if (type === 'agreement_partners') {
+                obj = {partner_id: null, name: null, country_id: null};
+                current.push(obj);
+            } else if (type === 'trainings') {
+                if (current.length == 1 && current[0]['id'] === null) {
+                    current[0]['id'] = 'new';
+                } else {
+                    obj = {
+                        id: 'new',
+                        person_id: [{
+                            person_id: vm.currentUser.personID,
+                            role_id: null,
+                            role_name: null
+                            }],
+                        network_name: null,
+                        coordinating_entity: null,
+                        country_id: null,
+                        title: null,
+                        acronym: null,
+                        reference: null,
+                        training_id: null,
+                        training_management_entity_id: null,
+                        management_entity_id: null,
+                        management_entity_official_name: null,
+                        management_entity_short_name: null,
+                        entity_amount: null,
+                        global_amount: null,
+                        website: null,
+                        start: null,
+                        end: null,
+                        notes: null
+                    };
+                    current.push(obj);
+                }
+            } else if (type === 'training_people') {
+                obj = {person_id: null, role_id: null, role_name: null};
                 current.push(obj);
             } else if (type === 'prizes') {
                 if (current.length == 1 && current[0]['id'] === null) {
@@ -2536,6 +2613,7 @@
             return upd;
         }
 
+        /*  Funding */
         vm.initializeFunding = function () {
             vm.sortType='start';
             vm.sortReverse=true;
@@ -2560,6 +2638,20 @@
                 .catch(function (err) {
                     console.log(err);
                 });
+            personData.agreementTypes()
+                .then(function (response) {
+                    vm.agreementTypes = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            personData.trainingRoles()
+                .then(function (response) {
+                    vm.trainingRoles = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
             personData.fundingAgencies()
                 .then(function (response) {
                     vm.fundingAgencies = response.data.result;
@@ -2575,9 +2667,10 @@
                     console.log(err);
                 });
             getProjects();
-            //getAgreements();
-            //getTrainings();
+            getAgreements();
+            getTrainings();
         };
+
         function getProjects(ind) {
             publications.getAllProjects()
                 .then(function (response) {
@@ -2609,10 +2702,6 @@
                         if (vm.originalPersonProjects[id].funding_entity_id === null
                                 && vm.originalPersonProjects[id].other_funding_entity !== null) {
                             vm.originalPersonProjects[id].funding_entity_id = 'other';
-                        }
-                        if (vm.originalPersonProjects[id].call_type_id === null
-                                && vm.originalPersonProjects[id].other_call_type !== null) {
-                            vm.originalPersonProjects[id].call_type_id = 'other';
                         }
                         vm.currentProjects.push(Object.assign({}, vm.originalPersonProjects[id]));
                     }
@@ -2654,12 +2743,16 @@
         };
         vm.renderProjects = function () {
             vm.projectsToShow = [];
+            var projectsID = [];
             if (vm.searchProject.length >2) {
                 for (var el in vm.allProjects) {
                     if (nameMatching(vm.allProjects[el].title,vm.searchProject) !== null
                         || nameMatching(vm.allProjects[el].acronym,vm.searchProject) !== null
                         || nameMatching(vm.allProjects[el].reference,vm.searchProject) !== null) {
-                        vm.projectsToShow.push(vm.allProjects[el]);
+                        if (projectsID.indexOf(vm.allProjects[el].project_id) === -1) {
+                            vm.projectsToShow.push(vm.allProjects[el]);
+                            projectsID.push(vm.allProjects[el].project_id);
+                        }
                     }
                 }
             }
@@ -2692,36 +2785,42 @@
         };
 
         function getAgreements(ind) {
-            publications.getAllPatents()
+            publications.getAllAgreements()
                 .then(function (response) {
-                    vm.allPatents = response.data.result;
-                    for (var id in vm.allPatents) {
-                        vm.allPatents[id]['status_date'] = processDate(vm.allPatents[id]['status_date']);
+                    vm.allAgreements = response.data.result;
+                    for (var id in vm.allAgreements) {
+                        vm.allAgreements[id]['start'] = processDate(vm.allAgreements[id]['start']);
+                        vm.allAgreements[id]['end'] = processDate(vm.allAgreements[id]['end']);
                     }
-                    for (var el in vm.allPatents) {
+                    for (var el in vm.allAgreements) {
                         var p_id = [];
-                        for (var el2 in vm.allPatents[el].person_id) {
-                            if (vm.allPatents[el].person_id[el2] !== null) {
-                                p_id.push(vm.allPatents[el].person_id[el2]);
+                        for (var el2 in vm.allAgreements[el].person_id) {
+                            if (vm.allAgreements[el].person_id[el2] !== null) {
+                                p_id.push(vm.allAgreements[el].person_id[el2]);
                             }
                         }
-                        vm.allPatents[el].person_id = p_id;
+                        vm.allAgreements[el].person_id = p_id;
                     }
                 })
                 .catch(function (err) {
                     console.log(err);
                 });
-            publications.thisPersonPatents(vm.currentUser.personID)
+            publications.thisPersonAgreements(vm.currentUser.personID)
                 .then(function (response) {
-                    vm.originalPersonPatents = response.data.result;
-                    vm.currentPatents = [];
-                    for (var id in vm.originalPersonPatents) {
-                        vm.originalPersonPatents[id]['status_date'] = processDate(vm.originalPersonPatents[id]['status_date']);
-                        vm.currentPatents.push(Object.assign({}, vm.originalPersonPatents[id]));
+                    vm.originalPersonAgreements = response.data.result;
+                    vm.currentAgreements = [];
+                    for (var id in vm.originalPersonAgreements) {
+                        vm.originalPersonAgreements[id]['start'] = processDate(vm.originalPersonAgreements[id]['start']);
+                        vm.originalPersonAgreements[id]['end'] = processDate(vm.originalPersonAgreements[id]['end']);
+                        if (vm.originalPersonAgreements[id].funding_entity_id === null
+                                && vm.originalPersonAgreements[id].other_funding_entity !== null) {
+                            vm.originalPersonAgreements[id].funding_entity_id = 'other';
+                        }
+                        vm.currentAgreements.push(Object.assign({}, vm.originalPersonAgreements[id]));
                     }
 
-                    vm.originalPersonPatents = vm.originalPersonPatents.sort(sorter);
-                    vm.currentPatents = vm.currentPatents.sort(sorter);
+                    vm.originalPersonAgreements = vm.originalPersonAgreements.sort(sorter);
+                    vm.currentAgreements = vm.currentAgreements.sort(sorter);
 
                     if (ind > -1) {
                         vm.updateStatus[ind] = "Updated!";
@@ -2734,37 +2833,97 @@
                     console.log(err);
                 });
         }
+        vm.submitAgreements = function (ind) {
+            vm.updateStatus[ind] = "Updating...";
+            vm.messageType[ind] = 'message-updating';
+            vm.hideMessage[ind] = false;
+
+            // Add yourself to the list of new/update patents
+
+            var data = processDataRows(vm.currentAgreements,vm.originalPersonAgreements,
+                                  'id', 'newAgreement','updateAgreement','deleteAgreement');
+            publications.updateAgreementsPerson(vm.currentUser.personID,data)
+                .then( function () {
+                    getAgreements(ind);
+                },
+                function () {
+                    vm.updateStatus[ind] = "Error!";
+                    vm.messageType[ind] = 'message-error';
+                },
+                function () {}
+                );
+            return false;
+        };
+        vm.renderAgreements = function () {
+            vm.agreementsToShow = [];
+            var agreementsID = [];
+            if (vm.searchAgreement.length >2) {
+                for (var el in vm.allAgreements) {
+                    if (nameMatching(vm.allAgreements[el].title,vm.searchAgreement) !== null
+                        || nameMatching(vm.allAgreements[el].acronym,vm.searchAgreement) !== null
+                        || nameMatching(vm.allAgreements[el].reference,vm.searchAgreement) !== null) {
+                        if (agreementsID.indexOf(vm.allAgreements[el].agreement_id) === -1) {
+                            vm.agreementsToShow.push(vm.allAgreements[el]);
+                            agreementsID.push(vm.allAgreements[el].agreement_id);
+                        }
+                    }
+                }
+            }
+        };
+        vm.addAgreementSearch = function (agreement) {
+            var alreadyExists = false;
+            for (var el in vm.currentAgreements) {
+                if (vm.currentAgreements[el].title == agreement.title
+                    && vm.currentAgreements[el].reference == agreement.reference) {
+                    alreadyExists = true;
+                }
+            }
+            if (!alreadyExists) {
+                agreement.id = 'new association';
+                agreement.person_id.push({
+                            person_id: vm.currentUser.personID});
+                vm.originalPersonAgreements.push(Object.assign({}, agreement));
+                vm.currentAgreements.push(Object.assign({}, agreement));
+            }
+        };
+
         function getTrainings(ind) {
-            publications.getAllPatents()
+            publications.getAllTrainings()
                 .then(function (response) {
-                    vm.allPatents = response.data.result;
-                    for (var id in vm.allPatents) {
-                        vm.allPatents[id]['status_date'] = processDate(vm.allPatents[id]['status_date']);
+                    vm.allTrainings = response.data.result;
+                    for (var id in vm.allTrainings) {
+                        vm.allTrainings[id]['start'] = processDate(vm.allTrainings[id]['start']);
+                        vm.allTrainings[id]['end'] = processDate(vm.allTrainings[id]['end']);
                     }
-                    for (var el in vm.allPatents) {
+                    for (var el in vm.allTrainings) {
                         var p_id = [];
-                        for (var el2 in vm.allPatents[el].person_id) {
-                            if (vm.allPatents[el].person_id[el2] !== null) {
-                                p_id.push(vm.allPatents[el].person_id[el2]);
+                        for (var el2 in vm.allTrainings[el].person_id) {
+                            if (vm.allTrainings[el].person_id[el2] !== null) {
+                                p_id.push(vm.allTrainings[el].person_id[el2]);
                             }
                         }
-                        vm.allPatents[el].person_id = p_id;
+                        vm.allTrainings[el].person_id = p_id;
                     }
                 })
                 .catch(function (err) {
                     console.log(err);
                 });
-            publications.thisPersonPatents(vm.currentUser.personID)
+            publications.thisPersonTrainings(vm.currentUser.personID)
                 .then(function (response) {
-                    vm.originalPersonPatents = response.data.result;
-                    vm.currentPatents = [];
-                    for (var id in vm.originalPersonPatents) {
-                        vm.originalPersonPatents[id]['status_date'] = processDate(vm.originalPersonPatents[id]['status_date']);
-                        vm.currentPatents.push(Object.assign({}, vm.originalPersonPatents[id]));
+                    vm.originalPersonTrainings = response.data.result;
+                    vm.currentTrainings = [];
+                    for (var id in vm.originalPersonTrainings) {
+                        vm.originalPersonTrainings[id]['start'] = processDate(vm.originalPersonTrainings[id]['start']);
+                        vm.originalPersonTrainings[id]['end'] = processDate(vm.originalPersonTrainings[id]['end']);
+                        if (vm.originalPersonTrainings[id].funding_entity_id === null
+                                && vm.originalPersonTrainings[id].other_funding_entity !== null) {
+                            vm.originalPersonTrainings[id].funding_entity_id = 'other';
+                        }
+                        vm.currentTrainings.push(Object.assign({}, vm.originalPersonTrainings[id]));
                     }
 
-                    vm.originalPersonPatents = vm.originalPersonPatents.sort(sorter);
-                    vm.currentPatents = vm.currentPatents.sort(sorter);
+                    vm.originalPersonTrainings = vm.originalPersonTrainings.sort(sorter);
+                    vm.currentTrainings = vm.currentTrainings.sort(sorter);
 
                     if (ind > -1) {
                         vm.updateStatus[ind] = "Updated!";
@@ -2777,7 +2936,72 @@
                     console.log(err);
                 });
         }
+        vm.submitTrainings = function (ind) {
+            vm.updateStatus[ind] = "Updating...";
+            vm.messageType[ind] = 'message-updating';
+            vm.hideMessage[ind] = false;
 
+            // Add yourself to the list of new/update patents
+
+            var data = processDataRows(vm.currentTrainings,vm.originalPersonTrainings,
+                                  'id', 'newTraining','updateTraining','deleteTraining');
+            publications.updateTrainingsPerson(vm.currentUser.personID,data)
+                .then( function () {
+                    getTrainings(ind);
+                },
+                function () {
+                    vm.updateStatus[ind] = "Error!";
+                    vm.messageType[ind] = 'message-error';
+                },
+                function () {}
+                );
+            return false;
+        };
+        vm.renderTrainings = function () {
+            vm.trainingsToShow = [];
+            var trainingsID = [];
+            if (vm.searchTraining.length >2) {
+                for (var el in vm.allTrainings) {
+                    if (nameMatching(vm.allTrainings[el].title,vm.searchTraining) !== null
+                        || nameMatching(vm.allTrainings[el].network_name,vm.searchTraining) !== null
+                        || nameMatching(vm.allTrainings[el].acronym,vm.searchTraining) !== null
+                        || nameMatching(vm.allTrainings[el].reference,vm.searchTraining) !== null) {
+                        if (trainingsID.indexOf(vm.allTrainings[el].training_id) === -1) {
+                            vm.trainingsToShow.push(vm.allTrainings[el]);
+                            trainingsID.push(vm.allTrainings[el].training_id);
+                        }
+                    }
+                }
+            }
+        };
+        vm.addTrainingSearch = function (training) {
+            var alreadyExists = false;
+            for (var el in vm.currentTrainings) {
+                if (vm.currentTrainings[el].title == training.title
+                    && vm.currentTrainings[el].reference == training.reference) {
+                    alreadyExists = true;
+                }
+            }
+            if (!alreadyExists) {
+                training.id = 'new association';
+                training.person_id.push({
+                            person_id: vm.currentUser.personID});
+                vm.originalPersonTrainings.push(Object.assign({}, training));
+                vm.currentTrainings.push(Object.assign({}, training));
+            }
+        };
+
+
+
+
+
+
+
+        vm.gotoSection = function (place) {
+            $anchorScroll(place);
+        };
+
+        /*  Other productivity */
         vm.initializePatents = function () {
             vm.sortType='status_date';
             vm.sortReverse=true;
@@ -4488,6 +4712,36 @@
             }
         };
     };
+    var percentageValidate = function () {
+        return {
+            require: 'ngModel',
+            link: function (scope, elm, attrs, ctrl) {
+                var filterInt = function(value) {
+                    if (/^(\-|\+)?([0-9]+|Infinity)$/.test(value)) {
+                        return Number(value);
+                    }
+                    return NaN;
+                };
+                ctrl.$validators.percentageValidate = function(modelValue, viewValue) {
+                    if (viewValue == null) {
+                        ctrl.$setValidity('percentage', true);
+                        return true;
+                    } else {
+                        if (isNaN(filterInt(viewValue))) {
+                            ctrl.$setValidity('percentage', false);
+                            return false;
+                        } else if (filterInt(viewValue)<0 || filterInt(viewValue)>100) {
+                            ctrl.$setValidity('percentage', false);
+                            return false;
+                        } else {
+                            ctrl.$setValidity('percentage', true);
+                            return true;
+                        }
+                    }
+                };
+            }
+        };
+    };
     var integerValidate = function () {
         return {
             require: 'ngModel',
@@ -4557,7 +4811,7 @@
         .directive('personBoards', personBoards)
         .directive('personProjects', personProjects)
         .directive('personAgreements', personAgreements)
-        .directive('personAgreements', personTrainings)
+        .directive('personTrainings', personTrainings)
         .directive('personDatasets', personDatasets)
         .directive('personOutreach', personOutreach)
         .directive('personPatents', personPatents)
@@ -4567,6 +4821,7 @@
 
         .directive('postalCodeValidate', postalCodeValidate)
         .directive('dedicationValidate', dedicationValidate)
+        .directive('percentageValidate', percentageValidate)
         .directive('integerValidate', integerValidate)
 
         .controller('personCtrl',  personCtrl)

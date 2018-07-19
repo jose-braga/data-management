@@ -1,26 +1,26 @@
 <md-card>
     <md-card-title>
         <md-card-title-text>
-            <span class="md-headline">Projects reported by team members</span>
-            <span> Note 1: Not al of these should be associated with your lab, as members might have added projects they obtained while on other labs/institutions.</span>
-            <span> Note 2: A missing project requires that you or a team member adds it to his/her personal projects in 'Myself'</span>
+            <span class="md-headline">Training networks reported by team members</span>
+            <span> Note 1: Not al of these should be associated with your lab, as members might have added networks while on other labs/institutions.</span>
+            <span> Note 2: A missing network requires that you or a team member adds it to his/her personal networks  in 'Myself'</span>
         </md-card-title-text>
     </md-card-title>
     <md-card-content layout="column">
         <div class="search-header spacer-top space-left">
-            <span>Lab members projects</span>
+            <span>Lab members training networks</span>
         </div>
         <div layout="row" layout-align="none center">
             <span class="spacer-top-smaller">Filter:</span>
             <md-input-container class="input-row-longer">
                 <label>From year</label>
-                <input ng-model="fromYearWork" ng-change="renderProjects('new')">
+                <input ng-model="fromYearWork" ng-change="renderTrainings('new')">
             </md-input-container>
             <md-input-container class="input-row-longer">
                 <label>To year</label>
-                <input ng-model="toYearWork" ng-change="renderProjects('new')">
+                <input ng-model="toYearWork" ng-change="renderTrainings('new')">
             </md-input-container>
-            <md-button class="s48" ng-click="exportProjectsSpreadsheet()"
+            <md-button class="s48" ng-click="exportTrainingsSpreadsheet()"
                         aria-label="Export selection"
                         class="md-icon-button interaction-button">
                 <md-tooltip>Export filtered results to spreadsheet</md-tooltip>
@@ -28,13 +28,13 @@
                         class="s48"></md-icon>
             </md-button>
         </div>
-        <form flex novalidate name="membersProjectsForm"
-                ng-submit="membersProjectsForm.$valid && submitMembersProjects(forms['membersWork'])">
+        <form flex novalidate name="membersTrainingsForm"
+                ng-submit="membersTrainingsForm.$valid && submitMembersTrainings(forms['membersWork'])">
             <div layout="row" class="paginator spacer-bottom">
                 <md-input-container class="input-no-margin wider">
                     <label>Results/page</label>
                     <md-select ng-model="pageSize"
-                            md-on-close="renderProjects('new')"
+                            md-on-close="renderTrainings('new')"
                             aria-label="pageSize"
                             name="pageSize">
                             <md-option ng-value="10">10</md-option>
@@ -45,25 +45,25 @@
                 <md-input-container class="input-no-margin">
                     <label>Page</label>
                     <md-select ng-model="currentPage"
-                            md-on-close="renderProjects('page')"
+                            md-on-close="renderTrainings('page')"
                             aria-label="currentPage"
                             name="currentPage">
                             <md-option ng-repeat="page in pages" ng-value="page">{{page}}</md-option>
                     </md-select>
                 </md-input-container>
             </div>
-            This list contains <strong>{{selectedProjects.length}} projects</strong>.
+            This list contains <strong>{{selectedTrainings.length}} training networks</strong>.
             <ul>
-                <li class="spacer-top" ng-repeat="(pubNum,work) in currProjects track by $index">
+                <li class="spacer-top" ng-repeat="(pubNum,work) in currTrainings track by $index">
                     <div layout="column" layout-gt-sm="row">
                         <div flex-gt-sm="80">
-                            {{work.start | date : 'yyyy'}}-{{work.end | date : 'yyyy'}} : <b>{{work.title}}</b>, {{work.acronym}}. Ref: {{work.reference}}.
+                            {{work.start | date : 'yyyy'}}-{{work.end | date : 'yyyy'}} : <b>{{work.network_name}}</b> - {{work.title}}, {{work.acronym}}. Ref: {{work.reference}}.
                         </div>
                         <div flex-gt-sm="20" layout="row">
-                            <md-button ng-click="addProject(work)"
-                                        aria-label="Add project"
+                            <md-button ng-click="addTraining(work)"
+                                        aria-label="Add training"
                                         class="md-icon-button interaction-button">
-                                <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                                  <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
                             </md-button>
                         </div>
                     </div>
@@ -75,7 +75,7 @@
                 <md-input-container class="input-no-margin wider">
                     <label>Results/page</label>
                     <md-select ng-model="pageSize"
-                            md-on-close="renderProjects('new')"
+                            md-on-close="renderTrainings('new')"
                             aria-label="pageSize"
                             name="pageSize">
                             <md-option ng-value="10">10</md-option>
@@ -86,7 +86,7 @@
                 <md-input-container class="input-no-margin">
                     <label>Page</label>
                     <md-select ng-model="currentPage"
-                            md-on-close="renderProjects('page')"
+                            md-on-close="renderTrainings('page')"
                             aria-label="currentPage"
                             name="currentPage">
                             <md-option ng-repeat="page in pages" ng-value="page">{{page}}</md-option>
@@ -94,40 +94,24 @@
                 </md-input-container>
             </div>
 
-            <!-- Projects to be added to Lab -->
-
+            <!-- Trainings to be added to Lab -->
 
             <div class="search-header spacer-top space-left">
-                <span>Projects to be added:</span>
+                <span>Training networks to be added:</span>
             </div>
             <ul>
-                <li class="spacer-top" ng-repeat="(pubNum,work) in newLabProjects track by $index">
+                <li class="spacer-top" ng-repeat="(pubNum,work) in newLabTrainings track by $index">
                     <div layout="column" layout-gt-sm="row">
                         <div flex-gt-sm="80" >
-                            {{work.start | date : 'yyyy'}}-{{work.end | date : 'yyyy'}} : <b>{{work.title}}</b>, {{work.acronym}}. Ref: {{work.reference}}<br>
+                            {{work.start | date : 'yyyy'}}-{{work.end | date : 'yyyy'}} : <b>{{work.network_name}}</b> - {{work.title}}, {{work.acronym}}. Ref: {{work.reference}}<br>
                             <md-input-container>
                                 <label>Group amount (€)</label>
-                                <input type="number" required ng-model="work.amount"
+                                <input type="number" ng-model="work.amount"
                                         name="work_amount[num]" max="{{work.entity_amount}}">
-                            </md-input-container>
-                            <md-input-container>
-                                <label>% hiring postdoc</label>
-                                <input required  ng-model="work.percentage_hire_postdoc"
-                                        name="work_postdoc[num]" percentage-validate>
-                            </md-input-container>
-                            <md-input-container>
-                                <label>% hiring PhD students</label>
-                                <input required ng-model="work.percentage_hire_student"
-                                        name="work_student[num]" percentage-validate>
-                            </md-input-container>
-                            <md-input-container>
-                                <label>% hiring other</label>
-                                <input required ng-model="work.percentage_hire_other"
-                                        name="work_other[num]" percentage-validate>
                             </md-input-container>
                         </div>
                         <div flex-gt-sm="20" layout="row">
-                            <md-button ng-click="removeRow(newLabProjects,$index)"
+                            <md-button ng-click="removeRow(newLabTrainings,$index)"
                                         aria-label="Details"
                                         class="md-icon-button interaction-button">
                                 <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
@@ -140,7 +124,7 @@
 
             <div class="spacer-top" layout="column" layout-gt-sm="row" layout-align="none center">
                 <md-button type="submit"
-                    class="button-small md-raised md-primary">Add projects</md-button>
+                    class="button-small md-raised md-primary">Add training networks</md-button>
                 <div class="status-message" ng-hide="hideMessage[forms['membersWork']]">
                     <span class="message" ng-class="messageType[forms['membersWork']]">
                         {{updateStatus[forms['membersWork']]}}

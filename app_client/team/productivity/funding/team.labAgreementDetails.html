@@ -1,13 +1,13 @@
 <md-card>
     <md-card-title>
         <md-card-title-text>
-            <span class="md-headline">Project details</span>
+            <span class="md-headline">Private agreement details</span>
         </md-card-title-text>
     </md-card-title>
     <md-card-content layout="column">
         <div layout="column" flex>
             <div layout="row" layout-align="center" class="publication-spacer">
-                <div class="question"><span class="highlight">Project title:</span></div>
+                <div class="question"><span class="highlight">Agreement title:</span></div>
                 <div class="answer"><span>{{ctrl.pub.title}}</span></div>
             </div>
             <div layout="row" layout-align="center" class="publication-spacer">
@@ -19,14 +19,21 @@
                 <div class="answer"><span>{{ctrl.pub.reference}}</span></div>
             </div>
             <div layout="row" layout-align="center" class="publication-spacer">
-                <div class="question"><span class="highlight">Project type:</span></div>
-                <div class="answer"><span>{{ctrl.pub.project_type}}</span></div>
+                <div class="question"><span class="highlight">Agreement type:</span></div>
+                <div class="answer"><span>{{ctrl.pub.agreement_type}}</span></div>
             </div>
-            <div layout="row" layout-align="center" class="publication-spacer">
-                <div class="question"><span class="highlight">Call type:</span></div>
-                <div class="answer"><span>{{ctrl.pub.call_type}}</span></div>
+            <div layout="row" layout-align="none center">
+                <div class="question"><span class="highlight">Confidential:</span></div>
+                <div class="answer">
+                    <span>
+                        <md-switch ng-model="ctrl.pub.confidential"
+                                    ng-true-value="1" ng-false-value="0" ng-disabled="true"
+                                    class="md-warn" >
+                        </md-switch>
+                    </span>
+                </div>
             </div>
-            <div layout="row" layout-align="center" class="publication-spacer">
+            <div layout="row" layout-align="none center" class="publication-spacer">
                 <div class="question"><span class="highlight">LAQV/UCIBIO people involved:</span></div>
                 <div class="answer">
                     <div ng-repeat="person in ctrl.pub.person_id">
@@ -34,18 +41,21 @@
                     </div>
                 </div>
             </div>
-            <div layout="row" layout-align="center" class="publication-spacer">
-                <div class="question"><span class="highlight">Project areas:</span></div>
+            <div layout="row" layout-align="none center" class="publication-spacer">
+                <div class="question"><span class="highlight">Agreement areas:</span></div>
                 <div class="answer">
-                    <div ng-repeat="parea in ctrl.pub.project_areas">
+                    <div ng-repeat="parea in ctrl.pub.agreement_areas">
                         <span>{{parea.area}}<br></span>
                     </div>
                 </div>
             </div>
-            <div layout="row" layout-align="center" class="publication-spacer">
-                <div class="question"><span class="highlight">Funding agency:</span></div>
-                <div ng-if="ctrl.pub.funding_entity_id != 'other'" class="answer"><span>{{ctrl.pub.funding_agency_official_name}}</span></div>
-                <div ng-if="ctrl.pub.funding_entity_id == 'other'" class="answer"><span>{{ctrl.pub.other_funding_entity}}</span></div>
+            <div layout="row" layout-align="none center" class="publication-spacer">
+                <div class="question"><span class="highlight">Partners:</span></div>
+                <div class="answer">
+                    <div ng-repeat="partner in ctrl.pub.agreement_partners">
+                        <span>{{partner.name}}, {{partner.country}}<br></span>
+                    </div>
+                </div>
             </div>
             <div layout="row" layout-align="center" class="publication-spacer">
                 <div class="question"><span class="highlight">Global amount (€):</span></div>

@@ -6260,6 +6260,12 @@ module.exports.listOf = function (req, res, next) {
     } else if (listOf === 'call-types') {
         querySQL = 'SELECT * FROM call_types;';
         getQueryResponse(querySQL, req, res, next);
+    } else if (listOf === 'agreement-types') {
+        querySQL = 'SELECT * FROM private_agreement_types;';
+        getQueryResponse(querySQL, req, res, next);
+    } else if (listOf === 'training-roles') {
+        querySQL = 'SELECT * FROM training_network_roles;';
+        getQueryResponse(querySQL, req, res, next);
     } else if (listOf === 'project-positions') {
         querySQL = 'SELECT * FROM person_project_positions;';
         getQueryResponse(querySQL, req, res, next);

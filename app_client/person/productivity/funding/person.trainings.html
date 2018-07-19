@@ -1,109 +1,192 @@
 <md-card>
     <md-card-title>
         <md-card-title-text>
-            <span class="md-headline">Patents</span>
-            <span class="md-subhead">Search first to check if patent is already in database.</span>
+            <span class="md-headline">Training networks</span>
+            <span class="md-subhead">Search first to check if training network is already in database.</span>
         </md-card-title-text>
     </md-card-title>
-    <form novalidate flex name="patentsForm"
-        ng-submit="patentsForm.$valid && vm.submitPatents(vm.forms['personPatents'])">
+    <form novalidate flex name="trainingsForm"
+        ng-submit="trainingsForm.$valid && vm.submitTrainings(vm.forms['personTrainings'])">
         <md-card-content layout="column" flex>
             <div layout="row" layout-align="none center" flex>
                 <ng-md-icon icon="search" size="24"></ng-md-icon>
                 <md-input-container flex>
-                    <label>Search patent titles</label>
-                    <input ng-model="vm.searchPatent" ng-change="vm.renderPatents()">
+                    <label>Search Training Network names, titles, references or acronyms</label>
+                    <input ng-model="vm.searchTraining" ng-change="vm.renderTrainings()">
                 </md-input-container>
             </div>
             <ul>
-                 <li ng-repeat="patent in vm.patentsToShow">
-                    {{patent.authors_raw}} - <b>{{patent.title}}</b>
-                    <md-button ng-click="vm.addPatentSearch(patent)"
+                 <li ng-repeat="training in vm.trainingsToShow">
+                    {{training.start | date: 'yyyy'}} - {{training.end | date: 'yyyy'}} : <b>{{training.network_name}}</b> - {{training.title}}, {{training.acronym}}. Ref: {{training.reference}}
+                    <md-button ng-click="vm.addTrainingSearch(training)"
                             aria-label="Add more" class="md-icon-button interaction-button">
                             <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
                     </md-button>
                 </li>
             </ul>
-            <div ng-if="!vm.nothingToShow(vm.currentPatents,'id')" layout="column">
-                <div ng-repeat="(num,patent) in vm.currentPatents track by $index"
+            <div ng-if="!vm.nothingToShow(vm.currentTrainings,'id')" layout="column">
+                <div ng-repeat="(num, training) in vm.currentTrainings track by $index"
                     layout="column">
-                    <fieldset class="spacer">
+                    <fieldset class="spacer-top">
+                        <legend>Training {{num + 1}}: {{training.reference}}</legend>
+                        <div layout="column">
+                            <fieldset>
+                                <legend>LAQV/UCIBIO people associated</legend>
+                                <div ng-repeat="(npers,person_id) in training.person_id track by $index"
+                                        layout="column" layout-gt-sm="row">
+                                    <md-input-container
+                                        ng-controller="PeopleSelectCtrl as peop">
+                                        <label>Person</label>
+                                        <md-select ng-model="person_id.person_id"
+                                                md-on-close="peop.searchTerm=''"
+                                                name="training_units_person[num]">
+                                            <div class="anchored">
+                                                <md-select-header class="select-search-header">
+                                                    <input ng-model="peop.searchTerm" type="search"
+                                                      placeholder="Search authors"
+                                                      class="md-text select-search-box">
+                                                </md-select-header>
+                                            </div>
+                                            <div class="scrollable">
+                                                <md-optgroup label="people">
+                                                    <md-option ng-repeat="person in peop.people | filter:peop.searchTerm"
+                                                        ng-value="person.id">{{person.colloquial_name}}</md-option>
+                                                </md-optgroup>
+                                            </div>
+                                        </md-select>
+                                    </md-input-container>
+                                    <md-input-container>
+                                        <label>Role</label>
+                                        <md-select ng-model="person_id.role_id" name="training_role[num]">
+                                           <md-option ng-repeat="type in vm.trainingRoles"
+                                                ng-value="type.id">{{type.name}}</md-option>
+                                        </md-select>
+                                    </md-input-container>
+                                    <div layout="row"  layout-align="start center">
+                                        <span class="highlight"><h5>Remove person:</h5></span>
+                                        <md-button ng-click="vm.removeRows(training.person_id,npers)"
+                                                aria-label="Remove"
+                                                class="md-icon-button interaction-button">
+                                            <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
+                                        </md-button>
+                                        <span ng-if="$last" class="highlight"><h5>Add person:</h5></span>
+                                        <md-button ng-if="$last" ng-click="vm.addRows(training.person_id, 'training_people')"
+                                                aria-label="Add more" class="md-icon-button interaction-button">
+                                            <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                                        </md-button>
+                                    </div>
+                                </div>
+                            </fieldset>
+                        </div>
                         <div layout="column" layout-gt-sm="row">
-                            <md-input-container>
-                                <label>Patent type</label>
-                                <md-select ng-model="patent.patent_type_id" name="patent_type[num]">
-                                   <md-option ng-repeat="type in vm.patentTypes"
-                                        ng-value="type.id">{{type.name_en}}</md-option>
-                                </md-select>
-                            </md-input-container>
-                            <md-input-container>
-                                <label>Status</label>
-                                <md-select ng-model="patent.patent_status_id" name="patent_status[num]">
-                                   <md-option ng-repeat="type in vm.patentStatus"
-                                        ng-value="type.id">{{type.name_en}}</md-option>
-                                </md-select>
-                            </md-input-container>
-                            <md-input-container class="input-row-longer">
-                                <label>Date submission</label>
-                                <md-datepicker md-current-view="year"
-                                        ng-model="patent.status_date"
-                                        name="patent_date[num]" md-placeholder="Enter date"></md-datepicker>
+                            <md-input-container flex>
+                                <label>Network name</label>
+                                <input required ng-model="training.network_name"
+                                        name="training_name[num]">
                             </md-input-container>
                         </div>
-                        <div layout="column">
+                        <div layout="column" layout-gt-sm="row">
+                            <md-input-container flex>
+                                <label>Title</label>
+                                <input required ng-model="training.title"
+                                        name="training_title[num]">
+                            </md-input-container>
+                        </div>
+                        <div layout="column" layout-gt-sm="row">
                             <md-input-container>
-                                <label>Authors (all, text)</label>
-                                <input required ng-model="patent.authors_raw"
-                                        name="patent_authors[num]">
+                                <label>Acronym</label>
+                                <input required ng-model="training.acronym"
+                                        name="training_acronym[num]">
+                            </md-input-container>
+                            <md-input-container>
+                                <label>Reference</label>
+                                <input required ng-model="training.reference"
+                                        name="training_reference[num]">
+                            </md-input-container>
+                        </div>
+                        <div layout="column" layout-gt-sm="row">
+                            <md-input-container>
+                                <label>Coordinating Entity</label>
+                                <input required ng-model="training.coordinating_entity"
+                                        name="training_coordinating[num]">
                             </md-input-container>
                             <md-input-container
-                                ng-controller="PeopleSelectCtrl as peop">
-                                <label>From which these are LAQV/UCIBIO: </label>
-                                <md-select ng-model="patent.person_id" multiple
-                                        md-on-close="peop.searchTerm=''"
-                                        name="patent_units_authors[num]">
+                                class="search-box select-container input-row"
+                                ng-controller="CountrySelectCtrl as count">
+                                <label>Country</label>
+                                <md-select ng-model="training.country_id">
                                     <div class="anchored">
                                         <md-select-header class="select-search-header">
-                                            <input ng-model="peop.searchTerm" type="search"
-                                              placeholder="Search authors"
+                                            <input ng-model="count.searchTerm" type="search"
+                                              placeholder="Search your countries"
                                               class="md-text select-search-box">
                                         </md-select-header>
                                     </div>
                                     <div class="scrollable">
-                                        <md-optgroup label="people">
-                                            <md-option ng-repeat="person in peop.people | filter:peop.searchTerm"
-                                                ng-value="person.id">{{person.colloquial_name}}</md-option>
+                                        <md-optgroup label="countries">
+                                            <md-option ng-repeat="country in count.countries | filter:count.searchTerm"
+                                                ng-value="country.country_id">{{country.name}}</md-option>
                                         </md-optgroup>
                                     </div>
                                 </md-select>
                             </md-input-container>
-                            <md-input-container>
-                                <label>Patent title</label>
-                                <input required ng-model="patent.title"
-                                        name="patent_title[num]">
-                            </md-input-container>
                         </div>
                         <div layout="column" layout-gt-sm="row">
                             <md-input-container>
-                                <label>Patent Reference</label>
-                                <input ng-model="patent.reference1"
-                                        name="patent_ref1[num]">
+                                <label>Global amount (€)</label>
+                                <input type="number" ng-model="training.global_amount"
+                                        name="prize_amount[num]">
+                            </md-input-container>
+                            <md-input-container>
+                                <label>Management entity</label>
+                                <md-select ng-model="training.management_entity_id" name="training_management_entity[num]">
+                                    <md-option ng-repeat="type in vm.managementEntities"
+                                        ng-value="type.id">{{type.short_name}} - {{type.official_name}}</md-option>
+                                </md-select>
+                            </md-input-container>
+                            <md-input-container>
+                                <label>Entity amount (€)</label>
+                                <input type="number" ng-model="training.entity_amount"
+                                        name="prize_amount[num]" max="{{training.global_amount}}">
+                            </md-input-container>
+                        </div>
+                        <div layout="column" layout-gt-sm="row">
+                            <md-input-container class="input-row-longer">
+                                <label>Date start</label>
+                                <md-datepicker md-current-view="year"
+                                        ng-model="training.start"
+                                        name="training_start[num]" md-placeholder="Enter date"></md-datepicker>
+                            </md-input-container>
+                            <md-input-container class="input-row-longer">
+                                <label>Date end</label>
+                                <md-datepicker md-current-view="year"
+                                        ng-model="training.end"
+                                        name="training_end[num]" md-placeholder="Enter date"></md-datepicker>
+                            </md-input-container>
+                        </div>
+                        <div layout="column" layout-gt-sm="row">
+                            <md-input-container flex>
+                                <label>Website</label>
+                                <input required ng-model="training.website"
+                                        name="training_website[num]">
                             </md-input-container>
                         </div>
                         <div layout="column">
-                            <md-input-container  class="md-block">
-                                <label>Description</label>
-                                <textarea ng-model="patent.description"
-                                        md-maxlength="1000" rows="2"
-                                        name="patent_description[num]"></textarea>
+                            <md-input-container class="md-block">
+                                <label>Notes</label>
+                                <textarea ng-model="training.notes"
+                                        md-maxlength="500" rows="2"
+                                        name="training_notes[num]"></textarea>
                             </md-input-container>
-                            <div layout="row" layout-align="end center">
-                                <md-button ng-click="vm.removeRows(vm.currentPatents,$index)"
+                            <div layout="row" layout-align="start center">
+                                <span class="highlight"><h5>Remove your association to training:</h5></span>
+                                <md-button ng-click="vm.removeRows(vm.currentTrainings,$index)"
                                         aria-label="Remove"
                                         class="md-icon-button interaction-button">
                                     <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
                                 </md-button>
-                                <md-button ng-if="$last" ng-click="vm.addRows(vm.currentPatents, 'patents')"
+                                <span ng-if="$last" class="highlight"><h5>Add private training:</h5></span>
+                                <md-button ng-if="$last" ng-click="vm.addRows(vm.currentTrainings, 'trainings')"
                                         aria-label="Add more" class="md-icon-button interaction-button">
                                     <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
                                 </md-button>
@@ -113,9 +196,9 @@
                     </fieldset>
                 </div>
             </div>
-            <div ng-if="vm.nothingToShow(vm.currentPatents,'id')" layout="column">
+            <div ng-if="vm.nothingToShow(vm.currentTrainings,'id')" layout="column">
                  No data, press + to add
-                <md-button ng-click="vm.addRows(vm.currentPatents, 'patents')"
+                <md-button ng-click="vm.addRows(vm.currentTrainings, 'trainings')"
                         aria-label="Add more" class="md-icon-button interaction-button">
                     <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
                 </md-button>
@@ -123,9 +206,9 @@
             <div layout="column" layout-gt-sm="row" layout-align="none center">
                 <md-button type="submit"
                     class="button-small md-raised md-primary">Update</md-button>
-                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personPatents']]">
-                    <span class="message" ng-class="vm.messageType[vm.forms['personPatents']]">
-                        {{vm.updateStatus[vm.forms['personPatents']]}}
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personTrainings']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['personTrainings']]">
+                        {{vm.updateStatus[vm.forms['personTrainings']]}}
                     </span>
                 </div>
             </div>

@@ -17,7 +17,7 @@
             </div>
             <ul>
                  <li ng-repeat="project in vm.projectsToShow">
-                    {{project.start | date: 'yyyy'}} - {{project.end | date: 'yyyy'}} : <b>{{project.title}}, {{project.acronym}}. Ref: {{project.reference}}</b>
+                    {{project.start | date: 'yyyy'}} - {{project.end | date: 'yyyy'}} : <b>{{project.title}}</b>, {{project.acronym}}. Ref: {{project.reference}}
                     <md-button ng-click="vm.addProjectSearch(project)"
                             aria-label="Add more" class="md-icon-button interaction-button">
                             <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
@@ -108,18 +108,10 @@
                             <md-input-container>
                                 <label>Call type</label>
                                 <md-select ng-model="project.call_type_id" name="project_call_type[num]">
-                                   <md-option ng-value="'other'">Other</md-option>
                                    <md-option ng-repeat="type in vm.callTypes"
                                         ng-value="type.id">{{type.name}}</md-option>
                                 </md-select>
                             </md-input-container>
-                            <div ng-if="project.call_type_id == 'other'" layout="column" layout-gt-sm="row">
-                                <md-input-container>
-                                    <label>Other call type</label>
-                                    <input required ng-model="project.other_call_type"
-                                            name="project_other_call_type[num]">
-                                </md-input-container>
-                            </div>
                         </div>
                         <div flex>
                             <fieldset layout="row" flex>
@@ -146,11 +138,6 @@
 
                         <div layout="column" layout-gt-sm="row">
                             <md-input-container>
-                                <label>Global amount (€)</label>
-                                <input type="number" required ng-model="project.global_amount"
-                                        name="prize_amount[num]">
-                            </md-input-container>
-                            <md-input-container>
                                 <label>Funding agency</label>
                                 <md-select ng-model="project.funding_entity_id" name="project_funding_entity[num]">
                                     <md-option ng-value="'other'">Other</md-option>
@@ -166,11 +153,21 @@
                                 </md-input-container>
                             </div>
                             <md-input-container>
+                                <label>Global amount (€)</label>
+                                <input type="number" required ng-model="project.global_amount"
+                                        name="prize_amount[num]">
+                            </md-input-container>
+                            <md-input-container>
                                 <label>Management entity</label>
                                 <md-select ng-model="project.management_entity_id" name="project_management_entity[num]">
                                     <md-option ng-repeat="type in vm.managementEntities"
                                         ng-value="type.id">{{type.short_name}} - {{type.official_name}}</md-option>
                                 </md-select>
+                            </md-input-container>
+                            <md-input-container>
+                                <label>Entity amount (€)</label>
+                                <input type="number" required ng-model="project.entity_amount"
+                                        name="prize_amount[num]" max="{{project.global_amount}}">
                             </md-input-container>
                         </div>
                         <div layout="column" layout-gt-sm="row">
@@ -198,7 +195,7 @@
                             <md-input-container class="md-block">
                                 <label>Notes</label>
                                 <textarea ng-model="project.notes"
-                                        md-maxlength="1000" rows="2"
+                                        md-maxlength="500" rows="2"
                                         name="project_notes[num]"></textarea>
                             </md-input-container>
                             <div layout="row" layout-align="start center">

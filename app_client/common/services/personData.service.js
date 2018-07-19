@@ -112,8 +112,14 @@
         var callTypes = function () {
             return $http.get('api/list/call-types');
         };
+        var agreementTypes = function () {
+            return $http.get('api/list/agreement-types');
+        };
         var projectPositions = function () {
             return $http.get('api/list/project-positions');
+        };
+        var trainingRoles = function () {
+            return $http.get('api/list/training-roles');
         };
         var conferenceTypes = function () {
             return $http.get('api/list/conference-types');
@@ -381,7 +387,9 @@
             conferenceTypes: conferenceTypes,
             projectTypes: projectTypes,
             callTypes: callTypes,
+            agreementTypes: agreementTypes,
             projectPositions: projectPositions,
+            trainingRoles: trainingRoles,
             patentTypes: patentTypes,
             patentStatus: patentStatus,
             datasetTypes: datasetTypes,

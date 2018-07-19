@@ -150,8 +150,28 @@
                     <md-tab label='Funding' md-on-select="vm.initializeFunding()">
                         <md-content>
                             <div layout-padding>
-                                <person-projects></person-projects>
-                                <!-- <person-agreements></person-agreements> -->
+                                <div style="padding-left: 20px;">
+                                    There are 3 sections in this tab:
+                                    <ol>
+                                        <li><a ng-click="vm.gotoSection('projects-card')" href="" >Projects</a></li>
+                                        <li><a ng-click="vm.gotoSection('agreements-card')" href="">Agreements with private entities</a></li>
+                                        <li><a ng-click="vm.gotoSection('trainings-card')" href="">Training networks</a></li>
+                                    </ol>
+                                </div>
+                                <div id="projects-card">
+                                    <person-projects></person-projects>
+                                </div>
+                                <div id="agreements-card">
+                                    <person-agreements></person-agreements>
+                                </div>
+                                <div id="trainings-card">
+                                    <person-trainings></person-trainings>
+                                </div>
+                                <div id="dummy-card" style="height: 400px;">
+                                    <!-- WORKAROUND: misbehavior of $anchorScroll with md-tabs:
+                                        https://github.com/angular/material/issues/5446
+                                    -->
+                                </div>
                                 <!-- <person-trainings></person-trainings> -->
                             </div>
                         </md-content>

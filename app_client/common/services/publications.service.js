@@ -346,6 +346,111 @@
             );
         };
 
+        var getAllAgreements = function () {
+            return $http.get('api/agreements/all',
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var thisPersonAgreements = function (personID) {
+            return $http.get('api/agreements/person/' + personID,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var updateAgreementsPerson = function (personID, data) {
+            return $http.put('api/agreements/person/' + personID, data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var thisTeamAgreements = function (groupID, teamID) {
+            return $http.get('api/agreements/team/' + groupID + '/' + teamID,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var thisMembersAgreements = function (groupID, teamID) {
+            return $http.get('api/agreements/team/' + groupID + '/' + teamID + '/members',
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var addMembersAgreements = function (groupID, teamID, data) {
+            return $http.put('api/agreements/team/' + groupID + '/' + teamID, data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var removeAgreementsTeam = function (groupID, teamID, data) {
+            return $http.put('api/agreements/team/' + groupID + '/' + teamID + '/delete', data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+
+
+
+        var getAllTrainings = function () {
+            return $http.get('api/trainings/all',
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var thisPersonTrainings = function (personID) {
+            return $http.get('api/trainings/person/' + personID,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var updateTrainingsPerson = function (personID, data) {
+            return $http.put('api/trainings/person/' + personID, data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var thisTeamTrainings = function (groupID, teamID) {
+            return $http.get('api/trainings/team/' + groupID + '/' + teamID,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var thisMembersTrainings = function (groupID, teamID) {
+            return $http.get('api/trainings/team/' + groupID + '/' + teamID + '/members',
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var addMembersTrainings = function (groupID, teamID, data) {
+            return $http.put('api/trainings/team/' + groupID + '/' + teamID, data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var removeTrainingsTeam = function (groupID, teamID, data) {
+            return $http.put('api/trainings/team/' + groupID + '/' + teamID + '/delete', data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+
+
+
+
         var thisTeamPatents = function (groupID, teamID) {
             return $http.get('api/patents/team/' + groupID + '/' + teamID,
                 {
@@ -598,7 +703,23 @@
             thisTeamProjects: thisTeamProjects,
             thisMembersProjects: thisMembersProjects,
             addMembersProjects: addMembersProjects,
-            removeProjectsTeam: removeProjectsTeam
+            removeProjectsTeam: removeProjectsTeam,
+
+            getAllAgreements: getAllAgreements,
+            thisPersonAgreements: thisPersonAgreements,
+            updateAgreementsPerson: updateAgreementsPerson,
+            thisTeamAgreements: thisTeamAgreements,
+            thisMembersAgreements: thisMembersAgreements,
+            addMembersAgreements: addMembersAgreements,
+            removeAgreementsTeam: removeAgreementsTeam,
+
+            getAllTrainings: getAllTrainings,
+            thisPersonTrainings: thisPersonTrainings,
+            updateTrainingsPerson: updateTrainingsPerson,
+            thisTeamTrainings: thisTeamTrainings,
+            thisMembersTrainings: thisMembersTrainings,
+            addMembersTrainings: addMembersTrainings,
+            removeTrainingsTeam: removeTrainingsTeam
         };
     };
 

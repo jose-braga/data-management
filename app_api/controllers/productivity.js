@@ -2542,11 +2542,10 @@ var queryAllProjects = function (req, res, next) {
                           ' projects.id AS project_id, projects.title, projects.acronym, projects.reference,' +
                           ' projects.project_type_id, project_types.name AS project_type,' +
                           ' projects.call_type_id, call_types.name AS call_type,' +
-                          ' projects_other_call_types.id AS other_call_type_id, projects_other_call_types.name AS other_call_type,' +
                           ' projects_funding_entities.id AS project_funding_entity_id, projects_funding_entities.funding_entity_id,' +
                           ' funding_agencies.official_name AS funding_entity_official_name, funding_agencies.short_name AS funding_entity_short_name,' +
                           ' projects_other_funding_entities.id AS project_other_funding_entity_id, projects_other_funding_entities.name AS other_funding_entity,' +
-                          ' projects_management_entities.id AS project_management_entity_id, projects_management_entities.management_entity_id,' +
+                          ' projects_management_entities.id AS project_management_entity_id, projects_management_entities.management_entity_id, projects_management_entities.amount AS entity_amount,' +
                           ' management_entities.official_name AS management_entity_official_name, management_entities.short_name AS management_entity_short_name,' +
                           ' projects.start, projects.end, projects.global_amount,' +
                           ' projects.website, projects.notes ' +
@@ -2555,7 +2554,6 @@ var queryAllProjects = function (req, res, next) {
                           ' LEFT JOIN project_types ON project_types.id = projects.project_type_id' +
                           ' LEFT JOIN person_project_positions ON person_project_positions.id = people_projects.position_id' +
                           ' LEFT JOIN call_types ON call_types.id = projects.call_type_id' +
-                          ' LEFT JOIN projects_other_call_types ON projects_other_call_types.project_id = projects.id' +
                           ' LEFT JOIN projects_funding_entities ON projects_funding_entities.project_id = projects.id' +
                           ' LEFT JOIN funding_agencies ON projects_funding_entities.funding_entity_id = funding_agencies.id' +
                           ' LEFT JOIN projects_management_entities ON projects_management_entities.project_id = projects.id' +
@@ -2580,6 +2578,7 @@ var queryAllProjects = function (req, res, next) {
                         "result" : []});
                     return;
                 }
+                resQuery = compactData(resQuery, 'project_id', ['person_id','position_id','position_name']);
                 return queryGetResearchAreasProjects(req, res, next, resQuery, 0);
             }
         );
@@ -2593,11 +2592,10 @@ var queryPersonProjects = function (req, res, next) {
                           ' projects.id AS project_id, projects.title, projects.acronym, projects.reference,' +
                           ' projects.project_type_id, project_types.name AS project_type,' +
                           ' projects.call_type_id, call_types.name AS call_type,' +
-                          ' projects_other_call_types.id AS other_call_type_id, projects_other_call_types.name AS other_call_type,' +
                           ' projects_funding_entities.id AS project_funding_entity_id, projects_funding_entities.funding_entity_id,' +
                           ' funding_agencies.official_name AS funding_agency_official_name, funding_agencies.short_name AS funding_agency_short_name,' +
                           ' projects_other_funding_entities.id AS project_other_funding_entity_id, projects_other_funding_entities.name AS other_funding_entity,' +
-                          ' projects_management_entities.id AS project_management_entity_id, projects_management_entities.management_entity_id,' +
+                          ' projects_management_entities.id AS project_management_entity_id, projects_management_entities.management_entity_id, projects_management_entities.amount AS entity_amount,' +
                           ' management_entities.official_name AS management_entity_official_name, management_entities.short_name AS management_entity_short_name,' +
                           ' projects.start, projects.end, projects.global_amount,' +
                           ' projects.website, projects.notes ' +
@@ -2606,7 +2604,6 @@ var queryPersonProjects = function (req, res, next) {
                           ' LEFT JOIN project_types ON project_types.id = projects.project_type_id' +
                           ' LEFT JOIN person_project_positions ON person_project_positions.id = people_projects.position_id' +
                           ' LEFT JOIN call_types ON call_types.id = projects.call_type_id' +
-                          ' LEFT JOIN projects_other_call_types ON projects_other_call_types.project_id = projects.id' +
                           ' LEFT JOIN projects_funding_entities ON projects_funding_entities.project_id = projects.id' +
                           ' LEFT JOIN funding_agencies ON projects_funding_entities.funding_entity_id = funding_agencies.id' +
                           ' LEFT JOIN projects_other_funding_entities ON projects_other_funding_entities.project_id = projects.id' +
@@ -2694,12 +2691,6 @@ var queryUpdateProject = function (req, res, next, personID,updateArr,deleteArr,
     var places = [];
     var start = momentToDate(data.start);
     var end = momentToDate(data.end);
-    var call_type;
-    if (data.call_type_id === 'other' || data.call_type_id === null) {
-        call_type = null;
-    } else {
-        call_type = data.call_type_id;
-    }
     querySQL = querySQL + 'UPDATE projects' +
                           ' SET project_type_id = ?,' +
                           ' call_type_id = ?,' +
@@ -2713,7 +2704,7 @@ var queryUpdateProject = function (req, res, next, personID,updateArr,deleteArr,
                           ' notes = ?' +
                           ' WHERE id = ?;';
     places.push(data.project_type_id,
-                call_type,
+                data.call_type_id,
                 data.title,
                 data.acronym,
                 data.reference,
@@ -2736,13 +2727,7 @@ var queryUpdateProject = function (req, res, next, personID,updateArr,deleteArr,
         querySQL = querySQL + 'INSERT INTO project_areas (project_id, research_area) VALUES (?, ?);';
         places.push(data.project_id, data.project_areas[el].area);
     }
-    // always delete (it could be initially an 'other call type' changed to a pre-defined cal type)
-    querySQL = querySQL + 'DELETE FROM projects_other_call_types WHERE project_id = ?;';
-    places.push(data.project_id);
-    if (data.call_type_id === 'other') {
-        querySQL = querySQL + 'INSERT INTO projects_other_call_types (project_id, name) VALUES (?, ?);';
-        places.push(data.project_id, data.other_call_type);
-    }
+    // always delete (it could be initially an 'other funding entity' changed to a pre-defined cal type)
     querySQL = querySQL + 'DELETE FROM projects_funding_entities WHERE project_id = ?;';
     places.push(data.project_id);
     querySQL = querySQL + 'DELETE FROM projects_other_funding_entities WHERE project_id = ?;';
@@ -2758,8 +2743,8 @@ var queryUpdateProject = function (req, res, next, personID,updateArr,deleteArr,
     querySQL = querySQL + 'DELETE FROM projects_management_entities WHERE project_id = ?;';
     places.push(data.project_id);
     if (data.management_entity_id !== null) {
-        querySQL = querySQL + 'INSERT INTO projects_management_entities (project_id, management_entity_id) VALUES (?, ?);';
-        places.push(data.project_id, data.management_entity_id);
+        querySQL = querySQL + 'INSERT INTO projects_management_entities (project_id, management_entity_id, amount) VALUES (?, ?, ?);';
+        places.push(data.project_id, data.management_entity_id, data.entity_amount);
     }
 
     pool.getConnection(function(err, connection) {
@@ -2834,14 +2819,8 @@ var queryAddProject = function (req, res, next, personID,updateArr,deleteArr,new
     querySQL = querySQL + 'INSERT INTO projects' +
                           ' (project_type_id, call_type_id, title, acronym, reference, start, end, global_amount, website, notes)' +
                           ' VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);';
-    var call_type;
-    if (data.call_type_id === 'other' || data.call_type_id === null) {
-        call_type = null;
-    } else {
-        call_type = data.call_type_id;
-    }
     places.push(data.project_type_id,
-                call_type,
+                data.call_type_id,
                 data.title,
                 data.acronym,
                 data.reference,
@@ -2881,10 +2860,6 @@ var queryAddProjectPerson = function (req, res, next, personID,updateArr,deleteA
         querySQL = querySQL + 'INSERT INTO project_areas (project_id, research_area) VALUES (?, ?);';
         places.push(projectID, data.project_areas[el].area);
     }
-    if (data.call_type_id === 'other') {
-        querySQL = querySQL + 'INSERT INTO projects_other_call_types (project_id, name) VALUES (?, ?);';
-        places.push(projectID, data.other_call_type);
-    }
     if (data.funding_entity_id !== null && data.funding_entity_id !== 'other') {
         querySQL = querySQL + 'INSERT INTO projects_funding_entities (project_id, funding_entity_id) VALUES (?, ?);';
         places.push(projectID, data.funding_entity_id);
@@ -2894,8 +2869,8 @@ var queryAddProjectPerson = function (req, res, next, personID,updateArr,deleteA
         places.push(projectID, data.other_funding_entity);
     }
     if (data.management_entity_id !== null) {
-        querySQL = querySQL + 'INSERT INTO projects_management_entities (project_id, management_entity_id) VALUES (?, ?);';
-        places.push(projectID, data.management_entity_id);
+        querySQL = querySQL + 'INSERT INTO projects_management_entities (project_id, management_entity_id, amount) VALUES (?, ?, ?);';
+        places.push(projectID, data.management_entity_id, data.entity_amount);
     }
     pool.getConnection(function(err, connection) {
         if (err) {
@@ -2931,15 +2906,14 @@ var queryTeamProjects = function (req, res, next) {
                           ' projects.id AS project_id, projects.title, projects.acronym, projects.reference,' +
                           ' projects.project_type_id, project_types.name AS project_type,' +
                           ' projects.call_type_id, call_types.name AS call_type,' +
-                          ' projects_other_call_types.id AS other_call_type_id, projects_other_call_types.name AS other_call_type,' +
                           ' projects_funding_entities.id AS project_funding_entity_id, projects_funding_entities.funding_entity_id,' +
                           ' funding_agencies.official_name AS funding_agency_official_name, funding_agencies.short_name AS funding_agency_short_name,' +
                           ' projects_other_funding_entities.id AS project_other_funding_entity_id, projects_other_funding_entities.name AS other_funding_entity,' +
-                          ' projects_management_entities.id AS project_management_entity_id, projects_management_entities.management_entity_id,' +
+                          ' projects_management_entities.id AS project_management_entity_id, projects_management_entities.management_entity_id,  projects_management_entities.amount AS entity_amount,' +
                           ' management_entities.official_name AS management_entity_official_name, management_entities.short_name AS management_entity_short_name,' +
                           ' projects.start, projects.end, projects.global_amount,' +
                           ' projects.website, projects.notes,' +
-                          ' labs_projects.amount, labs_projects.percentage_hire_postdoc, percentage_hire_student' +
+                          ' labs_projects.amount, labs_projects.percentage_hire_postdoc, percentage_hire_student, percentage_hire_other' +
                           ' FROM labs_projects' +
                           ' LEFT JOIN projects ON labs_projects.project_id = projects.id' +
                           ' LEFT JOIN people_projects ON labs_projects.project_id = people_projects.project_id' +
@@ -2947,7 +2921,6 @@ var queryTeamProjects = function (req, res, next) {
                           ' LEFT JOIN project_types ON project_types.id = projects.project_type_id' +
                           ' LEFT JOIN person_project_positions ON person_project_positions.id = people_projects.position_id' +
                           ' LEFT JOIN call_types ON call_types.id = projects.call_type_id' +
-                          ' LEFT JOIN projects_other_call_types ON projects_other_call_types.project_id = projects.id' +
                           ' LEFT JOIN projects_funding_entities ON projects_funding_entities.project_id = projects.id' +
                           ' LEFT JOIN funding_agencies ON projects_funding_entities.funding_entity_id = funding_agencies.id' +
                           ' LEFT JOIN projects_other_funding_entities ON projects_other_funding_entities.project_id = projects.id' +
@@ -2985,9 +2958,10 @@ var queryMembersProjects = function (req, res, next) {
     var groupID = req.params.groupID;
     var querySQL = '';
     var places = [];
-    querySQL = querySQL + 'SELECT projects.* ' +
+    querySQL = querySQL + 'SELECT projects.*, projects_management_entities.amount AS entity_amount ' +
                           ' FROM projects' +
                           ' LEFT JOIN people_projects ON people_projects.project_id = projects.id' +
+                          ' LEFT JOIN projects_management_entities ON projects_management_entities.project_id = projects.id' +
                           ' LEFT JOIN people_labs ON people_labs.person_id = people_projects.person_id' +
                           ' LEFT JOIN labs ON labs.id = people_labs.lab_id' +
                           ' LEFT JOIN labs_groups ON labs_groups.lab_id = labs.id' +
@@ -3040,9 +3014,9 @@ var queryAddProjectsLab = function(req, res, next) {
     var querySQL = '';
     var places = [];
     for (var ind in add) {
-        querySQL = querySQL + 'INSERT INTO labs_projects (lab_id, group_id, project_id, amount, percentage_hire_postdoc, percentage_hire_student)' +
-                              ' VALUES (?,?,?,?,?,?);';
-        places.push(teamID,groupID, add[ind].id, add[ind].amount, add[ind].percentage_hire_postdoc, add[ind].percentage_hire_student);
+        querySQL = querySQL + 'INSERT INTO labs_projects (lab_id, group_id, project_id, amount, percentage_hire_postdoc, percentage_hire_student, percentage_hire_other)' +
+                              ' VALUES (?,?,?,?,?,?,?);';
+        places.push(teamID,groupID, add[ind].id, add[ind].amount, add[ind].percentage_hire_postdoc, add[ind].percentage_hire_student, add[ind].percentage_hire_other);
     }
     if (querySQL !== '') {
         pool.getConnection(function(err, connection) {
@@ -3077,6 +3051,1021 @@ var queryDeleteProjectsTeam = function (req, res, next) {
         querySQL = querySQL + 'DELETE FROM labs_projects' +
                               ' WHERE id = ?;';
         places.push(del[ind].labs_projects_id);
+    }
+    if (querySQL !== '') {
+        pool.getConnection(function(err, connection) {
+            if (err) {
+                sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+                return;
+            }
+            connection.query(querySQL,places,
+                function (err, resQuery) {
+                    // And done with the connection.
+                    connection.release();
+                    if (err) {
+                        sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                        return;
+                    }
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 1,
+                         "result" : "OK!"});
+                }
+            );
+        });
+    } else {
+        sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "message": "No changes"});
+    }
+};
+
+var queryAllAgreements = function (req, res, next) {
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'SELECT people_private_agreements.id, people_private_agreements.person_id,' +
+                          ' private_agreements.id AS agreement_id, private_agreements.title, private_agreements.acronym, private_agreements.reference,' +
+                          ' private_agreements.agreement_type_id, private_agreement_types.name AS agreement_type,' +
+                          ' private_agreements.confidential, private_agreements.start, private_agreements.end,' +
+                          ' private_agreements.global_amount,' +
+                          ' private_agreements_management_entities.id AS agreement_management_entity_id, private_agreements_management_entities.management_entity_id, private_agreements_management_entities.amount AS entity_amount,' +
+                          ' management_entities.official_name AS management_entity_official_name, management_entities.short_name AS management_entity_short_name,' +
+                          ' private_agreements.website, private_agreements.notes ' +
+                          'FROM people_private_agreements' +
+                          ' RIGHT JOIN private_agreements ON private_agreements.id = people_private_agreements.agreement_id' +
+                          ' LEFT JOIN private_agreement_types ON private_agreement_types.id = private_agreements.agreement_type_id' +
+                          ' LEFT JOIN private_agreements_management_entities ON private_agreements_management_entities.agreement_id = private_agreements.id' +
+                          ' LEFT JOIN management_entities ON private_agreements_management_entities.management_entity_id = management_entities.id' +
+                          ' WHERE private_agreements.confidential = 0;';
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (resQuery.length === 0 || resQuery === undefined) {
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 0,
+                        "result" : []});
+                    return;
+                }
+                resQuery = compactData(resQuery, 'agreement_id', ['person_id']);
+                return queryGetResearchAreasAgreements(req, res, next, resQuery, 0);
+            }
+        );
+    });
+};
+var queryPersonAgreements = function (req, res, next) {
+    var personID = req.params.personID;
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'SELECT people_private_agreements.id, people_private_agreements.person_id,' +
+                          ' private_agreements.id AS agreement_id, private_agreements.title, private_agreements.acronym, private_agreements.reference,' +
+                          ' private_agreements.agreement_type_id, private_agreement_types.name AS agreement_type,' +
+                          ' private_agreements.confidential, private_agreements.start, private_agreements.end,' +
+                          ' private_agreements.global_amount,' +
+                          ' private_agreements_management_entities.id AS agreement_management_entity_id, private_agreements_management_entities.management_entity_id, private_agreements_management_entities.amount AS entity_amount,' +
+                          ' management_entities.official_name AS management_entity_official_name, management_entities.short_name AS management_entity_short_name,' +
+                          ' private_agreements.website, private_agreements.notes ' +
+                          'FROM people_private_agreements' +
+                          ' LEFT JOIN private_agreements ON private_agreements.id = people_private_agreements.agreement_id' +
+                          ' LEFT JOIN private_agreement_types ON private_agreement_types.id = private_agreements.agreement_type_id' +
+                          ' LEFT JOIN private_agreements_management_entities ON private_agreements_management_entities.agreement_id = private_agreements.id' +
+                          ' LEFT JOIN management_entities ON private_agreements_management_entities.management_entity_id = management_entities.id' +
+                          ' WHERE people_private_agreements.agreement_id = ANY ' +
+                          ' (SELECT people_private_agreements.agreement_id FROM people_private_agreements WHERE people_private_agreements.person_id = ?);';
+    places.push(personID);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (resQuery.length === 0 || resQuery === undefined) {
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 0,
+                        "result" : []});
+                    return;
+                }
+                resQuery = compactData(resQuery, 'agreement_id', ['person_id']);
+                return queryGetResearchAreasAgreements(req, res, next, resQuery, 0);
+            }
+        );
+    });
+};
+var queryGetResearchAreasAgreements  = function (req, res, next, rows, i) {
+    var agreementID = rows[i].agreement_id;
+    var querySQL =  'SELECT research_area AS area ' +
+                'FROM private_agreement_areas ' +
+                'WHERE agreement_id = ?;';
+    var places = [agreementID];
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                rows[i].agreement_areas = resQuery;
+                if (i + 1 < rows.length) {
+                    return queryGetResearchAreasAgreements(req, res, next, rows, i+1);
+                } else {
+                    return queryGetPartnersAgreements(req, res, next, rows, 0);
+                }
+            }
+        );
+    });
+};
+var queryGetPartnersAgreements  = function (req, res, next, rows, i) {
+    var agreementID = rows[i].agreement_id;
+    var querySQL =  'SELECT private_agreements_partners.*, countries.name AS country ' +
+                'FROM private_agreements_partners ' +
+                ' LEFT JOIN countries ON private_agreements_partners.country_id = countries.id ' +
+                'WHERE agreement_id = ?;';
+    var places = [agreementID];
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                rows[i].agreement_partners = resQuery;
+                if (i + 1 < rows.length) {
+                    return queryGetPartnersAgreements(req, res, next, rows, i+1);
+                } else {
+                    sendJSONResponse(res, 200,
+                            {"status": "success", "statusCode": 200, "count": rows.length,
+                            "result" : rows});
+                    return;
+                }
+            }
+        );
+    });
+};
+var queryUpdatePersonAgreements = function (req, res, next) {
+    var personID = req.params.personID;
+    var updateArr = req.body.updateAgreement;
+    var newArr = req.body.newAgreement;
+    var deleteArr = req.body.deleteAgreement;
+    if (updateArr.length > 0) {
+        return queryUpdateAgreement(req, res, next, personID, updateArr,deleteArr,newArr, updateArr[0], 0);
+    } else if (deleteArr.length > 0) {
+        return queryDeleteAgreement(req, res, next, personID, updateArr,deleteArr,newArr, deleteArr[0], 0);
+    } else if (newArr.length > 0) {
+        return queryAddAgreement(req, res, next, personID, updateArr,deleteArr,newArr, newArr[0], 0);
+    }
+    if (deleteArr.length === 0 && updateArr.length == 0 && newArr.length === 0) {
+        sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
+        return;
+    }
+};
+var queryUpdateAgreement = function (req, res, next, personID,updateArr,deleteArr,newArr, data, i) {
+    var querySQL = '';
+    var places = [];
+    var start = momentToDate(data.start);
+    var end = momentToDate(data.end);
+    querySQL = querySQL + 'UPDATE private_agreements' +
+                          ' SET agreement_type_id = ?,' +
+                          ' confidential = ?,' +
+                          ' title = ?,' +
+                          ' acronym = ?,' +
+                          ' reference = ?,' +
+                          ' start = ?,' +
+                          ' end = ?,' +
+                          ' global_amount = ?,' +
+                          ' website = ?,' +
+                          ' notes = ?' +
+                          ' WHERE id = ?;';
+    places.push(data.agreement_type_id,
+                data.confidential,
+                data.title,
+                data.acronym,
+                data.reference,
+                start,
+                end,
+                data.global_amount,
+                data.website,
+                data.notes,
+                data.agreement_id);
+    // first delete all ocurrences of agreement in people_agreement
+    querySQL = querySQL + 'DELETE FROM people_private_agreements WHERE agreement_id = ?;';
+    places.push(data.agreement_id);
+    for (var el in data.person_id) {
+        querySQL = querySQL + 'INSERT INTO people_private_agreements (person_id, agreement_id) VALUES (?, ?);';
+        places.push(data.person_id[el].person_id, data.agreement_id);
+    }
+    querySQL = querySQL + 'DELETE FROM private_agreement_areas WHERE agreement_id = ?;';
+    places.push(data.agreement_id);
+    for (var el in data.agreement_areas) {
+        querySQL = querySQL + 'INSERT INTO private_agreement_areas (agreement_id, research_area) VALUES (?, ?);';
+        places.push(data.agreement_id, data.agreement_areas[el].area);
+    }
+    querySQL = querySQL + 'DELETE FROM private_agreements_partners WHERE agreement_id = ?;';
+    places.push(data.agreement_id);
+    for (var el in data.agreement_partners) {
+        querySQL = querySQL + 'INSERT INTO private_agreements_partners (agreement_id, name, country_id) VALUES (?, ?, ?);';
+        places.push(data.agreement_id, data.agreement_partners[el].name, data.agreement_partners[el].country_id);
+    }
+    querySQL = querySQL + 'DELETE FROM private_agreements_management_entities WHERE agreement_id = ?;';
+    places.push(data.agreement_id);
+    if (data.management_entity_id !== null) {
+        querySQL = querySQL + 'INSERT INTO private_agreements_management_entities (agreement_id, management_entity_id, amount) VALUES (?, ?, ?);';
+        places.push(data.agreement_id, data.management_entity_id, data.entity_amount);
+    }
+
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (i + 1 < updateArr.length) {
+                    return queryUpdateAgreement(req, res, next, personID,
+                                updateArr,deleteArr,newArr, updateArr[i+1], i+1);
+                } else if (deleteArr.length > 0) {
+                    return queryDeleteAgreement(req, res, next, personID,
+                                updateArr,deleteArr,newArr, deleteArr[0], 0);
+                } else if (newArr.length > 0) {
+                    return queryAddAgreement(req, res, next, personID,
+                                updateArr,deleteArr,newArr, newArr[0], 0);
+                } else {
+                    sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
+                    return;
+                }
+            }
+        );
+    });
+};
+var queryDeleteAgreement = function (req, res, next, personID,updateArr,deleteArr,newArr, data, i) {
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'DELETE FROM people_private_agreements' +
+                          ' WHERE person_id = ? AND agreement_id = ?;';
+    places.push(personID, data.agreement_id);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (i + 1 < deleteArr.length) {
+                    return queryDeleteAgreement(req, res, next, personID,
+                                updateArr,deleteArr,newArr, deleteArr[i+1], i+1);
+                } else if (newArr.length > 0) {
+                    return queryAddAgreement(req, res, next, personID,
+                                updateArr,deleteArr,newArr, newArr[0], 0);
+                } else {
+                    sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
+                    return;
+                }
+            }
+        );
+    });
+};
+var queryAddAgreement = function (req, res, next, personID,updateArr,deleteArr,newArr, data, i) {
+    var querySQL = '';
+    var places = [];
+    var start = momentToDate(data.start);
+    var end = momentToDate(data.end);
+
+    querySQL = querySQL + 'INSERT INTO private_agreements' +
+                          ' (agreement_type_id, confidential, title, acronym, reference, start, end, global_amount, website, notes)' +
+                          ' VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);';
+    places.push(data.agreement_type_id,
+                data.confidential,
+                data.title,
+                data.acronym,
+                data.reference,
+                start,
+                end,
+                data.global_amount,
+                data.website,
+                data.notes);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                var agreementID = resQuery.insertId;
+                return queryAddAgreementPerson(req, res, next, personID,updateArr,deleteArr,newArr, data, i, agreementID);
+            }
+        );
+    });
+};
+var queryAddAgreementPerson = function (req, res, next, personID,updateArr,deleteArr,newArr, data, i, agreementID) {
+    var querySQL = '';
+    var places = [];
+    for (var el in data.person_id) {
+        querySQL = querySQL + 'INSERT INTO people_private_agreements (person_id, agreement_id) VALUES (?, ?);';
+        places.push(data.person_id[el].person_id, agreementID);
+    }
+    // Add remaining info
+    for (var el in data.agreement_areas) {
+        querySQL = querySQL + 'INSERT INTO private_agreement_areas (agreement_id, research_area) VALUES (?, ?);';
+        places.push(agreementID, data.agreement_areas[el].area);
+    }
+    for (var el in data.agreement_partners) {
+        querySQL = querySQL + 'INSERT INTO private_agreements_partners (agreement_id, name, country_id) VALUES (?, ?, ?);';
+        places.push(agreementID, data.agreement_partners[el].name, data.agreement_partners[el].country_id);
+    }
+    if (data.management_entity_id !== null) {
+        querySQL = querySQL + 'INSERT INTO private_agreements_management_entities (agreement_id, management_entity_id, amount) VALUES (?, ?, ?);';
+        places.push(agreementID, data.management_entity_id, data.entity_amount);
+    }
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (i + 1 < newArr.length) {
+                    return queryAddAgreement(req, res, next, personID,
+                                updateArr,deleteArr,newArr, newArr[i+1], i+1);
+                } else {
+                    sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
+                    return;
+                }
+            }
+        );
+    });
+};
+var queryTeamAgreements = function (req, res, next) {
+    var teamID = req.params.teamID;
+    var groupID = req.params.groupID;
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'SELECT labs_private_agreements.id AS labs_private_agreements_id,' +
+                          ' people_private_agreements.person_id, people.colloquial_name,'  +
+                          ' private_agreements.id AS agreement_id, private_agreements.confidential, private_agreements.title, private_agreements.acronym, private_agreements.reference,' +
+                          ' private_agreements.agreement_type_id, private_agreement_types.name AS agreement_type,' +
+                          ' private_agreements_management_entities.id AS agreement_management_entity_id, private_agreements_management_entities.management_entity_id,  private_agreements_management_entities.amount AS entity_amount,' +
+                          ' management_entities.official_name AS management_entity_official_name, management_entities.short_name AS management_entity_short_name,' +
+                          ' private_agreements.start, private_agreements.end, private_agreements.global_amount,' +
+                          ' private_agreements.website, private_agreements.notes,' +
+                          ' labs_private_agreements.amount, labs_private_agreements.percentage_hire_postdoc, percentage_hire_student, percentage_hire_other' +
+                          ' FROM labs_private_agreements' +
+                          ' LEFT JOIN private_agreements ON labs_private_agreements.agreement_id = private_agreements.id' +
+                          ' LEFT JOIN people_private_agreements ON labs_private_agreements.agreement_id = people_private_agreements.agreement_id' +
+                          ' LEFT JOIN people ON people.id = people_private_agreements.person_id' +
+                          ' LEFT JOIN private_agreement_types ON private_agreement_types.id = private_agreements.agreement_type_id' +
+                          ' LEFT JOIN private_agreements_management_entities ON private_agreements_management_entities.agreement_id = private_agreements.id' +
+                          ' LEFT JOIN management_entities ON private_agreements_management_entities.management_entity_id = management_entities.id' +
+                          ' WHERE labs_private_agreements.group_id = ? AND labs_private_agreements.lab_id = ?;';
+    places.push(groupID, teamID);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (resQuery.length === 0 || resQuery === undefined) {
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 0,
+                        "result" : []});
+                    return;
+                }
+                resQuery = compactData(resQuery, 'agreement_id', ['person_id','colloquial_name']);
+                return queryGetResearchAreasAgreements(req, res, next, resQuery, 0);
+            }
+        );
+    });
+};
+var queryMembersAgreements = function (req, res, next) {
+    var teamID = req.params.teamID;
+    var groupID = req.params.groupID;
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'SELECT private_agreements.*, private_agreements_management_entities.amount AS entity_amount ' +
+                          ' FROM private_agreements' +
+                          ' LEFT JOIN people_private_agreements ON people_private_agreements.agreement_id = private_agreements.id' +
+                          ' LEFT JOIN private_agreements_management_entities ON private_agreements_management_entities.agreement_id = private_agreements.id' +
+                          ' LEFT JOIN people_labs ON people_labs.person_id = people_private_agreements.person_id' +
+                          ' LEFT JOIN labs ON labs.id = people_labs.lab_id' +
+                          ' LEFT JOIN labs_groups ON labs_groups.lab_id = labs.id' +
+                          ' LEFT JOIN groups ON labs_groups.group_id = groups.id' +
+                          ' WHERE groups.id = ? AND labs.id = ?;';
+    places.push(groupID, teamID);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (resQuery.length === 0 || resQuery === undefined) {
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 0,
+                        "result" : []});
+                    return;
+                }
+                var non_duplicates = [];
+                var id_collection = [];
+                for (var ind in resQuery) {
+                    if (id_collection.indexOf(resQuery[ind].id) === -1) {
+                        id_collection.push(resQuery[ind].id);
+                        non_duplicates.push(resQuery[ind]);
+                    }
+                }
+                sendJSONResponse(res, 200,
+                    {
+                        "status": "success",
+                        "statusCode": 200,
+                        "count": non_duplicates.length,
+                        "result": non_duplicates
+                    });
+                return;
+            }
+        );
+    });
+};
+var queryAddAgreementsLab = function(req, res, next) {
+    var groupID = req.params.groupID;
+    var teamID = req.params.teamID;
+    var add = req.body.addAgreements;
+    var querySQL = '';
+    var places = [];
+    for (var ind in add) {
+        querySQL = querySQL + 'INSERT INTO labs_private_agreements (lab_id, group_id, agreement_id, amount, percentage_hire_postdoc, percentage_hire_student, percentage_hire_other)' +
+                              ' VALUES (?,?,?,?,?,?,?);';
+        places.push(teamID,groupID, add[ind].id, add[ind].amount, add[ind].percentage_hire_postdoc, add[ind].percentage_hire_student, add[ind].percentage_hire_other);
+    }
+    if (querySQL !== '') {
+        pool.getConnection(function(err, connection) {
+            if (err) {
+                sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+                return;
+            }
+            connection.query(querySQL,places,
+                function (err, resQuery) {
+                    // And done with the connection.
+                    connection.release();
+                    if (err) {
+                        sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                        return;
+                    }
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 1,
+                         "result" : "OK!"});
+                }
+            );
+        });
+    } else {
+        sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "message": "No changes"});
+    }
+};
+var queryDeleteAgreementsTeam = function (req, res, next) {
+    var del = req.body.deleteAgreements;
+    var querySQL = '';
+    var places = [];
+    for (var ind in del) {
+        querySQL = querySQL + 'DELETE FROM labs_private_agreements' +
+                              ' WHERE id = ?;';
+        places.push(del[ind].labs_private_agreements_id);
+    }
+    if (querySQL !== '') {
+        pool.getConnection(function(err, connection) {
+            if (err) {
+                sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+                return;
+            }
+            connection.query(querySQL,places,
+                function (err, resQuery) {
+                    // And done with the connection.
+                    connection.release();
+                    if (err) {
+                        sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                        return;
+                    }
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 1,
+                         "result" : "OK!"});
+                }
+            );
+        });
+    } else {
+        sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "message": "No changes"});
+    }
+};
+
+var queryAllTrainings = function (req, res, next) {
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'SELECT people_training_networks.id, people_training_networks.person_id,' +
+                          ' people_training_networks.role_id, training_network_roles.name AS role_name,' +
+                          ' training_networks.id AS training_id, training_networks.network_name, training_networks.title,' +
+                          ' training_networks.acronym, training_networks.reference,' +
+                          ' training_networks.start, training_networks.end,' +
+                          ' training_networks.coordinating_entity, training_networks.country_id,' +
+                          ' training_networks.global_amount,' +
+                          ' training_networks_management_entities.id AS training_management_entity_id, training_networks_management_entities.management_entity_id, training_networks_management_entities.amount AS entity_amount,' +
+                          ' management_entities.official_name AS management_entity_official_name, management_entities.short_name AS management_entity_short_name,' +
+                          ' training_networks.website, training_networks.notes ' +
+                          'FROM people_training_networks' +
+                          ' RIGHT JOIN training_networks ON training_networks.id = people_training_networks.training_id' +
+                          ' LEFT JOIN training_network_roles ON people_training_networks.role_id = training_network_roles.id' +
+                          ' LEFT JOIN training_networks_management_entities ON training_networks_management_entities.training_id = training_networks.id' +
+                          ' LEFT JOIN management_entities ON training_networks_management_entities.management_entity_id = management_entities.id;';
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (resQuery.length === 0 || resQuery === undefined) {
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 0,
+                        "result" : []});
+                    return;
+                }
+                resQuery = compactData(resQuery, 'training_id', ['person_id','role_id','role_name']);
+                sendJSONResponse(res, 200,
+                            {"status": "success", "statusCode": 200, "count": resQuery.length,
+                            "result" : resQuery});
+                return;
+            }
+        );
+    });
+};
+var queryPersonTrainings = function (req, res, next) {
+    var personID = req.params.personID;
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'SELECT people_training_networks.id, people_training_networks.person_id,' +
+                          ' people_training_networks.role_id, training_network_roles.name AS role_name,' +
+                          ' training_networks.id AS training_id, training_networks.network_name, training_networks.title,' +
+                          ' training_networks.acronym, training_networks.reference,' +
+                          ' training_networks.start, training_networks.end,' +
+                          ' training_networks.coordinating_entity, training_networks.country_id,' +
+                          ' training_networks.global_amount,' +
+                          ' training_networks_management_entities.id AS training_management_entity_id, training_networks_management_entities.management_entity_id, training_networks_management_entities.amount AS entity_amount,' +
+                          ' management_entities.official_name AS management_entity_official_name, management_entities.short_name AS management_entity_short_name,' +
+                          ' training_networks.website, training_networks.notes ' +
+                          'FROM people_training_networks' +
+                          ' LEFT JOIN training_networks ON training_networks.id = people_training_networks.training_id' +
+                          ' LEFT JOIN training_network_roles ON people_training_networks.role_id = training_network_roles.id' +
+                          ' LEFT JOIN training_networks_management_entities ON training_networks_management_entities.training_id = training_networks.id' +
+                          ' LEFT JOIN management_entities ON training_networks_management_entities.management_entity_id = management_entities.id' +
+                          ' WHERE people_training_networks.training_id = ANY ' +
+                          ' (SELECT people_training_networks.training_id FROM people_training_networks WHERE people_training_networks.person_id = ?);';
+    places.push(personID);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (resQuery.length === 0 || resQuery === undefined) {
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 0,
+                        "result" : []});
+                    return;
+                }
+                resQuery = compactData(resQuery, 'training_id', ['person_id','role_id','role_name']);
+                sendJSONResponse(res, 200,
+                            {"status": "success", "statusCode": 200, "count": resQuery.length,
+                            "result" : resQuery});
+                return;
+            }
+        );
+    });
+};
+var queryUpdatePersonTrainings = function (req, res, next) {
+    var personID = req.params.personID;
+    var updateArr = req.body.updateTraining;
+    var newArr = req.body.newTraining;
+    var deleteArr = req.body.deleteTraining;
+    if (updateArr.length > 0) {
+        return queryUpdateTraining(req, res, next, personID, updateArr,deleteArr,newArr, updateArr[0], 0);
+    } else if (deleteArr.length > 0) {
+        return queryDeleteTraining(req, res, next, personID, updateArr,deleteArr,newArr, deleteArr[0], 0);
+    } else if (newArr.length > 0) {
+        return queryAddTraining(req, res, next, personID, updateArr,deleteArr,newArr, newArr[0], 0);
+    }
+    if (deleteArr.length === 0 && updateArr.length == 0 && newArr.length === 0) {
+        sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
+        return;
+    }
+};
+var queryUpdateTraining = function (req, res, next, personID,updateArr,deleteArr,newArr, data, i) {
+    var querySQL = '';
+    var places = [];
+    var start = momentToDate(data.start);
+    var end = momentToDate(data.end);
+    querySQL = querySQL + 'UPDATE training_networks' +
+                          ' SET network_name = ?,' +
+                          ' title = ?,' +
+                          ' acronym = ?,' +
+                          ' reference = ?,' +
+                          ' start = ?,' +
+                          ' end = ?,' +
+                          ' coordinating_entity = ?,' +
+                          ' country_id = ?,' +
+                          ' global_amount = ?,' +
+                          ' website = ?,' +
+                          ' notes = ?' +
+                          ' WHERE id = ?;';
+    places.push(data.network_name,
+                data.title,
+                data.acronym,
+                data.reference,
+                start,
+                end,
+                data.coordinating_entity,
+                data.country_id,
+                data.global_amount,
+                data.website,
+                data.notes,
+                data.training_id);
+    // first delete all ocurrences of agreement in people_agreement
+    querySQL = querySQL + 'DELETE FROM people_training_networks WHERE training_id = ?;';
+    places.push(data.training_id);
+    for (var el in data.person_id) {
+        querySQL = querySQL + 'INSERT INTO people_training_networks (person_id, training_id, role_id) VALUES (?, ?, ?);';
+        places.push(data.person_id[el].person_id, data.training_id, data.person_id[el].role_id);
+    }
+    querySQL = querySQL + 'DELETE FROM training_networks_management_entities WHERE training_id = ?;';
+    places.push(data.training_id);
+    if (data.management_entity_id !== null) {
+        querySQL = querySQL + 'INSERT INTO training_networks_management_entities (training_id, management_entity_id, amount) VALUES (?, ?, ?);';
+        places.push(data.training_id, data.management_entity_id, data.entity_amount);
+    }
+
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (i + 1 < updateArr.length) {
+                    return queryUpdateTraining(req, res, next, personID,
+                                updateArr,deleteArr,newArr, updateArr[i+1], i+1);
+                } else if (deleteArr.length > 0) {
+                    return queryDeleteTraining(req, res, next, personID,
+                                updateArr,deleteArr,newArr, deleteArr[0], 0);
+                } else if (newArr.length > 0) {
+                    return queryAddTraining(req, res, next, personID,
+                                updateArr,deleteArr,newArr, newArr[0], 0);
+                } else {
+                    sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
+                    return;
+                }
+            }
+        );
+    });
+};
+var queryDeleteTraining = function (req, res, next, personID,updateArr,deleteArr,newArr, data, i) {
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'DELETE FROM people_training_networks' +
+                          ' WHERE person_id = ? AND training_id = ?;';
+    places.push(personID, data.training_id);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (i + 1 < deleteArr.length) {
+                    return queryDeleteTraining(req, res, next, personID,
+                                updateArr,deleteArr,newArr, deleteArr[i+1], i+1);
+                } else if (newArr.length > 0) {
+                    return queryAddTraining(req, res, next, personID,
+                                updateArr,deleteArr,newArr, newArr[0], 0);
+                } else {
+                    sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
+                    return;
+                }
+            }
+        );
+    });
+};
+var queryAddTraining = function (req, res, next, personID,updateArr,deleteArr,newArr, data, i) {
+    var querySQL = '';
+    var places = [];
+    var start = momentToDate(data.start);
+    var end = momentToDate(data.end);
+
+    querySQL = querySQL + 'INSERT INTO training_networks' +
+                          ' (network_name, title, acronym, reference, coordinating_entity, country_id, start, end, global_amount, website, notes)' +
+                          ' VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);';
+    places.push(data.network_name,
+                data.title,
+                data.acronym,
+                data.reference,
+                data.coordinating_entity,
+                data.country_id,
+                start,
+                end,
+                data.global_amount,
+                data.website,
+                data.notes);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                var trainingID = resQuery.insertId;
+                return queryAddTrainingPerson(req, res, next, personID,updateArr,deleteArr,newArr, data, i, trainingID);
+            }
+        );
+    });
+};
+var queryAddTrainingPerson = function (req, res, next, personID,updateArr,deleteArr,newArr, data, i, trainingID) {
+    var querySQL = '';
+    var places = [];
+    for (var el in data.person_id) {
+        querySQL = querySQL + 'INSERT INTO people_training_networks (person_id, training_id, role_id) VALUES (?, ?, ?);';
+        places.push(data.person_id[el].person_id, trainingID, data.person_id[el].role_id);
+    }
+    // Add remaining info
+    if (data.management_entity_id !== null) {
+        querySQL = querySQL + 'INSERT INTO training_networks_management_entities (training_id, management_entity_id, amount) VALUES (?, ?, ?);';
+        places.push(trainingID, data.management_entity_id, data.entity_amount);
+    }
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (i + 1 < newArr.length) {
+                    return queryAddTraining(req, res, next, personID,
+                                updateArr,deleteArr,newArr, newArr[i+1], i+1);
+                } else {
+                    sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
+                    return;
+                }
+            }
+        );
+    });
+};
+
+var queryTeamTrainings = function (req, res, next) {
+    var teamID = req.params.teamID;
+    var groupID = req.params.groupID;
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'SELECT labs_training_networks.id AS labs_training_networks_id,' +
+                          ' people_training_networks.person_id, people.colloquial_name,'  +
+                          ' people_training_networks.role_id, training_network_roles.name AS role_name,' +
+                          ' training_networks.id AS training_id, training_networks.network_name, training_networks.title,' +
+                          ' training_networks.acronym, training_networks.reference,' +
+                          ' training_networks.start, training_networks.end,' +
+                          ' training_networks.coordinating_entity, training_networks.country_id, countries.name AS country_name,' +
+                          ' training_networks.global_amount,' +
+                          ' training_networks_management_entities.id AS training_management_entity_id, training_networks_management_entities.management_entity_id, training_networks_management_entities.amount AS entity_amount,' +
+                          ' management_entities.official_name AS management_entity_official_name, management_entities.short_name AS management_entity_short_name,' +
+                          ' training_networks.website, training_networks.notes, ' +
+                          ' labs_training_networks.amount ' +
+                          ' FROM labs_training_networks' +
+                          ' LEFT JOIN training_networks ON labs_training_networks.training_id = training_networks.id' +
+                          ' LEFT JOIN people_training_networks ON labs_training_networks.training_id = people_training_networks.training_id' +
+                          ' LEFT JOIN people ON people.id = people_training_networks.person_id' +
+                          ' LEFT JOIN countries ON training_networks.country_id = countries.id' +
+                          ' LEFT JOIN training_network_roles ON people_training_networks.role_id = training_network_roles.id' +
+                          ' LEFT JOIN training_networks_management_entities ON training_networks_management_entities.training_id = training_networks.id' +
+                          ' LEFT JOIN management_entities ON training_networks_management_entities.management_entity_id = management_entities.id' +
+                          ' WHERE labs_training_networks.group_id = ? AND labs_training_networks.lab_id = ?;';
+    places.push(groupID, teamID);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (resQuery.length === 0 || resQuery === undefined) {
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 0,
+                        "result" : []});
+                    return;
+                }
+                resQuery = compactData(resQuery, 'training_id', ['person_id','colloquial_name','role_id','role_name']);
+                sendJSONResponse(res, 200,
+                    {
+                        "status": "success", "statusCode": 200, "count": resQuery.length, "result": resQuery
+                    });
+                return;
+            }
+        );
+    });
+};
+var queryMembersTrainings = function (req, res, next) {
+    var teamID = req.params.teamID;
+    var groupID = req.params.groupID;
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'SELECT training_networks.*, training_networks_management_entities.amount AS entity_amount ' +
+                          ' FROM training_networks' +
+                          ' LEFT JOIN people_training_networks ON people_training_networks.training_id = training_networks.id' +
+                          ' LEFT JOIN training_networks_management_entities ON training_networks_management_entities.training_id = training_networks.id' +
+                          ' LEFT JOIN people_labs ON people_labs.person_id = people_training_networks.person_id' +
+                          ' LEFT JOIN labs ON labs.id = people_labs.lab_id' +
+                          ' LEFT JOIN labs_groups ON labs_groups.lab_id = labs.id' +
+                          ' LEFT JOIN groups ON labs_groups.group_id = groups.id' +
+                          ' WHERE groups.id = ? AND labs.id = ?;';
+    places.push(groupID, teamID);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                if (resQuery.length === 0 || resQuery === undefined) {
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 0,
+                        "result" : []});
+                    return;
+                }
+                var non_duplicates = [];
+                var id_collection = [];
+                for (var ind in resQuery) {
+                    if (id_collection.indexOf(resQuery[ind].id) === -1) {
+                        id_collection.push(resQuery[ind].id);
+                        non_duplicates.push(resQuery[ind]);
+                    }
+                }
+                sendJSONResponse(res, 200,
+                    {
+                        "status": "success",
+                        "statusCode": 200,
+                        "count": non_duplicates.length,
+                        "result": non_duplicates
+                    });
+                return;
+            }
+        );
+    });
+};
+var queryAddTrainingsLab = function(req, res, next) {
+    var groupID = req.params.groupID;
+    var teamID = req.params.teamID;
+    var add = req.body.addTrainings;
+    var querySQL = '';
+    var places = [];
+    for (var ind in add) {
+        querySQL = querySQL + 'INSERT INTO labs_training_networks (lab_id, group_id, training_id, amount)' +
+                              ' VALUES (?,?,?,?);';
+        places.push(teamID,groupID, add[ind].id, add[ind].amount);
+    }
+    if (querySQL !== '') {
+        pool.getConnection(function(err, connection) {
+            if (err) {
+                sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+                return;
+            }
+            connection.query(querySQL,places,
+                function (err, resQuery) {
+                    // And done with the connection.
+                    connection.release();
+                    if (err) {
+                        sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                        return;
+                    }
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 1,
+                         "result" : "OK!"});
+                }
+            );
+        });
+    } else {
+        sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "message": "No changes"});
+    }
+};
+var queryDeleteTrainingsTeam = function (req, res, next) {
+    var del = req.body.deleteTrainings;
+    var querySQL = '';
+    var places = [];
+    for (var ind in del) {
+        querySQL = querySQL + 'DELETE FROM labs_training_networks' +
+                              ' WHERE id = ?;';
+        places.push(del[ind].labs_training_networks_id);
     }
     if (querySQL !== '') {
         pool.getConnection(function(err, connection) {
@@ -5097,6 +6086,109 @@ module.exports.deleteProjectsTeam = function (req, res, next) {
         }
     );
 };
+
+module.exports.listAgreements = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30, 40],
+        function (req, res, username) {
+            queryAllAgreements(req,res,next);
+        }
+    );
+};
+module.exports.listPersonAgreements = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16],
+        function (req, res, username) {
+            queryPersonAgreements(req,res,next);
+        }
+    );
+};
+module.exports.updatePersonAgreements = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30, 40],
+        function (req, res, username) {
+            queryUpdatePersonAgreements(req,res,next,0);
+        }
+    );
+};
+module.exports.listTeamAgreements = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
+        function (req, res, username) {
+            queryTeamAgreements(req,res,next);
+        }
+    );
+};
+module.exports.listMembersAgreements = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
+        function (req, res, username) {
+            queryMembersAgreements(req,res,next);
+        }
+    );
+};
+module.exports.addAgreementsLab = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
+        function (req, res, username) {
+            queryAddAgreementsLab(req,res,next);
+        }
+    );
+};
+module.exports.deleteAgreementsTeam = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
+        function (req, res, username) {
+            queryDeleteAgreementsTeam(req,res,next);
+        }
+    );
+};
+
+
+module.exports.listTrainings = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30, 40],
+        function (req, res, username) {
+            queryAllTrainings(req,res,next);
+        }
+    );
+};
+module.exports.listPersonTrainings = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16],
+        function (req, res, username) {
+            queryPersonTrainings(req,res,next);
+        }
+    );
+};
+module.exports.updatePersonTrainings = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30, 40],
+        function (req, res, username) {
+            queryUpdatePersonTrainings(req,res,next,0);
+        }
+    );
+};
+module.exports.listTeamTrainings = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
+        function (req, res, username) {
+            queryTeamTrainings(req,res,next);
+        }
+    );
+};
+module.exports.listMembersTrainings = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
+        function (req, res, username) {
+            queryMembersTrainings(req,res,next);
+        }
+    );
+};
+module.exports.addTrainingsLab = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
+        function (req, res, username) {
+            queryAddTrainingsLab(req,res,next);
+        }
+    );
+};
+module.exports.deleteTrainingsTeam = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
+        function (req, res, username) {
+            queryDeleteTrainingsTeam(req,res,next);
+        }
+    );
+};
+
+
 
 module.exports.listTeamPatents = function (req, res, next) {
     getUser(req, res, [0, 5, 10, 15, 16, 20, 30],

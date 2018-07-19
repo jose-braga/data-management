@@ -440,10 +440,6 @@
                                         && scope.teamProjects[id].other_funding_entity !== null) {
                                     scope.teamProjects[id].funding_entity_id = 'other';
                                 }
-                                if (scope.teamProjects[id].call_type_id === null
-                                        && scope.teamProjects.other_call_type !== null) {
-                                    scope.teamProjects.call_type_id = 'other';
-                                }
                             }
                             initializeVariables();
                         })

@@ -1,13 +1,18 @@
 <md-card>
     <md-card-title>
         <md-card-title-text>
-            <span class="md-headline">Project details</span>
+            <span class="md-headline">Training network details</span>
         </md-card-title-text>
     </md-card-title>
     <md-card-content layout="column">
         <div layout="column" flex>
             <div layout="row" layout-align="center" class="publication-spacer">
-                <div class="question"><span class="highlight">Project title:</span></div>
+                <div class="question"><span class="highlight">Network name:</span></div>
+                <div class="answer"><span>{{ctrl.pub.network_name}}</span></div>
+            </div>
+
+            <div layout="row" layout-align="center" class="publication-spacer">
+                <div class="question"><span class="highlight">Title:</span></div>
                 <div class="answer"><span>{{ctrl.pub.title}}</span></div>
             </div>
             <div layout="row" layout-align="center" class="publication-spacer">
@@ -19,33 +24,17 @@
                 <div class="answer"><span>{{ctrl.pub.reference}}</span></div>
             </div>
             <div layout="row" layout-align="center" class="publication-spacer">
-                <div class="question"><span class="highlight">Project type:</span></div>
-                <div class="answer"><span>{{ctrl.pub.project_type}}</span></div>
+                <div class="question"><span class="highlight">Coordinating entity:</span></div>
+                <div class="answer"><span>{{ctrl.pub.coordinating_entity}} ({{ctrl.pub.country_name}})</span></div>
             </div>
-            <div layout="row" layout-align="center" class="publication-spacer">
-                <div class="question"><span class="highlight">Call type:</span></div>
-                <div class="answer"><span>{{ctrl.pub.call_type}}</span></div>
-            </div>
-            <div layout="row" layout-align="center" class="publication-spacer">
+
+            <div layout="row" layout-align="none center" class="publication-spacer">
                 <div class="question"><span class="highlight">LAQV/UCIBIO people involved:</span></div>
                 <div class="answer">
                     <div ng-repeat="person in ctrl.pub.person_id">
-                        <span>{{person.colloquial_name}}<br></span>
+                        <span>{{person.colloquial_name}} ({{person.role_name}})<br></span>
                     </div>
                 </div>
-            </div>
-            <div layout="row" layout-align="center" class="publication-spacer">
-                <div class="question"><span class="highlight">Project areas:</span></div>
-                <div class="answer">
-                    <div ng-repeat="parea in ctrl.pub.project_areas">
-                        <span>{{parea.area}}<br></span>
-                    </div>
-                </div>
-            </div>
-            <div layout="row" layout-align="center" class="publication-spacer">
-                <div class="question"><span class="highlight">Funding agency:</span></div>
-                <div ng-if="ctrl.pub.funding_entity_id != 'other'" class="answer"><span>{{ctrl.pub.funding_agency_official_name}}</span></div>
-                <div ng-if="ctrl.pub.funding_entity_id == 'other'" class="answer"><span>{{ctrl.pub.other_funding_entity}}</span></div>
             </div>
             <div layout="row" layout-align="center" class="publication-spacer">
                 <div class="question"><span class="highlight">Global amount (€):</span></div>
@@ -62,18 +51,6 @@
             <div layout="row" layout-align="center" class="publication-spacer">
                 <div class="question"><span class="highlight">Group amount (€):</span></div>
                 <div class="answer"><span>{{ctrl.pub.amount}}</span></div>
-            </div>
-            <div layout="row" layout-align="center" class="publication-spacer">
-                <div class="question"><span class="highlight">% hire postdocs:</span></div>
-                <div class="answer"><span>{{ctrl.pub.percentage_hire_postdoc}}</span></div>
-            </div>
-            <div layout="row" layout-align="center" class="publication-spacer">
-                <div class="question"><span class="highlight">% hire PhD students:</span></div>
-                <div class="answer"><span>{{ctrl.pub.percentage_hire_student}}</span></div>
-            </div>
-            <div layout="row" layout-align="center" class="publication-spacer">
-                <div class="question"><span class="highlight">% hire other:</span></div>
-                <div class="answer"><span>{{ctrl.pub.percentage_hire_other}}</span></div>
             </div>
             <div layout="row" layout-align="center" class="publication-spacer">
                 <div class="question"><span class="highlight">Date started:</span></div>

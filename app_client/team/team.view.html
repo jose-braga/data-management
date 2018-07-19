@@ -61,19 +61,64 @@
                     </md-tab>
                     <md-tab label='Funding'>
                         <md-content>
-                            <div layout="row" layout-padding>
-                                <team-lab-projects
-                                    data-lab="{{lab.lab_id}}"
-                                    data-group="{{lab.group_id}}"
-                                    flex>
-                                </team-lab-projects>
+                            <div style="padding-left: 20px; padding-top: 10px;">
+                                There are 3 sections in this tab:
+                                <ol>
+                                    <li><a ng-click="vm.gotoSection('projects-card')" href="" >Projects</a></li>
+                                    <li><a ng-click="vm.gotoSection('agreements-card')" href="">Agreements with private entities</a></li>
+                                    <li><a ng-click="vm.gotoSection('trainings-card')" href="">Training networks</a></li>
+                                </ol>
                             </div>
-                            <div layout="row" layout-padding>
-                                <team-members-projects
-                                    data-lab="{{lab.lab_id}}"
-                                    data-group="{{lab.group_id}}"
-                                flex>
-                                </team-members-projects>
+                            <div id="projects-card">
+                                <div layout="row" layout-padding>
+                                    <team-lab-projects
+                                        data-lab="{{lab.lab_id}}"
+                                        data-group="{{lab.group_id}}"
+                                        flex>
+                                    </team-lab-projects>
+                                </div>
+
+                                <div layout="row" layout-padding>
+                                    <team-members-projects
+                                        data-lab="{{lab.lab_id}}"
+                                        data-group="{{lab.group_id}}"
+                                    flex>
+                                    </team-members-projects>
+                                </div>
+                            </div>
+                            <div id="agreements-card">
+                                <div layout="row" layout-padding>
+                                    <team-lab-agreements
+                                        data-lab="{{lab.lab_id}}"
+                                        data-group="{{lab.group_id}}"
+                                        flex>
+                                    </team-lab-agreements>
+                                </div>
+
+                                <div layout="row" layout-padding>
+                                    <team-members-agreements
+                                        data-lab="{{lab.lab_id}}"
+                                        data-group="{{lab.group_id}}"
+                                    flex>
+                                    </team-members-agreements>
+                                </div>
+                            </div>
+                            <div id="trainings-card">
+                                <div layout="row" layout-padding>
+                                    <team-lab-trainings
+                                        data-lab="{{lab.lab_id}}"
+                                        data-group="{{lab.group_id}}"
+                                        flex>
+                                    </team-lab-trainings>
+                                </div>
+
+                                <div layout="row" layout-padding>
+                                    <team-members-trainings
+                                        data-lab="{{lab.lab_id}}"
+                                        data-group="{{lab.group_id}}"
+                                    flex>
+                                    </team-members-trainings>
+                                </div>
                             </div>
                         </md-content>
                     </md-tab>

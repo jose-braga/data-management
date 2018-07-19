@@ -190,6 +190,21 @@ router.put('/projects/team/:groupID/:teamID', auth, ctrlProductivityData.addProj
 router.put('/projects/team/:groupID/:teamID/delete', auth, ctrlProductivityData.deleteProjectsTeam);
 router.put('/projects/person/:personID', auth, ctrlProductivityData.updatePersonProjects);
 
+router.get('/agreements/team/:groupID/:teamID/members', auth, ctrlProductivityData.listMembersAgreements);
+router.get('/agreements/team/:groupID/:teamID', auth, ctrlProductivityData.listTeamAgreements);
+router.get('/agreements/all', auth, ctrlProductivityData.listAgreements);
+router.get('/agreements/person/:personID', auth, ctrlProductivityData.listPersonAgreements);
+router.put('/agreements/team/:groupID/:teamID', auth, ctrlProductivityData.addAgreementsLab);
+router.put('/agreements/team/:groupID/:teamID/delete', auth, ctrlProductivityData.deleteAgreementsTeam);
+router.put('/agreements/person/:personID', auth, ctrlProductivityData.updatePersonAgreements);
+
+router.get('/trainings/team/:groupID/:teamID/members', auth, ctrlProductivityData.listMembersTrainings);
+router.get('/trainings/team/:groupID/:teamID', auth, ctrlProductivityData.listTeamTrainings);
+router.get('/trainings/all', auth, ctrlProductivityData.listTrainings);
+router.get('/trainings/person/:personID', auth, ctrlProductivityData.listPersonTrainings);
+router.put('/trainings/team/:groupID/:teamID', auth, ctrlProductivityData.addTrainingsLab);
+router.put('/trainings/team/:groupID/:teamID/delete', auth, ctrlProductivityData.deleteTrainingsTeam);
+router.put('/trainings/person/:personID', auth, ctrlProductivityData.updatePersonTrainings);
 
 // POST (Create) new user (authenticated)
 router.post('/registration', auth, ctrlRegistrationData.addPerson);

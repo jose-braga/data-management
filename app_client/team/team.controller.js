@@ -1,6 +1,6 @@
 (function(){
 /******************************* Controllers **********************************/
-    var teamCtrl = function ($scope, $timeout, $mdMedia, $mdPanel,
+    var teamCtrl = function ($scope, $timeout, $mdMedia, $mdPanel, $location, $anchorScroll,
                             personData, teamData, publications, authentication) {
         var vm = this;
         vm.toolbarData = {title: 'Please update your team'};
@@ -162,6 +162,9 @@
             }
         };
 
+        vm.gotoSection = function (place) {
+            $anchorScroll(place);
+        };
 
         function findEarliestDate(){
             var dates = [];

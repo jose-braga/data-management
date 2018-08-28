@@ -75,6 +75,11 @@ a {
   width: 60px;
 }
 
+.email-button {
+  max-height: 20px;
+  margin-left: 20px !important;
+}
+
 .input-no-margin .md-datepicker-triangle-button.md-icon-button.md-button {
   margin-top: 0px;
   padding-top: 0px;

@@ -2,7 +2,7 @@
     <md-card-title>
         <md-card-title-text>
             <span class="md-headline">Institutional contacts</span>
-            <span class="md-subhead">Use personal email, if you still don't have a institutional email.</span>
+            <span class="md-subhead">Use personal email, if you still don't have an institutional email.</span>
         </md-card-title-text>
     </md-card-title>
     <md-card-content layout="column" flex>
@@ -15,16 +15,23 @@
             <md-input-container>
                 <label>Extension</label>
                 <input ng-model="vm.thisPerson.work_phone[0].extension"
-                        name="work_extension">
+                        name="work_extension" required>
             </md-input-container>
             <md-input-container>
-                <label>Email</label>
+                <label>{{vm.institutionalEmail}}</label>
                 <input type="email" ng-model="vm.thisPerson.work_email[0]"
                         name="work_email">
                 <div ng-messages="registrationForm.work_email.$error" role="alert">
                     <div ng-message="email">Must be a valid email.</div>
                 </div>
             </md-input-container>
+        </div>
+        <div ng-if="vm.questionRequestInstitutionalEmail()" layout="column" layout-gt-xs="row">
+            <md-checkbox
+                    ng-model="vm.requestEmail" ng-change="vm.institutionalEmailActions()"
+                    aria-label="Checkbox Request Email">
+                Request institutional email
+            </md-checkbox>
         </div>
     </md-card-content>
 </md-card>

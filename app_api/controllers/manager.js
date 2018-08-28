@@ -1408,11 +1408,6 @@ var queryUpdateUserPermissions = function (req, res, next) {
     }
 };
 
-/*
-sendJSONResponse(res, 400, { message: 'Email not sent for this user: no email defined.' });
-return;
-*/
-
 var sendEmailsToUsers = function (req, res, next) {
     var mailError = [];
     if (process.env.NODE_ENV === 'production') {
@@ -1438,7 +1433,7 @@ var sendEmailsToUsers = function (req, res, next) {
                 console.log('Message %s was sent to person %s with response: %s', info.messageId, req.body.person_id, info.response);
             });
         } else {
-            console.log('User validation warning: email not set for person %s',
+            console.log('User validation warning: email not sent for person %s',
                          req.body.person_id);
             mailError.push('Not send to user: email not defined.');
         }
@@ -1446,7 +1441,6 @@ var sendEmailsToUsers = function (req, res, next) {
         // just for testing purposes
     }
     return sendEmailsCar(req, res, next, mailError);
-
 };
 
 var sendEmailsCar = function (req, res, next, mailError) {
@@ -1495,6 +1489,463 @@ var sendEmailsEmail = function (req, res, next, mailError) {
     }
 
 
+};
+
+var getMoreInfo = function (req, res, next, rows, i, irole) {
+    if (rows[irole].length > 0) {
+        return getDepartments(req, res, next, rows, i, irole);
+    } else if (irole + 1 < rows.length) {
+        return getMoreInfo(req, res, next, rows, 0, irole+1);
+    } else {
+        sendJSONResponse(res, 200,
+            {"status": "success", "statusCode": 200, "count": rows.length,
+             "result" : rows});
+    }
+};
+
+var getDepartments = function (req, res, next, rows, i, irole) {
+    var query = 'SELECT people_departments.id AS people_departments_id,' +
+                ' people_departments.department_id AS department_id, departments.name_en AS department,' +
+                ' people_departments.valid_from AS department_start, people_departments.valid_until AS department_end' +
+                ' FROM people' +
+                ' LEFT JOIN people_departments ON people.id = people_departments.person_id' +
+                ' LEFT JOIN departments ON people_departments.department_id = departments.id' +
+                ' WHERE people.id = ?';
+    var places = [rows[irole][i].person_id];
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(query,places,
+            function (err, rowsQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                rows[irole][i] = joinResponses(rows[irole][i], rowsQuery, 'departments');
+                return getDegrees(req, res, next, rows, i, irole);
+            }
+        );
+    });
+
+};
+
+var getDegrees = function (req, res, next, rows, i, irole) {
+    var query = 'SELECT degrees_people.id AS degrees_people_id, ' +
+                ' degrees_people.degree_id AS degree_type_id, degrees.name_en AS degree_name_en,' +
+                ' degrees_people.area AS degree_area, degrees_people.institution AS degree_institution,' +
+                ' degrees_people.program AS degree_program,' +
+                ' degrees_people.start AS degree_start, degrees_people.estimate_end AS degree_estimate_end, degrees_people.end AS degree_end,' +
+                ' degrees_people.title AS degree_title' +
+                ' FROM people' +
+                ' LEFT JOIN degrees_people ON people.id = degrees_people.person_id' +
+                ' LEFT JOIN degrees ON degrees_people.degree_id = degrees.id' +
+                ' WHERE people.id = ?;';
+    var places = [rows[irole][i].person_id];
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(query,places,
+            function (err, rowsQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                rows[irole][i] = joinResponses(rows[irole][i], rowsQuery, 'degrees');
+                return getJobs(req, res, next, rows, i, irole);
+            }
+        );
+    });
+
+};
+
+var getJobs = function (req, res, next, rows, i, irole) {
+    var query = 'SELECT jobs.id AS job_id,' +
+                ' jobs.category_id AS job_category_id, categories.name_en AS job_category_name_en,' +
+                ' jobs.organization AS job_organization, jobs.dedication AS job_dedication,' +
+                ' jobs.valid_from AS job_valid_from, jobs.valid_until AS job_valid_until' +
+
+                ' FROM people' +
+                ' LEFT JOIN jobs ON people.id = jobs.person_id' +
+                ' LEFT JOIN categories ON jobs.category_id = categories.id' +
+                ' WHERE people.id = ?';
+    var places = [rows[irole][i].person_id];
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(query,places,
+            function (err, rowsQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                rows[irole][i] = joinResponses(rows[irole][i], rowsQuery, 'jobs');
+                if (i + 1 < rows[irole].length) {
+                    return getMoreInfo(req, res, next, rows, i+1, irole);
+                } else {
+                    if (irole + 1 < rows.length) {
+                        return getMoreInfo(req, res, next, rows, 0, irole+1);
+                    } else {
+                        sendJSONResponse(res, 200,
+                            {"status": "success", "statusCode": 200, "count": rows.length,
+                             "result" : rows});
+                    }
+                }
+            }
+        );
+    });
+
+};
+
+var sendAdditionEmail = function (req, res, next) {
+    var mailError = [];
+    if (process.env.NODE_ENV === 'production') {
+        if (req.body.personal_email !== null) {
+            var recipients = nodemailer.emailRecipients.fct.email;
+            var cc = req.body.person_details.pers_email[0].personal_email + ', '
+                        + nodemailer.emailRecipients.managers.Lisboa;
+            let mailOptions = {
+                from: '"Admin" <admin@laqv-ucibio.info>', // sender address
+                to: recipients, // list of receivers (comma-separated)
+                cc: cc,
+                subject: 'Adição de investigador à equipa da unidade: ' +
+                         req.body.unit_name, // Subject line
+                text: 'Olá ' + nodemailer.emailRecipients.fct.name +',\n\n' +
+                      'Pedimos que seja adicionado à equipa da unidade ' + req.body.unit_name +
+                      ' o utilizador com os seguintes dados:\n\n' +
+                      '.\n\n' +
+                      'Com os melhores cumprimentos,\nJosé Braga\n' +
+                      'IT and scientific network specialist\n\n' +
+                      'UCIBIO - Applied Molecular Biosciences Unit\n' +
+                      'LAQV - Associated Laboratory for Green Chemistry\n' +
+                      'Faculdade de Ciências e Tecnologia - Universidade Nova de Lisboa,\n' +
+                      '2829-516 Caparica, Portugal\n' +
+                      'Tel: +351 212949608 (ext: 10906)',
+                html: 'Olá ' + nodemailer.emailRecipients.fct.name +',<br><br>' +
+                      'Pedimos que seja adicionado à equipa da unidade ' + req.body.unit_name +
+                      ' o utilizador com os seguintes dados:<br><br>' +
+                      '.<br><br>' +
+                      'Com os melhores cumprimentos,<br>José Braga<br>' +
+                      'IT and scientific network specialist<br><br>' +
+                      '<div class="m_5221355845973084392gmail_signature" data-smartmail="gmail_signature">' +
+                      '      <div dir="ltr">'+
+                      '         <div style="font-size:12.8px">'+
+                      '             <font face="arial, helvetica, sans-serif"><br></font>'+
+                      '         </div>'+
+                      '         <a href="http://www.requimte.pt/ucibio/" style="font-size:12.8px" target="_blank" data-saferedirecturl="https://www.google.com/url?hl=en&amp;q=http://www.requimte.pt/ucibio/&amp;source=gmail&amp;ust=1511884494937000&amp;usg=AFQjCNEi6tmk4g415gRX4N7I5Sd2z19rkg">'+
+                      '             <font color="#3d85c6" face="arial, helvetica, sans-serif">UCIBIO - Applied Molecular Biosciences Unit</font>'+
+                      '         </a>' +
+                      '         <div style="font-size:12.8px">'+
+                      '             <a href="http://www.requimte.pt/laqv/" target="_blank" data-saferedirecturl="https://www.google.com/url?hl=en&amp;q=http://www.requimte.pt/laqv/&amp;source=gmail&amp;ust=1511884494937000&amp;usg=AFQjCNH0-WcrUnyL4748RufZFbe0tMvSYw">'+
+                      '                 <font color="#6aa84f" face="arial, helvetica, sans-serif">LAQV - Associated Laboratory for Green Chemistry</font>'+
+                      '             </a>'+
+                      '         </div>'+
+                      '         <div style="font-size:12.8px">'+
+                      '             <font face="arial, helvetica, sans-serif">'+
+                      '                 <span style="font-size:12.8px">Faculdade de Ciências e Tecnologia - Universidade Nova de Lisboa,&nbsp;</span>'+
+                      '                 <br style="font-size:12.8px">'+
+                      '                 <span style="font-size:12.8px">2829-516 Caparica, Portugal</span>'+
+                      '                 <br style="font-size:12.8px">'+
+                      '             </font>Tel: <a href="tel:+351%2021%20294%209608" value="+351212949608" target="_blank">+351 212949608</a> (ext: 10906)'+
+                      '         </div>'+
+                      '     </div>'+
+                      ' </div>',
+            };
+            // send mail with defined transport object
+            transporter.sendMail(mailOptions, (error, info) => {
+                if (error) {
+                    console.log('Message to person %s not sent due to error below.', req.body.person_id);
+                    console.log(error);
+                    mailError.push('Not sent to user: sending problem. Changes not saved.');
+                }
+                console.log('Message %s was sent to person %s with response: %s', info.messageId, req.body.person_id, info.response);
+            });
+        } else {
+            console.log('User validation warning: email not sent for person %s',
+                         req.body.person_id);
+            mailError.push('Not send to user: email not defined. Changes not saved.');
+        }
+    } else {
+        // just for testing purposes
+        //mailError.push('Not sent to user: sending problem. Changes not saved.');
+    }
+    if (mailError.length === 0) {
+        return queryUpdateFctStatus(req, res, next, mailError);
+    } else {
+        sendJSONResponse(res, 400, {"status": mailError, "statusCode": 400});
+        return;
+    }
+};
+var sendRemovalEmail = function (req, res, next) {
+    var mailError = [];
+    if (process.env.NODE_ENV === 'production') {
+        if (req.body.personal_email !== null) {
+            var recipients = nodemailer.emailRecipients.fct;
+            var cc = req.body.person_details.pers_email[0].personal_email + ', '
+                        + nodemailer.emailRecipients.managers.Lisboa;
+            let mailOptions = {
+                from: '"Admin" <admin@laqv-ucibio.info>', // sender address
+                to: recipients, // list of receivers (comma-separated)
+                cc: cc,
+                subject: 'Remoção de investigador da equipa da unidade: ' +
+                         req.body.unit_name, // Subject line
+                text: 'Olá ' + nodemailer.emailRecipients.fct.name +',\n\n' +
+                      'Pedimos que seja adicionado à equipa da unidade ' + req.body.unit_name +
+                      ' o utilizador com os seguintes dados:\n\n' +
+                      '.\n\n' +
+                      'Com os melhores cumprimentos,\nJosé Braga\n' +
+                      'IT and scientific network specialist\n\n' +
+                      'UCIBIO - Applied Molecular Biosciences Unit\n' +
+                      'LAQV - Associated Laboratory for Green Chemistry\n' +
+                      'Faculdade de Ciências e Tecnologia - Universidade Nova de Lisboa,\n' +
+                      '2829-516 Caparica, Portugal\n' +
+                      'Tel: +351 212949608 (ext: 10906)',
+                html: 'Olá ' + nodemailer.emailRecipients.fct.name +',<br><br>' +
+                      'Pedimos que seja adicionado à equipa da unidade ' + req.body.unit_name +
+                      ' o utilizador com os seguintes dados:<br><br>' +
+                      '.<br><br>' +
+                      'Com os melhores cumprimentos,<br>José Braga<br>' +
+                      'IT and scientific network specialist<br><br>' +
+                      '<div class="m_5221355845973084392gmail_signature" data-smartmail="gmail_signature">' +
+                      '      <div dir="ltr">'+
+                      '         <div style="font-size:12.8px">'+
+                      '             <font face="arial, helvetica, sans-serif"><br></font>'+
+                      '         </div>'+
+                      '         <a href="http://www.requimte.pt/ucibio/" style="font-size:12.8px" target="_blank" data-saferedirecturl="https://www.google.com/url?hl=en&amp;q=http://www.requimte.pt/ucibio/&amp;source=gmail&amp;ust=1511884494937000&amp;usg=AFQjCNEi6tmk4g415gRX4N7I5Sd2z19rkg">'+
+                      '             <font color="#3d85c6" face="arial, helvetica, sans-serif">UCIBIO - Applied Molecular Biosciences Unit</font>'+
+                      '         </a>' +
+                      '         <div style="font-size:12.8px">'+
+                      '             <a href="http://www.requimte.pt/laqv/" target="_blank" data-saferedirecturl="https://www.google.com/url?hl=en&amp;q=http://www.requimte.pt/laqv/&amp;source=gmail&amp;ust=1511884494937000&amp;usg=AFQjCNH0-WcrUnyL4748RufZFbe0tMvSYw">'+
+                      '                 <font color="#6aa84f" face="arial, helvetica, sans-serif">LAQV - Associated Laboratory for Green Chemistry</font>'+
+                      '             </a>'+
+                      '         </div>'+
+                      '         <div style="font-size:12.8px">'+
+                      '             <font face="arial, helvetica, sans-serif">'+
+                      '                 <span style="font-size:12.8px">Faculdade de Ciências e Tecnologia - Universidade Nova de Lisboa,&nbsp;</span>'+
+                      '                 <br style="font-size:12.8px">'+
+                      '                 <span style="font-size:12.8px">2829-516 Caparica, Portugal</span>'+
+                      '                 <br style="font-size:12.8px">'+
+                      '             </font>Tel: <a href="tel:+351%2021%20294%209608" value="+351212949608" target="_blank">+351 212949608</a> (ext: 10906)'+
+                      '         </div>'+
+                      '     </div>'+
+                      ' </div>',
+            };
+            // send mail with defined transport object
+            transporter.sendMail(mailOptions, (error, info) => {
+                if (error) {
+                    console.log('Message to person %s not sent due to error below.', req.body.person_id);
+                    console.log(error);
+                    mailError.push('Not sent to user: sending problem. Changes not saved.');
+                }
+                console.log('Message %s was sent to person %s with response: %s', info.messageId, req.body.person_id, info.response);
+            });
+        } else {
+            console.log('User validation warning: email not sent for person %s',
+                         req.body.person_id);
+            mailError.push('Not send to user: email not defined. Changes not saved.');
+        }
+    } else {
+        // just for testing purposes
+        //mailError.push('Not sent to user: sending problem. Changes not saved.');
+    }
+    if (mailError.length === 0) {
+        return queryUpdateFctStatus(req, res, next, mailError, 'removal');
+    } else {
+        sendJSONResponse(res, 400, {"status": mailError, "statusCode": 400});
+        return;
+    }
+};
+
+var queryUpdateFctStatus = function (req, res, next, mailError, type) {
+    var personID = req.params.personID;
+    var status_fct_id = req.body.status_fct_id;
+    var requesterCities = permissions.geographicAccess(req.payload.stat);
+    var valid_from = momentToDate(req.body.valid_from);
+    var valid_until = momentToDate(req.body.valid_until);
+    var querySQL = '';
+    var places = [];
+    if (requesterCities.indexOf(req.body.person_details.institution_city_id) !== -1) {
+        if (status_fct_id === null || status_fct_id === 'new') {
+            querySQL = querySQL + 'INSERT INTO status_fct' +
+                              ' (person_id,unit_id,must_be_added,addition_requested,valid_from,locked)' +
+                              ' VALUES (?,?,1,1,?,1);';
+            places.push(personID,
+                        req.body.unit_id,
+                        valid_from);
+        } else if (type === undefined) {
+            querySQL = querySQL + 'UPDATE status_fct' +
+                                  ' SET must_be_added = 1,' +
+                                  ' addition_requested = 1,' +
+                                  ' valid_from = ?,' +
+                                  ' locked = 1' +
+                                  ' WHERE id = ?;';
+            places.push(valid_from, status_fct_id);
+        } else {
+            if (type === 'removal') {// for removing from FCT
+                querySQL = querySQL + 'UPDATE status_fct' +
+                                  ' SET must_be_removed = 1,' +
+                                  ' removal_requested = 1,' +
+                                  ' valid_until = ?' +
+                                  ' WHERE id = ?;';
+                places.push(valid_until,
+                    req.body.status_fct_id);
+            }
+        }
+        pool.getConnection(function(err, connection) {
+            if (err) {
+                sendJSONResponse(res, 500, {"status": "error connection", "statusCode": 500, "error" : err.stack});
+                return;
+            }
+            connection.query(querySQL,places,
+                function (err, resQuery) {
+                    // And done with the connection.
+                    connection.release();
+                    if (err) {
+                        sendJSONResponse(res, 400, {"status": "error SQL command", "statusCode": 400, "error" : err.stack});
+                        return;
+                    }
+                    sendJSONResponse(res, 200, {"status": "All done!", "statusCode": 200});
+                    return;
+                }
+            );
+        });
+    } else {
+        sendJSONResponse(res, 403, { message: 'This user is not authorized to this operation.' });
+        return;
+    }
+
+};
+
+var updateStatusFCTNoEmail = function (req, res, next) {
+    var personID = req.params.personID;
+    var updateArr = req.body.updateStatusFCT;
+    var newArr = req.body.newStatusFCT;
+    var deleteArr = req.body.deleteStatusFCT;
+    var requesterCities = permissions.geographicAccess(req.payload.stat);
+    var querySQL = '';
+    var places = [];
+    if (deleteArr.length === 0 && updateArr.length == 0 && newArr.length === 0) {
+        sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
+        return;
+    }
+    if (requesterCities.indexOf(req.body.person_details.institution_city_id) !== -1) {
+        if (updateArr.length > 0) {
+            for (var el in updateArr) {
+                if (updateArr[el].locked !== 1 && updateArr[el].removal_requested !== 1) {
+                    querySQL = querySQL + 'UPDATE status_fct' +
+                                      ' SET unit_id = ?,' +
+                                      ' must_be_added = ?,' +
+                                      ' valid_from = ?,' +
+                                      ' must_be_removed = ?,' +
+                                      ' valid_until = ?' +
+                                      ' WHERE id = ?;';
+                    places.push(updateArr[el].unit_id,
+                                updateArr[el].must_be_added,
+                                momentToDate(updateArr[el].valid_from),
+                                updateArr[el].must_be_removed,
+                                momentToDate(updateArr[el].valid_until),
+                                updateArr[el].status_fct_id
+                                );
+                } else if (updateArr[el].removal_requested !== 1) {
+                    querySQL = querySQL + 'UPDATE status_fct' +
+                                      ' SET must_be_removed = ?,' +
+                                      ' valid_until = ?' +
+                                      ' WHERE id = ?;';
+                    places.push(updateArr[el].must_be_removed,
+                                momentToDate(updateArr[el].valid_until),
+                                updateArr[el].status_fct_id
+                                );
+                } else if (updateArr[el].locked !== 1) {
+                    querySQL = querySQL + 'UPDATE status_fct' +
+                                      ' SET must_be_added = ?,' +
+                                      ' valid_from = ?' +
+                                      ' WHERE id = ?;';
+                    places.push(updateArr[el].must_be_added,
+                                momentToDate(updateArr[el].valid_from),
+                                updateArr[el].status_fct_id
+                                );
+                }
+            }
+        }
+        if (newArr.length > 0) {
+            for (var el in newArr) {
+                if (newArr[el].locked !== 1) {
+                    querySQL = querySQL + 'INSERT INTO status_fct' +
+                                      ' (person_id, unit_id,must_be_added,valid_from,must_be_removed,valid_until)' +
+                                      ' VALUES (?,?,?,?,?,?);';
+                    places.push(personID,
+                                newArr[el].unit_id,
+                                newArr[el].must_be_added,
+                                momentToDate(newArr[el].valid_from),
+                                newArr[el].must_be_removed,
+                                momentToDate(newArr[el].valid_until)
+                                );
+                } else if (updateArr[el].removal_requested !== 1) {
+                    querySQL = querySQL + 'INSERT INTO status_fct' +
+                                      ' (person_id, unit_id, must_be_removed, valid_until)' +
+                                      ' VALUES (?,?,?,?);';
+                    places.push(personID,
+                                newArr[el].unit_id,
+                                newArr[el].must_be_removed,
+                                momentToDate(newArr[el].valid_until)
+                                );
+                } else if (updateArr[el].locked !== 1) {
+                    querySQL = querySQL + 'INSERT INTO status_fct' +
+                                      ' (person_id, unit_id, must_be_added, valid_from)' +
+                                      ' VALUES (?,?,?,?);';
+                    places.push(personID,
+                                newArr[el].unit_id,
+                                newArr[el].must_be_added,
+                                momentToDate(newArr[el].valid_from)
+                                );
+                }
+            }
+        }
+        if (deleteArr.length > 0) {
+            for (var el in deleteArr) {
+                if (deleteArr[el].locked !== 1) {
+                    querySQL = querySQL + 'DELETE FROM status_fct WHERE id = ?;';
+                    places.push(deleteArr[el].status_fct_id);
+                }
+            }
+        }
+        if (querySQL === '') {
+            sendJSONResponse(res, 200, {"status": "success", "statusCode": 200});
+            return;
+        }
+        pool.getConnection(function(err, connection) {
+            if (err) {
+                sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+                return;
+            }
+            connection.query(querySQL,places,
+                function (err, resQuery) {
+                    // And done with the connection.
+                    connection.release();
+                    if (err) {
+                        sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                        return;
+                    }
+                    sendJSONResponse(res, 200, {"status": "All done!", "statusCode": 200});
+                    return;
+                }
+            );
+        });
+    } else {
+        sendJSONResponse(res, 403, { message: 'This user is not authorized to this operation.' });
+        return;
+    }
 };
 
 /*******************************************************************************/
@@ -1639,123 +2090,6 @@ module.exports.listAllPeopleWithRolesData = function (req, res, next) {
     );
 };
 
-var getMoreInfo = function (req, res, next, rows, i, irole) {
-    if (rows[irole].length > 0) {
-        return getDepartments(req, res, next, rows, i, irole);
-    } else if (irole + 1 < rows.length) {
-        return getMoreInfo(req, res, next, rows, 0, irole+1);
-    } else {
-        sendJSONResponse(res, 200,
-            {"status": "success", "statusCode": 200, "count": rows.length,
-             "result" : rows});
-    }
-};
-
-var getDepartments = function (req, res, next, rows, i, irole) {
-    var query = 'SELECT people_departments.id AS people_departments_id,' +
-                ' people_departments.department_id AS department_id, departments.name_en AS department,' +
-                ' people_departments.valid_from AS department_start, people_departments.valid_until AS department_end' +
-                ' FROM people' +
-                ' LEFT JOIN people_departments ON people.id = people_departments.person_id' +
-                ' LEFT JOIN departments ON people_departments.department_id = departments.id' +
-                ' WHERE people.id = ?';
-    var places = [rows[irole][i].person_id];
-    pool.getConnection(function(err, connection) {
-        if (err) {
-            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
-            return;
-        }
-        connection.query(query,places,
-            function (err, rowsQuery) {
-                // And done with the connection.
-                connection.release();
-                if (err) {
-                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
-                    return;
-                }
-                rows[irole][i] = joinResponses(rows[irole][i], rowsQuery, 'departments');
-                return getDegrees(req, res, next, rows, i, irole);
-            }
-        );
-    });
-
-};
-
-var getDegrees = function (req, res, next, rows, i, irole) {
-    var query = 'SELECT degrees_people.id AS degrees_people_id, ' +
-                ' degrees_people.degree_id AS degree_type_id, degrees.name_en AS degree_name_en,' +
-                ' degrees_people.area AS degree_area, degrees_people.institution AS degree_institution,' +
-                ' degrees_people.program AS degree_program,' +
-                ' degrees_people.start AS degree_start, degrees_people.estimate_end AS degree_estimate_end, degrees_people.end AS degree_end,' +
-                ' degrees_people.title AS degree_title' +
-                ' FROM people' +
-                ' LEFT JOIN degrees_people ON people.id = degrees_people.person_id' +
-                ' LEFT JOIN degrees ON degrees_people.degree_id = degrees.id' +
-                ' WHERE people.id = ?;';
-    var places = [rows[irole][i].person_id];
-    pool.getConnection(function(err, connection) {
-        if (err) {
-            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
-            return;
-        }
-        connection.query(query,places,
-            function (err, rowsQuery) {
-                // And done with the connection.
-                connection.release();
-                if (err) {
-                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
-                    return;
-                }
-                rows[irole][i] = joinResponses(rows[irole][i], rowsQuery, 'degrees');
-                return getJobs(req, res, next, rows, i, irole);
-            }
-        );
-    });
-
-};
-
-var getJobs = function (req, res, next, rows, i, irole) {
-    var query = 'SELECT jobs.id AS job_id,' +
-                ' jobs.category_id AS job_category_id, categories.name_en AS job_category_name_en,' +
-                ' jobs.organization AS job_organization, jobs.dedication AS job_dedication,' +
-                ' jobs.valid_from AS job_valid_from, jobs.valid_until AS job_valid_until' +
-
-                ' FROM people' +
-                ' LEFT JOIN jobs ON people.id = jobs.person_id' +
-                ' LEFT JOIN categories ON jobs.category_id = categories.id' +
-                ' WHERE people.id = ?';
-    var places = [rows[irole][i].person_id];
-    pool.getConnection(function(err, connection) {
-        if (err) {
-            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
-            return;
-        }
-        connection.query(query,places,
-            function (err, rowsQuery) {
-                // And done with the connection.
-                connection.release();
-                if (err) {
-                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
-                    return;
-                }
-                rows[irole][i] = joinResponses(rows[irole][i], rowsQuery, 'jobs');
-                if (i + 1 < rows[irole].length) {
-                    return getMoreInfo(req, res, next, rows, i+1, irole);
-                } else {
-                    if (irole + 1 < rows.length) {
-                        return getMoreInfo(req, res, next, rows, 0, irole+1);
-                    } else {
-                        sendJSONResponse(res, 200,
-                            {"status": "success", "statusCode": 200, "count": rows.length,
-                             "result" : rows});
-                    }
-                }
-            }
-        );
-    });
-
-};
-
 module.exports.listAllPeopleNoRolesData = function (req, res, next) {
     getUser(req, res, [0, 5, 10, 15, 16],
         function (req, res, username) {
@@ -1803,6 +2137,30 @@ module.exports.validatePerson = function (req, res, next) {
     getUser(req, res, [0, 5, 10, 15, 16],
         function (req, res, username) {
             queryValidatePerson(req,res,next);
+        }
+    );
+};
+
+module.exports.sendAdditionEmail = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16],
+        function (req, res, username) {
+            sendAdditionEmail(req,res,next);
+        }
+    );
+};
+
+module.exports.sendRemovalEmail = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16],
+        function (req, res, username) {
+            sendRemovalEmail(req,res,next);
+        }
+    );
+};
+
+module.exports.updateStatusFCT = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16],
+        function (req, res, username) {
+            updateStatusFCTNoEmail(req,res,next);
         }
     );
 };

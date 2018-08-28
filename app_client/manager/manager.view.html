@@ -22,9 +22,10 @@
             </md-tab>
             <md-tab ng-repeat="(num,name) in vm.nameDetails" label='{{name}}'>
                 <md-content>
-                    <div layout-xs="column" layout="row" layout-padding>
-                        <div flex-xs flex-gt-xs="50" layout="column">
+                    <div layout-xs="column" layout-sm="column" layout="row" layout-padding>
+                        <div flex-xs flex-sm flex-gt-sm="50" layout="column">
                             <manager-person-left></manager-person-left>
+                            <manager-fct-mctes></manager-fct-mctes>
                             <manager-password-reset></manager-password-reset>
                             <manager-user-permissions></manager-user-permissions>
                             <manager-person-nuclear-info></manager-person-nuclear-info>
@@ -35,7 +36,7 @@
                             <manager-person-finished-degrees></manager-person-finished-degrees>
                             <manager-person-ongoing-degrees></manager-person-ongoing-degrees>
                         </div>
-                         <div flex-xs flex-gt-xs="50" layout="column">
+                         <div flex-xs flex-sm flex-gt-sm="50" layout="column">
                             <manager-person-photo></manager-person-photo>
                             <manager-person-pole></manager-person-pole>
                             <manager-person-institutional-contacts-info></manager-person-institutional-contacts-info>
@@ -62,8 +63,9 @@
                     <md-tab ng-repeat="(num,name) in vm.nameDetailsValidate" label='{{name}}'>
                         <md-content>
                             <div layout-xs="column" layout="row" layout-padding>
-                                <div flex-xs flex-gt-xs="50" layout="column">
+                                <div flex-xs flex-sm flex-gt-sm="50" layout="column">
                                     <validate-person></validate-person>
+                                    <validate-fct-mctes></validate-fct-mctes>
                                     <validate-user-permissions></validate-user-permissions>
                                     <validate-person-photo></validate-person-photo>
                                     <validate-person-nuclear-info></validate-person-nuclear-info>
@@ -72,7 +74,7 @@
                                     <validate-person-identifications-info></validate-person-identifications-info>
                                     <validate-person-cars-info></validate-person-cars-info>
                                 </div>
-                                 <div flex-xs flex-gt-xs="50" layout="column">
+                                 <div flex-xs flex-sm flex-gt-sm="50" layout="column">
                                     <validate-person-institutional-contacts-info></validate-person-institutional-contacts-info>
                                     <validate-person-department></validate-person-department>
                                     <validate-person-professional></validate-person-professional>

@@ -1,8 +1,7 @@
  (function(){
     // Current version: 1.0.0
     // TODO: Actualizar help
-    // TODO: 1 - Projects
-    // TODO: 2 - Other productivity measurements: Patents, outreach, startups, prizes, datasets, boards
+    // TODO: 1 - Email to FCT
     // TODO: 3 - Dashboards (visualization of indicators)
 
     // TODO: (Check if this doesn't happen!!!) When adding from ORCID check if the publication was not already added by someone
@@ -73,7 +72,7 @@
             $mdDateLocaleProvider.parseDate = function(dateString) {
                 if (dateString === null || dateString === undefined) return null;
                 var m = moment.tz(dateString, 'Europe/Lisbon');
-                return m.isValid() ? m.format('YYYY-MM-DD') : null;
+                return m.isValid() ? m.toDate() : null;
             };
         })
         .config(function($mdAriaProvider) {$mdAriaProvider.disableWarnings();})

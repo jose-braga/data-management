@@ -12,6 +12,7 @@
                     <md-input-container>
                         <label>Department</label>
                         <md-select ng-model="vm.thisPerson.affiliationsDepartment[num].department_id"
+                                    ng-required="vm.requestEmail"
                                     name="department_id[num]">
                             <md-option ng-repeat="dep in vm.departments"
                                 ng-value="dep.department_id">

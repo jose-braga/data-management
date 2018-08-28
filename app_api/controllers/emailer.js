@@ -10,13 +10,14 @@ let transporter = nodemailer.createTransport({
 
 var emailRecipients = {
         car: 'mimrc@fct.unl.pt',
+        security: 'mimrc@fct.unl.pt',
         email: 'mimrc@fct.unl.pt',
         students: 'beatrizdobem@fct.unl.pt',
-        fct: 'fct@fct.mctes.pt',
+        fct: {name:'XXX XXXX', email: 'josecbraga@gmail.com'},
         managers: {
-                Lisboa: 'tsc@fct.unl.pt, jasl@fct.unl.pt, josebraga@fct.unl.pt',
-                Porto: 'josebraga@fct.unl.pt, jasl@fct.unl.pt',
-                Aveiro: 'josebraga@fct.unl.pt, jasl@fct.unl.pt'
+                Lisboa: 'tsc@fct.unl.pt, josebraga@fct.unl.pt',
+                Porto: 'josebraga@fct.unl.pt',
+                Aveiro: 'josebraga@fct.unl.pt'
             }
     };
 

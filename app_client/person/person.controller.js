@@ -2991,12 +2991,6 @@
             }
         };
 
-
-
-
-
-
-
         vm.gotoSection = function (place) {
             $anchorScroll(place);
         };

@@ -31,7 +31,7 @@
             </md-input-container>
             <md-input-container class="input-row">
                 <label>Personal Email</label></label>
-                <input type="email" ng-model="vm.thisPerson.personal_email[0].personal_email" name="personal_email">
+                <input type="email" required ng-model="vm.thisPerson.personal_email[0].personal_email" name="personal_email">
                 <div ng-messages="registrationForm.personal_email.$error" role="alert">
                     <div ng-message="email">Must be a valid email.</div>
                 </div>

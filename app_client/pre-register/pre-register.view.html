@@ -7,19 +7,20 @@
 </div>
 <div ng-if="vm.isLoggedIn" layout="column" flex>
     <toolbar-row></toolbar-row>
+    <!--  -->
     <form flex novalidate name="preRegistrationForm"
-                    ng-submit="preRegistrationForm.$valid && vm.submitPreRegistration(vm.forms['preRegisterSubmit'])">
+                ng-submit="preRegistrationForm.$valid && vm.submitPreRegistration(vm.forms['preRegisterSubmit'])">
         <md-content>
             <div layout-xs="column" layout="row" layout-padding>
-                <div flex-xs flex-gt-xs="50" layout="column">
+                <div flex-xs flex-sm flex-gt-sm="50" layout="column">
                     <pre-registration-change-password></pre-registration-change-password>
                     <pre-registration-person-nuclear-info></pre-registration-person-nuclear-info>
                     <pre-registration-contact-info></pre-registration-contact-info>
                     <pre-registration-identifications></pre-registration-identifications>
-                    <pre-registration-cars></pre-registration-cars>
+                    <pre-registration-cars ng-if="vm.thisPerson.institution_city_name === 'Lisboa'"></pre-registration-cars>
                     <pre-registration-comments></pre-registration-comments>
                 </div>
-                <div flex-xs flex-gt-xs="50" layout="column">
+                <div flex-xs flex-sm flex-gt-sm="50" layout="column">
                     <pre-registration-photo></pre-registration-photo>
                     <pre-registration-institutional-contacts-info></pre-registration-institutional-contacts-info>
                     <pre-registration-department></pre-registration-department>

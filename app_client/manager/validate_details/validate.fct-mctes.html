@@ -1,0 +1,113 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">FCT/MCTES status</span>
+        </md-card-title-text>
+    </md-card-title>
+    <form novalidate flex name="validateFCTStatusForm[num]"
+        ng-submit="validateFCTStatusForm[num].$valid
+        && vm.submitFCTStatus(vm.forms['validateFCTStatus'],vm.selectedIndexValidate-1,vm.thisPersonValidate[vm.selectedIndexValidate-1], true)">
+        <md-card-content layout="column" flex>
+            <div ng-repeat="(num,stat) in vm.currentFCTStatusValidate[vm.selectedIndexValidate-1] track by $index"
+                    layout="column">
+                <fieldset>
+                    <legend>Unit: {{stat.unit_short_name}}</legend>
+                    <md-input-container>
+                        <label>Unit</label>
+                        <md-select required ng-model="stat.unit_id"
+                                ng-disabled="stat.locked">
+                            <md-option ng-repeat="unit in vm.units"
+                                    ng-value="unit.id">{{unit.short_name}}</md-option>
+                        </md-select>
+                    </md-input-container>
+                    <div layout="row">
+                        <md-switch ng-model="stat.must_be_added"
+                                ng-disabled="stat.locked"
+                                ng-true-value="1" ng-false-value="0"
+                                class="md-warn">
+                             Belongs to FCT/MCTES team: {{ vm.switchValue(stat.must_be_added) }}
+                        </md-switch>
+                        <md-input-container class="input-row-longer">
+                            <label>Start date</label>
+                            <md-datepicker md-current-view="year"
+                                    ng-disabled="stat.locked"
+                                    ng-model="stat.valid_from"
+                                    name="valid_from[num]" md-placeholder="Enter date"></md-datepicker>
+                        </md-input-container>
+                    </div>
+                    <div layout="row" layout-align="none center">
+                        <md-switch ng-model="stat.addition_requested"
+                                ng-disabled="true"
+                                ng-true-value="1" ng-false-value="0"
+                                class="md-warn">
+                             Addition mail sent: {{ vm.switchValue(stat.addition_requested) }}
+                        </md-switch>
+                        <md-button class="button-small md-raised md-primary email-button"
+                                ng-click="vm.sendAdditionEmail(vm.forms['validateFCTStatus'],vm.selectedIndexValidate-1,vm.thisPersonValidate[vm.selectedIndexValidate-1], stat, true)"
+                                ng-disabled="stat.locked || stat.unit_id === null || stat.valid_from === null || !vm.hasPersonalEmailValidate[vm.selectedIndexValidate-1]">
+                            <md-icon class="white-icon" md-svg-src="images/icons/email_24px.svg"></md-icon> addition
+                        </md-button>
+                        <div ng-if="!vm.hasPersonalEmailValidate[vm.selectedIndexValidate-1] && !stat.locked">
+                            Add personal email first!
+                        </div>
+                    </div>
+                    <div layout="row">
+                        <md-switch ng-model="stat.must_be_removed"
+                                ng-disabled="stat.removal_requested"
+                                ng-true-value="1" ng-false-value="0"
+                                class="md-warn">
+                             Removed from FCT/MCTES team: {{ vm.switchValue(stat.must_be_removed) }}
+                        </md-switch>
+                        <md-input-container class="input-row-longer">
+                            <label>End date</label>
+                            <md-datepicker md-current-view="year"
+                                    ng-model="stat.valid_until"
+                                    ng-disabled="stat.removal_requested"
+                                    md-min-date="stat.valid_from"
+                                    name="valid_until[num]" md-placeholder="Enter date"></md-datepicker>
+                        </md-input-container>
+                    </div>
+                    <div layout="row" layout-align="none center">
+                        <md-switch ng-model="stat.removal_requested"
+                                ng-disabled="true"
+                                ng-true-value="1" ng-false-value="0"
+                                class="md-warn">
+                             Removal mail sent: {{ vm.switchValue(stat.removal_requested) }}
+                        </md-switch>
+                        <md-button class="button-small md-raised md-warn email-button"
+                                ng-click="vm.sendRemovalEmail(vm.forms['validateFCTStatus'],vm.selectedIndexValidate-1,vm.thisPersonValidate[vm.selectedIndexValidate-1], stat, true)"
+                                ng-disabled="(stat.valid_until === null || !vm.hasPersonalEmailValidate[vm.selectedIndexValidate-1]) || stat.removal_requested">
+                            <md-icon class="white-icon" md-svg-src="images/icons/email_24px.svg"></md-icon> removal
+                        </md-button>
+                        <div ng-if="!vm.hasPersonalEmailValidate[vm.selectedIndexValidate-1] && stat.locked && stat.must_be_removed">
+                            Add personal email first!
+                        </div>
+                    </div>
+                    <!-- Think better about Remove (can't remove if locked??) -->
+                    <div layout="row" layout-align="none center">
+                        <div ng-if="!$first && !stat.locked">Remove info:</div>
+                        <md-button ng-if="!$first && !stat.locked" ng-click="vm.removeRows2(vm.currentFCTStatus[vm.selectedIndexValidate-1],$index)"
+                                aria-label="Remove"
+                                class="md-icon-button interaction-button">
+                            <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
+                        </md-button>
+                        <div ng-if="$last">Add another:</div>
+                        <md-button ng-if="$last" ng-click="vm.addRows2(vm.currentFCTStatus[vm.selectedIndexValidate-1], 'fct-status')"
+                                aria-label="Add more" class="md-icon-button interaction-button">
+                            <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                        </md-button>
+                    </div>
+                </fieldset>
+            </div>
+            <div layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button type="submit"
+                    class="button-small md-raised md-primary">Update "Belongs"/"Removed"</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['validateFCTStatus']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['validateFCTStatus']]">
+                        {{vm.updateStatus[vm.forms['validateFCTStatus']]}}
+                    </span>
+                </div>
+            </div>
+        </md-card-content>
+    </form>
+</md-card>

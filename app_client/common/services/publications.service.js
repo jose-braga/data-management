@@ -397,7 +397,6 @@
         };
 
 
-
         var getAllTrainings = function () {
             return $http.get('api/trainings/all',
                 {
@@ -447,9 +446,6 @@
                 }
             );
         };
-
-
-
 
         var thisTeamPatents = function (groupID, teamID) {
             return $http.get('api/patents/team/' + groupID + '/' + teamID,

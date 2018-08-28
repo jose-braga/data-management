@@ -10,18 +10,16 @@
                 layout="column"  layout-gt-md="row">
                 <md-input-container class="select-container input-row card-type">
                     <label>Card Type</label>
-
                     <md-select ng-model="vm.thisPerson.identifications[num].card_type_id"
                             name="card_type_id[num]">
                         <div class="scrollable">
                             <md-option ng-repeat="type in vm.cardTypes" ng-value="type.card_type_id">{{type.name_en}}</md-option>
                         </div>
                     </md-select>
-
                 </md-input-container>
                 <md-input-container class="input-row">
                     <label>Number</label>
-                    <input ng-model="vm.thisPerson.identifications[num].card_number"
+                    <input required ng-model="vm.thisPerson.identifications[num].card_number"
                             name="card_number[num]">
                 </md-input-container>
                 <md-input-container>

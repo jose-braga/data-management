@@ -4293,6 +4293,9 @@ var queryResearcherInfoPerson = function (req, res, next, userCity) {
     }
 };
 
+
+/****************************** Get Person data *******************************/
+
 var queryGetUsername = function (req,res,next, userCity) {
     var hasPermission = getGeoPermissions(req, userCity);
     if ((req.payload.personID !== req.params.personID && hasPermission)
@@ -4619,6 +4622,37 @@ var queryGetWorkPhones = function (req,res,next, personID, row) {
                     return;
                 }
                 row = joinResponses(row,rowsQuery,'work_phone');
+                return queryGetFCTStatus(req,res,next, personID, row);
+            }
+        );
+    });
+};
+
+var queryGetFCTStatus = function (req,res,next, personID, row) {
+    var query = 'SELECT status_fct.id AS status_fct_id, status_fct.unit_id,' +
+                ' units.short_name AS unit_short_name, units.name  AS unit_name,' +
+                ' status_fct.must_be_added, status_fct.addition_requested,' +
+                ' status_fct.must_be_removed, status_fct.removal_requested,' +
+                ' status_fct.valid_from, status_fct.valid_until, status_fct.locked' +
+                ' FROM people' +
+                ' LEFT JOIN status_fct ON people.id = status_fct.person_id' +
+                ' LEFT JOIN units ON units.id = status_fct.unit_id' +
+                ' WHERE people.id = ?';
+    var places = [personID];
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(query,places,
+            function (err, rowsQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                row = joinResponses(row,rowsQuery,'status_fct');
                 return queryGetDegrees(req,res,next, personID, row);
             }
         );
@@ -6138,17 +6172,27 @@ module.exports.listOf = function (req, res, next) {
         querySQL = 'SELECT * FROM schools;';
         getQueryResponse(querySQL, req, res, next);
     } else if (listOf === 'departments') {
-        querySQL = 'SELECT departments.id AS department_id, departments.name_en AS department_name_en, ' +
-                   'schools.id AS school_id, schools.name_en AS school_name_en, ' +
-                   'schools.shortname_en AS school_shortname_en, ' +
-                   'universities.id AS university_id, universities.name_en AS university_name_en, ' +
-                   'universities.shortname_en AS university_shortname_en' +
+        querySQL = 'SELECT departments.id AS department_id, departments.name_en AS department_name_en, departments.name_pt AS department_name_pt,' +
+                   'schools.id AS school_id, schools.name_en AS school_name_en, schools.name_pt AS school_name_pt, ' +
+                   'schools.shortname_en AS school_shortname_en, schools.shortname_pt AS school_shortname_pt,' +
+                   'universities.id AS university_id, universities.name_en AS university_name_en, universities.name_pt AS university_name_pt,' +
+                   'universities.shortname_en AS university_shortname_en, universities.shortname_pt AS university_shortname_pt,' +
+                   'people.name AS full_name, people.colloquial_name, leaders_departments.position_name_en, leaders_departments.position_name_pt, emails.email ' +
                    ' FROM departments' +
                    ' LEFT JOIN schools ON departments.school_id = schools.id' +
-                   ' LEFT JOIN universities ON schools.university_id = universities.id;';
+                   ' LEFT JOIN universities ON schools.university_id = universities.id' +
+                   ' LEFT JOIN leaders_departments ON departments.id = leaders_departments.department_id' +
+                   ' LEFT JOIN people ON people.id = leaders_departments.person_id' +
+                   ' LEFT JOIN emails ON people.id = emails.person_id;';
         getQueryResponse(querySQL, req, res, next);
     } else if (listOf === 'units') {
-        querySQL = 'SELECT * FROM units;';
+        querySQL = 'SELECT units.*, people.name AS full_name, people.colloquial_name, emails.email,' +
+                   ' units_positions.name_en AS position_name_en, units_positions.name_pt AS position_name_pt, leaders_units.city_id' +
+                   ' FROM units' +
+                   ' LEFT JOIN leaders_units ON units.id = leaders_units.unit_id' +
+                   ' LEFT JOIN people ON people.id = leaders_units.person_id' +
+                   ' LEFT JOIN emails ON people.id = emails.person_id' +
+                   ' LEFT JOIN units_positions ON leaders_units.unit_position_id = units_positions.id;';
         getQueryResponse(querySQL, req, res, next);
     } else if (listOf === 'groups') {
         querySQL = 'SELECT groups.id AS group_id, groups.name, groups.short_name AS group_short_name, ' +
@@ -6285,6 +6329,7 @@ module.exports.listOf = function (req, res, next) {
         var errorNum = 404;
         sendJSONResponse(res, errorNum, {"status": "error", "statusCode": errorNum, "error" : "Does not exist!"});
     }
+    return;
 };
 
 /******************** Call SQL Generators after Validations *******************/

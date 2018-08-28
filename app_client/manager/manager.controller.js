@@ -526,6 +526,7 @@
             if (vm.nameDetails.indexOf(member.person_name) === -1) {
                 vm.nameDetails.push(member.person_name);
                 vm.thisPerson.push({});
+                vm.hasPersonalEmail.push(false);
                 vm.selectedNationalities.push([]);
                 vm.currentIDs.push([]);
                 vm.currentCars.push([]);
@@ -550,7 +551,7 @@
                         vm.personImageType[sizeImagePersonPre-1] = vm.imagePersonPre[sizeImagePersonPre-1].type;
                     }, true)
                 );
-
+                vm.currentFCTStatus.push([]);
                 vm.currentFinishedDegrees.push([]);
                 vm.initialFinishedDegrees.push([]);
                 vm.currentOngoingDegrees.push([]);
@@ -574,7 +575,7 @@
                 vm.selectedNationalitiesValidate.push([]);
                 vm.currentIDsValidate.push([]);
                 vm.currentCarsValidate.push([]);
-
+                vm.hasPersonalEmailValidate.push(false);
                 vm.hasPhotoValidate.push(false);
                 vm.changePhotoValidate.push(false);
                 vm.imagePersonPreValidate.push('');
@@ -592,7 +593,7 @@
                         vm.personImageTypeValidate[sizeImagePersonPre-1] = vm.imagePersonPreValidate[sizeImagePersonPre-1].type;
                     }, true)
                 );
-
+                vm.currentFCTStatusValidate.push([]);
                 vm.currentFinishedDegreesValidate.push([]);
                 vm.initialFinishedDegreesValidate.push([]);
                 vm.currentOngoingDegreesValidate.push([]);
@@ -808,6 +809,118 @@
             for (var ind in roleList) {
                 if (roleList[ind].name_en === role) return true;
             }
+            return false;
+        };
+
+        vm.sendAdditionEmail = function (ind, indDetail, datum, stat, validate) {
+            vm.updateStatus[ind] = "Sending mail";
+            vm.hideMessage[ind] = false;
+            var data = stat;
+            var unit_name = '';
+            for (var unit in vm.units) {
+                if (vm.units[unit].id === stat.unit_id) {
+                    unit_name = vm.units[unit].short_name + ' - ' + vm.units[unit].name;
+                }
+            }
+            data['unit_name'] = unit_name;
+            data['person_details'] = datum;
+            managerData.sendAdditionEmail(datum.id, data)
+                .then( function () {
+                    if (validate === true) {
+                        getPersonDataValidate(datum.id, indDetail, ind);
+                    } else {
+                        getPersonData(datum.id, indDetail, ind);
+                    }
+                },
+                function (error) {
+                    vm.updateStatus[ind] = "Error! Contact admin." + error.data.status;
+                    vm.messageType[ind] = 'message-error';
+                    vm.hideMessage[ind] = false;
+                    $timeout(function () {
+                        vm.hideMessage[ind] = true;
+                        if (validate === true) {
+                            getPersonDataValidate(datum.id, indDetail, ind);
+                        } else {
+                            getPersonData(datum.id, indDetail, ind);
+                        }
+                    }, 10000);
+                },
+                function () {}
+                );
+            return false;
+        };
+        vm.sendRemovalEmail = function (ind, indDetail, datum, stat, validate) {
+            vm.updateStatus[ind] = "Sending mail";
+            vm.hideMessage[ind] = false;
+            var data = stat;
+            var unit_name = '';
+            for (var unit in vm.units) {
+                if (vm.units[unit].id === stat.unit_id) {
+                    unit_name = vm.units[unit].short_name + ' - ' + vm.units[unit].name;
+                }
+            }
+            data['unit_name'] = unit_name;
+            data['person_details'] = datum;
+            managerData.sendRemovalEmail(datum.id, data)
+                .then( function () {
+                    if (validate === true) {
+                        getPersonDataValidate(datum.id, indDetail, ind);
+                    } else {
+                        getPersonData(datum.id, indDetail, ind);
+                    }
+                },
+                function (error) {
+                    vm.updateStatus[ind] = "Error! Contact admin." + error.data.status;
+                    vm.messageType[ind] = 'message-error';
+                    vm.hideMessage[ind] = false;
+                    $timeout(function () {
+                        vm.hideMessage[ind] = true;
+                        if (validate === true) {
+                            getPersonDataValidate(datum.id, indDetail, ind);
+                        } else {
+                            getPersonData(datum.id, indDetail, ind);
+                        }
+                    }, 10000);
+                },
+                function () {}
+                );
+            return false;
+        };
+        vm.submitFCTStatus = function (ind, indDetail, datum, validate) {
+            vm.updateStatus[ind] = "Updating 'Belongs'/'Removed' ";
+            vm.hideMessage[ind] = false;
+            var data;
+            if (validate === true) {
+                data = processDataRows(vm.currentFCTStatusValidate[indDetail],datum.status_fct,
+                                  'status_fct_id', 'newStatusFCT','updateStatusFCT','deleteStatusFCT');
+            } else {
+                data = processDataRows(vm.currentFCTStatus[indDetail],datum.status_fct,
+                                  'status_fct_id', 'newStatusFCT','updateStatusFCT','deleteStatusFCT');
+            }
+            data['person_details'] = datum;
+            managerData.updateStatusFCT(datum.id, data)
+                .then( function () {
+                    if (validate === true) {
+                        getPersonDataValidate(datum.id, indDetail, ind);
+                    } else {
+                        getPersonData(datum.id, indDetail, ind);
+                    }
+                },
+                function (error) {
+                    vm.updateStatus[ind] = "Error!";
+                    vm.messageType[ind] = 'message-error';
+                    vm.hideMessage[ind] = false;
+                    $timeout(function () {
+                        vm.hideMessage[ind] = true;
+                        if (validate === true) {
+                            getPersonDataValidate(datum.id, indDetail, ind);
+                        } else {
+                            getPersonData(datum.id, indDetail, ind);
+                        }
+                    }, 10000);
+                },
+                function () {}
+                );
             return false;
         };
 
@@ -1756,6 +1869,14 @@
                     obj = {emergency_id: 'new', emergency_name: null, emergency_phone: null};
                     current.push(obj);
                 }
+            } if (type === 'fct-status') {
+                obj = {
+                        status_fct_id: 'new', unit_id: null, locked: null,
+                        must_be_added: null, addition_requested: null,
+                        must_be_removed: null, removal_requested: null,
+                        valid_from: null, valid_until: null
+                    };
+                current.push(obj);
             } else if (type === 'costCenters') {
                 if (current.length == 1 && current[0]['people_cost_centers_id'] === null) {
                     current[0]['people_cost_centers_id'] = 'new';
@@ -2153,6 +2274,8 @@
         function initializeDetails() {
             vm.nameDetails = [];
             vm.thisPerson = [];
+            vm.hasPersonalEmail = [];
+            vm.hasPersonalEmailValidate = [];
             vm.selectedNationalities = [];
             vm.currentIDs = [];
             vm.currentCars = [];
@@ -2184,6 +2307,7 @@
             vm.initialOngoingDegrees = [];
 
             vm.currentEmergencyContacts = [];
+            vm.currentFCTStatus = [];
             vm.currentAffiliationsLab = [];
             vm.currentCostCenters = [];
             vm.currentAffiliationsTech = [];
@@ -2196,6 +2320,7 @@
 
             vm.nameDetailsValidate = [];
             vm.thisPersonValidate = [];
+            vm.currentFCTStatusValidate = [];
             vm.selectedNationalitiesValidate = [];
             vm.currentIDsValidate = [];
             vm.currentCarsValidate = [];
@@ -2337,7 +2462,9 @@
                 'validateUserPermissions': 60,
                 'personCostCenter': 61,
                 'personCars': 62,
-                'validateCars': 63
+                'validateCars': 63,
+                'personFCTStatus': 64,
+                'validateFCTStatus': 65
             };
 
             if (ind === undefined) {
@@ -2353,28 +2480,6 @@
             }
             vm.accessPermission = authentication.access('manager');
             vm.currentUser = authentication.currentUser();
-            /*
-
-            // full name is always exported, colloquial name is optional
-            vm.exportOptions = {
-                'Colloquial name':    {isDefault: false, keys: ['colloquial_name']},
-                'Position':           {isDefault: true,  keys: ['lab_data','position_id']},
-                'Dedication':         {isDefault: true,  keys: ['lab_data','dedication']},
-                'Lab':                {isDefault: true,  keys: ['lab_data','lab']},
-                'Group':              {isDefault: true,  keys: ['lab_data','group_name']},
-                'Unit':               {isDefault: true,  keys: ['lab_data','unit']},
-                'Started':            {isDefault: true,  keys: ['lab_data','lab_start']},
-                'Ended':              {isDefault: true,  keys: ['lab_data','lab_end']},
-                'Pole':               {isDefault: true,  keys: ['institution_city_name']},
-                'Association Key':    {isDefault: true,  keys: ['researcher_data','association_key']},
-                'ORCID':              {isDefault: true,  keys: ['researcher_data','ORCID']},
-
-                'Birth date':         {isDefault: false, keys: ['birth_date']},
-                'Gender':             {isDefault: false, keys: ['gender']},
-                'Job':                {isDefault: false, keys: ['job_data','job_category_name_en']},
-            };
-            */
-
         }
         function getPersonData(personID, el, ind) {
             if (el === -1) {
@@ -2391,6 +2496,13 @@
                     }
                     if (vm.thisPerson[el].pers_photo[0].personal_photo_id !== null) {
                         vm.hasPhoto[el] = true;
+                    }
+
+                    if (vm.thisPerson[el].pers_email[0].personal_email === null
+                        || vm.thisPerson[el].pers_email[0].personal_email === "") {
+                        vm.hasPersonalEmail[el] = false;
+                    } else {
+                        vm.hasPersonalEmail[el] = true;
                     }
 
                     vm.thisPerson[el]['active_until'] = processDate(vm.thisPerson[el]['active_until']);
@@ -2419,6 +2531,18 @@
                     vm.currentEmergencyContacts[el] = [];
                     for (var id in vm.thisPerson[el].emergency_contacts) {
                         vm.currentEmergencyContacts[el].push(Object.assign({}, vm.thisPerson[el].emergency_contacts[id]));
+                    }
+
+                    vm.currentFCTStatus[el] = [];
+                    for (var id in vm.thisPerson[el].status_fct) {
+                        vm.thisPerson[el].status_fct[id]['valid_from'] = processDate(vm.thisPerson[el].status_fct[id]['valid_from']);
+                        vm.thisPerson[el].status_fct[id]['valid_until'] = processDate(vm.thisPerson[el].status_fct[id]['valid_until']);
+                        vm.thisPerson[el].status_fct[id].locked = vm.thisPerson[el].status_fct[id].locked === null ? 0 : vm.thisPerson[el].status_fct[id].locked;
+                        vm.thisPerson[el].status_fct[id].must_be_added = vm.thisPerson[el].status_fct[id].must_be_added === null ? 0 : vm.thisPerson[el].status_fct[id].must_be_added;
+                        vm.thisPerson[el].status_fct[id].must_be_removed = vm.thisPerson[el].status_fct[id].must_be_removed === null ? 0 : vm.thisPerson[el].status_fct[id].must_be_removed;
+                        vm.thisPerson[el].status_fct[id].addition_requested = vm.thisPerson[el].status_fct[id].addition_requested === null ? 0 : vm.thisPerson[el].status_fct[id].addition_requested;
+                        vm.thisPerson[el].status_fct[id].removal_requested = vm.thisPerson[el].status_fct[id].removal_requested === null ? 0 : vm.thisPerson[el].status_fct[id].removal_requested;
+                        vm.currentFCTStatus[el].push(Object.assign({}, vm.thisPerson[el].status_fct[id]));
                     }
 
                     vm.currentFinishedDegrees[el] = [];
@@ -2582,6 +2706,26 @@
                     for (var nat in vm.thisPersonValidate[el].nationalities) {
                         vm.selectedNationalitiesValidate[el].push(Object.assign({}, vm.thisPersonValidate[el].nationalities[nat]));
                     }
+
+                    if (vm.thisPersonValidate[el].pers_email[0].personal_email === null
+                        || vm.thisPersonValidate[el].pers_email[0].personal_email === "") {
+                        vm.hasPersonalEmailValidate[el] = false;
+                    } else {
+                        vm.hasPersonalEmailValidate[el] = true;
+                    }
+
+                    vm.currentFCTStatusValidate[el] = [];
+                    for (var id in vm.thisPersonValidate[el].status_fct) {
+                        vm.thisPersonValidate[el].status_fct[id]['valid_from'] = processDate(vm.thisPersonValidate[el].status_fct[id]['valid_from']);
+                        vm.thisPersonValidate[el].status_fct[id]['valid_until'] = processDate(vm.thisPersonValidate[el].status_fct[id]['valid_until']);
+                        vm.thisPersonValidate[el].status_fct[id].locked = vm.thisPersonValidate[el].status_fct[id].locked === null ? 0 : vm.thisPersonValidate[el].status_fct[id].locked;
+                        vm.thisPersonValidate[el].status_fct[id].must_be_added = vm.thisPersonValidate[el].status_fct[id].must_be_added === null ? 0 : vm.thisPersonValidate[el].status_fct[id].must_be_added;
+                        vm.thisPersonValidate[el].status_fct[id].must_be_removed = vm.thisPersonValidate[el].status_fct[id].must_be_removed === null ? 0 : vm.thisPersonValidate[el].status_fct[id].must_be_removed;
+                        vm.thisPersonValidate[el].status_fct[id].addition_requested = vm.thisPersonValidate[el].status_fct[id].addition_requested === null ? 0 : vm.thisPersonValidate[el].status_fct[id].addition_requested;
+                        vm.thisPersonValidate[el].status_fct[id].removal_requested = vm.thisPersonValidate[el].status_fct[id].removal_requested === null ? 0 : vm.thisPersonValidate[el].status_fct[id].removal_requested;
+                        vm.currentFCTStatusValidate[el].push(Object.assign({}, vm.thisPersonValidate[el].status_fct[id]));
+                    }
+
                     vm.currentIDsValidate[el] = [];
                     for (var id in vm.thisPersonValidate[el].identifications) {
                         vm.thisPersonValidate[el].identifications[id]['card_valid_until'] = processDate(vm.thisPersonValidate[el].identifications[id]['card_valid_until']);
@@ -3011,12 +3155,12 @@
             return data;
         }
         function momentToDate(timedate, timezone, timeformat) {
-        if (timezone === undefined) {
-            timezone = 'Europe/Lisbon';
-        }
-        if (timeformat === undefined) {
-            timeformat = 'YYYY-MM-DD';
-        }
+            if (timezone === undefined) {
+                timezone = 'Europe/Lisbon';
+            }
+            if (timeformat === undefined) {
+                timeformat = 'YYYY-MM-DD';
+            }
         return timedate !== null ? moment.tz(timedate,timezone).format(timeformat) : null;
 }
     };
@@ -3057,14 +3201,12 @@
             templateUrl: 'manager/all_people/all.members.html'
         };
     };
-
     var allPeopleNoRolesPresentation = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/all_people/all.membersNoRoles.html'
         };
     };
-
     var listPeopleValidate = function () {
         return {
             restrict: 'E',
@@ -3078,182 +3220,162 @@
             templateUrl: 'manager/person_details/manager.passwordReset.html'
         };
     };
-
+    var managerFctMctes = function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'manager/person_details/manager.fct-mctes.html'
+        };
+    };
     var managerUserPermissions = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/person_details/manager.personUserPermissions.html'
         };
     };
-
     var managerPersonNuclearInfo = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/person_details/manager.personNuclearInfo.html'
         };
     };
-
     var managerPersonContactInfo = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/person_details/manager.personContactInfo.html'
         };
     };
-
     var managerPersonIdentificationsInfo = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/person_details/manager.personIdentificationsInfo.html'
         };
     };
-
     var managerPersonCarsInfo = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/person_details/manager.personCarsInfo.html'
         };
     };
-
     var managerPersonEmergencyContactsInfo = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/person_details/manager.personEmergencyContacts.html'
         };
     };
-
     var managerPersonInstitutionalContactsInfo = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/person_details/manager.personInstitutionalContactsInfo.html'
         };
     };
-
     var managerPersonCurrentRoles = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/person_details/manager.personCurrentRoles.html'
         };
     };
-
     var managerPersonResearcherInfo = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/person_details/roles/manager.personResearcherInfo.html'
         };
     };
-
     var managerPersonAffiliationLab = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/person_details/roles/manager.personAffiliationLab.html'
         };
     };
-
     var managerPersonCostCenter = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/person_details/manager.personCostCenter.html'
         };
     };
-
     var managerPersonAffiliationTechnician = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/person_details/roles/manager.personAffiliationTechnician.html'
         };
     };
-
     var managerPersonAffiliationManager = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/person_details/roles/manager.personAffiliationManager.html'
         };
     };
-
     var managerPersonAffiliationAdministrative = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/person_details/roles/manager.personAffiliationAdministrative.html'
         };
     };
-
     var managerPersonTechnicianInfo = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/person_details/roles/manager.personTechnicianInfo.html'
         };
     };
-
     var managerPersonManagerInfo = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/person_details/roles/manager.personManagerInfo.html'
         };
     };
-
     var managerPersonAdministrativeInfo = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/person_details/roles/manager.personAdministrativeInfo.html'
         };
     };
-
     var managerPersonDepartment = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/person_details/manager.personDepartmentAffiliation.html'
         };
     };
-
     var managerPersonProfessional = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/person_details/manager.personProfessionalSituation.html'
         };
     };
-
     var managerPersonFinishedDegrees = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/person_details/manager.personFinishedDegrees.html'
         };
     };
-
     var managerPersonOngoingDegrees = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/person_details/manager.personOngoingDegrees.html'
         };
     };
-
     var managerPersonResponsibles = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/person_details/manager.personResponsibles.html'
         };
     };
-
     var managerPersonPole = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/person_details/manager.personInstitutionCity.html'
         };
     };
-
     var managerPersonLeft = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/person_details/manager.personLeft.html'
         };
     };
-
     var managerPersonPhoto = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/person_details/manager.personPhoto.html'
         };
     };
-
     var managerPersonAuthorNames = function () {
         return {
             restrict: 'E',
@@ -3267,161 +3389,144 @@
             templateUrl: 'manager/validate_details/validate.person.html'
         };
     };
-
     var validateUserPermissions = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/validate_details/validate.personUserPermissions.html'
         };
     };
-
+    var validateFctMctes = function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'manager/validate_details/validate.fct-mctes.html'
+        };
+    };
     var validatePersonNuclearInfo = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/validate_details/validate.personNuclearInfo.html'
         };
     };
-
     var validatePersonContactInfo = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/validate_details/validate.personContactInfo.html'
         };
     };
-
     var validatePersonIdentificationsInfo = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/validate_details/validate.personIdentificationsInfo.html'
         };
     };
-
     var validatePersonCarsInfo = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/validate_details/validate.personCarsInfo.html'
         };
     };
-
     var validatePersonEmergencyContactsInfo = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/validate_details/validate.personEmergencyContacts.html'
         };
     };
-
     var validatePersonInstitutionalContactsInfo = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/validate_details/validate.personInstitutionalContactsInfo.html'
         };
     };
-
     var validatePersonCurrentRoles = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/validate_details/validate.personCurrentRoles.html'
         };
     };
-
     var validatePersonResearcherInfo = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/validate_details/roles/validate.personResearcherInfo.html'
         };
     };
-
     var validatePersonAffiliationLab = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/validate_details/roles/validate.personAffiliationLab.html'
         };
     };
-
     var validatePersonAffiliationTechnician = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/validate_details/roles/validate.personAffiliationTechnician.html'
         };
     };
-
     var validatePersonAffiliationManager = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/validate_details/roles/validate.personAffiliationManager.html'
         };
     };
-
     var validatePersonAffiliationAdministrative = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/validate_details/roles/validate.personAffiliationAdministrative.html'
         };
     };
-
     var validatePersonTechnicianInfo = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/validate_details/roles/validate.personTechnicianInfo.html'
         };
     };
-
     var validatePersonManagerInfo = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/validate_details/roles/validate.personManagerInfo.html'
         };
     };
-
     var validatePersonAdministrativeInfo = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/validate_details/roles/validate.personAdministrativeInfo.html'
         };
     };
-
     var validatePersonDepartment = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/validate_details/validate.personDepartmentAffiliation.html'
         };
     };
-
     var validatePersonProfessional = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/validate_details/validate.personProfessionalSituation.html'
         };
     };
-
     var validatePersonFinishedDegrees = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/validate_details/validate.personFinishedDegrees.html'
         };
     };
-
     var validatePersonOngoingDegrees = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/validate_details/validate.personOngoingDegrees.html'
         };
     };
-
     var validatePersonResponsibles = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/validate_details/validate.personResponsibles.html'
         };
     };
-
     var validatePersonPole = function () {
         return {
             restrict: 'E',
             templateUrl: 'manager/validate_details/validate.personInstitutionCity.html'
         };
     };
-
     var validatePersonPhoto = function () {
         return {
             restrict: 'E',
@@ -3434,6 +3539,7 @@
         .module('managementApp')
         .directive('allPeoplePresentation', allPeoplePresentation)
         .directive('allPeopleNoRolesPresentation', allPeopleNoRolesPresentation)
+        .directive('managerFctMctes', managerFctMctes)
         .directive('managerPersonNuclearInfo', managerPersonNuclearInfo)
         .directive('managerPersonContactInfo', managerPersonContactInfo)
         .directive('managerPersonIdentificationsInfo', managerPersonIdentificationsInfo)
@@ -3463,6 +3569,7 @@
 
         .directive('listPeopleValidate', listPeopleValidate)
         .directive('validatePerson', validatePerson)
+        .directive('validateFctMctes', validateFctMctes)
         .directive('validatePersonNuclearInfo', validatePersonNuclearInfo)
         .directive('validatePersonContactInfo', validatePersonContactInfo)
         .directive('validatePersonIdentificationsInfo', validatePersonIdentificationsInfo)

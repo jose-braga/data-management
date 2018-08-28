@@ -13,7 +13,7 @@
                     <div layout="column"  layout-gt-md="row">
                         <md-input-container class="input-row">
                             <label>Brand (e.g.: Porsche, Ferrari)</label>
-                            <input ng-model="car.brand"
+                            <input required ng-model="car.brand"
                                     name="car_brand[num]">
                         </md-input-container>
                         <md-input-container class="input-row">
@@ -31,7 +31,7 @@
                         <md-input-container class="input-row">
                             <label>Plate number</label>
                             <input ng-model="car.plate"
-                                    name="car_plate[num]">
+                                   required name="car_plate[num]">
                         </md-input-container>
                         <md-input-container class="input-row">
                             <label>Driver's license ID</label>

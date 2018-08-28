@@ -34,6 +34,30 @@ var managerData = function ($http, authentication) {
         );
     };
 
+    var sendAdditionEmail = function (personID, data) {
+        return $http.put('api/manager/people/fct-mctes-status/' + personID, data,
+            {
+                headers: {Authorization: 'Bearer ' + authentication.getToken()}
+            }
+        );
+    };
+
+    var sendRemovalEmail = function (personID, data) {
+        return $http.put('api/manager/people/fct-mctes-status/' + personID + '/remove', data,
+            {
+                headers: {Authorization: 'Bearer ' + authentication.getToken()}
+            }
+        );
+    };
+
+    var updateStatusFCT = function (personID, data) {
+        return $http.put('api/manager/people/fct-mctes-status/' + personID + '/update', data,
+            {
+                headers: {Authorization: 'Bearer ' + authentication.getToken()}
+            }
+        );
+    };
+
     var passwordResetByID = function (personID, data) {
         return $http.put('api/manager/people/password-reset/' + personID, data,
             {
@@ -64,6 +88,9 @@ var managerData = function ($http, authentication) {
         allPeopleToValidate: allPeopleToValidate,
         validatePerson: validatePerson,
         updatePeopleData: updatePeopleData,
+        sendAdditionEmail: sendAdditionEmail,
+        sendRemovalEmail: sendRemovalEmail,
+        updateStatusFCT: updateStatusFCT,
         passwordResetByID: passwordResetByID,
         changeUserPermissions: changeUserPermissions
     };

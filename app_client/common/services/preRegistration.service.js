@@ -1,6 +1,21 @@
 (function(){
     var preRegistration = function ($http, authentication) {
 
+        var emailFormImageNonStudent = function () {
+            return $http({
+                method: 'GET',
+                url: 'images/formulario_email_non_student_1.png',
+                responseType: 'arraybuffer'
+            });
+        };
+        var emailFormImageMemberRU = function () {
+            return $http({
+                method: 'GET',
+                url: 'images/formulario_email_member_1.png',
+                responseType: 'arraybuffer'
+            });
+        };
+
         var thisPersonData = function (personID) {
             return $http.get('api/pre-registration/people/' + personID,
                 {
@@ -35,6 +50,8 @@
         };
 
         return {
+            emailFormImageNonStudent: emailFormImageNonStudent,
+            emailFormImageMemberRU: emailFormImageMemberRU,
             thisPersonData: thisPersonData,
             addNewPersonData: addNewPersonData,
             updatePersonPhoto: updatePersonPhoto

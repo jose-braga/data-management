@@ -1458,6 +1458,11 @@
                     name = name + department.department_name_en + ', ';
                     name = name + department.school_shortname_en + ', ';
                     name = name + department.university_shortname_en;
+                    if (department.school_shortname_en === null) {
+                        name = '';
+                        name = name + department.department_name_en + ', ';
+                        name = name + department.university_shortname_en;
+                    }
                 } else if (department.school_name_en !== null) {
                     name = name + department.school_name_en + ', ';
                     name = name + department.university_shortname_en;

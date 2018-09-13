@@ -1,7 +1,9 @@
  (function(){
     // Current version: 1.0.0
     // TODO: Actualizar help
-    // TODO: 1 - Email to FCT
+    // TODO: 0 - Check if username is possible by AJAX
+    // TODO: 1 - Correct ordering by lab/office on manager
+    // TODO: 2 - Email to FCT (revise with Teresa)
     // TODO: 3 - Dashboards (visualization of indicators)
 
     // TODO: (Check if this doesn't happen!!!) When adding from ORCID check if the publication was not already added by someone

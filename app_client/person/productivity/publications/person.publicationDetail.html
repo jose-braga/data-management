@@ -5,89 +5,158 @@
         </md-card-title-text>
     </md-card-title>
     <md-card-content layout="column">
-        <div layout="column" flex>
-            <div layout="row" layout-align="center" class="publication-spacer">
-                <div class="question"><span class="highlight">Publication type:</span></div>
-                <div class="answer"><span>{{vm.thisPublication[vm.selectedIndexPublications-1].doc_type}}</span></div>
-            </div>
-            <div layout="row" layout-align="center" class="publication-spacer">
-                <md-tooltip>^ - author belongs to unit; (corresp.) - author belongs to unit and is corresponding author</md-tooltip>
-                <div class="question"><span class="highlight">Authors:<br></span></div>
-                <div class="answer"><span>{{vm.thisPublication[vm.selectedIndexPublications-1].authors}}</span></div>
-            </div>
-            <div layout="row" layout-align="center" class="publication-spacer">
-                <div class="question"><span class="highlight">Publication year:</span></div>
-                <div class="answer"><span>{{vm.thisPublication[vm.selectedIndexPublications-1].year}}</span></div>
-            </div>
-            <div layout="row" layout-align="center" class="publication-spacer">
-                <div class="question"><span class="highlight">Title:</span></div>
-                <div class="answer"><span>{{vm.thisPublication[vm.selectedIndexPublications-1].title}}</span></div>
-            </div>
-            <div layout="row" layout-align="center" class="publication-spacer">
-                <div class="question"><span class="highlight">Journal name:</span></div>
-                <div class="answer"><span>{{vm.thisPublication[vm.selectedIndexPublications-1].journal_name}}</span></div>
-            </div>
-            <div layout="row" layout-align="center" class="publication-spacer">
-                <div class="question"><span class="highlight">Journal short name:</span></div>
-                <div class="answer"><span>{{vm.thisPublication[vm.selectedIndexPublications-1].journal_short_name}}</span></div>
-            </div>
-            <div layout="row" layout-align="center" class="publication-spacer">
-                <div class="question"><span class="highlight">ISSN / E-ISSN:</span></div>
-                <div class="answer"><span>{{vm.thisPublication[vm.selectedIndexPublications-1].issn}} / {{vm.thisPublication[vm.selectedIndexPublications-1].eissn}}</span></div>
-            </div>
-            <div layout="row" layout-align="center" class="publication-spacer">
-                <div class="question"><span class="highlight">Publisher:</span></div>
-                <div class="answer"><span>{{vm.thisPublication[vm.selectedIndexPublications-1].publisher}},
-                                          {{vm.thisPublication[vm.selectedIndexPublications-1].publisher_city}}</span></div>
-            </div>
-            <div layout="row" layout-align="center" class="publication-spacer">
-                <div class="question"><span class="highlight">Publication date:</span></div>
-                <div class="answer"><span>{{vm.thisPublication[vm.selectedIndexPublications-1].publication_date}}</span></div>
-            </div>
-            <div layout="row" layout-align="center" class="publication-spacer">
-                <div class="question"><span class="highlight">Volume:</span></div>
-                <div class="answer"><span>{{vm.thisPublication[vm.selectedIndexPublications-1].volume}}</span></div>
-            </div>
-            <div layout="row" layout-align="center" class="publication-spacer">
-                <div class="question"><span class="highlight">Pages:</span></div>
-                <div class="answer"><span>{{vm.thisPublication[vm.selectedIndexPublications-1].page_start}} -
-                                          {{vm.thisPublication[vm.selectedIndexPublications-1].page_end}}</span></div>
-            </div>
-            <div layout="row" layout-align="center" class="publication-spacer">
-                <div class="question"><span class="highlight">DOI:</span></div>
-                <div class="answer">
-                    <span>
-                        <a href="https://doi.org/{{vm.thisPublication[vm.selectedIndexPublications-1].doi}}"
-                                target="_blank">{{vm.thisPublication[vm.selectedIndexPublications-1].doi}}
-                        </a>
-                    </span>
+        <form flex novalidate name="personPublicationCorrect"
+                ng-submit="personPublicationCorrect.$valid && vm.submitPublicationCorrection(vm.forms['personPubCorrect'],vm.thisPublication[vm.selectedIndexPublications-1],vm.selectedIndexPublications-1)">
+            <div layout="column" flex>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">Publication type:</span></div>
+                    <div class="answer">
+                        <md-select multiple ng-model="vm.thisPublication[vm.selectedIndexPublications-1].publication_type"
+                                        ng-model-options="{trackBy: '$value.id'}"
+                                        multiple
+                                        class="select-no-margin"
+                                        aria-label="publication type"
+                                        name="publication_type">
+                            <md-option ng-repeat="type in vm.publicationTypes"
+                                    ng-value="type">{{type.name_en}}</md-option>
+                        </md-select>
+                    </div>
+                </div>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <md-tooltip>^ - author belongs to unit; (corresp.) - author belongs to unit and is corresponding author</md-tooltip>
+                    <div class="question"><span class="highlight">Authors:<br></span></div>
+                    <div class="answer"><span>{{vm.thisPublication[vm.selectedIndexPublications-1].authors}}</span></div>
+                </div>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">Corresp. authors:<br>(only from LAQV/UCIBIO)</span></div>
+                    <div class="answer">
+                        <md-select multiple ng-model="vm.thisPublication[vm.selectedIndexPublications-1].corresponding_authors"
+                                        class="select-no-margin"
+                                        multiple
+                                        aria-label="publication type"
+                                        name="publication_type">
+                            <md-option ng-repeat="person in vm.thisPublication[vm.selectedIndexPublications-1].unit_authors"
+                                            ng-value="person.person_id">{{person.colloquial_name}}</md-option>
+                        </md-select>
+                    </div>
+                </div>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">Publication year:</span></div>
+                    <div class="answer"><span>{{vm.thisPublication[vm.selectedIndexPublications-1].year}}</span>
+                    </div>
+                </div>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">Title:</span></div>
+                    <div class="answer">
+                        <md-input-container class="input-compact" flex>
+                            <input ng-model="vm.thisPublication[vm.selectedIndexPublications-1].title" name="title" flex>
+                        </md-input-container>
+                    </div>
+                </div>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">Journal name:</span></div>
+                    <div class="answer"><span>{{vm.thisPublication[vm.selectedIndexPublications-1].journal_name}}</span></div>
+                </div>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">Journal short name:</span></div>
+                    <div class="answer"><span>{{vm.thisPublication[vm.selectedIndexPublications-1].journal_short_name}}</span></div>
+                </div>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">ISSN / E-ISSN:</span></div>
+                    <div class="answer"><span>{{vm.thisPublication[vm.selectedIndexPublications-1].issn}} / {{vm.thisPublication[vm.selectedIndexPublications-1].eissn}}</span></div>
+                </div>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">Publisher:</span></div>
+                    <div class="answer"><span>{{vm.thisPublication[vm.selectedIndexPublications-1].publisher}},
+                                              {{vm.thisPublication[vm.selectedIndexPublications-1].publisher_city}}</span></div>
+                </div>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">Publication date:</span></div>
+                    <div class="answer">
+                        <md-input-container class="input-no-margin simple-input">
+                            <input ng-model="vm.thisPublication[vm.selectedIndexPublications-1].publication_date" name="publication_date">
+                        </md-input-container>
+                    </div>
+                </div>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">Volume:</span></div>
+                    <div class="answer">
+                        <md-input-container class="input-no-margin simple-input">
+                            <input ng-model="vm.thisPublication[vm.selectedIndexPublications-1].volume" name="volume">
+                        </md-input-container>
+                    </div>
+                </div>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">Pages:</span></div>
+                    <div class="answer">
+                        <md-input-container class="input-no-margin simple-input">
+                            <input ng-model="vm.thisPublication[vm.selectedIndexPublications-1].page_start" name="page_start">
+                        </md-input-container> -
+                        <md-input-container class="input-no-margin simple-input">
+                            <input ng-model="vm.thisPublication[vm.selectedIndexPublications-1].page_end" name="page_end">
+                        </md-input-container>
+                    </div>
+                </div>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">DOI:</span></div>
+                    <div class="answer" layout="row" layout-align="start center" flex>
+                        <span>
+                            <a href="https://doi.org/{{vm.thisPublication[vm.selectedIndexPublications-1].doi}}"
+                                    target="_blank">{{vm.thisPublication[vm.selectedIndexPublications-1].doi}}
+                            </a>
+                        </span>
+                        <md-button ng-click="vm.editDOI = true;"
+                                aria-label="Export selection"
+                                class="md-icon-button interaction-button">
+                            <md-icon md-svg-src="images/icons/edit_24px.svg"></md-icon>
+                        </md-button>
+                        <div ng-if="vm.editDOI" flex>
+                            <md-input-container class="input-compact" flex>
+                                <input ng-model="vm.thisPublication[vm.selectedIndexPublications-1].doi" name="doi" flex>
+                            </md-input-container>
+                        </div>
+                    </div>
+                </div>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">WOS id (accession number):</span></div>
+                    <div class="answer"><span>{{vm.thisPublication[vm.selectedIndexPublications-1].wos}}</span></div>
+                </div>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">PubMed ID:</span></div>
+                    <div class="answer"><span>{{vm.thisPublication[vm.selectedIndexPublications-1].pubmed_id}}</span></div>
+                </div>
+                <div ng-repeat="citation in vm.thisPublication[vm.selectedIndexPublications-1].citations"
+                        layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">Citations ({{citation.year}}):</span></div>
+                    <div class="answer"><span>{{citation.citations}}</span></div>
+                </div>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">Impact factor ({{vm.thisPublication[vm.selectedIndexPublications-1].if_last_year.year}}):</span></div>
+                    <div class="answer"><span>{{vm.thisPublication[vm.selectedIndexPublications-1].if_last_year.impact_factor}}</span></div>
+                </div>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">Num. of authors:</span></div>
+                    <div class="answer"><span>{{vm.thisPublication[vm.selectedIndexPublications-1].number_authors}}</span></div>
+                </div>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">Your position:</span></div>
+                    <div class="answer">
+                        <md-input-container class="input-no-margin simple-input">
+                            <input ng-model="vm.thisPublication[vm.selectedIndexPublications-1].author_position" name="author_position">
+                        </md-input-container>
+                    </div>
+                </div>
+                <div class="spacer-top"
+                        layout="column" layout-gt-sm="row" layout-align="none center">
+                    <md-button type="submit"
+                        class="button-small md-raised md-primary">Update data</md-button>
+                    <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personPubCorrect']]">
+                        <span class="message" ng-class="vm.messageType[vm.forms['personPubCorrect']]">
+                            {{vm.updateStatus[vm.forms['personPubCorrect']]}}
+                        </span>
+                    </div>
                 </div>
             </div>
-            <div layout="row" layout-align="center" class="publication-spacer">
-                <div class="question"><span class="highlight">WOS id (accession number):</span></div>
-                <div class="answer"><span>{{vm.thisPublication[vm.selectedIndexPublications-1].wos}}</span></div>
-            </div>
-            <div layout="row" layout-align="center" class="publication-spacer">
-                <div class="question"><span class="highlight">PubMed ID:</span></div>
-                <div class="answer"><span>{{vm.thisPublication[vm.selectedIndexPublications-1].pubmed_id}}</span></div>
-            </div>
-            <div ng-repeat="citation in vm.thisPublication[vm.selectedIndexPublications-1].citations"
-                    layout="row" layout-align="center" class="publication-spacer">
-                <div class="question"><span class="highlight">Citations ({{citation.year}}):</span></div>
-                <div class="answer"><span>{{citation.citations}}</span></div>
-            </div>
-            <div layout="row" layout-align="center" class="publication-spacer">
-                <div class="question"><span class="highlight">Impact factor ({{vm.thisPublication[vm.selectedIndexPublications-1].if_last_year.year}}):</span></div>
-                <div class="answer"><span>{{vm.thisPublication[vm.selectedIndexPublications-1].if_last_year.impact_factor}}</span></div>
-            </div>
-            <div layout="row" layout-align="center" class="publication-spacer">
-                <div class="question"><span class="highlight">Num. of authors:</span></div>
-                <div class="answer"><span>{{vm.thisPublication[vm.selectedIndexPublications-1].number_authors}}</span></div>
-            </div>
-            <div layout="row" layout-align="center" class="publication-spacer">
-                <div class="question"><span class="highlight">Your position:</span></div>
-                <div class="answer"><span>{{vm.thisPublication[vm.selectedIndexPublications-1].author_position}}</span></div>
-            </div>
-        </div>
+        </form>
     </md-card-content>
 </md-card>

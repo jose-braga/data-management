@@ -129,6 +129,7 @@ router.put('/publications/person/:personID/add-orcid', auth, ctrlProductivityDat
 router.put('/publications/team/:groupID/:teamID', auth, ctrlProductivityData.addPublicationsLab);
 router.put('/publications/team/:groupID/:teamID/selected', auth, ctrlProductivityData.updateTeamSelectedPub);
 router.put('/publications/team/:groupID/:teamID/delete', auth, ctrlProductivityData.deletePublicationsTeam);
+router.put('/publications/publication/:pubID', auth, ctrlProductivityData.updatePublicationData);
 
 router.get('/communications/team/:groupID/:teamID/members', auth, ctrlProductivityData.listMembersCommunications);
 router.get('/communications/team/:groupID/:teamID', auth, ctrlProductivityData.listTeamCommunications);

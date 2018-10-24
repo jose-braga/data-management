@@ -1,0 +1,87 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Search within LAQV/UCIBIO database</span>
+        </md-card-title-text>
+    </md-card-title>
+    <md-card-content layout="column">
+        <p>These are publications that are already in the database (from WOS, ORCID, or other sources). Publications already associated with you are excluded from search results.<br>
+           After selecting publications, press "Add Publications" below.
+        </p>
+        <p>To find matches, all text strings are normalized (deaccented, ç and ñ substituted, dots (.) are removed and cases lowered). Parts of words are also matched, i.e.: <i>Silva, IA</i> will match <i>Far<u>ia</u>, J; <u>Silva,</u> P</i>. <br>
+            <strong>Tip:</strong> If you want to get a result exactly as written (not normalized) enclose it in double quotes, e.g. <i>"Silva, IA"</i> will not match <i>Faria, J; Silva, P</i>, but will match <i>Silva, IAB</i>.
+        </p>
+        <div layout="row" layout-align="none center">
+            <span class="spacer-top-smaller">Search:</span>
+            <md-input-container class="input-row-longer">
+                <label>by title (> 3 char.)</label>
+                <input ng-model="vm.allPublicationsSearchTitle"
+                       ng-change="vm.getSearchResults(vm.allPublicationsSearchTitle,vm.allPublicationsSearchAuthors)">
+            </md-input-container>
+            <md-input-container class="input-row-longer">
+                <label>by authors (> 3 char.)</label>
+                <input ng-model="vm.allPublicationsSearchAuthors"
+                       ng-change="vm.getSearchResults(vm.allPublicationsSearchTitle,vm.allPublicationsSearchAuthors)">
+            </md-input-container>
+        </div>
+        <form flex novalidate name="personAddPublicationsForm"
+                ng-submit="personAddPublicationsForm.$valid && vm.submitAddPublications(vm.forms['personPubAdd'])">
+            <div class="search-header spacer-top space-left">
+                <span>Search results</span>
+            </div>
+            <table class="publications">
+                <thead>
+                    <tr>
+                        <th class="large-contents-wide"></th>
+                        <th class="large-contents-narrow"></th>
+                        <th class="standard-width"></th>
+                        <th class="smaller-width"></th>
+                        <th class="smaller-width">All<br>
+                            <md-checkbox ng-model="vm.selectAllPublications"
+                                    ng-change="vm.changeAllPublications(vm.selectAllPublications, vm.filteredAllPublications)"
+                                    aria-label="choose all"></md-checkbox>
+                        </th>
+                    </tr>
+                    <tr>
+                        <th class="large-contents-wide">
+                            <a>Title</a>
+                        </th>
+                        <th class="large-contents-narrow">
+                            <a>Authors</a>
+                        </th>
+                        <th class="standard-width">
+                            <a>Journal</a>
+                        </th>
+                        <th class="smaller-width">
+                            <a>Year</a>
+                        </th>
+                        <th  class="smaller-width">Add</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="(pubNum,publication) in vm.filteredAllPublications track by $index">
+                        <td>{{publication.title}}</td>
+                        <td>{{publication.authors_raw}}</td>
+                        <td>{{publication.journal_short_name}}</td>
+                        <td>{{publication.year}}</td>
+                        <td>
+                            <div layout="row" layout-align="center end">
+                                <md-checkbox ng-model="publication.chosen" aria-label="chosen"></md-checkbox>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="spacer-top"
+                    layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button type="submit"
+                    class="button-small md-raised md-primary">Add Publications</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personPubAdd']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['personPubAdd']]">
+                        {{vm.updateStatus[vm.forms['personPubAdd']]}}
+                    </span>
+                </div>
+            </div>
+        </form>
+    </md-card-content>
+</md-card>

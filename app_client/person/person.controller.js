@@ -1,8 +1,7 @@
 (function(){
 /******************************* Controllers **********************************/
-    var personCtrl = function ($scope, $timeout, $mdMedia, $mdDialog, $location, $anchorScroll,
+    var personCtrl = function ($scope, $q, $timeout, $mdMedia, $mdDialog, $location, $anchorScroll,
                                Upload, personData, publications, authentication) {
-
         var vm = this;
         vm.toolbarData = {title: 'Please update your information'};
         vm.selectedTab = 0;
@@ -60,10 +59,14 @@
             'personCars':               45,
             'personAgreements':         46,
             'personTrainings':          47,
+            'personPubCorrect':         48,
         };
         vm.changePhoto = false;
         vm.photoSize = {w: 196, h: 196};
         vm.aspectRatio = (vm.photoSize.w*1.0)/(vm.photoSize.h*1.0);
+        vm.editDOI = false;
+        vm.selectAllPublications = false;
+        vm.selectAllPublicationsORCID = false;
 
         vm.progressORCID = false;
 
@@ -1478,6 +1481,29 @@
         };
 
         /* For managing publications */
+        vm.submitPublicationCorrection = function (ind, pub, tab) {
+            vm.updateStatus[ind] = "Updating...";
+            vm.messageType[ind] = 'message-updating';
+            vm.hideMessage[ind] = false;
+            publications.updatePublicationData(pub.id, pub)
+                .then( function () {
+                    getPublications(ind, pub, tab);
+                    //vm.showDetailsPublication(pub, tab);
+                    /*if (ind > -1) {
+                        vm.updateStatus[ind] = "Updated!";
+                        vm.messageType[ind] = 'message-success';
+                        vm.hideMessage[ind] = false;
+                        $timeout(function () { vm.hideMessage[ind] = true; }, 1500);
+                    }*/
+                },
+                function () {
+                    vm.updateStatus[ind] = "Error!";
+                    vm.messageType[ind] = 'message-error';
+                },
+                function () {}
+                );
+            return false;
+        };
         vm.submitSelectedPersonPublications = function (ind) {
             vm.updateStatus[ind] = "Updating...";
             vm.messageType[ind] = 'message-updating';
@@ -1501,7 +1527,7 @@
                 );
             return false;
         };
-        vm.submitPublicationRemoval = function(ind) {
+        vm.submitPublicationRemoval = function (ind) {
             if (vm.deletePublications.length > 0) {
                 alert("This won't remove the publications from the database." +
                   "\nIt will simply remove your connection to these publications" +
@@ -1531,13 +1557,19 @@
             return false;
 
         };
-        vm.submitAddPublications = function(ind) {
-            if (vm.addPublications.length > 0) {
+        vm.submitAddPublications = function (ind) {
+            var addPublications = [];
+            for (var el in vm.filteredAllPublications) {
+                if (vm.filteredAllPublications[el].chosen) {
+                    addPublications.push(vm.filteredAllPublications[el]);
+                }
+            }
+            if (addPublications.length > 0) {
                 vm.updateStatus[ind] = "Updating...";
                 vm.messageType[ind] = 'message-updating';
                 vm.hideMessage[ind] = false;
-                var data = {addPublications: vm.addPublications};
-                publications.addPublicationsPerson(vm.currentUser.personID,data)
+                var data = {addPublications: addPublications};
+                publications.addPublicationsPerson(vm.currentUser.personID, data)
                     .then( function () {
                         vm.updateStatus[ind] = "Updated!";
                         vm.messageType[ind] = 'message-success';
@@ -1554,41 +1586,48 @@
             }
             return false;
         };
-        vm.submitAddORCIDPublications = function(ind) {
-            if (vm.addPublicationsORCID.length > 0) {
+        vm.submitAddORCIDPublications = function (ind) {
+            if (vm.publicationDetailsORCID.length > 0) {
+                var addPublicationsORCID = [];
                 var incomplete = false;
-                for (var indPub in vm.addPublicationsORCID) {
-                    if (vm.addPublicationsORCID[indPub].journal_name === null
-                        || vm.addPublicationsORCID[indPub].journal_name === undefined
-                        || vm.addPublicationsORCID[indPub].journal_name === ''
-                        || vm.addPublicationsORCID[indPub].authors_raw === null
-                        || vm.addPublicationsORCID[indPub].authors_raw === undefined
-                        || vm.addPublicationsORCID[indPub].authors_raw === '') {
+                for (var indPub in vm.publicationDetailsORCID) {
+                    if ((vm.publicationDetailsORCID[indPub].journal_name === null
+                        || vm.publicationDetailsORCID[indPub].journal_name === undefined
+                        || vm.publicationDetailsORCID[indPub].journal_name === ''
+                        || vm.publicationDetailsORCID[indPub].authors_raw === null
+                        || vm.publicationDetailsORCID[indPub].authors_raw === undefined
+                        || vm.publicationDetailsORCID[indPub].authors_raw === '')
+                        && vm.publicationDetailsORCID[indPub].chosen) {
                         incomplete = true;
                         break;
+                    } else if (vm.publicationDetailsORCID[indPub].chosen) {
+                        addPublicationsORCID.push(vm.publicationDetailsORCID[indPub]);
                     }
                 }
                 if (incomplete) {
                     alert('You must define authors and journal/book names for all chosen publications before submitting.');
                 } else {
-                    vm.updateStatus[ind] = "Updating...";
-                    vm.messageType[ind] = 'message-updating';
-                    vm.hideMessage[ind] = false;
-                    var data = {addPublications: vm.addPublicationsORCID};
-                    publications.addORCIDPublicationsPerson(vm.currentUser.personID,data)
-                        .then( function () {
-                            vm.updateStatus[ind] = "Updated!";
-                            vm.messageType[ind] = 'message-success';
-                            vm.hideMessage[ind] = false;
-                            $timeout(function () { vm.hideMessage[ind] = true; }, 1500);
-                            getPublications(-1);
-                        },
-                        function () {
-                            vm.updateStatus[ind] = "Error!";
-                            vm.messageType[ind] = 'message-error';
-                        },
-                        function () {}
-                        );
+                    if (addPublicationsORCID.length > 0) {
+                        vm.updateStatus[ind] = "Updating...";
+                        vm.messageType[ind] = 'message-updating';
+                        vm.hideMessage[ind] = false;
+                        var data = {addPublications: addPublicationsORCID};
+                        publications.addORCIDPublicationsPerson(vm.currentUser.personID,data)
+                            .then( function () {
+                                vm.updateStatus[ind] = "Updated!";
+                                vm.messageType[ind] = 'message-success';
+                                vm.hideMessage[ind] = false;
+                                $timeout(function () { vm.hideMessage[ind] = true; }, 1500);
+                                vm.gettingAllPublications = true;
+                                getPublications(-1);
+                            },
+                            function () {
+                                vm.updateStatus[ind] = "Error!";
+                                vm.messageType[ind] = 'message-error';
+                            },
+                            function () {}
+                            );
+                    }
                 }
             } else {
                 alert('There are no publications in the list of publications to be added to database.');
@@ -1624,11 +1663,45 @@
                         });
                     // removes all publications from ORCID that are already in DB
                     vm.allORCIDPublications = removeExistingORCID(printedORCID,vm.allPublicationsPrior);
-                    vm.progressORCID = false;
+                    var requests = [];
+                    for (var el in vm.allORCIDPublications) {
+                        if (vm.allORCIDPublications[el].path !== undefined) {
+                            requests.push(publications.getORCIDDetailsPublication(vm.allORCIDPublications[el].path));
+                        }
+                    }
+                    $q.all(requests)
+                    .then(function (results) {
+                        var ind = 0;
+                        for (var el in vm.allORCIDPublications) {
+                            if (vm.allORCIDPublications[el].path !== undefined) {
+                                processDetailsORCID(vm.allORCIDPublications[el],results[ind].data);
+                                ind++;
+                            } else {
+                                processDetailsORCID(vm.allORCIDPublications[el],{});
+                            }
+                        }
+                        vm.progressORCID = false;
+                    });
+
+
                 })
                 .catch(function (err) {
                     console.log(err);
                 });
+            }
+        };
+
+        vm.changeAllPublications = function(selectAll, pubs) {
+            if (pubs.length > 0) {
+                if (selectAll) {
+                    for (var el in pubs) {
+                        pubs[el].chosen = true;
+                    }
+                } else {
+                    for (var el in pubs) {
+                        pubs[el].chosen = false;
+                    }
+                }
             }
         };
 
@@ -1642,81 +1715,110 @@
                 });
 
         };
-        vm.addPublicationPerson = function(publication) {
-            var found = false;
-            for (var ind in vm.addPublications) {
-                if (vm.addPublications[ind].id === publication.id)
-                {
-                    found = true;
-                    break;
-                }
-            }
-            if (!found) {
-                vm.addPublications.push(publication);
-            }
 
-        };
-        vm.addORCIDDatabase = function(publication) {
-            var found = false;
-            for (var ind in vm.addPublicationsORCID) {
-                if (vm.addPublicationsORCID[ind].doi !== null) {
-                    if (vm.addPublicationsORCID[ind].doi === publication.doi)
-                    {
-                        found = true;
-                        break;
+        vm.getSearchResults = function(originalTitle, originalAuthors) {
+            if (originalTitle === undefined) originalTitle = '';
+            if (originalAuthors === undefined) originalAuthors = '';
+            var title = '', authors = '';
+            var titleMatch = [], authorsMatch = [];
+            if (originalTitle.length >= 5 || originalAuthors.length >= 5) {
+                titleMatch = originalTitle.match(/".+?"/g);
+                authorsMatch = originalAuthors.match(/".+?"/g);
+                title = originalTitle;
+                authors = originalAuthors;
+                if (titleMatch !== null) {
+                    for (var el in titleMatch) {
+                        title = title.replace(titleMatch[el],'').trim();
                     }
                 } else {
-                    if (vm.addPublicationsORCID[ind].title === publication.title)
-                    {
-                        found = true;
-                        break;
+                    titleMatch = [];
+                }
+                if (authorsMatch !== null) {
+                    for (var el in authorsMatch) {
+                        authors = authors.replace(authorsMatch[el],'').trim();
+                    }
+                } else {
+                    authorsMatch = [];
+                }
+            }
+            vm.filteredExactAllPublications = [];
+            var countTitle;
+            var countAuthors;
+            var pubTitle;
+            var pubAuthors;
+            var selectByTitle;
+            var selectByAuthors;
+            if (titleMatch.length >0 || authorsMatch.length >0) {
+                for (var ind in vm.allPublications) {
+                    countTitle = 0;
+                    countAuthors = 0;
+                    pubTitle = vm.allPublications[ind].title;
+                    pubAuthors = vm.allPublications[ind].authors_raw;
+                    selectByTitle = false;
+                    selectByAuthors = false;
+                    for (var indTitle in titleMatch) {
+                        var exactTitle = titleMatch[indTitle].replace(/"/g,'');
+                        if (pubTitle.indexOf(exactTitle) !== -1) countTitle++;
+                    }
+                    if (countTitle === titleMatch.length) selectByTitle = true;
+                    for (var indAuthors in authorsMatch) {
+                        var exactAuthors = authorsMatch[indAuthors].replace(/"/g,'');
+                        if (pubAuthors.indexOf(exactAuthors) !== -1) countAuthors++;
+                    }
+                    if (countAuthors === authorsMatch.length) selectByAuthors = true;
+                    if (selectByTitle && selectByAuthors) {
+                        vm.filteredExactAllPublications.push(vm.allPublications[ind]);
                     }
                 }
             }
-            if (!found) {
-                vm.addPublicationsORCID.push(publication);
-            }
-
-        };
-        vm.getSearchResults = function(title, authors) {
-            if (title === undefined) title = '';
-            if (authors === undefined) authors = '';
-            title = title.toLowerCase();
-            authors = authors.toLowerCase();
             vm.filteredAllPublications = [];
-            if (title.length > 3 || authors.length > 3) {
-                var titleSplit = title
-                                    .split(' ');
-                var authorsSplit = authors
-                                    .split(' ');
-                for (var ind in vm.allPublications) {
-                    var pubTitle;
-                    var pubAuthors;
-                    if (vm.allPublications[ind].title !== null && vm.allPublications[ind].title !==undefined) {
-                        pubTitle = vm.allPublications[ind].title.toLowerCase();
+            if (originalTitle.length >= 3 || originalAuthors.length >= 3) {
+                if (titleMatch.length === 0) {
+                    title = originalTitle;
+                }
+                if (authorsMatch.length === 0) {
+                    authors = originalAuthors;
+                }
+                if (title.length > 0 || authors.length > 0) {
+                    title = prepareStringSearch(title);
+                    authors = prepareStringSearch(authors);
+                    var titleSplit = title.split(' ');
+                    var authorsSplit = authors.split(' ');
+                    var publicationList;
+                    if (vm.filteredExactAllPublications.length === 0) {
+                        publicationList = vm.allPublications;
                     } else {
-                        pubTitle = '';
+                        publicationList = vm.filteredExactAllPublications;
                     }
-                    if (vm.allPublications[ind].authors_raw !== null && vm.allPublications[ind].authors_raw !==undefined) {
-                        pubAuthors = vm.allPublications[ind].authors_raw.toLowerCase();
-                    } else {
-                        pubAuthors = '';
+                    for (var ind in publicationList) {
+                        if (publicationList[ind].title !== null && publicationList[ind].title !== undefined) {
+                            pubTitle = prepareStringSearch(publicationList[ind].title);
+                        } else {
+                            pubTitle = '';
+                        }
+                        if (publicationList[ind].authors_raw !== null && publicationList[ind].authors_raw !== undefined) {
+                            pubAuthors = prepareStringSearch(publicationList[ind].authors_raw);
+                        } else {
+                            pubAuthors = '';
+                        }
+                        selectByTitle = false;
+                        selectByAuthors = false;
+                        countTitle = 0;
+                        countAuthors = 0;
+                        for (var indTitle in titleSplit) {
+                            if (pubTitle.indexOf(titleSplit[indTitle]) !== -1) countTitle++;
+                        }
+                        if (countTitle === titleSplit.length) selectByTitle = true;
+                        for (var indAut in authorsSplit) {
+                            if (pubAuthors.indexOf(authorsSplit[indAut]) !== -1) countAuthors++;
+                        }
+                        if (countAuthors === authorsSplit.length) selectByAuthors = true;
+                        if (selectByTitle && selectByAuthors) {
+                            vm.filteredAllPublications.push(publicationList[ind]);
+                        }
                     }
-                    var selectByTitle = false;
-                    var selectByAuthors = false;
-                    var countTitle = 0;
-                    var countAuthors = 0;
-                    for (var indTitle in titleSplit) {
-                        if (pubTitle.indexOf(titleSplit[indTitle]) !== -1) countTitle++;
-                    }
-                    if (countTitle === titleSplit.length) selectByTitle = true;
-                    for (var indAut in authorsSplit) {
-                        if (pubAuthors.indexOf(authorsSplit[indAut]) !== -1) countAuthors++;
-                    }
-                    if (countAuthors === authorsSplit.length) selectByAuthors = true;
-                    if (selectByTitle && selectByAuthors) {
-                        vm.filteredAllPublications.push(vm.allPublications[ind]);
-                    }
+                } else {
+                    vm.filteredAllPublications = vm.filteredExactAllPublications;
                 }
             }
         };
@@ -1725,10 +1827,12 @@
             vm.sortType = 'year';
             vm.progressORCID = false;
             vm.addPublications = [];
+            vm.gettingAllPublications = true;
 
+
+            vm.allORCIDPublicationsPrior = [];
             vm.allORCIDPublications = [];
             vm.publicationDetailsORCID = [];
-            vm.addPublicationsORCID = [];
 
             vm.allPublicationsSearchTitle = '';
             vm.allPublicationsSearchAuthors = '';
@@ -1746,6 +1850,7 @@
                         }
                         if (!found) vm.allPublications.push(vm.allPublicationsPrior[ind]);
                     }
+                    vm.gettingAllPublications = false;
                 })
                 .catch(function (err) {
                     console.log(err);
@@ -1833,9 +1938,9 @@
                 }
             }
         };
-        vm.showDetailsPublication = function (pub) {
-            if (vm.pubTitles.indexOf(pub.title) === -1) {
-                vm.pubTitles.push(pub.title);
+        vm.showDetailsPublication = function (pub, tab) {
+            if (vm.pubTitles.indexOf(pub.title) === -1 || tab !== undefined) {
+                if (tab === undefined) vm.pubTitles.push(pub.title);
                 var authors = pub.authors_raw.split('; ');
                 for (var ind in pub.unit_authors) {
                     // - 1 to convert from position to array index
@@ -1873,7 +1978,12 @@
                     }
                 }
                 pub['if_last_year'] = if_last_year;
-                vm.thisPublication.push(pub);
+                if (tab === undefined) {
+                    vm.thisPublication.push(pub);
+                } else {
+                    vm.thisPublication[tab] = pub;
+                }
+
             }
         };
         vm.closeTabs = function () {
@@ -1919,7 +2029,7 @@
             vm.renderPublications('');
         };
 
-        vm.initializePublications = function () {
+        vm.initializePublications = function (ind) {
             vm.sortType='year';
             vm.sortReverse=false;
             personData.publicationTypes()
@@ -1936,9 +2046,10 @@
                 .catch(function (err) {
                     console.log(err);
                 });
-            getPublications();
+            getPublications(ind);
         };
-        function getPublications(ind) {
+
+        function getPublications(ind, pub, tab) {
             publications.thisPersonPublications(vm.currentUser.personID)
                 .then(function (response) {
                     vm.personPublications = response.data.result;
@@ -1953,10 +2064,26 @@
                         } else {
                             vm.personPublications[el].public = false;
                         }
+                        for (var indPub in vm.personPublications[el].publication_type) {
+                            vm.personPublications[el].publication_type[indPub].id =
+                                    vm.personPublications[el].publication_type[indPub].publication_type;
+                        }
+                        vm.personPublications[el].corresponding_authors = [];
+                        for (var indPub in vm.personPublications[el].unit_authors) {
+                            if (vm.personPublications[el].unit_authors[indPub].author_type_id == 1) {
+                                vm.personPublications[el].corresponding_authors.push(vm.personPublications[el].unit_authors[indPub].person_id);
+                            }
+                        }
+                        if (pub !== undefined) {
+                            if (pub.id === vm.personPublications[el].id) {
+                                pub = vm.personPublications[el];
+                            }
+                        }
                     }
                     vm.originalPersonPublications = JSON.parse(JSON.stringify(vm.personPublications));
                     initializeVariables();
                     if (ind > -1) {
+                        if (tab !== undefined) vm.showDetailsPublication(pub, tab);
                         vm.updateStatus[ind] = "Updated!";
                         vm.messageType[ind] = 'message-success';
                         vm.hideMessage[ind] = false;
@@ -1969,7 +2096,6 @@
                 .catch(function (err) {
                     console.log(err);
                 });
-
         }
         function readORCIDData(data) {
             var publications = [];
@@ -4304,6 +4430,18 @@
                       .replace(/[ç]/g,'c')
                       .replace(/[ñ]/g,'n');
         }
+        function prepareStringSearch(str) {
+            return str.toLowerCase()
+                      .replace(/[áàãâä]/g,'a')
+                      .replace(/[éèêë]/g,'e')
+                      .replace(/[íìîï]/g,'i')
+                      .replace(/[óòõôö]/g,'o')
+                      .replace(/[úùûü]/g,'u')
+                      .replace(/[ç]/g,'c')
+                      .replace(/[ñ]/g,'n')
+                      .replace(/(\.\s)/g,'')
+                      .replace(/(\.)/g,'');
+        }
     };
 
     var CountrySelectCtrl = function ($scope, $element, personData) {
@@ -4540,10 +4678,16 @@
             templateUrl: 'person/researcher/person.authorNames.html'
         };
     };
-    var personPublications = function () {
+    var personPublicationsLarge = function () {
         return {
             restrict: 'E',
-            templateUrl: 'person/productivity/publications/person.publications.html'
+            templateUrl: 'person/productivity/publications/person.publications.large.html'
+        };
+    };
+    var personPublicationsSmall = function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'person/productivity/publications/person.publications.small.html'
         };
     };
     var personPublicationDetail = function () {
@@ -4552,16 +4696,28 @@
             templateUrl: 'person/productivity/publications/person.publicationDetail.html'
         };
     };
-    var personAddPublications = function () {
+    var personAddPublicationsLarge = function () {
         return {
             restrict: 'E',
-            templateUrl: 'person/productivity/publications/person.addPublications.html'
+            templateUrl: 'person/productivity/publications/person.addPublications.large.html'
         };
     };
-    var personAddPublicationsOrcid = function () {
+    var personAddPublicationsSmall = function () {
         return {
             restrict: 'E',
-            templateUrl: 'person/productivity/publications/person.addPublicationsORCID.html'
+            templateUrl: 'person/productivity/publications/person.addPublications.small.html'
+        };
+    };
+    var personAddPublicationsOrcidLarge = function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'person/productivity/publications/person.addPublicationsORCID.large.html'
+        };
+    };
+    var personAddPublicationsOrcidSmall = function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'person/productivity/publications/person.addPublicationsORCID.small.html'
         };
     };
     var personCommunications = function () {
@@ -4799,12 +4955,15 @@
         .directive('personResponsible', personResponsible)
         .directive('personPoles', personPoles)
         .directive('personAuthorNames', personAuthorNames)
-        .directive('personPublications', personPublications)
-        .directive('personAddPublications', personAddPublications)
+        .directive('personPublicationsLarge', personPublicationsLarge)
+        .directive('personPublicationsSmall', personPublicationsSmall)
+        .directive('personAddPublicationsLarge', personAddPublicationsLarge)
+        .directive('personAddPublicationsOrcidLarge', personAddPublicationsOrcidLarge)
+        .directive('personAddPublicationsSmall', personAddPublicationsSmall)
+        .directive('personAddPublicationsOrcidSmall', personAddPublicationsOrcidSmall)
         .directive('personCommunications', personCommunications)
         .directive('personAddCommunications', personAddCommunications)
         .directive('personAddCommunicationsOrcid', personAddCommunicationsOrcid)
-        .directive('personAddPublicationsOrcid', personAddPublicationsOrcid)
         .directive('personPublicationDetail', personPublicationDetail)
         .directive('personWebsitePhoto', personWebsitePhoto)
         .directive('personBoards', personBoards)

@@ -1,0 +1,160 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Search your ORCID</span>
+        </md-card-title-text>
+    </md-card-title>
+    <md-card-content layout="column">
+        <p>These are publications found on ORCID that are not part of LAQV/UCIBIO database yet.<br>
+            To add publications to the database, the procedure is:
+            <ol>
+                <li>Press "Connect ORCID". <br></li>
+                <li>A list of <b>publications not present in the database</b> will be shown.</li>
+                <li>Edit publication details (Doc. Type, I am..., Author rank are optional).</li>
+                <li>Select publications to be added to the database (checkbox on the right).</li>
+                <li>Press "Add ORCID pub.".</li>
+            </ol>
+        </p>
+        <p><strong>Note:</strong>Matching between communications in the database and ORCID is done by title and type.</p>
+        <div layout="row">
+            <md-button type="submit" ng-click="vm.connectORCID()"
+                class="button-small md-raised md-warn">Connect ORCID</md-button>
+            <md-progress-circular ng-disabled="!vm.progressORCID" md-diameter="20"></md-progress-circular>
+        </div>
+
+        <form flex novalidate name="personAddORCIDPublicationsForm"
+                ng-submit="personAddORCIDPublicationsForm.$valid && vm.submitAddORCIDPublications(vm.forms['personORCIDAdd'])">
+            <table class="publications-orcid">
+                <thead>
+                    <tr>
+                        <th class="large-contents-wide"></th>
+                        <th class="large-contents-narrow"></th>
+                        <th class="standard-width"></th>
+                        <th class="small-width"></th>
+                        <th class="smaller-width"></th>
+                        <th class="smaller-width"></th>
+                        <th class="smaller-width"></th>
+                        <th class="smaller-width"></th>
+                        <th class="small-width">All<br>
+                            <md-checkbox ng-model="vm.selectAllPublicationsORCID"
+                                    ng-change="vm.changeAllPublications(vm.selectAllPublicationsORCID, vm.publicationDetailsORCID)"
+                                    aria-label="choose all"></md-checkbox>
+                        </th>
+                    </tr>
+                    <tr>
+                        <th class="large-contents-wide">
+                            <a>Title</a>
+                        </th>
+                        <th class="large-contents-narrow">
+                            <a>Authors</a>
+                        </th>
+                        <th class="standard-width">
+                            <a>Journal/Book</a>
+                        </th>
+                        <th class="small-width">
+                            <a>Vol/Num/Pages</a>
+                        </th>
+                        <th class="smaller-width">
+                            <a>Year</a>
+                        </th>
+                        <th class="smaller-width">
+                            <a>Doc. type</a>
+                        </th>
+                        <th class="smaller-width">
+                            <a>I am ...</a>
+                        </th>
+                        <th class="smaller-width">
+                            <a>Author<br>rank</a>
+                        </th>
+                        <th class="small-width">
+                            Add
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="(pubNum,publication) in vm.publicationDetailsORCID track by $index">
+                        <td>
+                            <md-input-container class="area md-block" layout="row" layout-align="start end">
+                                    <textarea ng-model="vm.publicationDetailsORCID[pubNum].title" name="title"></textarea>
+                            </md-input-container>
+                        </td>
+                        <td>
+                            <md-input-container class="md-block">
+                                <input ng-model="vm.publicationDetailsORCID[pubNum].authors_raw" name="authors_raw">
+                            </md-input-container>
+                        </td>
+                        <td>
+                            <md-input-container>
+                                <input ng-model="vm.publicationDetailsORCID[pubNum].journal_name" name="journal_name">
+                            </md-input-container>
+                        </td>
+                        <td>
+                            <div layout="row">
+                                <md-input-container class="input-no-margin simple-input extra-small">
+                                    <input ng-model="vm.publicationDetailsORCID[pubNum].volume" name="volume">
+                                </md-input-container><span class="small-top">/</span>
+                                <md-input-container class="input-no-margin simple-input extra-small">
+                                    <input ng-model="vm.publicationDetailsORCID[pubNum].number" name="number">
+                                </md-input-container><span class="small-top">/</span>
+                                <md-input-container class="input-no-margin simple-input extra-small">
+                                    <input ng-model="vm.publicationDetailsORCID[pubNum].pages" name="pages">
+                                </md-input-container>
+                            </div>
+                        </td>
+                        <td>
+                            {{publication.year}}
+                        </td>
+                        <td>
+                            <md-input-container class="select-container select-no-margin card-type">
+                                <md-select multiple ng-model="publication.publication_type_id"
+                                        aria-label="publication type"
+                                        name="publication_orcid_publication_type[pubNum]">
+                                    <div class="scrollable">
+                                        <md-option ng-repeat="type in vm.publicationTypes"
+                                                ng-value="type.id">{{type.name_en}}</md-option>
+                                    </div>
+                                </md-select>
+                            </md-input-container>
+                        </td>
+                        <td>
+                            <md-input-container class="select-container select-no-margin card-type">
+                                <md-select ng-model="publication.author_type_id"
+                                        aria-label="author type"
+                                        name="publication_orcid_author_type[pubNum]">
+                                    <div class="scrollable">
+                                        <md-option ng-repeat="type in vm.authorTypes" ng-value="type.id">{{type.name_en}} author</md-option>
+                                    </div>
+                                </md-select>
+                            </md-input-container>
+                        </td>
+                        <td>
+                            <md-input-container class="input-no-margin">
+                                <input ng-model="publication.position"
+                                    aria-label="position"
+                                    name="publication_orcid_position[pubNum]"
+                                    integer-validate>
+                            </md-input-container>
+                        </td>
+                        <td>
+                            <div layout="row" layout-align="center end">
+                                <md-checkbox ng-model="publication.chosen" aria-label="chosen"></md-checkbox>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="spacer-top"
+                    layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button type="submit"
+                    class="button-small md-raised md-primary">Add ORCID Pub.</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personORCIDAdd']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['personORCIDAdd']]">
+                        {{vm.updateStatus[vm.forms['personORCIDAdd']]}}
+                    </span>
+                </div>
+            </div>
+        </form>
+
+
+    </md-card-content>
+</md-card>

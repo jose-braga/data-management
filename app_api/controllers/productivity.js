@@ -419,8 +419,9 @@ var queryPublicationDescription = function (req, res, next, rows,i) {
 var queryPublicationAuthors = function (req, res, next, rows,i) {
     var querySQL = '';
     var places = [];
-    querySQL = querySQL + 'SELECT author_type_id, position ' +
+    querySQL = querySQL + 'SELECT person_id, people.colloquial_name, author_type_id, position ' +
                           'FROM people_publications ' +
+                          'JOIN people ON people_publications.person_id = people.id ' +
                           'WHERE publication_id = ?;';
     places.push(rows[i].id);
     pool.getConnection(function(err, connection) {
@@ -603,6 +604,85 @@ var queryUpdatePersonSelectedPublications = function (req, res, next) {
         return;
     }
 };
+
+var queryUpdatePublicationData = function (req, res, next) {
+    var pubID = req.params.pubID;
+    var data = req.body;
+
+    var querySQL = '';
+    var places = [];
+
+    for (var ind in data.corresponding_authors) {
+        querySQL = querySQL + 'UPDATE people_publications' +
+                              ' SET author_type_id = 1' +
+                              ' WHERE publication_id = ? AND person_id = ?;';
+        places.push(pubID,data.corresponding_authors[ind]);
+    }
+    // the remaining LAQV/UCIBIO are standard authors
+    for (var ind in data.unit_authors) {
+        if (data.corresponding_authors.indexOf(data.unit_authors[ind].person_id) === -1) {
+            querySQL = querySQL + 'UPDATE people_publications' +
+                                  ' SET author_type_id = 2' +
+                                  ' WHERE publication_id = ? AND person_id = ?;';
+            places.push(pubID,data.unit_authors[ind].person_id);
+        }
+    }
+    // first delete
+    querySQL = querySQL + 'DELETE FROM publication_descriptions WHERE publication_id = ?;';
+    places.push(pubID);
+    // then add publication types
+    for (var ind in data.publication_type) {
+        if (data.publication_type[ind].id !== null) {
+            querySQL = querySQL + 'INSERT INTO publication_descriptions (publication_id, publication_type)' +
+                                  ' VALUES (?, ?);';
+            places.push(pubID, data.publication_type[ind].id);
+        }
+    }
+    querySQL = querySQL + 'UPDATE people_publications' +
+                          ' SET position = ?' +
+                          ' WHERE id = ?;';
+    places.push(data.author_position, data.people_publications_id);
+    querySQL = querySQL + 'UPDATE publications' +
+                          ' SET title = ?,' +
+                          ' volume = ?,' +
+                          ' page_start = ?,' +
+                          ' page_end = ?,' +
+                          ' doi = ?,' +
+                          ' publication_date = ?' +
+                          ' WHERE id = ?;';
+    places.push(data.title,
+                data.volume,
+                data.page_start,
+                data.page_end,
+                data.doi,
+                data.publication_date,
+                data.id);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'publications', pubID,
+                                            'UCIBIO API error updating publication data (id, person) :', [pubID, data.id]);
+                externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'publications', pubID,
+                                            'LAQV API error updating publication data (id, person) :', [pubID, data.id]);
+                sendJSONResponse(res, 200,
+                    {"status": "success", "statusCode": 200, "count": 1,
+                     "result" : "OK!"});
+                return;
+            }
+        );
+    });
+};
+
 var queryUpdatePersonAuthorNames = function (req, res, next) {
     var personID = req.params.personID;
     var add = req.body.addAuthorNames;
@@ -4093,10 +4173,6 @@ var queryDeleteTrainingsTeam = function (req, res, next) {
     }
 };
 
-
-
-
-
 var queryAllPatents = function (req, res, next) {
     var querySQL = '';
     var places = [];
@@ -5860,6 +5936,14 @@ module.exports.updateTeamSelectedPub = function (req, res, next) {
         }
     );
 };
+module.exports.updatePublicationData = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30, 40],
+        function (req, res, username) {
+            queryUpdatePublicationData(req,res,next);
+        }
+    );
+};
+
 module.exports.listPersonCommunications = function (req, res, next) {
     getUser(req, res, [0, 5, 10, 15, 16, 20, 30, 40],
         function (req, res, username) {

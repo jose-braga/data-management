@@ -287,6 +287,16 @@ md-select-menu ._md .scrollable{
   width: 10%;
 }
 
+.small-screens .answer.align-publication md-checkbox {
+  margin-bottom: 0px;
+}
+
+.publication.small-screens .answer textarea,
+.publication.small-screens .answer md-input-container {
+  margin-bottom: 0px;
+  margin-top: 0px;
+}
+
 .publications .smaller-width {
   width: 5%;
 }
@@ -309,6 +319,15 @@ md-select-menu ._md .scrollable{
 
 .publications-add-db .smaller-width {
   width: 5%;
+}
+
+.publications-orcid md-input-container.area {
+  margin-bottom: 0px;
+  margin-top: 0px;
+}
+
+.publications-orcid md-input-container textarea {
+  width: 100%;
 }
 
 .publications-orcid .large-contents-wide {

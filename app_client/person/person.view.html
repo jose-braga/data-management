@@ -119,7 +119,8 @@
                     <md-tab label='Pub. List' md-on-select="vm.initializePublications()">
                         <md-content>
                             <div layout="row" layout-padding>
-                                <person-publications></person-publications>
+                                <person-publications-large ng-if="vm.showTable()"></person-publications-large>
+                                <person-publications-small ng-if="!vm.showTable()"></person-publications-small>
                             </div>
                         </md-content>
                     </md-tab>
@@ -132,9 +133,15 @@
                     </md-tab>
                     <md-tab label='Pub. Add' md-on-select="vm.getAllPublications()">
                         <md-content>
-                            <div layout-padding>
-                                <person-add-publications></person-add-publications>
-                                <person-add-publications-orcid></person-add-publications-orcid>
+                            <div ng-show="vm.gettingAllPublications" layout-padding>
+                                <p>Getting information from database...</p>
+                                <md-progress-circular md-mode="indeterminate" md-diameter="60px"></md-progress-circular>
+                            </div>
+                            <div ng-show="!vm.gettingAllPublications" layout-padding>
+                                <person-add-publications-large ng-if="vm.showTable()"></person-add-publications-large>
+                                <person-add-publications-small ng-if="!vm.showTable()"></person-add-publications-small>
+                                <person-add-publications-orcid-large ng-if="vm.showTable()"></person-add-publications-orcid-large>
+                                <person-add-publications-orcid-small ng-if="!vm.showTable()"></person-add-publications-orcid-small>
                             </div>
                         </md-content>
                     </md-tab>
@@ -172,7 +179,6 @@
                                         https://github.com/angular/material/issues/5446
                                     -->
                                 </div>
-                                <!-- <person-trainings></person-trainings> -->
                             </div>
                         </md-content>
                     </md-tab>

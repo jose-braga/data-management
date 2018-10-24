@@ -1,7 +1,7 @@
 (function(){
     var publications = function ($http, authentication) {
         var orcid_base_url = 'https://pub.orcid.org';
-        var orcid_version = 'v2.0';
+        var orcid_version = 'v2.1';
         var orcid_headers = {"Accept": "application/json"};
 
         var allPublications = function () {
@@ -52,6 +52,14 @@
 
         var updateSelectedPublications = function (personID, data) {
             return $http.put('api/publications/person/' + personID + '/selected', data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+
+        var updatePublicationData = function (pubID, data) {
+            return $http.put('api/publications/publication/' + pubID, data,
                 {
                     headers: {Authorization: 'Bearer ' + authentication.getToken()}
                 }
@@ -624,6 +632,7 @@
         return {
             addMembersPublications: addMembersPublications,
             allPublications: allPublications,
+            updatePublicationData: updatePublicationData,
             thisPersonPublications: thisPersonPublications,
             thisPersonCommunications: thisPersonCommunications,
             thisTeamPublications: thisTeamPublications,

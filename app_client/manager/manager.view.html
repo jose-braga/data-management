@@ -20,36 +20,104 @@
                     <all-people-no-roles-presentation flex></all-people-no-roles-presentation>
                 </md-content>
             </md-tab>
-            <md-tab ng-repeat="(num,name) in vm.nameDetails" label='{{name}}'>
-                <md-content>
-                    <div layout-xs="column" layout-sm="column" layout="row" layout-padding>
-                        <div flex-xs flex-sm flex-gt-sm="50" layout="column">
-                            <manager-person-left></manager-person-left>
-                            <manager-fct-mctes></manager-fct-mctes>
-                            <manager-password-reset></manager-password-reset>
-                            <manager-user-permissions></manager-user-permissions>
-                            <manager-person-nuclear-info></manager-person-nuclear-info>
-                            <manager-person-contact-info></manager-person-contact-info>
-                            <manager-person-identifications-info></manager-person-identifications-info>
-                            <manager-person-cars-info></manager-person-cars-info>
-                            <manager-person-emergency-contacts-info></manager-person-emergency-contacts-info>
-                            <manager-person-finished-degrees></manager-person-finished-degrees>
-                            <manager-person-ongoing-degrees></manager-person-ongoing-degrees>
-                        </div>
-                         <div flex-xs flex-sm flex-gt-sm="50" layout="column">
-                            <manager-person-photo></manager-person-photo>
-                            <manager-person-pole></manager-person-pole>
-                            <manager-person-institutional-contacts-info></manager-person-institutional-contacts-info>
-                            <manager-person-department></manager-person-department>
-                            <manager-person-professional></manager-person-professional>
-                            <manager-person-responsibles></manager-person-responsibles>
-                            <manager-person-current-roles></manager-person-current-roles>
-                            <manager-person-cost-center ng-if="vm.isPorto(num)"></manager-person-cost-center>
-                            <manager-person-author-names></manager-person-author-names>
+            <md-tab ng-repeat="(num,person) in vm.thisPerson" label='{{person.name}}'>
+                <md-tabs md-selected="vm.selectedIndexProductivity[num]" md-dynamic-height md-border-bottom>
+                    <md-tab label='Info'>
+                        <md-content>
+                            <div layout-xs="column" layout-sm="column" layout="row" layout-padding>
+                                <div flex-xs flex-sm flex-gt-sm="50" layout="column">
+                                    <manager-person-left></manager-person-left>
+                                    <manager-fct-mctes></manager-fct-mctes>
+                                    <manager-password-reset></manager-password-reset>
+                                    <manager-user-permissions></manager-user-permissions>
+                                    <manager-person-nuclear-info></manager-person-nuclear-info>
+                                    <manager-person-contact-info></manager-person-contact-info>
+                                    <manager-person-identifications-info></manager-person-identifications-info>
+                                    <manager-person-cars-info></manager-person-cars-info>
+                                    <manager-person-emergency-contacts-info></manager-person-emergency-contacts-info>
+                                    <manager-person-finished-degrees></manager-person-finished-degrees>
+                                    <manager-person-ongoing-degrees></manager-person-ongoing-degrees>
+                                </div>
+                                 <div flex-xs flex-sm flex-gt-sm="50" layout="column">
+                                    <manager-person-photo></manager-person-photo>
+                                    <manager-person-pole></manager-person-pole>
+                                    <manager-person-institutional-contacts-info></manager-person-institutional-contacts-info>
+                                    <manager-person-department></manager-person-department>
+                                    <manager-person-professional></manager-person-professional>
+                                    <manager-person-responsibles></manager-person-responsibles>
+                                    <manager-person-current-roles></manager-person-current-roles>
+                                    <manager-person-cost-center ng-if="vm.isPorto(num)"></manager-person-cost-center>
+                                    <manager-person-author-names></manager-person-author-names>
 
+                                </div>
+                            </div>
+                        </md-content>
+                    </md-tab>
+                    <md-tab label='Publications'>
+                        <div layout="row" layout-padding>
+                            <md-content>
+                                <div layout-padding>
+                                    <manager-person-publications-large
+                                        ng-if="vm.showTable()"
+                                        data-person="{{person.id}}"
+                                        data-name="{{person.colloquial_name}}"
+                                        flex>
+                                    </manager-person-publications-large>
+                                    <manager-person-publications-small
+                                        ng-if="!vm.showTable()"
+                                        data-person="{{person.id}}"
+                                        flex>
+                                    </manager-person-publications-small>
+                                    <manager-add-person-publications-large
+                                        ng-if="vm.showTable()"
+                                        data-person="{{person.id}}"
+                                        flex>
+                                    </manager-add-person-publications-large>
+                                    <manager-add-person-publications-small
+                                        ng-if="!vm.showTable()"
+                                        data-person="{{person.id}}"
+                                        flex>
+                                    </manager-add-person-publications-small>
+                                    <manager-add-person-publications-orcid-large
+                                        ng-if="vm.showTable()"
+                                        data-person="{{person.id}}"
+                                        data-orcidres="{{person.researcher_data[0].ORCID}}"
+                                        data-orcidtech="{{person.technician_data[0].ORCID}}"
+                                        data-orcidscman="{{person.science_manager_data[0].ORCID}}"
+                                        flex>
+                                    </manager-add-person-publications-orcid-large>
+                                </div>
+                            </md-content>
                         </div>
-                    </div>
-                </md-content>
+
+                    </md-tab>
+                    <!--
+                    <md-tab label='Communications'>
+
+                    </md-tab>
+                    <md-tab label='Funding'>
+
+                    </md-tab>
+                    <md-tab label='Patents'>
+
+                    </md-tab>
+                    <md-tab label='Datasets'>
+
+                    </md-tab>
+                    <md-tab label='Startups'>
+
+                    </md-tab>
+                    <md-tab label='Prizes'>
+
+                    </md-tab>
+                    <md-tab label='Boards'>
+
+                    </md-tab>
+                    <md-tab label='Outreach'>
+
+                    </md-tab>
+                    -->
+                </md-tabs>
             </md-tab>
             <md-tab label='To Validate'>
                 <md-tabs md-selected="vm.selectedIndexValidate" md-dynamic-height md-border-bottom>

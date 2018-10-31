@@ -49,8 +49,8 @@
                                 <label>Unit</label>
                                 <md-select required ng-model="vm.currentJobs[num].job_organization" name="job_organization[num]">
                                     <md-option ng-repeat="unit in vm.units"
-                                            ng-value="unit.name">
-                                        {{unit.name}}
+                                            ng-value="unit.short_name">
+                                        {{unit.short_name}}
                                     </md-option>
                                 </md-select>
                             </md-input-container>

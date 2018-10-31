@@ -1,0 +1,157 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Publication details</span>
+        </md-card-title-text>
+    </md-card-title>
+    <md-card-content layout="column">
+        <form flex novalidate name="managerPublicationCorrect"
+                ng-submit="managerPublicationCorrect.$valid && ctrl.submitPublicationCorrection(ctrl.forms['managerPubCorrect'],ctrl.pub)">
+            <div layout="column" flex>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">Publication type:</span></div>
+                    <div class="answer">
+                        <div class="select-substitute" layout="row" layout-wrap flex>
+                            <md-checkbox ng-repeat="type in ctrl.publicationTypes"
+                                    ng-checked="ctrl.isThisPubType(ctrl.pub, type)"
+                                    ng-click="ctrl.addRemoveType(ctrl.pub, type)"
+                                    flex="33">{{type.name_en}}</md-checkbox>
+                        </div>
+                    </div>
+                </div>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <md-tooltip>^ - author belongs to unit; (corresp.) - author belongs to unit and is corresponding author</md-tooltip>
+                    <div class="question"><span class="highlight">Authors:<br></span></div>
+                    <div class="answer"><span>{{ctrl.pub.authors}}</span></div>
+                </div>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">Corresp. authors:<br>(only from LAQV/UCIBIO)</span></div>
+                    <div class="answer">
+                        <div class="select-substitute" layout="row" layout-wrap flex>
+                            <md-checkbox ng-repeat="person in ctrl.pub.unit_authors"
+                                    ng-checked="ctrl.isThisCorresponding(person)"
+                                    ng-click="ctrl.addRemoveCorresponding(ctrl.pub, person)"
+                                    flex="33">{{person.colloquial_name}}</md-checkbox>
+                        </div>
+                    </div>
+                </div>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">Publication year:</span></div>
+                    <div class="answer"><span>{{ctrl.pub.year}}</span>
+                    </div>
+                </div>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">Title:</span></div>
+                    <div class="answer">
+                        <md-input-container class="input-compact" flex>
+                            <input ng-model="ctrl.pub.title" name="title" flex>
+                        </md-input-container>
+                    </div>
+                </div>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">Journal name:</span></div>
+                    <div class="answer"><span>{{ctrl.pub.journal_name}}</span></div>
+                </div>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">Journal short name:</span></div>
+                    <div class="answer"><span>{{ctrl.pub.journal_short_name}}</span></div>
+                </div>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">ISSN / E-ISSN:</span></div>
+                    <div class="answer"><span>{{ctrl.pub.issn}} / {{ctrl.pub.eissn}}</span></div>
+                </div>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">Publisher:</span></div>
+                    <div class="answer"><span>{{ctrl.pub.publisher}},
+                                              {{ctrl.pub.publisher_city}}</span></div>
+                </div>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">Publication date:</span></div>
+                    <div class="answer">
+                        <md-input-container class="input-no-margin simple-input">
+                            <input ng-model="ctrl.pub.publication_date" name="publication_date">
+                        </md-input-container>
+                    </div>
+                </div>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">Volume:</span></div>
+                    <div class="answer">
+                        <md-input-container class="input-no-margin simple-input">
+                            <input ng-model="ctrl.pub.volume" name="volume">
+                        </md-input-container>
+                    </div>
+                </div>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">Pages:</span></div>
+                    <div class="answer">
+                        <md-input-container class="input-no-margin simple-input">
+                            <input ng-model="ctrl.pub.page_start" name="page_start">
+                        </md-input-container> -
+                        <md-input-container class="input-no-margin simple-input">
+                            <input ng-model="ctrl.pub.page_end" name="page_end">
+                        </md-input-container>
+                    </div>
+                </div>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">DOI:</span></div>
+                    <div class="answer" layout="row" layout-align="start center" flex>
+                        <span>
+                            <a href="https://doi.org/{{ctrl.pub.doi}}"
+                                    target="_blank">{{ctrl.pub.doi}}
+                            </a>
+                        </span>
+                        <md-button ng-click="editDOI = true;"
+                                aria-label="Export selection"
+                                class="md-icon-button interaction-button">
+                            <md-icon md-svg-src="images/icons/edit_24px.svg"></md-icon>
+                        </md-button>
+                        <div ng-if="editDOI" flex>
+                            <md-input-container class="input-compact" flex>
+                                <input ng-model="ctrl.pub.doi" name="doi" flex>
+                            </md-input-container>
+                        </div>
+                    </div>
+                </div>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">WOS id (accession number):</span></div>
+                    <div class="answer"><span>{{ctrl.pub.wos}}</span></div>
+                </div>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">PubMed ID:</span></div>
+                    <div class="answer"><span>{{ctrl.pub.pubmed_id}}</span></div>
+                </div>
+                <div ng-repeat="citation in ctrl.pub.citations"
+                        layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">Citations ({{citation.year}}):</span></div>
+                    <div class="answer"><span>{{citation.citations}}</span></div>
+                </div>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">Impact factor ({{ctrl.pub.if_last_year.year}}):</span></div>
+                    <div class="answer"><span>{{ctrl.pub.if_last_year.impact_factor}}</span></div>
+                </div>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">Num. of authors:</span></div>
+                    <div class="answer"><span>{{ctrl.pub.number_authors}}</span></div>
+                </div>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">Your position:</span></div>
+                    <div class="answer">
+                        <md-input-container class="input-no-margin simple-input">
+                            <input ng-model="ctrl.pub.author_position" name="author_position">
+                        </md-input-container>
+                    </div>
+                </div>
+                <div class="spacer-top"
+                        layout="column" layout-gt-sm="row" layout-align="none center">
+                    <md-button type="submit"
+                        class="button-small md-raised md-primary">Update data</md-button>
+                    <div class="status-message" ng-hide="ctrl.hideMessage[ctrl.forms['managerPubCorrect']]">
+                        <span class="message" ng-class="ctrl.messageType[ctrl.forms['managerPubCorrect']]">
+                            {{ctrl.updateStatus[ctrl.forms['managerPubCorrect']]}}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </md-card-content>
+</md-card>

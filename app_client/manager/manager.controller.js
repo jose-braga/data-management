@@ -2398,7 +2398,28 @@
             for (var num=0; num<vm.totalPagesValidate; num++) {
                 vm.pagesValidate.push(num);
             }
-            vm.forms = {
+
+            var formsArray = ['allPeople','personNuclear','personContact','personIdentifications',
+                'personEmergency','personInstitutional','personDepartment','personResInfo',
+                'personLabAffiliation','personRmResearcherRole','personProfessional','personTechInfo',
+                'personTechLab','personManagerInfo','personManagerOffice','personAdministrativeInfo',
+                'personAdministrativeOffice','personAffiliationTech','personAffiliationScMan',
+                'personAffiliationAdm','personRmTechnicianRole','personRmScManRole',
+                'personRmAdmRole','personFinishedDegrees','personOngoingDegrees',
+                'personResponsibles','personPole','personLeft','validateNuclear',
+                'validateContact','validateIdentifications','validateEmergency',
+                'validateInstitutional','validateDepartment','validateResInfo',
+                'validateLabAffiliation','validateRmResearcherRole','validateProfessional',
+                'validateTechInfo','validateTechLab','validateManagerInfo','validateManagerOffice',
+                'validateAdministrativeInfo','validateAdministrativeOffice','validateAffiliationTech',
+                'validateAffiliationScMan','validateAffiliationAdm','validateRmTechnicianRole',
+                'validateRmScManRole','validateRmAdmRole','validateFinishedDegrees',
+                'validateOngoingDegrees','validateResponsibles','validatePole','validateUser',
+                'personPasswordReset','personPhoto','personAuthorNames','validatePhoto',
+                'personUserPermissions','validateUserPermissions','personCostCenter',
+                'personCars','validateCars','personFCTStatus','validateFCTStatus',
+                'personSelectedPub','personPubRemove'];
+            /*vm.forms = {
                 'allPeople': 0,
                 'personNuclear': 1,
                 'personContact': 2,
@@ -2465,14 +2486,17 @@
                 'validateCars': 63,
                 'personFCTStatus': 64,
                 'validateFCTStatus': 65
-            };
+            };*/
 
             if (ind === undefined) {
-                var numberCards = Object.keys(vm.forms).length; // the number of cards with "Update" in each tab
+                //var numberCards = Object.keys(vm.forms).length; // the number of cards with "Update" in each tab
+                //var numberCards = formsArray.length;
                 vm.updateStatus = [];
                 vm.messageType = [];
                 vm.hideMessage = [];
-                for (var i=0; i<numberCards; i++) {
+                vm.forms = {};
+                for (var el in formsArray) {
+                    vm.forms[formsArray[el]] = el;
                     vm.updateStatus.push('');
                     vm.messageType.push('message-updating');
                     vm.hideMessage.push(true);
@@ -3382,7 +3406,20 @@
             templateUrl: 'manager/person_details/manager.personAuthorNames.html'
         };
     };
-
+/*
+    var managerPersonPublicationsLarge = function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'manager/person_details/productivity/publications/manager.person.publications.large.html'
+        };
+    };
+    var managerPersonPublicationsSmall = function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'manager/person_details/productivity/publications/manager.person.publications.small.html'
+        };
+    };
+*/
     var validatePerson = function () {
         return {
             restrict: 'E',

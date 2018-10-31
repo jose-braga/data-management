@@ -1,0 +1,158 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Publications</span>
+        </md-card-title-text>
+    </md-card-title>
+    <md-card-content layout="column">
+        <div layout="row" layout-align="none center">
+            <span class="spacer-top-smaller">Filter:</span>
+            <md-input-container class="input-row-longer">
+                <label>From year</label>
+                <input ng-model="fromYearPub" ng-change="renderPublications('new')">
+            </md-input-container>
+            <md-input-container class="input-row-longer">
+                <label>To year</label>
+                <input ng-model="toYearPub" ng-change="renderPublications('new')">
+            </md-input-container>
+            <md-button class="s48" ng-click="exportPublicationsSpreadsheet()"
+                        aria-label="Export selection"
+                        class="md-icon-button interaction-button">
+                <md-tooltip>Export filtered results to spreadsheet</md-tooltip>
+                <md-icon md-svg-src="images/icons/spreadsheet.svg"
+                        class="s48"></md-icon>
+            </md-button>
+        </div>
+        <div>
+            This list contains <strong>{{selectedPublications.length}} publications</strong>.
+        </div>
+
+        <form flex novalidate name="managerPersonPublicationsForm"
+                ng-submit="managerPersonPublicationsForm.$valid && submitSelectedPersonPublications(forms['managerSelectedPub'])">
+            <div layout="row" class="paginator">
+                <md-input-container class="input-no-margin wider">
+                    <label>Results/page</label>
+                    <md-select ng-model="pageSize"
+                            md-on-close="renderPublications('new')"
+                            aria-label="pageSize"
+                            name="pageSize">
+                            <md-option ng-value="10">10</md-option>
+                            <md-option ng-value="20">20</md-option>
+                            <md-option ng-value="50">50</md-option>
+                    </md-select>
+                </md-input-container>
+                <md-input-container class="input-no-margin">
+                    <label>Page</label>
+                    <md-select ng-model="currentPage"
+                            md-on-close="renderPublications('page')"
+                            aria-label="currentPage"
+                            name="currentPage">
+                            <md-option ng-repeat="page in pages" ng-value="page">{{page}}</md-option>
+                    </md-select>
+                </md-input-container>
+            </div>
+            <div class="small-screens" layout="column">
+                <div ng-repeat="(pubNum,publication) in currPublications track by $index">
+                    <div layout="column">
+                        <div layout="row" layout-align=" center">
+                            <div class="question"><span class="highlight">Title:</span></div>
+                            <div class="answer"><span>{{publication.title}}</span></div>
+                        </div>
+                        <div layout="row" layout-align=" center">
+                            <div class="question"><span class="highlight">Authors:</span></div>
+                            <div class="answer"><span>{{publication.authors_raw}}</span></div>
+                        </div>
+                        <div layout="row" layout-align=" center">
+                            <div class="question"><span class="highlight">Journal:</span></div>
+                            <div class="answer"><span>{{publication.journal_short_name}}</span></div>
+                        </div>
+                        <div layout="row" layout-align=" center">
+                            <div class="question"><span class="highlight">Year:</span></div>
+                            <div class="answer"><span>{{publication.year}}</span></div>
+                        </div>
+                        <div layout="row" layout-align=" center">
+                            <div class="question">
+                                <span class="highlight">Highlighted Publication <md-icon md-svg-src="images/icons/star_18px.svg"></md-icon>:
+                                </span>
+                            </div>
+                            <div class="answer">
+                                <md-checkbox class="center-tick" name="selectedPublication" aria-label="Selected Publication"
+                                        ng-change="changeSelectedStatus(publication)" ng-model="publication.selected"></md-checkbox>
+                            </div>
+                        </div>
+                        <div layout="row" layout-align=" center">
+                            <div class="question">
+                                <span class="highlight">Public?
+                                    <md-icon md-svg-src="images/icons/public_24px.svg"></md-icon>:
+                                    <md-tooltip md-direction="top">
+                                          Visible on other platforms (e.g. LAQV/UCIBIO website) as your publication
+                                    </md-tooltip>
+                                </span>
+                            </div>
+                            <div class="answer">
+                                <md-checkbox class="center-tick" name="publicPublication" aria-label="Public Publication"
+                                        ng-change="changePublicStatus(publication)" ng-model="publication.public"></md-checkbox>
+                            </div>
+                        </div>
+                        <div layout="row" layout-align="none center">
+                            Show pub. details:
+                            <md-button ng-click="showDetailsPublication(publication)"
+                                        aria-label="Details"
+                                        class="md-icon-button interaction-button">
+                                <md-icon md-svg-src="images/icons/description_24px.svg"></md-icon>
+                            </md-button>
+                            Remove publication:
+                            <md-button ng-click="removePublication(publication)"
+                                        aria-label="Remove publication"
+                                        class="md-icon-button interaction-button">
+                                <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
+                            </md-button>
+                        </div>
+                        <md-divider></md-divider>
+                    </div>
+                </div>
+            </div>
+            <div layout="row" class="paginator">
+                <md-input-container class="input-no-margin wider">
+                    <label>Results/page</label>
+                    <md-select ng-model="pageSize"
+                            md-on-close="renderPublications('new')"
+                            aria-label="pageSize"
+                            name="pageSize">
+                            <md-option ng-value="10">10</md-option>
+                            <md-option ng-value="20">20</md-option>
+                            <md-option ng-value="50">50</md-option>
+                    </md-select>
+                </md-input-container>
+                <md-input-container class="input-no-margin">
+                    <label>Page</label>
+                    <md-select ng-model="currentPage"
+                            md-on-close="renderPublications('page')"
+                            aria-label="currentPage"
+                            name="currentPage">
+                            <md-option ng-repeat="page in pages" ng-value="page">{{page}}</md-option>
+                    </md-select>
+                </md-input-container>
+            </div>
+            <div layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button type="submit"
+                    class="button-small md-raised md-primary">
+                        Update <md-icon class="white-icon" md-svg-src="images/icons/star_18px.svg"></md-icon> &
+                               <md-icon class="white-icon" md-svg-src="images/icons/public_24px.svg"></md-icon>
+                </md-button>
+                <div class="status-message" ng-hide="hideMessage[forms['managerSelectedPub']]">
+                    <span class="message" ng-class="messageType[forms['managerSelectedPub']]">
+                        {{updateStatus[forms['managerSelectedPub']]}}
+                    </span>
+                </div>
+                <md-button ng-click="submitPublicationRemoval(forms['managerPubRemove'])"
+                    class="button-small md-raised md-primary">Confirm removal</md-button>
+                <div class="status-message" ng-hide="hideMessage[forms['managerPubRemove']]">
+                    <span class="message" ng-class="messageType[forms['managerPubRemove']]">
+                        {{updateStatus[forms['managerPubRemove']]}}
+                    </span>
+                </div>
+            </div>
+        </form>
+    </md-card-content>
+</md-card>

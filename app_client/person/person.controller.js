@@ -1417,6 +1417,13 @@
                 });
         };
         vm.initializeProfessional = function () {
+            personData.units()
+                .then(function (response) {
+                    vm.units = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
             personData.professionalSituations()
                 .then(function (response) {
                     vm.professionalSituations = response.data.result;

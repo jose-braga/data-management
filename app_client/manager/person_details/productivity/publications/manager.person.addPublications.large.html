@@ -1,0 +1,87 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Search within LAQV/UCIBIO database</span>
+        </md-card-title-text>
+    </md-card-title>
+    <md-card-content layout="column">
+        <div ng-show="gettingAllPublications" layout-padding>
+            <p>Getting information from database...</p>
+            <md-progress-circular md-mode="indeterminate" md-diameter="60px"></md-progress-circular>
+        </div>
+        <div ng-show="!gettingAllPublications">
+            <div layout="row" layout-align="none center">
+                <span class="spacer-top-smaller">Search:</span>
+                <md-input-container class="input-row-longer">
+                    <label>by title (> 3 char.)</label>
+                    <input ng-model="allPublicationsSearchTitle"
+                           ng-change="getSearchResults(allPublicationsSearchTitle,allPublicationsSearchAuthors)">
+                </md-input-container>
+                <md-input-container class="input-row-longer">
+                    <label>by authors (> 3 char.)</label>
+                    <input ng-model="allPublicationsSearchAuthors"
+                           ng-change="getSearchResults(allPublicationsSearchTitle,allPublicationsSearchAuthors)">
+                </md-input-container>
+            </div>
+            <form flex novalidate name="managerAddPublicationsForm"
+                    ng-submit="managerAddPublicationsForm.$valid && submitAddPublications(forms['managerPubAdd'])">
+                <div class="search-header spacer-top space-left">
+                    <span>Search results</span>
+                </div>
+                <table class="publications">
+                    <thead>
+                        <tr>
+                            <th class="large-contents-wide"></th>
+                            <th class="large-contents-narrow"></th>
+                            <th class="standard-width"></th>
+                            <th class="smaller-width"></th>
+                            <th class="smaller-width">All<br>
+                                <md-checkbox ng-model="selectAllPublications"
+                                        ng-change="changeAllPublications(selectAllPublications, filteredAllPublications)"
+                                        aria-label="choose all"></md-checkbox>
+                            </th>
+                        </tr>
+                        <tr>
+                            <th class="large-contents-wide">
+                                <a>Title</a>
+                            </th>
+                            <th class="large-contents-narrow">
+                                <a>Authors</a>
+                            </th>
+                            <th class="standard-width">
+                                <a>Journal</a>
+                            </th>
+                            <th class="smaller-width">
+                                <a>Year</a>
+                            </th>
+                            <th  class="smaller-width">Add</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="(pubNum,publication) in filteredAllPublications track by $index">
+                            <td>{{publication.title}}</td>
+                            <td>{{publication.authors_raw}}</td>
+                            <td>{{publication.journal_short_name}}</td>
+                            <td>{{publication.year}}</td>
+                            <td>
+                                <div layout="row" layout-align="center end">
+                                    <md-checkbox ng-model="publication.chosen" aria-label="chosen"></md-checkbox>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="spacer-top"
+                        layout="column" layout-gt-sm="row" layout-align="none center">
+                    <md-button type="submit"
+                        class="button-small md-raised md-primary">Add Publications</md-button>
+                    <div class="status-message" ng-hide="hideMessage[forms['managerPubAdd']]">
+                        <span class="message" ng-class="messageType[forms['managerPubAdd']]">
+                            {{updateStatus[forms['managerPubAdd']]}}
+                        </span>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </md-card-content>
+</md-card>

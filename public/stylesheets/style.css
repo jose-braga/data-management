@@ -152,6 +152,15 @@ button.s48 {
   width: 150px;
 }
 
+.select-substitute {
+  height: 50px;
+  overflow: auto;
+}
+.select-substitute md-checkbox {
+  margin-right: 0;
+  margin-bottom: 2px;
+}
+
 .select-search-box {
   border: none;
   outline: none;

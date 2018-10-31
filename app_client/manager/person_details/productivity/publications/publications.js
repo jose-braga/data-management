@@ -1123,7 +1123,19 @@
                                     // first DOI is compared, if there is no DOI then compares title
                                     if (dataORCID[ind].doi !== null) {
                                         if (dataDB[indDB].doi !== null) {
-                                            if (dataORCID[ind].doi.toLowerCase() == dataDB[indDB].doi.toLowerCase()) {
+                                            dataORCID[ind].doi = dataORCID[ind].doi.toLowerCase()
+                                                                    .replace('https://doi.org/','')
+                                                                    .replace('http://dx.doi.org/','')
+                                                                    .replace('doi: ','')
+                                                                    .replace('doi:','')
+                                                                    .replace('doi ','');
+                                            dataDB[indDB].doi = dataDB[indDB].doi.toLowerCase()
+                                                                    .replace('https://doi.org/','')
+                                                                    .replace('http://dx.doi.org/','')
+                                                                    .replace('doi: ','')
+                                                                    .replace('doi:','')
+                                                                    .replace('doi ','');
+                                            if (dataORCID[ind].doi == dataDB[indDB].doi) {
                                                 // already in database => skip
                                                 found = true;
                                                 break;

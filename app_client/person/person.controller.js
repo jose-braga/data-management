@@ -4319,10 +4319,13 @@
             var data = [];
             if (arrObj.length > 0) {
                 for (var el in arrObj) {
+                    var type_already_used = [];
                     for (var ind in arrObj[el].publication_type) {
-                        if (ind > 0) {
+                        if (ind > 0 && type_already_used.indexOf(arrObj[el].publication_type[ind].name_en) === -1) {
+                            type_already_used.push(arrObj[el].publication_type[ind].name_en);
                             arrObj[el]['doc_type'] = arrObj[el]['doc_type'] + '; ' + arrObj[el].publication_type[ind].name_en;
-                        } else {
+                        } else if (arrObj[el].publication_type[ind].name_en !== null) {
+                            type_already_used.push(arrObj[el].publication_type[ind].name_en);
                             arrObj[el]['doc_type'] = arrObj[el].publication_type[ind].name_en;
                         }
                     }
@@ -4363,8 +4366,9 @@
                         "DOI": arrObj[el]['doi'],
                         "WOS": arrObj[el]['wos'],
                         "PubMed ID": arrObj[el]['pubmed_id'],
-                        "Citations": citations_last_year.citations,
-                        "Impact Factors": if_last_year.impact_factor
+                        "Doc. Type": arrObj[el]['doc_type'] ? arrObj[el]['doc_type'] : null,
+                        "Citations": citations_last_year ? citations_last_year.citations : null,
+                        "Impact Factor": if_last_year ? if_last_year.impact_factor : null,
                     });
                 }
                 return data;

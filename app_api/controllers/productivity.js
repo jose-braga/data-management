@@ -642,6 +642,14 @@ var queryUpdatePublicationData = function (req, res, next) {
                           ' SET position = ?' +
                           ' WHERE id = ?;';
     places.push(data.author_position, data.people_publications_id);
+    if (data.doi !== null) {
+        data.doi = data.doi.toLowerCase()
+            .replace('https://doi.org/','')
+            .replace('http://dx.doi.org/','')
+            .replace('doi: ','')
+            .replace('doi:','')
+            .replace('doi ','');
+    }
     querySQL = querySQL + 'UPDATE publications' +
                           ' SET title = ?,' +
                           ' volume = ?,' +
@@ -1130,6 +1138,14 @@ var queryORCIDInsertPublication = function (req, res, next,i, journalID) {
             date = month;
         }
     }
+    if (add[i].doi !== null) {
+        add[i].doi = add[i].doi.toLowerCase()
+                .replace('https://doi.org/','')
+                .replace('http://dx.doi.org/','')
+                .replace('doi: ','')
+                .replace('doi:','')
+                .replace('doi ','');
+    }
     querySQL = querySQL + 'INSERT INTO  publications' +
                 ' (authors_raw,number_authors,title,year,journal_id,volume,page_start,page_end,publication_date,doi,publication_source_id)' +
                           ' VALUES (?,?,?,?,?,?,?,?,?,?,?);';
@@ -1240,6 +1256,14 @@ var queryORCIDInsertCommunication = function (req, res, next, i) {
     var querySQL = '';
     var places = [];
     var date = momentToDate(add[i].date);
+    if (add[i].doi !== null) {
+        add[i].doi = add[i].doi.toLowerCase()
+                .replace('https://doi.org/','')
+                .replace('http://dx.doi.org/','')
+                .replace('doi: ','')
+                .replace('doi:','')
+                .replace('doi ','');
+    }
     querySQL = querySQL + 'INSERT INTO  communications' +
                 ' (person_id,authors_raw,presenter,title,type_id,conference_title,' +
                   'conference_type_id, international,city,country_id,date,doi)' +
@@ -1287,6 +1311,14 @@ var queryUpdatePersonCommunications = function (req, res, next, i) {
     var places = [];
     if (upd.length > 0) {
         var date = momentToDate(upd[i].date);
+        if (upd[i].doi !== null) {
+            upd[i].doi = upd[i].doi.toLowerCase()
+                    .replace('https://doi.org/','')
+                    .replace('http://dx.doi.org/','')
+                    .replace('doi: ','')
+                    .replace('doi:','')
+                    .replace('doi ','');
+        }
         querySQL = querySQL + 'UPDATE  communications' +
                     ' SET authors_raw = ?,' +
                     ' presenter = ?,' +

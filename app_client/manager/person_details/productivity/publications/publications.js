@@ -1029,6 +1029,12 @@
                             return publications;
                         }
                         function processDetailsORCID(pub, data) {
+
+
+                            // TODO: Understand why some Delerue  ORCID publications are not correctly parsed
+                            // TODO: author= { (apparently it is because of the lack of space in some BIBTEX sections in citations)
+
+
                             pub.edit_authors = true;
                             pub.edit_journal = true;
                             pub.edit_vol = true;
@@ -1067,15 +1073,15 @@
                                 if (data.citation !== null && data.citation.hasOwnProperty('citation-type')) {
                                     if (data.citation['citation-type'] === 'BIBTEX') {
                                         if (data.citation['citation-value'] !== null) {
-                                            var vol = data.citation['citation-value'].match(/volume = {(.*?)}/);
+                                            var vol = data.citation['citation-value'].match(/volume\s{0,1}=\s{0,1}{(.*?)}/);
                                             if (vol !== null) volume = vol[1];
-                                            var num = data.citation['citation-value'].match(/number = {(.*?)}/);
+                                            var num = data.citation['citation-value'].match(/number\s{0,1}=\s{0,1}{(.*?)}/);
                                             if (num !== null) number = num[1];
-                                            var pg = data.citation['citation-value'].match(/pages = {(.*?)}/);
+                                            var pg = data.citation['citation-value'].match(/pages\s{0,1}=\s{0,1}{(.*?)}/);
                                             if (pg !== null) pages = pg[1];
-                                            var aut = data.citation['citation-value'].match(/author = {(.*?)}/);
+                                            var aut = data.citation['citation-value'].match(/author\s{0,1}=\s{0,1}{(.*?)}/);
                                             if (aut !== null) authors = aut[1];
-                                            var j = data.citation['citation-value'].match(/journal = {(.*?)}/);
+                                            var j = data.citation['citation-value'].match(/journal\s{0,1}=\s{0,1}{(.*?)}/);
                                             if (journal === null) {
                                                 if (j !== null) {
                                                     journal = j[1];

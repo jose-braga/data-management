@@ -8,227 +8,231 @@
     <div ng-if="vm.accessPermission" layout="column" flex>
         <toolbar-row></toolbar-row>
         <md-tabs md-dynamic-height md-border-bottom>
-            <md-tab ng-if="vm.show('labs')" ng-repeat="lab in vm.personLab"
-                    label="{{lab.lab | limitTo : 10}}...@{{lab.group_name | limitTo : 10}}...">
-                <md-content>
-                    <div layout="row" layout-padding>
-                        <team-people-lab-presentation
-                            data-lab="{{lab.lab_id}}"
-                            data-group="{{lab.group_id}}"
-                            flex>
-                        </team-people-lab-presentation>
-                    </div>
-                </md-content>
-            </md-tab>
-            <md-tab ng-if="vm.show('labs')" ng-repeat="lab in vm.personLab"
-                    label="Prod. {{ lab.lab | limitTo : 10 }}...@{{lab.group_name | limitTo : 10}}...">
-                <md-tabs md-selected="vm.selectedIndexPublications" md-dynamic-height md-border-bottom>
-                    <md-tab label='Publications'>
+            <md-tab label="Present">
+                <md-tabs md-dynamic-height md-border-bottom>
+                    <md-tab ng-if="vm.show('labs')" ng-repeat="lab in vm.personLab"
+                            label="{{lab.lab | limitTo : 10}}...@{{lab.group_name | limitTo : 10}}...">
                         <md-content>
                             <div layout="row" layout-padding>
-                                <team-lab-publications
+                                <team-people-lab-presentation
                                     data-lab="{{lab.lab_id}}"
                                     data-group="{{lab.group_id}}"
                                     flex>
-                                </team-lab-publications>
-                            </div>
-                            <div layout="row" layout-padding>
-                                <team-members-publications
-                                    data-lab="{{lab.lab_id}}"
-                                    data-group="{{lab.group_id}}"
-                                    flex>
-                                </team-members-publications>
+                                </team-people-lab-presentation>
                             </div>
                         </md-content>
                     </md-tab>
-                    <md-tab label='Communications'>
-                        <md-content>
-                            <div layout="row" layout-padding>
-                                <team-lab-communications
-                                    data-lab="{{lab.lab_id}}"
-                                    data-group="{{lab.group_id}}"
-                                    flex>
-                                </team-lab-communications>
-                            </div>
-                            <div layout="row" layout-padding>
-                                <team-members-communications
-                                    data-lab="{{lab.lab_id}}"
-                                    data-group="{{lab.group_id}}"
-                                flex>
-                                </team-members-communications>
-                            </div>
-                        </md-content>
-                    </md-tab>
-                    <md-tab label='Funding'>
-                        <md-content>
-                            <div style="padding-left: 20px; padding-top: 10px;">
-                                There are 3 sections in this tab:
-                                <ol>
-                                    <li><a ng-click="vm.gotoSection('projects-card')" href="" >Projects</a></li>
-                                    <li><a ng-click="vm.gotoSection('agreements-card')" href="">Agreements with private entities</a></li>
-                                    <li><a ng-click="vm.gotoSection('trainings-card')" href="">Training networks</a></li>
-                                </ol>
-                            </div>
-                            <div id="projects-card">
-                                <div layout="row" layout-padding>
-                                    <team-lab-projects
-                                        data-lab="{{lab.lab_id}}"
-                                        data-group="{{lab.group_id}}"
+                    <md-tab ng-if="vm.show('labs')" ng-repeat="lab in vm.personLab"
+                            label="Prod. {{ lab.lab | limitTo : 10 }}...@{{lab.group_name | limitTo : 10}}...">
+                        <md-tabs md-selected="vm.selectedIndexPublications" md-dynamic-height md-border-bottom>
+                            <md-tab label='Publications'>
+                                <md-content>
+                                    <div layout="row" layout-padding>
+                                        <team-lab-publications
+                                            data-lab="{{lab.lab_id}}"
+                                            data-group="{{lab.group_id}}"
+                                            flex>
+                                        </team-lab-publications>
+                                    </div>
+                                    <div layout="row" layout-padding>
+                                        <team-members-publications
+                                            data-lab="{{lab.lab_id}}"
+                                            data-group="{{lab.group_id}}"
+                                            flex>
+                                        </team-members-publications>
+                                    </div>
+                                </md-content>
+                            </md-tab>
+                            <md-tab label='Communications'>
+                                <md-content>
+                                    <div layout="row" layout-padding>
+                                        <team-lab-communications
+                                            data-lab="{{lab.lab_id}}"
+                                            data-group="{{lab.group_id}}"
+                                            flex>
+                                        </team-lab-communications>
+                                    </div>
+                                    <div layout="row" layout-padding>
+                                        <team-members-communications
+                                            data-lab="{{lab.lab_id}}"
+                                            data-group="{{lab.group_id}}"
                                         flex>
-                                    </team-lab-projects>
-                                </div>
+                                        </team-members-communications>
+                                    </div>
+                                </md-content>
+                            </md-tab>
+                            <md-tab label='Funding'>
+                                <md-content>
+                                    <div style="padding-left: 20px; padding-top: 10px;">
+                                        There are 3 sections in this tab:
+                                        <ol>
+                                            <li><a ng-click="vm.gotoSection('projects-card')" href="" >Projects</a></li>
+                                            <li><a ng-click="vm.gotoSection('agreements-card')" href="">Agreements with private entities</a></li>
+                                            <li><a ng-click="vm.gotoSection('trainings-card')" href="">Training networks</a></li>
+                                        </ol>
+                                    </div>
+                                    <div id="projects-card">
+                                        <div layout="row" layout-padding>
+                                            <team-lab-projects
+                                                data-lab="{{lab.lab_id}}"
+                                                data-group="{{lab.group_id}}"
+                                                flex>
+                                            </team-lab-projects>
+                                        </div>
 
-                                <div layout="row" layout-padding>
-                                    <team-members-projects
-                                        data-lab="{{lab.lab_id}}"
-                                        data-group="{{lab.group_id}}"
-                                    flex>
-                                    </team-members-projects>
-                                </div>
-                            </div>
-                            <div id="agreements-card">
-                                <div layout="row" layout-padding>
-                                    <team-lab-agreements
-                                        data-lab="{{lab.lab_id}}"
-                                        data-group="{{lab.group_id}}"
+                                        <div layout="row" layout-padding>
+                                            <team-members-projects
+                                                data-lab="{{lab.lab_id}}"
+                                                data-group="{{lab.group_id}}"
+                                            flex>
+                                            </team-members-projects>
+                                        </div>
+                                    </div>
+                                    <div id="agreements-card">
+                                        <div layout="row" layout-padding>
+                                            <team-lab-agreements
+                                                data-lab="{{lab.lab_id}}"
+                                                data-group="{{lab.group_id}}"
+                                                flex>
+                                            </team-lab-agreements>
+                                        </div>
+
+                                        <div layout="row" layout-padding>
+                                            <team-members-agreements
+                                                data-lab="{{lab.lab_id}}"
+                                                data-group="{{lab.group_id}}"
+                                            flex>
+                                            </team-members-agreements>
+                                        </div>
+                                    </div>
+                                    <div id="trainings-card">
+                                        <div layout="row" layout-padding>
+                                            <team-lab-trainings
+                                                data-lab="{{lab.lab_id}}"
+                                                data-group="{{lab.group_id}}"
+                                                flex>
+                                            </team-lab-trainings>
+                                        </div>
+
+                                        <div layout="row" layout-padding>
+                                            <team-members-trainings
+                                                data-lab="{{lab.lab_id}}"
+                                                data-group="{{lab.group_id}}"
+                                            flex>
+                                            </team-members-trainings>
+                                        </div>
+                                    </div>
+                                </md-content>
+                            </md-tab>
+                            <md-tab label='Patents'>
+                                <md-content>
+                                    <div layout="row" layout-padding>
+                                        <team-lab-patents
+                                            data-lab="{{lab.lab_id}}"
+                                            data-group="{{lab.group_id}}"
+                                            flex>
+                                        </team-lab-patents>
+                                    </div>
+                                    <div layout="row" layout-padding>
+                                        <team-members-patents
+                                            data-lab="{{lab.lab_id}}"
+                                            data-group="{{lab.group_id}}"
                                         flex>
-                                    </team-lab-agreements>
-                                </div>
-
-                                <div layout="row" layout-padding>
-                                    <team-members-agreements
-                                        data-lab="{{lab.lab_id}}"
-                                        data-group="{{lab.group_id}}"
-                                    flex>
-                                    </team-members-agreements>
-                                </div>
-                            </div>
-                            <div id="trainings-card">
-                                <div layout="row" layout-padding>
-                                    <team-lab-trainings
-                                        data-lab="{{lab.lab_id}}"
-                                        data-group="{{lab.group_id}}"
+                                        </team-members-patents>
+                                    </div>
+                                </md-content>
+                            </md-tab>
+                            <md-tab label='Prizes'>
+                                <md-content>
+                                    <div layout="row" layout-padding>
+                                        <team-lab-prizes
+                                            data-lab="{{lab.lab_id}}"
+                                            data-group="{{lab.group_id}}"
+                                            flex>
+                                        </team-lab-prizes>
+                                    </div>
+                                    <div layout="row" layout-padding>
+                                        <team-members-prizes
+                                            data-lab="{{lab.lab_id}}"
+                                            data-group="{{lab.group_id}}"
                                         flex>
-                                    </team-lab-trainings>
-                                </div>
-
-                                <div layout="row" layout-padding>
-                                    <team-members-trainings
-                                        data-lab="{{lab.lab_id}}"
-                                        data-group="{{lab.group_id}}"
-                                    flex>
-                                    </team-members-trainings>
-                                </div>
-                            </div>
-                        </md-content>
-                    </md-tab>
-                    <md-tab label='Patents'>
-                        <md-content>
-                            <div layout="row" layout-padding>
-                                <team-lab-patents
-                                    data-lab="{{lab.lab_id}}"
-                                    data-group="{{lab.group_id}}"
-                                    flex>
-                                </team-lab-patents>
-                            </div>
-                            <div layout="row" layout-padding>
-                                <team-members-patents
-                                    data-lab="{{lab.lab_id}}"
-                                    data-group="{{lab.group_id}}"
-                                flex>
-                                </team-members-patents>
-                            </div>
-                        </md-content>
-                    </md-tab>
-                    <md-tab label='Prizes'>
-                        <md-content>
-                            <div layout="row" layout-padding>
-                                <team-lab-prizes
-                                    data-lab="{{lab.lab_id}}"
-                                    data-group="{{lab.group_id}}"
-                                    flex>
-                                </team-lab-prizes>
-                            </div>
-                            <div layout="row" layout-padding>
-                                <team-members-prizes
-                                    data-lab="{{lab.lab_id}}"
-                                    data-group="{{lab.group_id}}"
-                                flex>
-                                </team-members-prizes>
-                            </div>
-                        </md-content>
-                    </md-tab>
-                    <md-tab label='Startups'>
-                        <md-content>
-                            <div layout="row" layout-padding>
-                                <team-lab-startups
-                                    data-lab="{{lab.lab_id}}"
-                                    data-group="{{lab.group_id}}"
-                                    flex>
-                                </team-lab-startups>
-                            </div>
-                            <div layout="row" layout-padding>
-                                <team-members-startups
-                                    data-lab="{{lab.lab_id}}"
-                                    data-group="{{lab.group_id}}"
-                                flex>
-                                </team-members-startups>
-                            </div>
-                        </md-content>
-                    </md-tab>
-                    <md-tab label='Boards'>
-                        <md-content>
-                            <div layout="row" layout-padding>
-                                <team-lab-boards
-                                    data-lab="{{lab.lab_id}}"
-                                    data-group="{{lab.group_id}}"
-                                    flex>
-                                </team-lab-boards>
-                            </div>
-                            <div layout="row" layout-padding>
-                                <team-members-boards
-                                    data-lab="{{lab.lab_id}}"
-                                    data-group="{{lab.group_id}}"
-                                flex>
-                                </team-members-boards>
-                            </div>
-                        </md-content>
-                    </md-tab>
-                    <md-tab label='Datasets'>
-                        <md-content>
-                            <div layout="row" layout-padding>
-                                <team-lab-datasets
-                                    data-lab="{{lab.lab_id}}"
-                                    data-group="{{lab.group_id}}"
-                                    flex>
-                                </team-lab-datasets>
-                            </div>
-                            <div layout="row" layout-padding>
-                                <team-members-datasets
-                                    data-lab="{{lab.lab_id}}"
-                                    data-group="{{lab.group_id}}"
-                                flex>
-                                </team-members-datasets>
-                            </div>
-                        </md-content>
-                    </md-tab>
-                    <md-tab label='Outreach'>
-                        <md-content>
-                            <div layout="row" layout-padding>
-                                <team-lab-outreaches
-                                    data-lab="{{lab.lab_id}}"
-                                    data-group="{{lab.group_id}}"
-                                    flex>
-                                </team-lab-outreaches>
-                            </div>
-                            <div layout="row" layout-padding>
-                                <team-members-outreaches
-                                    data-lab="{{lab.lab_id}}"
-                                    data-group="{{lab.group_id}}"
-                                flex>
-                                </team-members-outreaches>
-                            </div>
-                        </md-content>
+                                        </team-members-prizes>
+                                    </div>
+                                </md-content>
+                            </md-tab>
+                            <md-tab label='Startups'>
+                                <md-content>
+                                    <div layout="row" layout-padding>
+                                        <team-lab-startups
+                                            data-lab="{{lab.lab_id}}"
+                                            data-group="{{lab.group_id}}"
+                                            flex>
+                                        </team-lab-startups>
+                                    </div>
+                                    <div layout="row" layout-padding>
+                                        <team-members-startups
+                                            data-lab="{{lab.lab_id}}"
+                                            data-group="{{lab.group_id}}"
+                                        flex>
+                                        </team-members-startups>
+                                    </div>
+                                </md-content>
+                            </md-tab>
+                            <md-tab label='Boards'>
+                                <md-content>
+                                    <div layout="row" layout-padding>
+                                        <team-lab-boards
+                                            data-lab="{{lab.lab_id}}"
+                                            data-group="{{lab.group_id}}"
+                                            flex>
+                                        </team-lab-boards>
+                                    </div>
+                                    <div layout="row" layout-padding>
+                                        <team-members-boards
+                                            data-lab="{{lab.lab_id}}"
+                                            data-group="{{lab.group_id}}"
+                                        flex>
+                                        </team-members-boards>
+                                    </div>
+                                </md-content>
+                            </md-tab>
+                            <md-tab label='Datasets'>
+                                <md-content>
+                                    <div layout="row" layout-padding>
+                                        <team-lab-datasets
+                                            data-lab="{{lab.lab_id}}"
+                                            data-group="{{lab.group_id}}"
+                                            flex>
+                                        </team-lab-datasets>
+                                    </div>
+                                    <div layout="row" layout-padding>
+                                        <team-members-datasets
+                                            data-lab="{{lab.lab_id}}"
+                                            data-group="{{lab.group_id}}"
+                                        flex>
+                                        </team-members-datasets>
+                                    </div>
+                                </md-content>
+                            </md-tab>
+                            <md-tab label='Outreach'>
+                                <md-content>
+                                    <div layout="row" layout-padding>
+                                        <team-lab-outreaches
+                                            data-lab="{{lab.lab_id}}"
+                                            data-group="{{lab.group_id}}"
+                                            flex>
+                                        </team-lab-outreaches>
+                                    </div>
+                                    <div layout="row" layout-padding>
+                                        <team-members-outreaches
+                                            data-lab="{{lab.lab_id}}"
+                                            data-group="{{lab.group_id}}"
+                                        flex>
+                                        </team-members-outreaches>
+                                    </div>
+                                </md-content>
+                            </md-tab>
+                        </md-tabs>
                     </md-tab>
                 </md-tabs>
             </md-tab>
@@ -258,6 +262,234 @@
                         </team-people-adm-office-presentation>
                     </div>
                 </md-content>
+            </md-tab>
+            <md-tab label="Past">
+                <md-tabs md-dynamic-height md-border-bottom>
+                    <md-tab ng-if="vm.show('labs')" ng-repeat="lab in vm.pastLab"
+                            label="{{lab.lab | limitTo : 10}}...@{{lab.group_name | limitTo : 10}}...">
+                        <md-content>
+                            <div layout="row" layout-padding>
+                                <team-people-lab-presentation
+                                    data-lab="{{lab.lab_id}}"
+                                    data-group="{{lab.group_id}}"
+                                    flex>
+                                </team-people-lab-presentation>
+                            </div>
+                        </md-content>
+                    </md-tab>
+                    <md-tab ng-if="vm.show('labs')" ng-repeat="lab in vm.pastLab"
+                            label="Prod. {{ lab.lab | limitTo : 10 }}...@{{lab.group_name | limitTo : 10}}...">
+                        <md-tabs md-selected="vm.selectedIndexPublications" md-dynamic-height md-border-bottom>
+                            <md-tab label='Publications'>
+                                <md-content>
+                                    <div layout="row" layout-padding>
+                                        <team-lab-publications
+                                            data-lab="{{lab.lab_id}}"
+                                            data-group="{{lab.group_id}}"
+                                            flex>
+                                        </team-lab-publications>
+                                    </div>
+                                    <div layout="row" layout-padding>
+                                        <team-members-publications
+                                            data-lab="{{lab.lab_id}}"
+                                            data-group="{{lab.group_id}}"
+                                            flex>
+                                        </team-members-publications>
+                                    </div>
+                                </md-content>
+                            </md-tab>
+                            <md-tab label='Communications'>
+                                <md-content>
+                                    <div layout="row" layout-padding>
+                                        <team-lab-communications
+                                            data-lab="{{lab.lab_id}}"
+                                            data-group="{{lab.group_id}}"
+                                            flex>
+                                        </team-lab-communications>
+                                    </div>
+                                    <div layout="row" layout-padding>
+                                        <team-members-communications
+                                            data-lab="{{lab.lab_id}}"
+                                            data-group="{{lab.group_id}}"
+                                        flex>
+                                        </team-members-communications>
+                                    </div>
+                                </md-content>
+                            </md-tab>
+                            <md-tab label='Funding'>
+                                <md-content>
+                                    <div style="padding-left: 20px; padding-top: 10px;">
+                                        There are 3 sections in this tab:
+                                        <ol>
+                                            <li><a ng-click="vm.gotoSection('projects-card')" href="" >Projects</a></li>
+                                            <li><a ng-click="vm.gotoSection('agreements-card')" href="">Agreements with private entities</a></li>
+                                            <li><a ng-click="vm.gotoSection('trainings-card')" href="">Training networks</a></li>
+                                        </ol>
+                                    </div>
+                                    <div id="projects-card">
+                                        <div layout="row" layout-padding>
+                                            <team-lab-projects
+                                                data-lab="{{lab.lab_id}}"
+                                                data-group="{{lab.group_id}}"
+                                                flex>
+                                            </team-lab-projects>
+                                        </div>
+
+                                        <div layout="row" layout-padding>
+                                            <team-members-projects
+                                                data-lab="{{lab.lab_id}}"
+                                                data-group="{{lab.group_id}}"
+                                            flex>
+                                            </team-members-projects>
+                                        </div>
+                                    </div>
+                                    <div id="agreements-card">
+                                        <div layout="row" layout-padding>
+                                            <team-lab-agreements
+                                                data-lab="{{lab.lab_id}}"
+                                                data-group="{{lab.group_id}}"
+                                                flex>
+                                            </team-lab-agreements>
+                                        </div>
+
+                                        <div layout="row" layout-padding>
+                                            <team-members-agreements
+                                                data-lab="{{lab.lab_id}}"
+                                                data-group="{{lab.group_id}}"
+                                            flex>
+                                            </team-members-agreements>
+                                        </div>
+                                    </div>
+                                    <div id="trainings-card">
+                                        <div layout="row" layout-padding>
+                                            <team-lab-trainings
+                                                data-lab="{{lab.lab_id}}"
+                                                data-group="{{lab.group_id}}"
+                                                flex>
+                                            </team-lab-trainings>
+                                        </div>
+
+                                        <div layout="row" layout-padding>
+                                            <team-members-trainings
+                                                data-lab="{{lab.lab_id}}"
+                                                data-group="{{lab.group_id}}"
+                                            flex>
+                                            </team-members-trainings>
+                                        </div>
+                                    </div>
+                                </md-content>
+                            </md-tab>
+                            <md-tab label='Patents'>
+                                <md-content>
+                                    <div layout="row" layout-padding>
+                                        <team-lab-patents
+                                            data-lab="{{lab.lab_id}}"
+                                            data-group="{{lab.group_id}}"
+                                            flex>
+                                        </team-lab-patents>
+                                    </div>
+                                    <div layout="row" layout-padding>
+                                        <team-members-patents
+                                            data-lab="{{lab.lab_id}}"
+                                            data-group="{{lab.group_id}}"
+                                        flex>
+                                        </team-members-patents>
+                                    </div>
+                                </md-content>
+                            </md-tab>
+                            <md-tab label='Prizes'>
+                                <md-content>
+                                    <div layout="row" layout-padding>
+                                        <team-lab-prizes
+                                            data-lab="{{lab.lab_id}}"
+                                            data-group="{{lab.group_id}}"
+                                            flex>
+                                        </team-lab-prizes>
+                                    </div>
+                                    <div layout="row" layout-padding>
+                                        <team-members-prizes
+                                            data-lab="{{lab.lab_id}}"
+                                            data-group="{{lab.group_id}}"
+                                        flex>
+                                        </team-members-prizes>
+                                    </div>
+                                </md-content>
+                            </md-tab>
+                            <md-tab label='Startups'>
+                                <md-content>
+                                    <div layout="row" layout-padding>
+                                        <team-lab-startups
+                                            data-lab="{{lab.lab_id}}"
+                                            data-group="{{lab.group_id}}"
+                                            flex>
+                                        </team-lab-startups>
+                                    </div>
+                                    <div layout="row" layout-padding>
+                                        <team-members-startups
+                                            data-lab="{{lab.lab_id}}"
+                                            data-group="{{lab.group_id}}"
+                                        flex>
+                                        </team-members-startups>
+                                    </div>
+                                </md-content>
+                            </md-tab>
+                            <md-tab label='Boards'>
+                                <md-content>
+                                    <div layout="row" layout-padding>
+                                        <team-lab-boards
+                                            data-lab="{{lab.lab_id}}"
+                                            data-group="{{lab.group_id}}"
+                                            flex>
+                                        </team-lab-boards>
+                                    </div>
+                                    <div layout="row" layout-padding>
+                                        <team-members-boards
+                                            data-lab="{{lab.lab_id}}"
+                                            data-group="{{lab.group_id}}"
+                                        flex>
+                                        </team-members-boards>
+                                    </div>
+                                </md-content>
+                            </md-tab>
+                            <md-tab label='Datasets'>
+                                <md-content>
+                                    <div layout="row" layout-padding>
+                                        <team-lab-datasets
+                                            data-lab="{{lab.lab_id}}"
+                                            data-group="{{lab.group_id}}"
+                                            flex>
+                                        </team-lab-datasets>
+                                    </div>
+                                    <div layout="row" layout-padding>
+                                        <team-members-datasets
+                                            data-lab="{{lab.lab_id}}"
+                                            data-group="{{lab.group_id}}"
+                                        flex>
+                                        </team-members-datasets>
+                                    </div>
+                                </md-content>
+                            </md-tab>
+                            <md-tab label='Outreach'>
+                                <md-content>
+                                    <div layout="row" layout-padding>
+                                        <team-lab-outreaches
+                                            data-lab="{{lab.lab_id}}"
+                                            data-group="{{lab.group_id}}"
+                                            flex>
+                                        </team-lab-outreaches>
+                                    </div>
+                                    <div layout="row" layout-padding>
+                                        <team-members-outreaches
+                                            data-lab="{{lab.lab_id}}"
+                                            data-group="{{lab.group_id}}"
+                                        flex>
+                                        </team-members-outreaches>
+                                    </div>
+                                </md-content>
+                            </md-tab>
+                        </md-tabs>
+                    </md-tab>
+                </md-tabs>
             </md-tab>
             <!--
             <md-tab label='Spaces'>

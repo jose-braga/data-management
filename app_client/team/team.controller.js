@@ -7,6 +7,7 @@
         vm.isLoggedIn = authentication.isLoggedIn();
         vm.currentUser = authentication.currentUser();
         vm.personLab = [];
+        vm.pastLab = [];
         vm.newPerson = {};
         vm.newPerson.affiliations = [{people_lab_id: null, start:null, end: null}];
         vm.affiliationsList = [];
@@ -190,11 +191,28 @@
         function getPersonAffiliations(personID, ind) {
             personData.thisPersonData(personID)
                 .then(function (response) {
-                    vm.personLab = response.data.result.lab_data;
+                    var labData = response.data.result.lab_data;
                     vm.personTech = response.data.result.technician_offices;
                     vm.personScMan = response.data.result.science_manager_offices;
                     vm.personAdm = response.data.result.administrative_offices;
                     var officeData;
+                    for (var ind in labData) {
+                        if (labData[ind].lab_closed !== null) {
+                            if (moment(labData[ind].lab_closed).isAfter(moment())) {
+                                vm.personLab.push(labData[ind]);
+                            } else {
+                                vm.pastLab.push(labData[ind]);
+                            }
+                        } else if (labData[ind].group_closed !== null) {
+                            if (moment(labData[ind].group_closed).isAfter(moment())) {
+                                vm.personLab.push(labData[ind]);
+                            } else {
+                                vm.pastLab.push(labData[ind]);
+                            }
+                        } else {
+                            vm.personLab.push(labData[ind]);
+                        }
+                    }
                     for (var ind in vm.personLab) {
                         officeData = {};
                         if (vm.personLab[ind].people_lab_id !== null) {

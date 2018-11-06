@@ -4424,14 +4424,14 @@
         	}
         }
         function momentToDate(timedate, timezone, timeformat) {
-        if (timezone === undefined) {
-            timezone = 'Europe/Lisbon';
+            if (timezone === undefined) {
+                timezone = 'Europe/Lisbon';
+            }
+            if (timeformat === undefined) {
+                timeformat = 'YYYY-MM-DD';
+            }
+            return timedate !== null ? moment.tz(timedate,timezone).format(timeformat) : null;
         }
-        if (timeformat === undefined) {
-            timeformat = 'YYYY-MM-DD';
-        }
-        return timedate !== null ? moment.tz(timedate,timezone).format(timeformat) : null;
-}
         function nameMatching(name1, str) {
             var name1Final = prepareString(name1);
             var strFinal = prepareString(str);

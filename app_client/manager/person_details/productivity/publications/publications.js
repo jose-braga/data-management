@@ -1029,12 +1029,6 @@
                             return publications;
                         }
                         function processDetailsORCID(pub, data) {
-
-
-                            // TODO: Understand why some Delerue  ORCID publications are not correctly parsed
-                            // TODO: author= { (apparently it is because of the lack of space in some BIBTEX sections in citations)
-
-
                             pub.edit_authors = true;
                             pub.edit_journal = true;
                             pub.edit_vol = true;
@@ -1091,7 +1085,7 @@
                                             }
                                         }
                                     } else {
-                                        alert('This data is not in an automatically parsed format (Bibtex), please add additional info below\nData format: ' + data.citation['citation-type']);
+                                        alert('This data is not in an automatically parsed format (Bibtex), please add additional info below.\n\nData format found: ' + data.citation['citation-type']);
                                     }
                                 }
                             }

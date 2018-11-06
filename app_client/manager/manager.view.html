@@ -86,6 +86,14 @@
                                         data-orcidscman="{{person.science_manager_data[0].ORCID}}"
                                         flex>
                                     </manager-add-person-publications-orcid-large>
+                                    <manager-add-person-publications-orcid-small
+                                        ng-if="!vm.showTable()"
+                                        data-person="{{person.id}}"
+                                        data-orcidres="{{person.researcher_data[0].ORCID}}"
+                                        data-orcidtech="{{person.technician_data[0].ORCID}}"
+                                        data-orcidscman="{{person.science_manager_data[0].ORCID}}"
+                                        flex>
+                                    </manager-add-person-publications-orcid-small>
                                 </div>
                             </md-content>
                         </div>

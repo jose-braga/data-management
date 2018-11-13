@@ -2,7 +2,6 @@
     <md-card-title>
         <md-card-title-text>
             <span class="md-headline">Communications</span>
-            <span class="md-subhead">To add manually see next card, to add from ORCID see bottom.</span>
         </md-card-title-text>
     </md-card-title>
     <md-card-content layout="column">
@@ -10,13 +9,13 @@
             <span class="spacer-top-smaller">Filter:</span>
             <md-input-container class="input-row-longer">
                 <label>From year</label>
-                <input ng-model="vm.fromYearComm" ng-change="vm.renderCommunications('new')">
+                <input ng-model="fromYearComm" ng-change="renderCommunications('new')">
             </md-input-container>
             <md-input-container class="input-row-longer">
                 <label>To year</label>
-                <input ng-model="vm.toYearComm" ng-change="vm.renderCommunications('new')">
+                <input ng-model="toYearComm" ng-change="renderCommunications('new')">
             </md-input-container>
-            <md-button class="s48" ng-click="vm.exportCommunicationsSpreadsheet()"
+            <md-button class="s48" ng-click="exportCommunicationsSpreadsheet()"
                         aria-label="Export selection"
                         class="md-icon-button interaction-button">
                 <md-tooltip>Export filtered results to spreadsheet</md-tooltip>
@@ -24,13 +23,13 @@
                         class="s48"></md-icon>
             </md-button>
         </div>
-        <form flex novalidate name="personCommunicationsForm"
-                ng-submit="personCommunicationsForm.$valid && vm.submitPersonCommunications(vm.forms['personUpdateComm'])">
+        <form flex novalidate name="managerCommunicationsForm"
+                ng-submit="managerCommunicationsForm.$valid && submitPersonCommunications(forms['managerUpdateComm'])">
             <div layout="row" class="paginator spacer-top">
                 <md-input-container class="input-no-margin wider">
                     <label>Results/page</label>
-                    <md-select ng-model="vm.pageSizeCommunications"
-                            md-on-close="vm.renderCommunications('new')"
+                    <md-select ng-model="pageSize"
+                            md-on-close="renderCommunications('new')"
                             aria-label="pageSize"
                             name="pageSize">
                             <md-option ng-value="10">10</md-option>
@@ -40,37 +39,37 @@
                 </md-input-container>
                 <md-input-container class="input-no-margin">
                     <label>Page</label>
-                    <md-select ng-model="vm.currentPageCommunications"
-                            md-on-close="vm.renderCommunications('page')"
+                    <md-select ng-model="currentPage"
+                            md-on-close="renderCommunications('page')"
                             aria-label="currentPage"
                             name="currentPage">
-                            <md-option ng-repeat="page in vm.pagesCommunications" ng-value="page">{{page}}</md-option>
+                            <md-option ng-repeat="page in pages" ng-value="page">{{page}}</md-option>
                     </md-select>
                 </md-input-container>
             </div>
-            This list contains <strong>{{vm.selectedCommunications.length}} communications</strong>.
+            This list contains <strong>{{selectedCommunications.length}} communications</strong>.
             <ul>
-                <li class="spacer-top" ng-repeat="(pubNum,work) in vm.currCommunications track by $index">
+                <li class="spacer-top" ng-repeat="(pubNum,work) in currCommunications track by $index">
                     <div layout="column" layout-gt-sm="row">
                         <div flex-gt-sm="80">
                             {{work.communication_type_name}}: {{work.authors_raw}}. "{{work.title}}", {{work.conference_title}}.
                             {{work.date | date : 'yyyy-MM-dd'}}. {{work.city}}, {{work.country_name}}.
                         </div>
                         <div flex-gt-sm="20" layout="row">
-                            <md-button ng-click="vm.showDetailsCommunication(work, pubNum)"
+                            <md-button ng-click="showDetailsCommunication(work, pubNum)"
                                         aria-label="Details"
                                         class="md-icon-button interaction-button">
                                 <md-icon md-svg-src="images/icons/description_24px.svg"></md-icon>
                             </md-button>
-                            <md-button ng-click="vm.removeCommunication(work)"
-                                        aria-label="Remove publication"
+                            <md-button ng-click="removeCommunication(work)"
+                                        aria-label="Remove communication"
                                         class="md-icon-button interaction-button">
                                 <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
                             </md-button>
                             <div class="bind" layout="row" layout-align="none center">
                                 <md-icon md-svg-src="images/icons/public_24px.svg"></md-icon>
                                 <md-checkbox class="no-margin-bottom" name="publicCommunication" aria-label="Public Communication"
-                                        ng-change="vm.changePublicStatusComm(work)" ng-model="work.public"></md-checkbox>
+                                        ng-change="changePublicStatus(work)" ng-model="work.public"></md-checkbox>
                             </div>
                         </div>
                     </div>
@@ -80,8 +79,8 @@
             <div layout="row" class="paginator">
                 <md-input-container class="input-no-margin wider">
                     <label>Results/page</label>
-                    <md-select ng-model="vm.pageSizeCommunications"
-                            md-on-close="vm.renderCommunications('new')"
+                    <md-select ng-model="pageSize"
+                            md-on-close="renderCommunications('new')"
                             aria-label="pageSize"
                             name="pageSize">
                             <md-option ng-value="10">10</md-option>
@@ -91,31 +90,31 @@
                 </md-input-container>
                 <md-input-container class="input-no-margin">
                     <label>Page</label>
-                    <md-select ng-model="vm.currentPageCommunications"
-                            md-on-close="vm.renderCommunications('page')"
+                    <md-select ng-model="currentPage"
+                            md-on-close="renderCommunications('page')"
                             aria-label="currentPage"
                             name="currentPage">
-                            <md-option ng-repeat="page in vm.pagesCommunications" ng-value="page">{{page}}</md-option>
+                            <md-option ng-repeat="page in pages" ng-value="page">{{page}}</md-option>
                     </md-select>
                 </md-input-container>
             </div>
             <div layout="column" layout-gt-sm="row" layout-align="none center">
-                <md-button type="submit" class="button-small md-raised md-primary">Update</md-button>
-                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personUpdateComm']]">
-                    <span class="message" ng-class="vm.messageType[vm.forms['personUpdateComm']]">
-                        {{vm.updateStatus[vm.forms['personUpdateComm']]}}
+                <md-button type="submit" class="button-small md-raised md-primary">
+                    Update <md-icon class="white-icon" md-svg-src="images/icons/public_24px.svg"></md-icon>
+                </md-button>
+                <div class="status-message" ng-hide="hideMessage[forms['managerUpdateComm']]">
+                    <span class="message" ng-class="messageType[forms['managerUpdateComm']]">
+                        {{updateStatus[forms['managerUpdateComm']]}}
                     </span>
                 </div>
-                <md-button ng-click="vm.submitCommunicationRemoval(vm.forms['personCommRemove'])"
+                <md-button ng-click="submitCommunicationRemoval(forms['managerCommRemove'])"
                     class="button-small md-raised md-primary">Confirm removal</md-button>
-                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personCommRemove']]">
-                    <span class="message" ng-class="vm.messageType[vm.forms['personCommRemove']]">
-                        {{vm.updateStatus[vm.forms['personCommRemove']]}}
+                <div class="status-message" ng-hide="hideMessage[forms['managerCommRemove']]">
+                    <span class="message" ng-class="messageType[forms['managerCommRemove']]">
+                        {{updateStatus[forms['managerCommRemove']]}}
                     </span>
                 </div>
             </div>
         </form>
-
-
     </md-card-content>
 </md-card>

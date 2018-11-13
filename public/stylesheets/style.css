@@ -110,6 +110,18 @@ a {
   top: 0px;
 }
 
+.large-screens .question {
+  width: 10%;
+  float: left;
+  margin-right: 2%;
+}
+
+.large-screens .answer {
+  width: 88%;
+  float: left;
+}
+
+
 .question {
   width: 25%;
   float: left;

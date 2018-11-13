@@ -1690,7 +1690,6 @@
                         vm.progressORCID = false;
                     });
 
-
                 })
                 .catch(function (err) {
                     console.log(err);
@@ -2350,19 +2349,22 @@
                 );
             return false;
         };
-        vm.submitAddORCIDCommunications = function(ind) {
-            if (vm.addCommunicationsORCID.length > 0) {
+        vm.submitCommunicationRemoval = function (ind) {
+            if (vm.deleteCommunications.length > 0) {
                 vm.updateStatus[ind] = "Updating...";
                 vm.messageType[ind] = 'message-updating';
                 vm.hideMessage[ind] = false;
-                var data = {add: vm.addCommunicationsORCID};
-                publications.addORCIDCommunicationsPerson(vm.currentUser.personID,data)
+                var data = {deleteWorks: vm.deleteCommunications};
+                publications.removeCommunicationsPerson(vm.currentUser.personID,data)
                     .then( function () {
-                        vm.updateStatus[ind] = "Updated!";
-                        vm.messageType[ind] = 'message-success';
-                        vm.hideMessage[ind] = false;
-                        $timeout(function () { vm.hideMessage[ind] = true; }, 1500);
-                        getCommunications(-1);
+                        initializeDetails();
+                        getCommunications(ind);
+                        if (ind > -1) {
+                            vm.updateStatus[ind] = "Updated!";
+                            vm.messageType[ind] = 'message-success';
+                            vm.hideMessage[ind] = false;
+                            $timeout(function () { vm.hideMessage[ind] = true; }, 1500);
+                        }
                     },
                     function () {
                         vm.updateStatus[ind] = "Error!";
@@ -2370,6 +2372,54 @@
                     },
                     function () {}
                     );
+            }
+            return false;
+
+        };
+        vm.submitAddORCIDCommunications = function(ind) {
+            if (vm.communicationDetailsORCID.length > 0) {
+                var addCommunicationsORCID = [];
+                var incomplete = false;
+                for (var indPub in vm.communicationDetailsORCID) {
+                    if (!vm.communicationDetailsORCID[indPub].international) {
+                        vm.communicationDetailsORCID[indPub].country_id={};
+                        vm.communicationDetailsORCID[indPub].country_id.country_id = 184;
+                        vm.communicationDetailsORCID[indPub].international = false;
+                    }
+                    if ((vm.communicationDetailsORCID[indPub].authors_raw === null
+                        || vm.communicationDetailsORCID[indPub].authors_raw === undefined
+                        || vm.communicationDetailsORCID[indPub].authors_raw === '')
+                        && vm.communicationDetailsORCID[indPub].chosen) {
+                        incomplete = true;
+                        break;
+                    } else if (vm.communicationDetailsORCID[indPub].chosen) {
+                        addCommunicationsORCID.push(vm.communicationDetailsORCID[indPub]);
+                    }
+                }
+                if (incomplete) {
+                    alert('You must define authors for all chosen communications before submitting.');
+                } else {
+                    if (addCommunicationsORCID.length > 0) {
+                        vm.updateStatus[ind] = "Updating...";
+                        vm.messageType[ind] = 'message-updating';
+                        vm.hideMessage[ind] = false;
+                        var data = {add: addCommunicationsORCID};
+                        publications.addORCIDCommunicationsPerson(vm.currentUser.personID,data)
+                            .then( function () {
+                                vm.updateStatus[ind] = "Updated!";
+                                vm.messageType[ind] = 'message-success';
+                                vm.hideMessage[ind] = false;
+                                $timeout(function () { vm.hideMessage[ind] = true; }, 1500);
+                                getCommunications(-1);
+                            },
+                            function () {
+                                vm.updateStatus[ind] = "Error!";
+                                vm.messageType[ind] = 'message-error';
+                            },
+                            function () {}
+                            );
+                    }
+                }
             }
             return false;
         };
@@ -2430,7 +2480,25 @@
                             return false;
                         });
                     vm.allORCIDCommunications = removeExistingComm(commORCID,vm.personCommunications);
-                    vm.progressORCID = false;
+                    var requests = [];
+                    for (var el in vm.allORCIDCommunications) {
+                        if (vm.allORCIDCommunications[el].path !== undefined) {
+                            requests.push(publications.getORCIDDetailsPublication(vm.allORCIDCommunications[el].path));
+                        }
+                    }
+                    $q.all(requests)
+                    .then(function (results) {
+                        var ind = 0;
+                        for (var el in vm.allORCIDCommunications) {
+                            if (vm.allORCIDCommunications[el].path !== undefined) {
+                                processCommDetailsORCID(vm.allORCIDCommunications[el],results[ind].data);
+                                ind++;
+                            } else {
+                                processCommDetailsORCID(vm.allORCIDCommunications[el],{});
+                            }
+                        }
+                        vm.progressORCID = false;
+                    });
                 })
                 .catch(function (err) {
                     console.log(err);
@@ -2448,6 +2516,16 @@
 
         };
 
+        vm.removeCommunication = function(work) {
+            for(var ind in vm.personCommunications){
+                if (vm.personCommunications[ind].id === work.id) {
+                    vm.personCommunications.splice(ind,1);
+                    vm.deleteCommunications.push(work);
+                    break;
+                }
+            }
+            vm.renderCommunications('');
+        };
         vm.initializeCommunications = function () {
             vm.sortType='date';
             vm.sortReverse=true;
@@ -2520,16 +2598,18 @@
             }
         };
         vm.communicationAuthorsList = function (str, num, type) {
-            var authors = str.split(';');
-            if (type === undefined) {
-                vm.communicationDetailsORCID[num].presenters = [];
-                for (var ind in authors) {
-                    vm.communicationDetailsORCID[num].presenters.push(authors[ind].trim());
-                }
-            } else {
-                vm.communicationDetails.presenters = [];
-                for (var ind in authors) {
-                    vm.communicationDetails.presenters.push(authors[ind].trim());
+            if (str !== undefined && str !== null && str !== '') {
+                var authors = str.split(';');
+                if (type === undefined) {
+                    vm.communicationDetailsORCID[num].presenters = [];
+                    for (var ind in authors) {
+                        vm.communicationDetailsORCID[num].presenters.push(authors[ind].trim());
+                    }
+                } else {
+                    vm.communicationDetails.presenters = [];
+                    for (var ind in authors) {
+                        vm.communicationDetails.presenters.push(authors[ind].trim());
+                    }
                 }
             }
         };

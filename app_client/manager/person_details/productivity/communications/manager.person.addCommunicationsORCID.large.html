@@ -5,35 +5,30 @@
         </md-card-title-text>
     </md-card-title>
     <md-card-content layout="column">
-        <p>These are communications found on ORCID that are not part of LAQV/UCIBIO database yet.<br>
-            To add communications to the database, the procedure is:
-            <ol>
-                <li>Check/edit communication details on chosen communications.</li>
-                <li>Check "Add DB" on chosen publication.</li>
-                <li>Press "Add ORCID comm.".</li>
-            </ol>
-        </p>
-        <div layout="row">
-            <md-button type="submit" ng-click="vm.connectCommORCID()"
-                class="button-small md-raised md-warn">Connect ORCID</md-button>
-            <md-progress-circular ng-disabled="!vm.progressORCID" md-diameter="20"></md-progress-circular>
+        <div ng-show="gettingAllCommunications" layout-padding>
+            <p>Getting information from database...</p>
+            <md-progress-circular md-mode="indeterminate" md-diameter="60px"></md-progress-circular>
         </div>
-
-        <form flex novalidate name="personAddORCIDCommunicationsForm"
-                ng-submit="personAddORCIDCommunicationsForm.$valid && vm.submitAddORCIDCommunications(vm.forms['personCommORCIDAdd'])">
-            <div layout="column" flex>
+        <div ng-show="!gettingAllCommunications">
+            <div layout="row">
+                <md-button type="submit" ng-click="connectCommORCID()"
+                    class="button-small md-raised md-warn">Connect ORCID</md-button>
+                <md-progress-circular ng-disabled="!progressORCID" md-diameter="20"></md-progress-circular>
+            </div>
+            <form flex novalidate name="managerAddORCIDCommunicationsForm"
+                    ng-submit="managerAddORCIDCommunicationsForm.$valid && submitAddORCIDCommunications(forms['managerCommunicationORCIDAdd'])">
                 <div layout="row" layout-align="start center">
                     <div class="question"><span class="highlight"><h2>Select all:</h2></span></div>
                     <div class="answer align-publication">
                         <span>
-                            <md-checkbox ng-model="vm.selectAllCommunicationsORCID"
-                                    ng-change="vm.changeAllPublications(vm.selectAllCommunicationsORCID, vm.communicationDetailsORCID)"
+                            <md-checkbox ng-model="selectAllCommunicationsORCID"
+                                    ng-change="changeAllCommunications(selectAllCommunicationsORCID, communicationDetailsORCID)"
                                     aria-label="choose all"></md-checkbox>
                         </span>
                     </div>
                 </div>
                 <md-divider></md-divider>
-                <div ng-repeat="(pubNum,work) in vm.communicationDetailsORCID track by $index" flex>
+                <div ng-repeat="(pubNum,work) in communicationDetailsORCID track by $index" flex>
                     <div layout="column" flex>
                         <div layout="row" layout-align="center" class="spacer-top">
                             <div class="question"><span class="highlight">Title:</span></div>
@@ -43,7 +38,7 @@
                             <div class="question"><span class="highlight">Authors list *<br>(separate with ;):</span></div>
                             <div class="answer">
                                 <md-input-container class="input-compact">
-                                    <input ng-required="work.chosen" ng-change="vm.communicationAuthorsList(work.authors_raw,pubNum)"
+                                    <input ng-required="work.chosen" ng-change="communicationAuthorsList(work, work.authors_raw, pubNum)"
                                             ng-model="work.authors_raw" name="authors_raw[pubNum]">
                                 </md-input-container>
                             </div>
@@ -52,10 +47,10 @@
                             <div class="question"><span class="highlight">Presenter:</span></div>
                             <div class="answer">
                                 <md-input-container class="select-container select-no-margin card-type">
-                                    <md-select ng-model="vm.communicationDetailsORCID[pubNum].presenter"
+                                    <md-select ng-model="work.presenter"
                                             aria-label="presenter"
                                             name="publication_orcid_presenter[pubNum]">
-                                        <md-option ng-repeat="presenter in vm.communicationDetailsORCID[pubNum].presenters"
+                                        <md-option ng-repeat="presenter in work.presenters"
                                                 ng-value="presenter">{{presenter}}</md-option>
                                     </md-select>
                                 </md-input-container>
@@ -65,11 +60,11 @@
                             <div class="question"><span class="highlight">Date:</span></div>
                             <div class="answer">
                                 <div ng-if="!work.edit_date">
-                                    <span>{{vm.communicationDetailsORCID[pubNum].date}}</span>
+                                    <span>{{communicationDetailsORCID[pubNum].date}}</span>
                                 </div>
                                 <div ng-if="work.edit_date" layout="row">
                                     <md-input-container>
-                                        <md-datepicker ng-required="work.chosen" md-current-view="year" ng-model="vm.communicationDetailsORCID[pubNum].date"
+                                        <md-datepicker ng-required="work.chosen" md-current-view="year" ng-model="communicationDetailsORCID[pubNum].date"
                                                 name="member_startDate[memberNum]"
                                                 md-placeholder="Enter date" md-hide-icons="calendar"></md-datepicker>
                                     </md-input-container>
@@ -85,7 +80,7 @@
                                                 aria-label="publication type"
                                                 name="publication_orcid_communication_type[pubNum]">
                                             <div class="scrollable">
-                                                <md-option ng-repeat="type in vm.communicationTypes"
+                                                <md-option ng-repeat="type in communicationTypes"
                                                         ng-value="type.id">{{type.name}}</md-option>
                                             </div>
                                         </md-select>
@@ -97,7 +92,7 @@
                             <div class="question"><span class="highlight">Conference/meeting name*:</span></div>
                             <div class="answer">
                                 <md-input-container class="input-compact">
-                                    <input ng-required="work.chosen" ng-model="vm.communicationDetailsORCID[pubNum].conference" name="conference[pubNum]">
+                                    <input ng-required="work.chosen" ng-model="communicationDetailsORCID[pubNum].conference" name="conference[pubNum]">
                                 </md-input-container>
                             </div>
                         </div>
@@ -110,7 +105,7 @@
                                                 aria-label="publication type"
                                                 name="publication_orcid_conference_type[pubNum]">
                                             <div class="scrollable">
-                                                <md-option ng-repeat="type in vm.conferenceTypes"
+                                                <md-option ng-repeat="type in conferenceTypes"
                                                         ng-value="type.id">{{type.name}}</md-option>
                                             </div>
                                         </md-select>
@@ -153,7 +148,7 @@
                                 </md-input-container>
                             </div>
                         </div>
-                        <div layout="row">
+                        <div layout="row" layout-align="none center">
                             <div class="question"><span class="highlight">Add to DB:</span></div>
                             <div class="answer">
                                 <span>
@@ -164,17 +159,19 @@
                     </div>
                     <md-divider></md-divider>
                 </div>
-            </div>
-            <div class="spacer-top"
-                    layout="column" layout-gt-sm="row" layout-align="none center">
-                <md-button type="submit"
-                    class="button-small md-raised md-primary">Add ORCID Comm.</md-button>
-                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personCommORCIDAdd']]">
-                    <span class="message" ng-class="vm.messageType[vm.forms['personCommORCIDAdd']]">
-                        {{vm.updateStatus[vm.forms['personCommORCIDAdd']]}}
-                    </span>
+                <div class="spacer-top"
+                        layout="column" layout-gt-sm="row" layout-align="none center">
+                    <md-button type="submit"
+                        class="button-small md-raised md-primary">Add ORCID Pub.</md-button>
+                    <div class="status-message" ng-hide="hideMessage[forms['managerCommunicationORCIDAdd']]">
+                        <span class="message" ng-class="messageType[forms['managerCommunicationORCIDAdd']]">
+                            {{updateStatus[forms['managerCommunicationORCIDAdd']]}}
+                        </span>
+                    </div>
                 </div>
-            </div>
-        </form>
+            </form>
+        </div>
+
+
     </md-card-content>
 </md-card>

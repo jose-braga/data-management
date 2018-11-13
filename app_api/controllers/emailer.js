@@ -16,7 +16,7 @@ var emailRecipients = {
         fct: {name:'XXX XXXX', email: 'josecbraga@gmail.com'},
         managers: {
                 Lisboa: 'tsc@fct.unl.pt, josebraga@fct.unl.pt',
-                Porto: 'josebraga@fct.unl.pt',
+                Porto: 'tsc@fct.unl.pt, josebraga@fct.unl.pt',
                 Aveiro: 'josebraga@fct.unl.pt'
             }
     };

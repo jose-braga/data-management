@@ -604,6 +604,50 @@ var queryUpdatePersonSelectedPublications = function (req, res, next) {
         return;
     }
 };
+var queryUpdatePersonSelectedCommunications = function (req, res, next) {
+    var personID = req.params.personID;
+    var addPublic = req.body.addPublicWork;
+    var delPublic = req.body.delPublicWork;
+    var querySQL = '';
+    var places = [];
+    for (var ind in addPublic) {
+        querySQL = querySQL + 'UPDATE communications' +
+                              ' SET public = 1' +
+                              ' WHERE id = ?;';
+        places.push(addPublic[ind].id);
+    }
+    for (var ind in delPublic) {
+        querySQL = querySQL + 'UPDATE communications' +
+                              ' SET public = 0' +
+                              ' WHERE id = ?;';
+        places.push(delPublic[ind].id);
+    }
+    if (addPublic.length !== 0 || delPublic.length !== 0) {
+        pool.getConnection(function(err, connection) {
+            if (err) {
+                sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+                return;
+            }
+            connection.query(querySQL,places,
+                function (err, resQuery) {
+                    // And done with the connection.
+                    connection.release();
+                    if (err) {
+                        sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                        return;
+                    }
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 1,
+                         "result" : "OK!"});
+                    return;
+                }
+            );
+        });
+    } else {
+        sendJSONResponse(res, 200, {"status": "No changes", "statusCode": 200});
+        return;
+    }
+};
 
 var queryUpdatePublicationData = function (req, res, next) {
     var pubID = req.params.pubID;
@@ -642,7 +686,7 @@ var queryUpdatePublicationData = function (req, res, next) {
                           ' SET position = ?' +
                           ' WHERE id = ?;';
     places.push(data.author_position, data.people_publications_id);
-    if (data.doi !== null) {
+    if (data.doi !== null && data.doi !== undefined) {
         data.doi = data.doi.toLowerCase()
             .replace('https://doi.org/','')
             .replace('http://dx.doi.org/','')
@@ -682,6 +726,57 @@ var queryUpdatePublicationData = function (req, res, next) {
                                             'UCIBIO API error updating publication data (id, person) :', [pubID, data.id]);
                 externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'publications', pubID,
                                             'LAQV API error updating publication data (id, person) :', [pubID, data.id]);
+                sendJSONResponse(res, 200,
+                    {"status": "success", "statusCode": 200, "count": 1,
+                     "result" : "OK!"});
+                return;
+            }
+        );
+    });
+};
+var queryUpdateCommunicationData = function (req, res, next) {
+    var workID = req.params.workID;
+    var data = req.body;
+
+    var querySQL = '';
+    var places = [];
+
+    querySQL = querySQL + 'UPDATE communications' +
+                          ' SET title = ?,' +
+                          ' type_id = ?,' +
+                          ' authors_raw = ?,' +
+                          ' presenter = ?,' +
+                          ' conference_title = ?,' +
+                          ' conference_type_id = ?,' +
+                          ' international = ?,' +
+                          ' city = ?,' +
+                          ' country_id = ?,' +
+                          ' date = ?' +
+                          ' WHERE id = ?;';
+    places.push(data.title,
+                data.communication_type_id,
+                data.authors_raw,
+                data.presenter,
+                data.conference_title,
+                data.conference_type_id,
+                data.international,
+                data.city,
+                data.country_id,
+                momentToDate(data.date),
+                workID);
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(querySQL,places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
                 sendJSONResponse(res, 200,
                     {"status": "success", "statusCode": 200, "count": 1,
                      "result" : "OK!"});
@@ -1138,7 +1233,7 @@ var queryORCIDInsertPublication = function (req, res, next,i, journalID) {
             date = month;
         }
     }
-    if (add[i].doi !== null) {
+    if (add[i].doi !== null && add[i].doi !== undefined) {
         add[i].doi = add[i].doi.toLowerCase()
                 .replace('https://doi.org/','')
                 .replace('http://dx.doi.org/','')
@@ -1256,7 +1351,7 @@ var queryORCIDInsertCommunication = function (req, res, next, i) {
     var querySQL = '';
     var places = [];
     var date = momentToDate(add[i].date);
-    if (add[i].doi !== null) {
+    if (add[i].doi !== null && add[i].doi !== undefined) {
         add[i].doi = add[i].doi.toLowerCase()
                 .replace('https://doi.org/','')
                 .replace('http://dx.doi.org/','')
@@ -1311,7 +1406,7 @@ var queryUpdatePersonCommunications = function (req, res, next, i) {
     var places = [];
     if (upd.length > 0) {
         var date = momentToDate(upd[i].date);
-        if (upd[i].doi !== null) {
+        if (upd[i].doi !== null && upd[i].doi !== undefined) {
             upd[i].doi = upd[i].doi.toLowerCase()
                     .replace('https://doi.org/','')
                     .replace('http://dx.doi.org/','')
@@ -1471,6 +1566,41 @@ var queryMembersPublications = function (req, res, next) {
     });
 };
 
+var queryDeleteCommunicationPerson = function (req, res, next) {
+    var personID = req.params.personID;
+    var del = req.body.deleteWorks;
+    var querySQL = '';
+    var places = [];
+    for (var ind in del) {
+        querySQL = querySQL + 'DELETE FROM communications' +
+                              ' WHERE id = ?;';
+        places.push(del[ind].id);
+    }
+    if (querySQL !== '') {
+        pool.getConnection(function(err, connection) {
+            if (err) {
+                sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+                return;
+            }
+            connection.query(querySQL,places,
+                function (err, resQuery) {
+                    // And done with the connection.
+                    connection.release();
+                    if (err) {
+                        sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                        return;
+                    }
+                    sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "count": 1,
+                         "result" : "OK!"});
+                }
+            );
+        });
+    } else {
+        sendJSONResponse(res, 200,
+                        {"status": "success", "statusCode": 200, "message": "No changes"});
+    }
+};
 var queryTeamCommunications = function (req, res, next) {
     var teamID = req.params.teamID;
     var groupID = req.params.groupID;
@@ -5976,6 +6106,13 @@ module.exports.updatePublicationData = function (req, res, next) {
     );
 };
 
+module.exports.updatePersonSelectedComm = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30, 40],
+        function (req, res, username) {
+            queryUpdatePersonSelectedCommunications(req,res,next);
+        }
+    );
+};
 module.exports.listPersonCommunications = function (req, res, next) {
     getUser(req, res, [0, 5, 10, 15, 16, 20, 30, 40],
         function (req, res, username) {
@@ -5987,6 +6124,20 @@ module.exports.updatePersonCommunications = function (req, res, next) {
     getUser(req, res, [0, 5, 10, 15, 16, 20, 30, 40],
         function (req, res, username) {
             queryUpdatePersonCommunications(req,res,next,0);
+        }
+    );
+};
+module.exports.updateCommunicationData = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30, 40],
+        function (req, res, username) {
+            queryUpdateCommunicationData(req,res,next);
+        }
+    );
+};
+module.exports.deleteCommunicationsPerson = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30, 40],
+        function (req, res, username) {
+            queryDeleteCommunicationPerson(req,res,next);
         }
     );
 };

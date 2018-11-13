@@ -1,15 +1,12 @@
  (function(){
     // Current version: 1.0.0
-    // TODO: Actualizar help
+    // TODO: Make Communications/ORCID similar to publications/ORCID (Myself)
     // TODO: 0 - Change LAQV icon
     // TODO: 0 - Check if username is possible by AJAX
     // TODO: 1 - Correct ordering by lab/office on manager
     // TODO: 2 - Email to FCT (revise with Teresa)
     // TODO: 3 - Dashboards (visualization of indicators)
 
-    // TODO: (Check if this doesn't happen!!!) When adding from ORCID check if the publication was not already added by someone
-
-    // TODO: (future) Add automatic PDF generator
     // TODO: (future) easier administration - Delete user from all tables
 
     var config = function ($routeProvider, $locationProvider) {

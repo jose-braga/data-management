@@ -97,12 +97,54 @@
                                 </div>
                             </md-content>
                         </div>
-
+                    </md-tab>
+                    <md-tab label='Communications'>
+                        <div layout="row" layout-padding>
+                            <md-content flex>
+                                <div layout-padding>
+                                    <manager-person-communications-large
+                                        ng-if="vm.showTable()"
+                                        data-person="{{person.id}}"
+                                        data-name="{{person.colloquial_name}}"
+                                        flex>
+                                    </manager-person-communications-large>
+                                    <manager-person-communications-small
+                                        ng-if="!vm.showTable()"
+                                        data-person="{{person.id}}"
+                                        data-name="{{person.colloquial_name}}"
+                                        flex>
+                                    </manager-person-communications-small>
+                                    <manager-add-person-communications-large
+                                        ng-if="vm.showTable()"
+                                        data-person="{{person.id}}"
+                                        flex>
+                                    </manager-add-person-communications-large>
+                                    <manager-add-person-communications-small
+                                        ng-if="!vm.showTable()"
+                                        data-person="{{person.id}}"
+                                        flex>
+                                    </manager-add-person-communications-small>
+                                    <manager-add-person-communications-orcid-large
+                                        ng-if="vm.showTable()"
+                                        data-person="{{person.id}}"
+                                        data-orcidres="{{person.researcher_data[0].ORCID}}"
+                                        data-orcidtech="{{person.technician_data[0].ORCID}}"
+                                        data-orcidscman="{{person.science_manager_data[0].ORCID}}"
+                                        flex>
+                                    </manager-add-person-communications-orcid-large>
+                                    <manager-add-person-communications-orcid-small
+                                        ng-if="!vm.showTable()"
+                                        data-person="{{person.id}}"
+                                        data-orcidres="{{person.researcher_data[0].ORCID}}"
+                                        data-orcidtech="{{person.technician_data[0].ORCID}}"
+                                        data-orcidscman="{{person.science_manager_data[0].ORCID}}"
+                                        flex>
+                                    </manager-add-person-communications-orcid-small>
+                                </div>
+                            </md-content>
+                        </div>
                     </md-tab>
                     <!--
-                    <md-tab label='Communications'>
-
-                    </md-tab>
                     <md-tab label='Funding'>
 
                     </md-tab>

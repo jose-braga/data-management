@@ -1,0 +1,99 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Communication details</span>
+        </md-card-title-text>
+    </md-card-title>
+    <md-card-content layout="column">
+        <form flex novalidate name="managerCommunicationCorrect"
+                ng-submit="managerCommunicationCorrect.$valid && ctrl.submitCommunicationCorrection(ctrl.forms['managerCommDetails'],ctrl.work)">
+            <div layout="column" flex>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">Communication type:</span></div>
+                    <div class="answer">
+                        <md-radio-group ng-model="ctrl.work.communication_type_id" layout="row">
+                            <md-radio-button ng-repeat="type in ctrl.communicationTypes" ng-value="type.id">{{type.name}}</md-radio-button>
+                        </md-radio-group>
+                    </div>
+                </div>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">Authors:<br></span></div>
+                    <div class="answer">
+                        <input required class="wide" ng-change="ctrl.communicationAuthorsList(ctrl.work.authors_raw, ctrl.pubNum)"
+                                            ng-model="ctrl.work.authors_raw" name="authors_raw">
+                    </div>
+                </div>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">Presenting author:</span></div>
+                    <div class="answer">
+                        <div class="select-substitute">
+                            <md-radio-group ng-model="ctrl.work.presenter" layout="row" layout-wrap>
+                                <md-radio-button ng-repeat="presenter in ctrl.presenters" ng-value="presenter">{{presenter}}</md-radio-button>
+                            </md-radio-group>
+                        </div>
+                    </div>
+                </div>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">Title:</span></div>
+                    <div class="answer">
+                        <md-input-container class="input-compact" flex>
+                            <input ng-model="ctrl.work.title" name="title" flex>
+                        </md-input-container>
+                    </div>
+                </div>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">Conference Title:</span></div>
+                    <div class="answer">
+                        <md-input-container class="input-compact" flex>
+                            <input ng-model="ctrl.work.conference_title" name="conference" flex>
+                        </md-input-container>
+                    </div>
+                </div>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">Conference Type:</span></div>
+                    <div class="answer">
+                        <div class="select-substitute">
+                            <md-radio-group ng-model="ctrl.work.conference_type_id" layout="row" layout-wrap>
+                                <md-radio-button ng-repeat="type in ctrl.conferenceTypes" ng-value="type.id">{{type.name}}</md-radio-button>
+                            </md-radio-group>
+                        </div>
+                    </div>
+                </div>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">International?:<br></span></div>
+                    <div class="answer select-substitute" ng-controller="CountrySelectCtrl as count">
+                        <md-checkbox ng-model="ctrl.work.international" aria-label="international"></md-checkbox>
+                        <md-radio-group ng-model="ctrl.work.country_id" layout="row" layout-wrap>
+                            <md-radio-button ng-repeat="country in count.countries" ng-value="country.country_id">{{country.name}}</md-radio-button>
+                        </md-radio-group>
+                    </div>
+                </div>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">City:<br></span></div>
+                    <div class="answer">
+                        <input required class="wide" ng-model="ctrl.work.city" name="city">
+                    </div>
+                </div>
+                <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">Date:<br></span></div>
+                    <div class="answer">
+                        <md-input-container class="input-no-margin simple-input">
+                            <md-datepicker class="calendar-no-margin" required md-current-view="year" ng-model="ctrl.work.date"
+                                    name="communication_date" md-hide-icons="calendar"></md-datepicker>
+                        </md-input-container>
+                    </div>
+                </div>
+                <div class="spacer-top"
+                        layout="column" layout-gt-sm="row" layout-align="none center">
+                    <md-button type="submit"
+                        class="button-small md-raised md-primary">Update data</md-button>
+                    <div class="status-message" ng-hide="ctrl.hideMessage[ctrl.forms['managerCommDetails']]">
+                        <span class="message" ng-class="ctrl.messageType[ctrl.forms['managerCommDetails']]">
+                            {{ctrl.updateStatus[ctrl.forms['managerCommDetails']]}}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </md-card-content>
+</md-card>

@@ -58,8 +58,23 @@
             );
         };
 
+        var updateSelectedCommunications = function (personID, data) {
+            return $http.put('api/communications/person/' + personID + '/selected', data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+
         var updatePublicationData = function (pubID, data) {
             return $http.put('api/publications/publication/' + pubID, data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+        var updateCommunicationData = function (workID, data) {
+            return $http.put('api/communications/communication/' + workID, data,
                 {
                     headers: {Authorization: 'Bearer ' + authentication.getToken()}
                 }
@@ -84,6 +99,14 @@
 
         var removePublicationsPerson = function (personID, data) {
             return $http.put('api/publications/person/' + personID + '/delete', data,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()}
+                }
+            );
+        };
+
+        var removeCommunicationsPerson = function (personID, data) {
+            return $http.put('api/communications/person/' + personID + '/delete', data,
                 {
                     headers: {Authorization: 'Bearer ' + authentication.getToken()}
                 }
@@ -648,6 +671,8 @@
             addORCIDCommunicationsPerson: addORCIDCommunicationsPerson,
             addCommunicationsPerson: addCommunicationsPerson,
             updateCommunicationsPerson: updateCommunicationsPerson,
+            removeCommunicationsPerson: removeCommunicationsPerson,
+
             removePublicationsTeam: removePublicationsTeam,
             getAllPatents: getAllPatents,
             thisPersonPatents: thisPersonPatents,
@@ -671,6 +696,8 @@
             thisMembersCommunications: thisMembersCommunications,
             addMembersCommunications: addMembersCommunications,
             removeCommunicationsTeam: removeCommunicationsTeam,
+            updateCommunicationData: updateCommunicationData,
+            updateSelectedCommunications: updateSelectedCommunications,
 
             thisTeamPatents: thisTeamPatents,
             thisMembersPatents: thisMembersPatents,

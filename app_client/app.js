@@ -1,6 +1,5 @@
  (function(){
     // Current version: 1.0.0
-    // TODO: Make Communications/ORCID similar to publications/ORCID (Myself)
     // TODO: 0 - Change LAQV icon
     // TODO: 0 - Check if username is possible by AJAX
     // TODO: 1 - Correct ordering by lab/office on manager

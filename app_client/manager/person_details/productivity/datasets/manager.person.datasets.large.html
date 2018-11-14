@@ -1,0 +1,126 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Datasets</span>
+            <span class="md-subhead">Deposit of datasets in repositories.<br>
+                                     Search first to check if they are already in database.</span>
+        </md-card-title-text>
+    </md-card-title>
+    <form novalidate flex name="datasetsForm"
+        ng-submit="datasetsForm.$valid && submitDatasets(forms['managerUpdateWorks'])">
+        <md-card-content layout="column" flex>
+            <div layout="row" layout-align="none center" flex>
+                <ng-md-icon icon="search" size="24"></ng-md-icon>
+                <md-input-container flex>
+                    <label>Search datasets</label>
+                    <input ng-model="searchDataset" ng-change="renderDatasets()">
+                </md-input-container>
+            </div>
+            <ul>
+                 <li ng-repeat="dataset in datasetsToShow">
+                     <b>{{dataset.database_name}}</b> - {{dataset.short_description}}, Year: {{dataset.year}}
+                    <md-button ng-click="addDatasetSearch(dataset)"
+                            aria-label="Add more" class="md-icon-button interaction-button">
+                            <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                    </md-button>
+                </li>
+            </ul>
+            <div ng-if="!nothingToShow(currentDatasets,'id')" layout="column">
+                <div ng-repeat="(num,dataset) in currentDatasets track by $index"
+                    layout="column">
+                    <fieldset class="spacer">
+                        <div layout="column" layout-gt-sm="row">
+                            <md-input-container>
+                                <label>Dataset type</label>
+                                <md-select ng-model="dataset.data_set_type_id" name="dataset_type[num]">
+                                   <md-option ng-repeat="type in datasetTypes"
+                                        ng-value="type.id">{{type.name}}</md-option>
+                                </md-select>
+                            </md-input-container>
+                            <md-input-container>
+                                <label>Num. of sets</label>
+                                <input required ng-model="dataset.number_sets"
+                                        name="dataset_number_sets[num]" integer-validate>
+                            </md-input-container>
+                            <md-input-container>
+                                <label>Database name</label>
+                                <input required ng-model="dataset.database_name"
+                                        name="dataset_database_name[num]">
+                            </md-input-container>
+                        </div>
+                        <div layout="column">
+                            <md-input-container  class="md-block">
+                                <label>Short description</label>
+                                <textarea ng-model="dataset.short_description"
+                                        md-maxlength="400" rows="2"
+                                        name="dataset_description[num]"></textarea>
+                            </md-input-container>
+                        </div>
+                        <div layout="column">
+                            <md-input-container
+                                ng-controller="PeopleSelectCtrl as peop">
+                                <label>LAQV/UCIBIO people associated: </label>
+                                <md-select ng-model="dataset.person_id" multiple
+                                        md-on-close="peop.searchTerm=''"
+                                        name="dataset_units_recipients[num]">
+                                    <div class="anchored">
+                                        <md-select-header class="select-search-header">
+                                            <input ng-model="peop.searchTerm" type="search"
+                                              placeholder="Search authors"
+                                              class="md-text select-search-box">
+                                        </md-select-header>
+                                    </div>
+                                    <div class="scrollable">
+                                        <md-optgroup label="people">
+                                            <md-option ng-repeat="person in peop.people | filter:peop.searchTerm"
+                                                ng-value="person.id">{{person.colloquial_name}}</md-option>
+                                        </md-optgroup>
+                                    </div>
+                                </md-select>
+                            </md-input-container>
+                        </div>
+                        <div layout="column"  layout-gt-sm="row">
+                            <md-input-container>
+                                <label>URL</label>
+                                <input ng-model="dataset.url"
+                                        name="dataset_url[num]">
+                            </md-input-container>
+                            <md-input-container>
+                                <label>Year</label>
+                                <input required ng-model="dataset.year"
+                                        name="dataset_year[num]" integer-validate>
+                            </md-input-container>
+                            <div layout="row" layout-align="end center">
+                                <md-button ng-click="removeRows(currentDatasets,$index)"
+                                        aria-label="Remove"
+                                        class="md-icon-button interaction-button">
+                                    <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
+                                </md-button>
+                                <md-button ng-if="$last" ng-click="addRows(currentDatasets, 'datasets')"
+                                        aria-label="Add more" class="md-icon-button interaction-button">
+                                    <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                                </md-button>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+            <div ng-if="nothingToShow (currentDatasets,'id')" layout="column">
+                 No data, press + to add
+                <md-button ng-click="addRows(currentDatasets, 'datasets')"
+                        aria-label="Add more" class="md-icon-button interaction-button">
+                    <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                </md-button>
+            </div>
+            <div layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button type="submit"
+                    class="button-small md-raised md-primary">Update</md-button>
+                <div class="status-message" ng-hide="hideMessage[forms['managerUpdateWorks']]">
+                    <span class="message" ng-class="messageType[forms['managerUpdateWorks']]">
+                        {{updateStatus[forms['managerUpdateWorks']]}}
+                    </span>
+                </div>
+            </div>
+        </md-card-content>
+    </form>
+</md-card>

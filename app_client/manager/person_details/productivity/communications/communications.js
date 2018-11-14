@@ -20,7 +20,7 @@
                     templateUrl: url,
                     link:
                     function (scope,element,attrs) {
-                        var personID = scope.person;
+                        var personID = parseInt(scope.person, 10);
                         var colloquial_name = scope.name;
                         scope.personPublications = [];
 
@@ -793,11 +793,6 @@
                                 var addCommunicationsORCID = [];
                                 var incomplete = false;
                                 for (var indPub in scope.communicationDetailsORCID) {
-                                    if (!scope.communicationDetailsORCID[indPub].international) {
-                                        scope.communicationDetailsORCID[indPub].country_id={};
-                                        scope.communicationDetailsORCID[indPub].country_id.country_id = 184;
-                                        scope.communicationDetailsORCID[indPub].international = false;
-                                    }
                                     if ((scope.communicationDetailsORCID[indPub].authors_raw === null
                                         || scope.communicationDetailsORCID[indPub].authors_raw === undefined
                                         || scope.communicationDetailsORCID[indPub].authors_raw === '')
@@ -806,6 +801,11 @@
                                         break;
                                     } else if (scope.communicationDetailsORCID[indPub].chosen) {
                                         addCommunicationsORCID.push(scope.communicationDetailsORCID[indPub]);
+                                    }
+                                    if (!scope.communicationDetailsORCID[indPub].international) {
+                                        scope.communicationDetailsORCID[indPub].country_id={};
+                                        scope.communicationDetailsORCID[indPub].country_id.country_id = 184;
+                                        scope.communicationDetailsORCID[indPub].international = false;
                                     }
                                 }
                                 if (incomplete) {

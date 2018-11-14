@@ -1,0 +1,253 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Agreements with private entities</span>
+            <span class="md-subhead">Search first to check if Agreement is already in database.</span>
+        </md-card-title-text>
+    </md-card-title>
+    <form novalidate flex name="AgreementsForm"
+        ng-submit="AgreementsForm.$valid && submitAgreements(forms['managerUpdateWorks'])">
+        <md-card-content layout="column" flex>
+            <div layout="row" layout-align="none center" flex>
+                <ng-md-icon icon="search" size="24"></ng-md-icon>
+                <md-input-container flex>
+                    <label>Search Agreement titles, references or acronyms</label>
+                    <input ng-model="searchAgreement" ng-change="renderAgreements()">
+                </md-input-container>
+            </div>
+            <ul>
+                 <li ng-repeat="agreement in agreementsToShow">
+                    {{agreement.start | date: 'yyyy'}} - {{agreement.end | date: 'yyyy'}} : <b>{{agreement.title}}, {{agreement.acronym}}. Ref: {{agreement.reference}}</b>
+                    <md-button ng-click="addAgreementSearch(agreement)"
+                            aria-label="Add more" class="md-icon-button interaction-button">
+                            <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                    </md-button>
+                </li>
+            </ul>
+            <div ng-if="!nothingToShow(currentAgreements,'id')" layout="column">
+                <div ng-repeat="(num, agreement) in currentAgreements track by $index"
+                    layout="column">
+                    <fieldset class="spacer-top">
+                        <legend>Agreement {{num + 1}}: {{agreement.reference}}</legend>
+                        <div layout="column">
+                            <fieldset>
+                                <legend>LAQV/UCIBIO people associated</legend>
+                                <div ng-repeat="(npers,person_id) in agreement.person_id track by $index"
+                                        layout="column" layout-gt-sm="row">
+                                    <md-input-container
+                                        ng-controller="PeopleSelectCtrl as peop">
+                                        <label>Person</label>
+                                        <md-select ng-model="person_id.person_id"
+                                                md-on-close="peop.searchTerm=''"
+                                                name="agreement_units_person[num]">
+                                            <div class="anchored">
+                                                <md-select-header class="select-search-header">
+                                                    <input ng-model="peop.searchTerm" type="search"
+                                                      placeholder="Search authors"
+                                                      class="md-text select-search-box">
+                                                </md-select-header>
+                                            </div>
+                                            <div class="scrollable">
+                                                <md-optgroup label="people">
+                                                    <md-option ng-repeat="person in peop.people | filter:peop.searchTerm"
+                                                        ng-value="person.id">{{person.colloquial_name}}</md-option>
+                                                </md-optgroup>
+                                            </div>
+                                        </md-select>
+                                    </md-input-container>
+                                    <div layout="row"  layout-align="start center">
+                                        <span class="highlight"><h5>Remove person:</h5></span>
+                                        <md-button ng-click="removeRows(agreement.person_id,npers)"
+                                                aria-label="Remove"
+                                                class="md-icon-button interaction-button">
+                                            <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
+                                        </md-button>
+                                        <span ng-if="$last" class="highlight"><h5>Add person:</h5></span>
+                                        <md-button ng-if="$last" ng-click="addRows(agreement.person_id, 'agreement_people')"
+                                                aria-label="Add more" class="md-icon-button interaction-button">
+                                            <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                                        </md-button>
+                                    </div>
+                                </div>
+                            </fieldset>
+                        </div>
+                        <div layout="column" layout-gt-sm="row">
+                            <md-input-container flex>
+                                <label>Title</label>
+                                <input required ng-model="agreement.title"
+                                        name="agreement_title[num]">
+                            </md-input-container>
+                        </div>
+                        <div layout="column" layout-gt-sm="row">
+                            <md-input-container>
+                                <label>Acronym</label>
+                                <input required ng-model="agreement.acronym"
+                                        name="agreement_acronym[num]">
+                            </md-input-container>
+                            <md-input-container>
+                                <label>Reference</label>
+                                <input required ng-model="agreement.reference"
+                                        name="agreement_reference[num]">
+                            </md-input-container>
+                            <md-input-container>
+                                <label>Agreement type</label>
+                                <md-select ng-model="agreement.agreement_type_id" name="agreement_type[num]">
+                                   <md-option ng-repeat="type in agreementTypes"
+                                        ng-value="type.id">{{type.name}}</md-option>
+                                </md-select>
+                            </md-input-container>
+                            <md-switch ng-model="agreement.confidential"
+                                    ng-true-value="1" ng-false-value="0"
+                                    class="md-warn">
+                                 Confidential: {{ switchValue(agreement.confidential) }}
+                            </md-switch>
+                        </div>
+                        <div flex>
+                            <fieldset layout="row" flex>
+                                <legend>Agreement areas</legend>
+                                    <div ng-repeat="(narea,parea) in agreement.agreement_areas track by $index"
+                                            layout="row" layout-margin>
+                                        <md-input-container>
+                                            <input ng-model="parea.area" name="agreement_area[num][narea]">
+                                        </md-input-container>
+                                        <div layout="row"  layout-align="start center">
+                                            <md-button ng-if="agreement.agreement_areas.length > 1;" ng-click="removeRows(agreement.agreement_areas,narea)"
+                                                    aria-label="Remove"
+                                                    class="md-icon-button interaction-button">
+                                                <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
+                                            </md-button>
+                                            <md-button ng-if="$last" ng-click="addRows(agreement.agreement_areas, 'agreement_areas')"
+                                                    aria-label="Add more" class="md-icon-button interaction-button">
+                                                <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                                            </md-button>
+                                        </div>
+                                    </div>
+                            </fieldset>
+                        </div>
+                        <div flex>
+                            <fieldset layout="column" flex>
+                                <legend>Agreement partners</legend>
+                                    <div ng-repeat="(npart,partner) in agreement.agreement_partners track by $index"
+                                            layout="row" layout-margin>
+                                        <md-input-container>
+                                            <input ng-model="partner.name" name="agreement_partner[num][npart]">
+                                        </md-input-container>
+                                        <md-input-container
+                                            class="search-box select-container input-row"
+                                            ng-controller="CountrySelectCtrl as count">
+                                            <label>Nationalities</label>
+                                            <md-select ng-model="agreement.agreement_partners[npart].country_id">
+                                                <div class="anchored">
+                                                    <md-select-header class="select-search-header">
+                                                        <input ng-model="count.searchTerm" type="search"
+                                                          placeholder="Search your countries"
+                                                          class="md-text select-search-box">
+                                                    </md-select-header>
+                                                </div>
+                                                <div class="scrollable">
+                                                    <md-optgroup label="countries">
+                                                        <md-option ng-repeat="country in count.countries | filter:count.searchTerm"
+                                                            ng-value="country.country_id">{{country.name}}</md-option>
+                                                    </md-optgroup>
+                                                </div>
+                                            </md-select>
+                                        </md-input-container>
+                                        <div layout="row"  layout-align="start center">
+                                            <md-button ng-if="agreement.agreement_partners.length > 1;" ng-click="removeRows(agreement.agreement_partners,npart)"
+                                                    aria-label="Remove"
+                                                    class="md-icon-button interaction-button">
+                                                <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
+                                            </md-button>
+                                            <md-button ng-if="$last" ng-click="addRows(agreement.agreement_partners, 'agreement_partners')"
+                                                    aria-label="Add more" class="md-icon-button interaction-button">
+                                                <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                                            </md-button>
+                                        </div>
+                                    </div>
+                            </fieldset>
+                        </div>
+
+                        <div layout="column" layout-gt-sm="row">
+                            <md-input-container>
+                                <label>Global amount (€)</label>
+                                <input type="number" required ng-model="agreement.global_amount"
+                                        name="prize_amount[num]">
+                            </md-input-container>
+                            <md-input-container>
+                                <label>Management entity</label>
+                                <md-select ng-model="agreement.management_entity_id" name="agreement_management_entity[num]">
+                                    <md-option ng-repeat="type in managementEntities"
+                                        ng-value="type.id">{{type.short_name}} - {{type.official_name}}</md-option>
+                                </md-select>
+                            </md-input-container>
+                            <md-input-container>
+                                <label>Entity amount (€)</label>
+                                <input type="number" required ng-model="agreement.entity_amount"
+                                        name="prize_amount[num]" max="{{agreement.global_amount}}">
+                            </md-input-container>
+                        </div>
+                        <div layout="column" layout-gt-sm="row">
+                            <md-input-container class="input-row-longer">
+                                <label>Date start</label>
+                                <md-datepicker md-current-view="year"
+                                        ng-model="agreement.start"
+                                        name="agreement_start[num]" md-placeholder="Enter date"></md-datepicker>
+                            </md-input-container>
+                            <md-input-container class="input-row-longer">
+                                <label>Date end</label>
+                                <md-datepicker md-current-view="year"
+                                        ng-model="agreement.end"
+                                        name="agreement_end[num]" md-placeholder="Enter date"></md-datepicker>
+                            </md-input-container>
+                        </div>
+                        <div layout="column" layout-gt-sm="row">
+                            <md-input-container flex>
+                                <label>Website</label>
+                                <input required ng-model="agreement.website"
+                                        name="agreement_website[num]">
+                            </md-input-container>
+                        </div>
+                        <div layout="column">
+                            <md-input-container class="md-block">
+                                <label>Notes</label>
+                                <textarea ng-model="agreement.notes"
+                                        md-maxlength="500" rows="2"
+                                        name="agreement_notes[num]"></textarea>
+                            </md-input-container>
+                            <div layout="row" layout-align="start center">
+                                <span class="highlight"><h5>Remove your association to agreement:</h5></span>
+                                <md-button ng-click="removeRows(currentAgreements,$index)"
+                                        aria-label="Remove"
+                                        class="md-icon-button interaction-button">
+                                    <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
+                                </md-button>
+                                <span ng-if="$last" class="highlight"><h5>Add private agreement:</h5></span>
+                                <md-button ng-if="$last" ng-click="addRows(currentAgreements, 'agreements')"
+                                        aria-label="Add more" class="md-icon-button interaction-button">
+                                    <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                                </md-button>
+                            </div>
+                        </div>
+
+                    </fieldset>
+                </div>
+            </div>
+            <div ng-if="nothingToShow(currentAgreements,'id')" layout="column">
+                 No data, press + to add
+                <md-button ng-click="addRows(currentAgreements, 'agreements')"
+                        aria-label="Add more" class="md-icon-button interaction-button">
+                    <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                </md-button>
+            </div>
+            <div layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button type="submit"
+                    class="button-small md-raised md-primary">Update</md-button>
+                <div class="status-message" ng-hide="hideMessage[forms['managerUpdateWorks']]">
+                    <span class="message" ng-class="messageType[forms['managerUpdateWorks']]">
+                        {{updateStatus[forms['managerUpdateWorks']]}}
+                    </span>
+                </div>
+            </div>
+        </md-card-content>
+    </form>
+</md-card>

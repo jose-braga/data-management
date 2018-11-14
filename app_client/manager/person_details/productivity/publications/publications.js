@@ -892,7 +892,7 @@
                     templateUrl: url,
                     link:
                     function (scope,element,attrs) {
-                        var personID = scope.person;
+                        var personID = parseInt(scope.person, 10);
                         var researcher_orcid = scope.orcidres;
                         var technician_orcid = scope.orcidtech;
                         var sc_man_orcid = scope.orcidscman;

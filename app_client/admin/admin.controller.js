@@ -15,6 +15,7 @@
                 vm.messageType[ind] = 'message-updating';
                 vm.hideMessage[ind] = false;
                 var message_all = {'message_all': msg};
+                // this time will be a few seconds different from the one that is saved in the server
                 var time = momentToDate(moment(),undefined,'YYYY-MM-DD HH:mm:ss');
                 adminData.sendAdminMessageAllServer(message_all)
                     .then( function () {

@@ -1,6 +1,6 @@
 (function(){
 /******************************* Controllers **********************************/
-    var personCtrl = function ($scope, $q, $timeout, $mdMedia, $mdDialog, $location, $anchorScroll,
+    var personCtrl = function ($scope, $rootScope, $q, $timeout, $mdMedia, $mdDialog, $location, $anchorScroll,
                                Upload, personData, publications, authentication) {
         var vm = this;
         vm.toolbarData = {title: 'Please update your information'};
@@ -69,6 +69,9 @@
         vm.selectAllPublicationsORCID = false;
 
         vm.progressORCID = false;
+        vm.socketConnected = false;
+        vm.adminMessage = false;
+        vm.listAdminMessages = [];
 
         if (authentication.currentUser() == null) {
         } else {
@@ -86,6 +89,7 @@
             getDataLists();
             initializeImages();
             initializeDetails();
+            checkAdminMessages();
         }
 
         vm.deleteRole = function (role, ind) {
@@ -3728,6 +3732,32 @@
             return false;
         };
 
+        /* Admin messages */
+        vm.deleteAdminMessages = function () {
+            vm.adminMessage = false;
+            vm.listAdminMessages = [];
+        };
+        function checkAdminMessages(){
+            if (!vm.socketConnected) {
+                var socket = io.connect(vm.currentUser.base_url);
+                socket.on('message_all', function (history) {
+                    if (history.length > 0) {
+                        $rootScope.$apply(function() {
+                            vm.adminMessage = true;
+                            vm.listAdminMessages = history;
+                        });
+                    } else {
+                        $rootScope.$apply(function() {
+                            vm.adminMessage = false;
+                            vm.listAdminMessages = history;
+                        });
+                    }
+                });
+                vm.socketConnected = true;
+            }
+        }
+
+
         /* Initialization functions */
         function initializeVariables() {
             vm.deletePublications = [];
@@ -4305,6 +4335,7 @@
                 .catch(function (err) {
                     console.log(err);
                 });
+            var socket = io.connect('https://data-management-josebraga.c9users.io');
         }
         function processNationalities() {
             var newNationalities = [];

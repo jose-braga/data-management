@@ -24,6 +24,7 @@ module.exports.generateJWTPreReg =  function (userID, personID, stat, username,c
         stat: stat,
         username: username,
         cityID: cityID,
+        base_url: process.env.PATH_PREFIX,
         exp: parseInt(expiry.getTime()/1000, 10)
     }, process.env.JWT_SECRET);
 };

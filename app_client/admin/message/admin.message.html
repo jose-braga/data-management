@@ -1,0 +1,58 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Message all</span>
+        </md-card-title-text>
+    </md-card-title>
+    <form flex novalidate name="messageAllForm"
+                    ng-submit="messageAllForm.$valid && vm.submitMessageAll(vm.forms['messageAll'], vm.messageAll)">
+        <md-card-content layout="column" flex>
+            Example: (2018-12-01) Service will be down at 12:00 for 1 minute (estimated time).
+            <md-input-container>
+                <label>Message</label>
+                <input ng-model="vm.messageAll" name="messageAll">
+            </md-input-container>
+            <div layout="row">
+                <div flex="50">
+                    Messages on server only
+                    <ol>
+                        <li ng-repeat="message in vm.messagesHistoryServer">
+                            ({{message.time}}) {{message.msg}}</li>
+                    </ol>
+                </div>
+                <div flex="50">
+                    Messages on older clients
+                    <ol>
+                        <li ng-repeat="message in vm.messagesHistoryClients">
+                            ({{message.time}}) {{message.msg}}
+                        </li>
+                    </ol>
+                </div>
+
+            </div>
+            <div layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button type="submit"
+                    class="button-small md-raised md-primary">Send</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['messageAll']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['messageAll']]">
+                        {{vm.updateStatus[vm.forms['messageAll']]}}
+                    </span>
+                </div>
+                <md-button class="button-small md-raised md-primary"
+                        ng-click="vm.submitMessagesClear(vm.forms['clearMessageClients'],'all')">Clear Server/Clients</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['clearMessageClients']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['clearMessageClients']]">
+                        {{vm.updateStatus[vm.forms['clearMessageClients']]}}
+                    </span>
+                </div>
+                <md-button class="button-small md-raised md-primary"
+                        ng-click="vm.submitMessagesClear(vm.forms['clearMessageServer'],'server')">Clear Server only</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['clearMessageServer']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['clearMessageServer']]">
+                        {{vm.updateStatus[vm.forms['clearMessageServer']]}}
+                    </span>
+                </div>
+            </div>
+        </md-card-content>
+    </form>
+</md-card>

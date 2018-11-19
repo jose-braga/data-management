@@ -9,15 +9,10 @@ var passport = require('passport');
 
 require('./app_api/config/passport');
 
-//var routes = require('./app_server/routes/index');
 var routesAPI = require('./app_api/routes/index');
-//var users = require('./app_server/routes/users');
+var routesMessage = require('./app_server/messaging/index');
 
 var app = express();
-
-// view engine setup
-app.set('views', path.join(__dirname, 'app_server', 'views'));
-app.set('view engine', 'jade');
 
 app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger(':date[iso] - :method :url :status :response-time ms - :res[content-length]'));
@@ -29,8 +24,8 @@ app.use(express.static(path.join(__dirname, 'app_client')));
 
 app.use(passport.initialize());
 
-//app.use('/', routes);
 app.use('/api', routesAPI);
+app.use('/message', routesMessage);
 
 app.use(function(req, res) {
   res.sendFile(path.join(__dirname, 'app_client', 'index.html'));

@@ -492,3 +492,38 @@ ul.help-list li{
 .wide {
   width: 100%;
 }
+
+.admin-message {
+  position: fixed;
+  top: 100px;
+  right: 20px;
+  z-index: 1000;
+}
+
+.admin-message .my-toast{
+  width: 300px;
+  max-width: 300px;
+  height: auto;
+  margin-bottom: 20px;
+  color: white;
+  background-color: black;
+  padding: 10px;
+}
+
+.my-toast.my-button {
+  cursor: pointer;
+}
+
+.my-toast .bold {
+  font-weight: bold;
+  margin-left: 20px;
+}
+
+.my-toast .sender-identification {
+  font-size: 10px;
+}
+
+.my-toast .sender-message {
+  font-size: 16px;
+}
+

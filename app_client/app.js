@@ -45,6 +45,11 @@
                 controller: 'registrationCtrl',
                 controllerAs: 'vm'
             })
+            .when('/admin', {
+                templateUrl: 'admin/admin.view.html',
+                controller: 'adminCtrl',
+                controllerAs: 'vm'
+            })
             .when('/help', {
                 templateUrl: 'help/help.view.html',
                 controller: 'helpCtrl',
@@ -55,7 +60,7 @@
         $locationProvider.html5Mode(true);
     };
 
-     angular.module('managementApp', ['ngMaterial','ngRoute', 'ngMessages','ngMdIcons','ngFileUpload','uiCropper'])
+    angular.module('managementApp', ['ngMaterial','ngRoute', 'ngMessages','ngMdIcons','ngFileUpload','uiCropper'])
         // comment this config when debugging
         .config(['$compileProvider', function ($compileProvider) {
             $compileProvider.debugInfoEnabled(false);

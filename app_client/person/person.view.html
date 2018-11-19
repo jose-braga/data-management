@@ -6,6 +6,15 @@
         </md-content>
     </div>
     <div ng-if="vm.isLoggedIn" layout="column" flex>
+        <div class="admin-message" ng-if="vm.adminMessage" layout-align layout="column">
+            <div class="my-toast my-button" ng-click="vm.deleteAdminMessages()" layout="column">
+                    <div layout="row"><span>Hide all warnings</span><span class="bold">X</span></div>
+            </div>
+            <div class="my-toast" ng-repeat="message in vm.listAdminMessages" layout="column">
+                    <span class="sender-identification">({{message.time}}) Admin says:</span>
+                    <span class="sender-message">{{message.msg}}</span>
+            </div>
+        </div>
         <toolbar-row></toolbar-row>
         <md-tabs md-dynamic-height md-border-bottom md-selected="vm.selectedTab">
             <md-tab label='Personal'>

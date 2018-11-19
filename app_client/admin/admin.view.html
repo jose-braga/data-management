@@ -1,0 +1,22 @@
+<div layout="row">
+    <navigation-column></navigation-column>
+    <div ng-if="!vm.isLoggedIn" layout="column" flex>
+        <md-content class='md-padding' flex>
+            Please log in first
+        </md-content>
+    </div>
+    <div ng-if="vm.isLoggedIn" layout="column" flex>
+        <toolbar-row></toolbar-row>
+        <md-tabs md-dynamic-height md-border-bottom md-selected="vm.selectedTab">
+            <md-tab label='Messaging'>
+                <md-content>
+                    <div layout-xs="column" layout="row" layout-padding>
+                        <div flex-xs flex-sm flex-gt-sm="50" layout="column">
+                            <admin-message></admin-message>
+                        </div>
+                    </div>
+                </md-content>
+            </md-tab>
+        </md-tabs>
+    </div>
+</div>

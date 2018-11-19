@@ -93,7 +93,8 @@
                     userID: payload.userID,
                     personID: payload.personID,
                     stat: payload.stat,
-                    username : payload.username
+                    username : payload.username,
+                    base_url: payload.base_url,
                 };
             } else {
                 return null;

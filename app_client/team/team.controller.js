@@ -1,6 +1,6 @@
 (function(){
 /******************************* Controllers **********************************/
-    var teamCtrl = function ($scope, $timeout, $mdMedia, $mdPanel, $location, $anchorScroll,
+    var teamCtrl = function ($scope, $rootScope, $timeout, $mdMedia, $mdPanel, $location, $anchorScroll,
                             personData, teamData, publications, authentication) {
         var vm = this;
         vm.toolbarData = {title: 'Please update your team'};
@@ -12,7 +12,13 @@
         vm.newPerson.affiliations = [{people_lab_id: null, start:null, end: null}];
         vm.affiliationsList = [];
 
+        vm.socketConnected = false;
+        vm.adminMessage = false;
+        vm.listAdminMessages = [];
+
+
         initializeVariables();
+        checkAdminMessages();
 
         vm.addRows = function (current,type) {
             if (type === 'newAffiliation') {
@@ -274,6 +280,34 @@
                 });
 
         }
+
+
+        /* Admin messages */
+        vm.deleteAdminMessages = function () {
+            vm.adminMessage = false;
+            vm.listAdminMessages = [];
+        };
+        function checkAdminMessages(){
+            if (!vm.socketConnected) {
+                var socket = io.connect(vm.currentUser.base_url);
+                socket.on('message_all', function (history) {
+                    if (history.length > 0) {
+                        $rootScope.$apply(function() {
+                            vm.adminMessage = true;
+                            vm.listAdminMessages = history;
+                        });
+                    } else {
+                        $rootScope.$apply(function() {
+                            vm.adminMessage = false;
+                            vm.listAdminMessages = history;
+                        });
+                    }
+                });
+                vm.socketConnected = true;
+            }
+        }
+
+        /* Initialization functions */
         function getDataLists() {
              personData.usernames()
                 .then(function (response) {

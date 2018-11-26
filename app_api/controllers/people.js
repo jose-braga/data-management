@@ -1738,10 +1738,17 @@ var queryUpdateTechnicianAffiliations = function (req, res, next, userCity, pers
     querySQL = querySQL + '; ';
     places.push(data.tech_office_id, data.tech_position_id, data.tech_dedication,
                 data.tech_valid_from,data.tech_valid_until, data.tech_id);
-    querySQL = querySQL + 'UPDATE `technicians_units`' +
-                          ' SET `unit_id` = ?' +
-                          ' WHERE `technician_id` = ?; ';
-    places.push(data.tech_unit_id, data.tech_id);
+    // delete all previous associations to units for this technician
+    // then insert al the associations again
+    querySQL = querySQL + 'DELETE FROM `technicians_units`' +
+                              ' WHERE `technician_id` = ?; ';
+    places.push(data.tech_id);
+
+    querySQL = querySQL + 'INSERT INTO `technicians_units`' +
+                          ' (technician_id, unit_id)' +
+                          ' VALUES (?, ?);';
+    places.push(data.tech_id, data.tech_unit_id);
+
     querySQL = querySQL + 'INSERT INTO `technicians_history`' +
                           ' (`technician_id`,`person_id`,`technician_office_id`,`technician_position_id`,`dedication`,'+
                             '`valid_from`,`valid_until`,`updated`,`operation`,`changed_by`)' +
@@ -1967,10 +1974,16 @@ var queryUpdateScienceManagerAffiliations = function (req, res, next, userCity, 
                           ' WHERE `id` = ?; ';
     places.push(data.sc_man_office_id, data.sc_man_position_id, data.sc_man_dedication,
                 data.sc_man_valid_from, data.sc_man_valid_until, data.sc_man_id);
-    querySQL = querySQL + 'UPDATE `science_managers_units`' +
-                          ' SET `unit_id` = ?' +
-                          ' WHERE `science_manager_id` = ?; ';
-    places.push(data.sc_man_unit_id, data.sc_man_id);
+    // delete all previous associations to units for this science manager
+    // then insert al the associations again
+    querySQL = querySQL + 'DELETE FROM `science_managers_units`' +
+                              ' WHERE `science_manager_id` = ?; ';
+    places.push(data.sc_man_id);
+
+    querySQL = querySQL + 'INSERT INTO `science_managers_units`' +
+                          ' (science_manager_id, unit_id)' +
+                          ' VALUES (?, ?);';
+    places.push(data.sc_man_id, data.sc_man_unit_id);
     querySQL = querySQL + 'INSERT INTO `science_managers_history`' +
                           ' (`science_managers_id`,`person_id`,`science_manager_office_id`,`science_manager_position_id`,`dedication`,'+
                             '`valid_from`,`valid_until`,`updated`,`operation`,`changed_by`)' +
@@ -2191,10 +2204,17 @@ var queryUpdateAdministrativeAffiliations = function (req, res, next, userCity, 
     querySQL = querySQL + '; ';
     places.push(data.adm_office_id, data.adm_position_id, data.adm_dedication,
                 data.adm_valid_from, data.adm_valid_until, data.adm_id);
-    querySQL = querySQL + 'UPDATE `people_administrative_units`' +
-                          ' SET `unit_id` = ?' +
-                          ' WHERE `administrative_id` = ?; ';
-    places.push(data.adm_unit_id, data.adm_id);
+    // delete all previous associations to units for this administrative
+    // then insert al the associations again
+
+    querySQL = querySQL + 'DELETE FROM `people_administrative_units`' +
+                              ' WHERE `administrative_id` = ?; ';
+    places.push(data.adm_id);
+    querySQL = querySQL + 'INSERT INTO `people_administrative_units`' +
+                          ' (administrative_id, unit_id)' +
+                          ' VALUES (?, ?);';
+    places.push(data.adm_id, data.adm_unit_id);
+
     querySQL = querySQL + 'INSERT INTO `people_administrative_offices_history`' +
                           ' (`people_administrative_offices_id`,`person_id`,`administrative_office_id`,`administrative_position_id`,`dedication`,'+
                             '`valid_from`,`valid_until`,`updated`,`operation`,`changed_by`)' +
@@ -5306,6 +5326,7 @@ var queryGetSpaces = function (req,res,next, personID, row) {
                 sendJSONResponse(res, 200,
                     {"status": "success", "statusCode": 200, "count": 1,
                      "result" : row});
+                return;
             }
         );
     });

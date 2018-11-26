@@ -12,6 +12,7 @@ var ctrlPeopleData = require('../controllers/people.js');
 var ctrlTeamData = require('../controllers/team.js');
 var ctrlManagerData = require('../controllers/manager.js');
 var ctrlProductivityData = require('../controllers/productivity.js');
+var ctrlStatistics = require('../controllers/statistics.js');
 
 var ctrlRegistrationData = require('../controllers/registration.js');
 var ctrlPreRegistrationData = require('../controllers/pre-registration.js');
@@ -229,5 +230,10 @@ router.get('/pre-registration/people/:personID', auth, ctrlPreRegistrationData.g
 router.post('/login', ctrlAuth.login);
 //only authenticated requests can change password
 router.put('/change-password/:userID', auth, ctrlAuth.changePassword);
+
+router.get('/stats/gender-distribution/:unitID', auth, ctrlStatistics.getGenderDistribution);
+router.get('/stats/positions-distribution/:unitID', auth, ctrlStatistics.getPositionsDistribution);
+router.get('/stats/pole-distribution/:unitID', auth, ctrlStatistics.getPoleDistribution);
+router.get('/stats/publications-by-year/:unitID', auth, ctrlStatistics.getPublicationsByYear);
 
 module.exports = router;

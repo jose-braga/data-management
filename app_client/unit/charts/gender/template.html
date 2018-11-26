@@ -1,0 +1,17 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Gender Distribution</span>
+        </md-card-title-text>
+    </md-card-title>
+    <md-card-content layout="column" layout-gt-lg="row" flex>
+        <div layout="column" layout-margin layout-align="center center">
+            <gender-chart data-info="unit.genderDistributionTotal"></gender-chart>
+            <span class="title-chart">Total data</span>
+        </div>
+        <div layout="column" layout-margin layout-align="center center">
+            <gender-chart data-info="unit.genderDistribution"></gender-chart>
+            <span class="title-chart">Removing unspecified</span>
+        </div>
+    </md-card-content>
+<md-card>

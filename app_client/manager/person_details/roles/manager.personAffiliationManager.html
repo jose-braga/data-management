@@ -16,6 +16,15 @@
                                     ng-value="office.id">{{office.name_en}}</md-option>
                             </md-select>
                         </md-input-container>
+                        <md-input-container
+                            class="search-box select-container input-row">
+                            <label>Unit</label>
+                            <md-select required ng-model="vm.currentAffiliationsScMan[vm.selectedIndex-2][numOff].sc_man_unit_id"
+                                    md-container-class="correct-overflow" name="affScMan_id[numOff]">
+                                <md-option ng-repeat="unit in vm.units"
+                                    ng-value="unit.id">{{unit.short_name}}</md-option>
+                            </md-select>
+                        </md-input-container>
                     </div>
                     <div layout="column" layout-gt-xs="row">
                         <md-input-container>

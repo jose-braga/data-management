@@ -4,7 +4,6 @@
     // TODO: 0 - Check if username is possible by AJAX
     // TODO: 1 - Correct ordering by lab/office on manager
     // TODO: 2 - Email to FCT (revise with Teresa)
-    // TODO: 3 - Dashboards (visualization of indicators)
 
     // TODO: (future) easier administration - Delete user from all tables
 

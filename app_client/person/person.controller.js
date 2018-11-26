@@ -4335,7 +4335,7 @@
                 .catch(function (err) {
                     console.log(err);
                 });
-            var socket = io.connect('https://data-management-josebraga.c9users.io');
+            //var socket = io.connect('https://data-management-josebraga.c9users.io');
         }
         function processNationalities() {
             var newNationalities = [];

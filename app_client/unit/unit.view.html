@@ -7,7 +7,28 @@
     </div>
     <div ng-if="vm.accessPermission" layout="column" flex>
         <toolbar-row></toolbar-row>
-        Under construction
+        <md-tabs md-dynamic-height md-border-bottom md-selected="vm.selectedTab">
+            <md-tab ng-repeat="unit in vm.units" label="{{unit.unit_name}}">
+                <md-tabs md-dynamic-height md-border-bottom md-selected="vm.selectedTab2">
+                    <md-tab label="Graphs">
+                        <md-content>
+                            <div layout-xs="column" layout="row" layout-padding>
+                                <div flex-xs flex-sm flex-gt-sm="50" layout="column">
+                                    <unit-positions-info></unit-positions-info>
+                                    <unit-publications-info></unit-publications-info>
 
+
+                                </div>
+                                <div flex-xs flex-sm flex-gt-sm="50" layout="column">
+                                    <unit-gender-info></unit-gender-info>
+                                    <unit-poles-info></unit-poles-info>
+
+                                </div>
+                            </div>
+                        </md-content>
+                    </md-tab>
+                </md-tabs>
+            </md-tab>
+        </md-tabs>
     </div>
 </div>

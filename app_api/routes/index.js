@@ -93,15 +93,15 @@ router.delete('/people/role/:role/:personID', auth, ctrlPeopleData.deleteRolePer
 router.get('/labs/:teamID', auth, ctrlTeamData.listLabData);
 
 router.get('/labs/:groupID/:teamID/people', auth, ctrlTeamData.listLabPeopleData);
-router.get('/facilities/:teamID/people', auth, ctrlTeamData.listTechPeopleData);
-router.get('/science-management-offices/:teamID/people', auth, ctrlTeamData.listScManPeopleData);
-router.get('/administrative-offices/:teamID/people', auth, ctrlTeamData.listAdmPeopleData);
+router.get('/facilities/:unitID/:teamID/people', auth, ctrlTeamData.listTechPeopleData);
+router.get('/science-management-offices/:unitID/:teamID/people', auth, ctrlTeamData.listScManPeopleData);
+router.get('/administrative-offices/:unitID/:teamID/people', auth, ctrlTeamData.listAdmPeopleData);
 
 // PUT (Update) TEAM information (authenticated)
 router.put('/team/people-lab/:groupID/:teamID', auth, ctrlTeamData.updateLabPeople);
-router.put('/team/people-technician/:teamID', auth, ctrlTeamData.updateTechPeople);
-router.put('/team/people-science-manager/:teamID', auth, ctrlTeamData.updateScManPeople);
-router.put('/team/people-administrative/:teamID', auth, ctrlTeamData.updateAdmPeople);
+router.put('/team/people-technician/:unitID/:teamID', auth, ctrlTeamData.updateTechPeople);
+router.put('/team/people-science-manager/:unitID/:teamID', auth, ctrlTeamData.updateScManPeople);
+router.put('/team/people-administrative/:unitID/:teamID', auth, ctrlTeamData.updateAdmPeople);
 router.post('/team/pre-register', auth, ctrlTeamData.preRegister);
 
 // GET MANAGER information (authenticated)

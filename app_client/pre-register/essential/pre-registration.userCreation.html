@@ -6,9 +6,9 @@
     </md-card-title>
     <md-card-content layout="column" flex>
         <md-input-container>
-            <label>Change username</label>
+            <label>Change username (for credentials, e.g., johnsmith)</label>
             <input ng-model="vm.thisPerson.username" name="username"
-                    username-validate="vm.usernames" required>
+                    username-validate-without-self="vm.currentUser.username" required>
             <div ng-messages="preRegistrationForm.username.$error">
                 <div ng-message="username">Username already taken.</div>
             </div>

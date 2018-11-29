@@ -17,22 +17,22 @@ var teamData = function ($http, authentication) {
             }
         );
     };
-    var thisTechPeopleData = function (teamID) {
-        return $http.get('api/facilities/' + teamID + '/people/',
+    var thisTechPeopleData = function (unitID, teamID) {
+        return $http.get('api/facilities/' + unitID + '/' + teamID + '/people/',
             {
                 headers: {Authorization: 'Bearer ' + authentication.getToken()}
             }
         );
     };
-    var thisScManPeopleData = function (teamID) {
-        return $http.get('api/science-management-offices/' + teamID + '/people/',
+    var thisScManPeopleData = function (unitID, teamID) {
+        return $http.get('api/science-management-offices/' + unitID + '/' + teamID + '/people/',
             {
                 headers: {Authorization: 'Bearer ' + authentication.getToken()}
             }
         );
     };
-    var thisAdmPeopleData = function (teamID) {
-        return $http.get('api/administrative-offices/' + teamID + '/people/',
+    var thisAdmPeopleData = function (unitID, teamID) {
+        return $http.get('api/administrative-offices/' + unitID + '/' + teamID + '/people/',
             {
                 headers: {Authorization: 'Bearer ' + authentication.getToken()}
             }
@@ -47,24 +47,24 @@ var teamData = function ($http, authentication) {
         );
     };
 
-    var updateTechPeopleTeamByID = function (teamID, data) {
-        return $http.put('api/team/people-technician/' + teamID, data,
+    var updateTechPeopleTeamByID = function (unitID, teamID, data) {
+        return $http.put('api/team/people-technician/' + unitID + '/'  + teamID, data,
             {
                 headers: {Authorization: 'Bearer ' + authentication.getToken()}
             }
         );
     };
 
-    var updateScManPeopleTeamByID = function (teamID, data) {
-        return $http.put('api/team/people-science-manager/' + teamID, data,
+    var updateScManPeopleTeamByID = function (unitID, teamID, data) {
+        return $http.put('api/team/people-science-manager/' + unitID + '/'  + teamID, data,
             {
                 headers: {Authorization: 'Bearer ' + authentication.getToken()}
             }
         );
     };
 
-    var updateAdmPeopleTeamByID = function (teamID, data) {
-        return $http.put('api/team/people-administrative/' + teamID, data,
+    var updateAdmPeopleTeamByID = function (unitID, teamID, data) {
+        return $http.put('api/team/people-administrative/' + unitID + '/'  + teamID, data,
             {
                 headers: {Authorization: 'Bearer ' + authentication.getToken()}
             }

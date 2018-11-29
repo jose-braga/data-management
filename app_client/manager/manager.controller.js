@@ -90,7 +90,16 @@
                 });
             personData.units()
                 .then(function (response) {
-                    vm.units = response.data.result;
+                    var units_temp = response.data.result;
+                    var units = [];
+                    var usedIDs = [];
+                    for (var el in units_temp) {
+                        if (usedIDs.indexOf(units_temp[el].id) === -1) {
+                            usedIDs.push(units_temp[el].id);
+                            units.push(units_temp[el]);
+                        }
+                    }
+                    vm.units = units;
                 })
                 .catch(function (err) {
                     console.log(err);
@@ -192,13 +201,6 @@
             personData.cardTypes()
                 .then(function (response) {
                     vm.cardTypes = response.data.result;
-                })
-                .catch(function (err) {
-                    console.log(err);
-                });
-            personData.usernames()
-                .then(function (response) {
-                    vm.usernames = response.data.result;
                 })
                 .catch(function (err) {
                     console.log(err);
@@ -3191,30 +3193,34 @@
 
 /******************************** Directives **********************************/
 
-    var usernameValidateWithoutSelf = function () {
+    var usernameValidateWithoutSelf = function (personData) {
         return {
             require: 'ngModel',
             scope: {
-                usernamesList: "=usernameValidateWithoutSelf"
+                thisUsername: "=usernameValidateWithoutSelf"
             },
             link: function (scope, elm, attrs, ctrl) {
-                ctrl.$validators.usernameValidate = function(modelValue, viewValue) {
-                    if (viewValue == null) {
-                        ctrl.$setValidity('username', true);
-                        return true;
-                    } else {
-                        for (var ind in scope.usernamesList[0]) {
-                            // if viewValue is equal to original name it should return true
-                            if (viewValue === scope.usernamesList[0][ind]['username']
-                                    && viewValue !== scope.usernamesList[1]) {
-                                ctrl.$setValidity('username', false);
-                                return false;
+                personData.usernames()
+                .then(function (response) {
+                    var usernamesList = response.data.result;
+                    ctrl.$validators.usernameValidate = function(modelValue, viewValue) {
+                        if (viewValue == null) {
+                            ctrl.$setValidity('username', true);
+                            return true;
+                        } else {
+                            for (var ind in usernamesList) {
+                                // if viewValue is equal to original name it should return true
+                                if (viewValue === usernamesList[ind]['username']
+                                        && viewValue !== scope.thisUsername) {
+                                    ctrl.$setValidity('username', false);
+                                    return false;
+                                }
                             }
+                            ctrl.$setValidity('username', true);
+                            return true;
                         }
-                        ctrl.$setValidity('username', true);
-                        return true;
-                    }
-                };
+                    };
+                });
             }
         };
     };
@@ -3632,7 +3638,7 @@
         .directive('validateUserPermissions', validateUserPermissions)
 
         .directive('managerPasswordReset', managerPasswordReset)
-        .directive('usernameValidateWithoutSelf', usernameValidateWithoutSelf)
+        .directive('usernameValidateWithoutSelf', ['personData', usernameValidateWithoutSelf])
 
         .controller('managerCtrl', managerCtrl)
         ;

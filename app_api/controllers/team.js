@@ -927,7 +927,7 @@ var queryUpdateLabPeople = function (req, res, next, userCity, labs) {
     var permissionsGeo = getGeoPermissions(req, userCity);
     var permissionsLab = getLabPermissions(req, labs);
     var updateArrPre = req.body.updateLabPerson;
-    var deleteArrPre = req.body.deleteNeverMember;
+    var deleteArrPre = req.body.deleteLabPerson;
     var updated = moment.tz('Europe/Lisbon').format('YYYY-MM-DD HH:mm:ss');
 
     var updateArr = [];
@@ -984,6 +984,7 @@ var queryUpdateLabPeople = function (req, res, next, userCity, labs) {
         data = updateArr[0];
         return queryUpdateResearcher(req, res, next, updateArr, deleteArr, updated, data, 0);
     } else if (deleteArr.length > 0) {
+        console.log('here!!!!')
         data = deleteArr[0];
         return queryDeleteLab(req, res, next, updateArr, deleteArr, updated, data, 0);
     }
@@ -1342,9 +1343,14 @@ var queryUpdateTechHistory = function (req, res, next, peopleOfficeID,
 
 var queryDeleteTech = function (req, res, next,
                                  updateArr, deleteArr, updated, data, i) {
-    var query = 'DELETE FROM `technicians`' +
+    var query = '';
+    var places =[];
+    query = query + 'DELETE FROM `technicians_units`' +
+                          ' WHERE technician_id=?;';
+    places.push(data.id);
+    query = query + 'DELETE FROM `technicians`' +
                           ' WHERE id=?;';
-    var places = data.id;
+    places.push(data.id);
     pool.getConnection(function(err, connection) {
         if (err) {
             sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
@@ -1580,9 +1586,15 @@ var queryUpdateScManHistory = function (req, res, next, peopleOfficeID,
 
 var queryDeleteScMan = function (req, res, next,
                                  updateArr, deleteArr, updated, data, i) {
-    var query = 'DELETE FROM `science_managers`' +
+    // science_managers_info is not deleted, as manager could be in another unit
+    var query = '';
+    var places = [];
+    query = query + 'DELETE FROM `science_managers_units`' +
+                          ' WHERE science_manager_id = ?;';
+    places.push(data.id);
+    query = query + 'DELETE FROM `science_managers`' +
                           ' WHERE id=?;';
-    var places = data.id;
+    places.push(data.id);
     pool.getConnection(function(err, connection) {
         if (err) {
             sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
@@ -1819,9 +1831,14 @@ var queryUpdateAdmHistory = function (req, res, next, peopleOfficeID,
 
 var queryDeleteAdm = function (req, res, next,
                                  updateArr, deleteArr, updated, data, i) {
-    var query = 'DELETE FROM `people_administrative_offices`' +
-                          ' WHERE id=?;';
-    var places = data.id;
+    var query = '';
+    var places = [];
+    query = query + 'DELETE FROM `people_administrative_units`' +
+                          ' WHERE administrative_id = ?;';
+    places.push(data.id);
+    query = query + 'DELETE FROM `people_administrative_offices`' +
+                          ' WHERE id = ?;';
+    places.push(data.id);
     pool.getConnection(function(err, connection) {
         if (err) {
             sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
@@ -2133,6 +2150,34 @@ var queryPreRegisterAddTechnician = function (req, res, next, userID, personID,
                     return;
                 }
                 var peopleOfficeID = resQuery.insertId;
+                return queryPreRegisterAddTechnicianUnit(req, res, next,userID, personID, peopleOfficeID,
+                                          active_from, stat, created, changed_by,password,i);
+            }
+        );
+    });
+};
+
+var queryPreRegisterAddTechnicianUnit = function (req, res, next, userID, personID, peopleOfficeID,
+                                      active_from,stat, created, changed_by,password,i) {
+    var unit_id = req.body.affiliations[i].data.unit_id;
+    var query = 'INSERT INTO `technicians_units`' +
+                 ' (`technician_id`,`unit_id`)' +
+                 ' VALUES (?,?);';
+    var placeholders = [peopleOfficeID, unit_id];
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(query, placeholders,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                var peopleOfficeID = resQuery.insertId;
                 return queryPreRegisterAddRole(req, res, next,userID, personID, 2, peopleOfficeID,
                                           active_from,stat, created, changed_by,password,i);
             }
@@ -2217,8 +2262,36 @@ var queryPreRegisterAddScienceManager = function (req, res, next, userID, person
                     return;
                 }
                 var peopleOfficeID = resQuery.insertId;
+                return queryPreRegisterAddScienceManagerUnit(req, res, next, userID, personID, peopleOfficeID,
+                                          active_from, stat, created, changed_by, password, i);
+            }
+        );
+    });
+};
+
+var queryPreRegisterAddScienceManagerUnit = function (req, res, next, userID, personID, peopleOfficeID,
+                                      active_from,stat, created, changed_by,password,i) {
+    var unit_id = req.body.affiliations[i].data.unit_id;
+    var query = 'INSERT INTO `science_managers_units`' +
+                 ' (`science_manager_id`,`unit_id`)' +
+                 ' VALUES (?,?);';
+    var placeholders = [peopleOfficeID, unit_id];
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(query, placeholders,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                var peopleOfficeID = resQuery.insertId;
                 return queryPreRegisterAddRole(req, res, next,userID, personID, 3, peopleOfficeID,
-                                          active_from,stat, created, changed_by,password,i);
+                                          active_from, stat, created, changed_by, password, i);
             }
         );
     });
@@ -2300,8 +2373,36 @@ var queryPreRegisterAddAdministrative = function (req, res, next, userID, person
                     return;
                 }
                 var peopleOfficeID = resQuery.insertId;
-                return queryPreRegisterAddRole(req, res, next,userID, personID, 4, peopleOfficeID,
+                return queryPreRegisterAddAdministrativeUnit(req, res, next,userID, personID, peopleOfficeID,
                                           active_from,stat, created, changed_by,password,i);
+            }
+        );
+    });
+};
+
+var queryPreRegisterAddAdministrativeUnit = function (req, res, next, userID, personID, peopleOfficeID,
+                                      active_from,stat, created, changed_by,password,i) {
+    var unit_id = req.body.affiliations[i].data.unit_id;
+    var query = 'INSERT INTO `people_administrative_units`' +
+                 ' (`administrative_id`,`unit_id`)' +
+                 ' VALUES (?,?);';
+    var placeholders = [peopleOfficeID, unit_id];
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(query, placeholders,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                var peopleOfficeID = resQuery.insertId;
+                return queryPreRegisterAddRole(req, res, next,userID, personID, 4, peopleOfficeID,
+                                          active_from, stat, created, changed_by, password, i);
             }
         );
     });
@@ -2557,16 +2658,19 @@ module.exports.listTechPeopleData = function (req, res, next) {
     getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
         function (req, res, username) {
             var teamID = req.params.teamID;
+            var unitID = req.params.unitID;
             var places = [];
             var querySQL = 'SELECT technicians.*, people.name AS person_name, ' +
-                           ' technicians_info.id AS technicians_info_id, technicians_info.association_key, technicians_info.ORCID' +
+                           ' technicians_info.id AS technicians_info_id, technicians_info.association_key, technicians_info.ORCID,' +
+                           ' technicians_units.unit_id' +
                            ' FROM technicians' +
                            ' LEFT JOIN people ON technicians.person_id = people.id' +
                            ' LEFT JOIN technicians_info ON technicians_info.person_id = technicians.person_id' +
-                           ' WHERE technician_office_id = ? AND people.status = 1' +
+                           ' LEFT JOIN technicians_units ON technicians_units.technician_id = technicians.id' +
+                           ' WHERE technicians_units.unit_id = ? AND technicians.technician_office_id = ? AND people.status = 1' +
                            ' ORDER BY people.name';
             querySQL = querySQL + '; ';
-            places.push(teamID);
+            places.push(unitID, teamID);
             escapedQuery(querySQL, places, req, res, next);
         }
     );
@@ -2576,16 +2680,19 @@ module.exports.listScManPeopleData = function (req, res, next) {
     getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
         function (req, res, username) {
             var teamID = req.params.teamID;
+            var unitID = req.params.unitID;
             var places = [];
             var querySQL = 'SELECT science_managers.*, people.name AS person_name, ' +
-                           ' science_managers_info.id AS science_managers_info_id, science_managers_info.association_key, science_managers_info.ORCID' +
+                           ' science_managers_info.id AS science_managers_info_id, science_managers_info.association_key, science_managers_info.ORCID,' +
+                           ' science_managers_units.unit_id' +
                            ' FROM science_managers' +
                            ' LEFT JOIN people ON science_managers.person_id = people.id' +
                            ' LEFT JOIN science_managers_info ON science_managers_info.person_id = science_managers.person_id' +
-                           ' WHERE science_manager_office_id = ? AND people.status = 1' +
+                           ' LEFT JOIN science_managers_units ON science_managers_units.science_manager_id = science_managers.id' +
+                           ' WHERE science_managers_units.unit_id = ? AND science_managers.science_manager_office_id = ? AND people.status = 1' +
                            ' ORDER BY people.name';
             querySQL = querySQL + '; ';
-            places.push(teamID);
+            places.push(unitID, teamID);
             escapedQuery(querySQL, places, req, res, next);
         }
     );
@@ -2595,16 +2702,19 @@ module.exports.listAdmPeopleData = function (req, res, next) {
     getUser(req, res, [0, 5, 10, 15, 16, 20, 30],
         function (req, res, username) {
             var teamID = req.params.teamID;
+            var unitID = req.params.unitID;
             var places = [];
             var querySQL = 'SELECT people_administrative_offices.*, people.name AS person_name, ' +
-                           ' administrative_info.id AS administrative_info_id, administrative_info.association_key' +
+                           ' administrative_info.id AS administrative_info_id, administrative_info.association_key,' +
+                           ' people_administrative_units.unit_id' +
                            ' FROM people_administrative_offices' +
                            ' LEFT JOIN people ON people_administrative_offices.person_id = people.id' +
                            ' LEFT JOIN administrative_info ON administrative_info.person_id = people_administrative_offices.person_id' +
-                           ' WHERE administrative_office_id = ? AND people.status = 1' +
+                           ' LEFT JOIN people_administrative_units ON people_administrative_units.administrative_id = people_administrative_offices.id' +
+                           ' WHERE people_administrative_units.unit_id = ? AND people_administrative_offices.administrative_office_id = ? AND people.status = 1' +
                            ' ORDER BY people.name';
             querySQL = querySQL + '; ';
-            places.push(teamID);
+            places.push(unitID, teamID);
             escapedQuery(querySQL, places, req, res, next);
         }
     );

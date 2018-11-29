@@ -111,7 +111,8 @@
                     } else {
                         var unit;
                         for (var dep in vm.units) {
-                            if (vm.thisPerson.lab_data[0].unit_id === vm.units[dep].id) {
+                            if (vm.thisPerson.lab_data[0].unit_id === vm.units[dep].id
+                                    && vm.thisPerson.institution_city_id === vm.units[dep].city_id) {
                                 leader.name = vm.units[dep].colloquial_name;
                                 leader.email = vm.units[dep].email;
                                 leader.role = vm.units[dep].position_name_pt;
@@ -285,6 +286,11 @@
                         name = name + department.department_name_en + ', ';
                         name = name + department.school_shortname_en + ', ';
                         name = name + department.university_shortname_en;
+                        if (department.school_shortname_en === null) {
+                            name = '';
+                            name = name + department.department_name_en + ', ';
+                            name = name + department.university_shortname_en;
+                        }
                     } else if (department.school_name_en !== null) {
                         name = name + department.school_name_en + ', ';
                         name = name + department.university_shortname_en;
@@ -299,6 +305,11 @@
                         name = name + department.department_name_pt + ', ';
                         name = name + department.school_shortname_pt + ', ';
                         name = name + department.university_shortname_pt;
+                        if (department.school_shortname_en === null) {
+                            name = '';
+                            name = name + department.department_name_pt + ', ';
+                            name = name + department.university_shortname_pt;
+                        }
                     } else if (department.school_name_pt !== null) {
                         name = name + department.school_name_pt + ', ';
                         name = name + department.university_shortname_pt;
@@ -337,7 +348,7 @@
                     doc.text(momentToDate(vm.thisPerson.jobs[0].end,undefined,'MM'), 103.7, 145.5);
                     doc.text(momentToDate(vm.thisPerson.jobs[0].end,undefined,'YYYY'), 109, 145.5);
                 }
-                // President of DQ
+                // President of Department
                 doc.text(leader.name, 95, 162.5);
                 doc.text(leader.email, 100, 169.5);
                 doc.text(leader.role, 84.5, 176.5);
@@ -359,7 +370,7 @@
                     doc.text(momentToDate(vm.thisPerson.jobs[0].end,undefined,'MM'), 103.8, 120.3);
                     doc.text(momentToDate(vm.thisPerson.jobs[0].end,undefined,'YYYY'), 109, 120.3);
                 }
-                // President of DQ
+                // President of Unit
                 doc.text(leader.name, 95, 137.7);
                 doc.text(leader.email, 100, 144.7);
                 doc.text(leader.role, 84.5, 151.6);
@@ -499,20 +510,6 @@
                 });
         }
         function getDataLists() {
-            personData.usernames()
-                .then(function (response) {
-                    var usernamesPre = response.data.result;
-                    vm.usernames = [];
-                    // Remove pre-defined username from this list
-                    for (var ind in usernamesPre) {
-                        if (usernamesPre[ind].username !== vm.currentUser.username) {
-                            vm.usernames.push(usernamesPre[ind]);
-                        }
-                    }
-                })
-                .catch(function (err) {
-                    console.log(err);
-                });
             personData.institutionCities()
                 .then(function (response) {
                     vm.institutionCities = response.data.result;
@@ -536,7 +533,16 @@
                 });
             personData.units()
                 .then(function (response) {
-                    vm.units = response.data.result;
+                    var units_temp = response.data.result;
+                    var units = [];
+                    var usedIDs = [];
+                    for (var el in units_temp) {
+                        if (usedIDs.indexOf(units_temp[el].id) === -1) {
+                            usedIDs.push(units_temp[el].id);
+                            units.push(units_temp[el]);
+                        }
+                    }
+                    vm.units = units;
                 })
                 .catch(function (err) {
                     console.log(err);

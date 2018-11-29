@@ -463,6 +463,7 @@
             getDataLists();
         }
         function getDataLists() {
+            /*
             personData.usernames()
                 .then(function (response) {
                     vm.usernames = response.data.result;
@@ -470,6 +471,7 @@
                 .catch(function (err) {
                     console.log(err);
                 });
+            */
             personData.permissions()
                 .then(function (response) {
                     var data = response.data.result;
@@ -573,7 +575,16 @@
                 });
             personData.units()
                 .then(function (response) {
-                    vm.units = response.data.result;
+                    var units_temp = response.data.result;
+                    var units = [];
+                    var usedIDs = [];
+                    for (var el in units_temp) {
+                        if (usedIDs.indexOf(units_temp[el].id) === -1) {
+                            usedIDs.push(units_temp[el].id);
+                            units.push(units_temp[el]);
+                        }
+                    }
+                    vm.units = units;
                 })
                 .catch(function (err) {
                     console.log(err);
@@ -710,28 +721,30 @@
             templateUrl: 'registration/essential/registration.userCreation.html'
         };
     };
-    var usernameValidate = function () {
+    var usernameValidate = function (personData) {
         return {
             require: 'ngModel',
-            scope: {
-                usernamesList: "=usernameValidate"
-            },
+            scope: {},
             link: function (scope, elm, attrs, ctrl) {
-                ctrl.$validators.usernameValidate = function(modelValue, viewValue) {
-                    if (viewValue == null) {
-                        ctrl.$setValidity('username', true);
-                        return true;
-                    } else {
-                        for (var ind in scope.usernamesList) {
-                            if (viewValue === scope.usernamesList[ind]['username']) {
-                                ctrl.$setValidity('username', false);
-                                return false;
+                personData.usernames()
+                .then(function (response) {
+                    var usernamesList = response.data.result;
+                    ctrl.$validators.usernameValidate = function(modelValue, viewValue) {
+                        if (viewValue == null) {
+                            ctrl.$setValidity('username', true);
+                            return true;
+                        } else {
+                            for (var ind in usernamesList) {
+                                if (viewValue === usernamesList[ind]['username']) {
+                                    ctrl.$setValidity('username', false);
+                                    return false;
+                                }
                             }
+                            ctrl.$setValidity('username', true);
+                            return true;
                         }
-                        ctrl.$setValidity('username', true);
-                        return true;
-                    }
-                };
+                    };
+                });
             }
         };
     };
@@ -753,7 +766,7 @@
         .directive('registrationResponsibles', registrationResponsibles)
 
 
-        .directive('usernameValidate', usernameValidate)
+        .directive('usernameValidate', ['personData', usernameValidate])
 
         .controller('registrationCtrl', registrationCtrl)
         ;

@@ -99,6 +99,7 @@
             vm.newPerson.affiliations = submitAffiliations;
             data['changed_by'] = vm.currentUser.userID;
             data['earliest_date'] = findEarliestDate();
+
             teamData.preRegisterMember(data)
                 .then(function () {
                     if (ind > -1) {
@@ -119,52 +120,141 @@
         };
         vm.labNames = function(office) {
             if (office !== undefined) {
-                if (office.people_labs_id !== null) {
+                if (office.type === 'lab') {
                     return office.name + '@' + office.group_name;
                 }
+                if (office.type === 'technician'
+                    || office.type === 'scienceManager'
+                    || office.type === 'administrative') {
+                    return office.name + '@' + office.unit;
+                }
+
                 return office.name;
             }
             return '';
         };
 
         vm.getSearchResults = function(name) {
+            var newResultLab;
+            var newResultTech;
+            var newResultSc;
+            var newResultAdm;
             if (name === undefined) name = '';
             name = name.toLowerCase();
             vm.searchResults = [];
+            var usedIDs = [];
             if (name.length > 3) {
+                var labs = [];
+                var techs = [];
+                var managers = [];
+                var adms = [];
                 for (var ind in vm.allPeople) {
                     if (nameMatching(vm.allPeople[ind].name,vm.searchName) !== null) {
-                       vm.searchResults.push(vm.allPeople[ind]);
+                        if (usedIDs.indexOf(vm.allPeople[ind].id) === -1) {
+                            // does not exist
+                            // split into the various non-null roles
+                            usedIDs.push(vm.allPeople[ind].id);
+                            if (vm.allPeople[ind].lab_id !== null) {
+                                labs.push([vm.allPeople[ind].lab_id,vm.allPeople[ind].group_id]);
+                                newResultLab = Object.assign({}, vm.allPeople[ind]);
+                                newResultLab.type = 'lab';
+                                vm.searchResults.push(newResultLab);
+                            }
+                            if (vm.allPeople[ind].technician_office_id !== null) {
+                                techs.push(vm.allPeople[ind].technician_office_id);
+                                newResultTech = Object.assign({}, vm.allPeople[ind]);
+                                newResultTech.type = 'tech';
+                                vm.searchResults.push(newResultTech);
+                            }
+                            if (vm.allPeople[ind].science_manager_office_id !== null) {
+                                managers.push(vm.allPeople[ind].science_managers_office_id);
+                                newResultSc = Object.assign({}, vm.allPeople[ind]);
+                                newResultSc.type = 'manager';
+                                vm.searchResults.push(newResultSc);
+                            }
+                            if (vm.allPeople[ind].administrative_office_id !== null) {
+                                adms.push(vm.allPeople[ind].administrative_office_id);
+                                newResultAdm = Object.assign({}, vm.allPeople[ind]);
+                                newResultAdm.type = 'adm';
+                                vm.searchResults.push(newResultAdm);
+                            }
+                        } else {
+                            for (var indRes in vm.searchResults) {
+                                if (vm.searchResults[indRes].id === vm.allPeople[ind].id) {
+                                    if (vm.searchResults[indRes].type === 'lab'
+                                            && vm.allPeople[ind].lab_id !== null) {
+                                        var found = false;
+                                        for (var indLabs in labs) {
+                                            if (labs[indLabs][0] === vm.allPeople[ind].lab_id
+                                                    && labs[indLabs][1] === vm.allPeople[ind].group_id) {
+                                                found = true;
+                                                break;
+                                            }
+                                        }
+                                        if (!found) {
+                                            labs.push([vm.allPeople[ind].lab_id,vm.allPeople[ind].group_id]);
+                                            newResultLab = Object.assign({}, vm.allPeople[ind]);
+                                            newResultLab.type = 'lab';
+                                            vm.searchResults.push(newResultLab);
+                                        }
+                                    }
+                                    if (vm.searchResults[indRes].type === 'tech'
+                                            && vm.allPeople[ind].technician_office_id !== null
+                                            && techs.indexOf(vm.allPeople[ind].technician_office_id) === -1) {
+                                        techs.push(vm.allPeople[ind].technician_office_id);
+                                        newResultTech = Object.assign({}, vm.allPeople[ind]);
+                                        newResultTech.type = 'tech';
+                                        vm.searchResults.push(newResultTech);
+                                    }
+                                    if (vm.searchResults[indRes].type === 'manager'
+                                            && vm.allPeople[ind].science_manager_office_id !== null
+                                            && managers.indexOf(vm.allPeople[ind].science_manager_office_id) === -1) {
+                                        managers.push(vm.allPeople[ind].science_managers_office_id);
+                                        newResultSc = Object.assign({}, vm.allPeople[ind]);
+                                        newResultSc.type = 'manager';
+                                        vm.searchResults.push(newResultSc);
+                                    }
+                                    if (vm.searchResults[indRes].type === 'adm'
+                                            && vm.allPeople[ind].administrative_office_id !== null
+                                            && adms.indexOf(vm.allPeople[ind].administrative_office_id) === -1) {
+                                        adms.push(vm.allPeople[ind].administrative_office_id);
+                                        newResultAdm = Object.assign({}, vm.allPeople[ind]);
+                                        newResultAdm.type = 'adm';
+                                        vm.searchResults.push(newResultAdm);
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
         };
 
         vm.showLabName = function (person) {
-            if (person.lab_id !== null) {
-                return person.lab_name + '@' + person.group_name;
+            if (person.type === 'lab') {
+                return person.lab_name + ' @ ' + person.group_name;
             }
-            if (person.technician_office_id !== null) {
+            if (person.type === 'tech') {
                 return person.technician_office_name;
             }
-            if (person.science_manager_office_id !== null) {
+            if (person.type === 'manager') {
                 return person.science_manager_office_name;
             }
-            if (person.administrative_office_id !== null) {
+            if (person.type === 'adm') {
                 return person.administrative_office_name;
             }
         };
         vm.showUnitName = function (person) {
-            if (person.lab_id !== null) {
+            if (person.type === 'lab') {
                 return person.unit_name;
             }
-            if (person.technician_office_id !== null) {
+            if (person.type === 'tech') {
                 return person.technician_unit_name;
             }
-            if (person.science_manager_office_id !== null) {
+            if (person.type === 'manager') {
                 return person.science_manager_unit_name;
             }
-            if (person.administrative_office_id !== null) {
+            if (person.type === 'adm') {
                 return person.administrative_unit_name;
             }
         };
@@ -238,6 +328,8 @@
                             officeData['id'] = vm.personTech[ind]['tech_office_id'];
                             officeData['name'] = vm.personTech[ind]['tech_office_name_en'];
                             officeData['type'] = 'technician';
+                            officeData['unit'] = vm.personTech[ind]['tech_unit_short_name'];
+                            officeData['unit_id'] = vm.personTech[ind]['tech_unit_id'];
                             vm.affiliationsList.push(officeData);
                         }
                     }
@@ -247,6 +339,8 @@
                             officeData['id'] = vm.personScMan[ind]['sc_man_office_id'];
                             officeData['name'] = vm.personScMan[ind]['sc_man_office_name_en'];
                             officeData['type'] = 'scienceManager';
+                            officeData['unit'] = vm.personScMan[ind]['sc_man_unit_short_name'];
+                            officeData['unit_id'] = vm.personScMan[ind]['sc_man_unit_id'];
                             vm.affiliationsList.push(officeData);
                         }
                     }
@@ -256,6 +350,8 @@
                             officeData['id'] = vm.personAdm[ind]['adm_office_id'];
                             officeData['name'] = vm.personAdm[ind]['adm_office_name_en'];
                             officeData['type'] = 'administrative';
+                            officeData['unit'] = vm.personAdm[ind]['adm_unit_short_name'];
+                            officeData['unit_id'] = vm.personAdm[ind]['adm_unit_id'];
                             vm.affiliationsList.push(officeData);
                         }
                     }
@@ -280,7 +376,6 @@
                 });
 
         }
-
 
         /* Admin messages */
         vm.deleteAdminMessages = function () {
@@ -347,7 +442,16 @@
                 });
             personData.units()
                 .then(function (response) {
-                    vm.units = response.data.result;
+                    var units_temp = response.data.result;
+                    var units = [];
+                    var usedIDs = [];
+                    for (var el in units_temp) {
+                        if (usedIDs.indexOf(units_temp[el].id) === -1) {
+                            usedIDs.push(units_temp[el].id);
+                            units.push(units_temp[el]);
+                        }
+                    }
+                    vm.units = units;
                 })
                 .catch(function (err) {
                     console.log(err);

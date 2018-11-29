@@ -8,7 +8,7 @@
         <md-input-container>
             <label>Username (for credentials, e.g.: <i>johnsmith</i>)</label>
             <input ng-model="vm.newPerson.username" name="username"
-                    username-validate="vm.usernames" required>
+                    username-validate required>
             <div ng-messages="teamPreRegistrationForm.username.$error">
                 <div ng-message="username">Username already taken.</div>
             </div>

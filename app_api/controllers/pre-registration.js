@@ -1217,6 +1217,7 @@ var queryGetResearcherData = function (req,res,next, personID, row) {
 var queryGetTechnicianAffiliation = function (req,res,next, personID, row) {
     var query = 'SELECT technicians.id AS tech_id,' +
                 ' technicians.technician_office_id AS tech_office_id,technician_offices.name_en AS tech_office_name_en,' +
+                ' technicians_units.unit_id,units.short_name AS unit_short_name,' +
                 ' technicians.technician_position_id AS tech_position_id,technician_positions.name_en AS tech_position_name_en,' +
                 ' technicians.dedication AS tech_dedication,' +
                 ' technicians.valid_from AS tech_valid_from,technicians.valid_until AS tech_valid_until' +
@@ -1224,6 +1225,8 @@ var queryGetTechnicianAffiliation = function (req,res,next, personID, row) {
                 ' LEFT JOIN technicians ON people.id = technicians.person_id' +
                 ' LEFT JOIN technician_offices ON technicians.technician_office_id = technician_offices.id' +
                 ' LEFT JOIN technician_positions ON technicians.technician_position_id = technician_positions.id' +
+                ' LEFT JOIN technicians_units ON technicians.id = technicians_units.technician_id' +
+                ' LEFT JOIN units ON units.id = technicians_units.unit_id' +
                 ' WHERE people.id = ?;';
     var places = [personID];
     pool.getConnection(function(err, connection) {
@@ -1276,6 +1279,7 @@ var queryGetTechnicianData = function (req,res,next, personID, row) {
 var queryGetScienceManagerAffiliation = function (req,res,next, personID, row) {
     var query = 'SELECT science_managers.id AS sc_man_id,' +
                 ' science_managers.science_manager_office_id AS sc_man_office_id,science_manager_offices.name_en AS sc_man_office_name_en,'+
+                ' science_managers_units.unit_id, units.short_name AS unit_short_name,' +
                 ' science_managers.science_manager_position_id AS sc_man_position_id,science_manager_positions.name_en AS sc_man_position_name_en,' +
                 ' science_managers.dedication AS sc_man_dedication,' +
                 ' science_managers.valid_from AS sc_man_valid_from,science_managers.valid_until AS sc_man_valid_until' +
@@ -1283,6 +1287,8 @@ var queryGetScienceManagerAffiliation = function (req,res,next, personID, row) {
                 ' LEFT JOIN science_managers ON people.id = science_managers.person_id' +
                 ' LEFT JOIN science_manager_offices ON science_managers.science_manager_office_id = science_manager_offices.id' +
                 ' LEFT JOIN science_manager_positions ON science_managers.science_manager_position_id = science_manager_positions.id' +
+                ' LEFT JOIN science_managers_units ON science_managers.id = science_managers_units.science_manager_id' +
+                ' LEFT JOIN units ON units.id = science_managers_units.unit_id' +
                 ' WHERE people.id = ?;';
     var places = [personID];
     pool.getConnection(function(err, connection) {
@@ -1335,6 +1341,7 @@ var queryGetScienceManagerData = function (req,res,next, personID, row) {
 var queryGetAdministrativeAffiliation = function (req,res,next, personID, row) {
     var query = 'SELECT people_administrative_offices.id AS adm_id,' +
                 ' people_administrative_offices.administrative_office_id AS adm_office_id,administrative_offices.name_en AS adm_office_name_en,' +
+                ' people_administrative_units.unit_id, units.short_name AS unit_short_name,' +
                 ' people_administrative_offices.administrative_position_id AS adm_position_id,administrative_positions.name_en AS adm_position_name_en,' +
                 ' people_administrative_offices.dedication AS adm_dedication,' +
                 ' people_administrative_offices.valid_from AS adm_valid_from,people_administrative_offices.valid_until AS adm_valid_until' +
@@ -1342,6 +1349,8 @@ var queryGetAdministrativeAffiliation = function (req,res,next, personID, row) {
                 ' LEFT JOIN people_administrative_offices ON people.id = people_administrative_offices.person_id' +
                 ' LEFT JOIN administrative_offices ON people_administrative_offices.administrative_office_id = administrative_offices.id' +
                 ' LEFT JOIN administrative_positions ON people_administrative_offices.administrative_position_id = administrative_positions.id' +
+                ' LEFT JOIN people_administrative_units ON people_administrative_offices.id = people_administrative_units.administrative_id' +
+                ' LEFT JOIN units ON units.id = people_administrative_units.unit_id' +
                 ' WHERE people.id = ?;';
     var places = [personID];
     pool.getConnection(function(err, connection) {

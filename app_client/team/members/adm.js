@@ -6,7 +6,8 @@
         return {
             restrict: 'E',
             scope: {
-                office: '@'
+                office: '@',
+                unit: '@',
             },
             templateUrl: 'team/members/team.peopleAdmOffice.html',
             link:
@@ -110,7 +111,7 @@
                         deleteOfficePerson: scope.deleteNeverMember
                     };
                     data['changed_by'] = scope.currentUser.userID;
-                    teamData.updateAdmPeopleTeamByID(scope.office,data)
+                    teamData.updateAdmPeopleTeamByID(scope.unit, scope.office,data)
                         .then( function () {
                             scope.updateOfficePerson = [];
                             scope.deleteNeverMember = [];
@@ -201,7 +202,7 @@
                     }
                 }
                 function getPersonOfficeTeam(ind) {
-                    teamData.thisAdmPeopleData(scope.office)
+                    teamData.thisAdmPeopleData(scope.unit, scope.office)
                         .then(function (response) {
                             scope.team = response.data.result;
                             scope.currentTeamMembers = [];

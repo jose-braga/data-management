@@ -11,7 +11,7 @@
             <md-input-container>
                 <label>Username</label>
                 <input ng-model="vm.thisPerson[vm.selectedIndex-2].username" name="username"
-                    username-validate-without-self="[vm.usernames, vm.thisPerson[vm.selectedIndex-2].originalUsername]">
+                    username-validate-without-self="vm.thisPerson[vm.selectedIndex-2].originalUsername">
                 <div ng-messages="managerUserPermissionsForm[num].username.$error">
                     <div ng-message="username">Username already taken.</div>
                 </div>

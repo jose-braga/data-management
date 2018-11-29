@@ -25,6 +25,15 @@
                                 ng-value="off.id">{{off.name_en}}</md-option>
                         </md-select>
                     </md-input-container>
+                    <md-input-container
+                        class="search-box select-container input-row">
+                        <label>Unit</label>
+                        <md-select disabled ng-model="vm.thisPerson.administrative_offices[num].unit_id"
+                                    name="administrative_unit_id[num]">
+                            <md-option ng-repeat="unit in vm.units"
+                                ng-value="unit.id">{{unit.short_name}}</md-option>
+                        </md-select>
+                    </md-input-container>
                 </div>
                 <div layout="column" layout-gt-xs="row">
                     <md-input-container>
@@ -34,7 +43,7 @@
                     </md-input-container>
                     <md-input-container>
                         <label>Position</label>
-                        <md-select ng-model="vm.thisPerson.administrative_offices[num].adm_position_id"
+                        <md-select disabled ng-model="vm.thisPerson.administrative_offices[num].adm_position_id"
                                 name="administrative_position[num]">
                             <md-option ng-repeat="pos in vm.administrativePositions" ng-value="pos.id">{{pos.name_en}}</md-option>
                         </md-select>

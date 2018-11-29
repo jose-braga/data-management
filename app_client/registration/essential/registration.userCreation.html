@@ -8,7 +8,7 @@
         <md-input-container>
             <label>Username</label>
             <input ng-model="vm.thisPerson.username" name="username"
-                    username-validate="vm.usernames">
+                    username-validate>
             <div ng-messages="registrationForm.username.$error">
                 <div ng-message="username">Username already taken.</div>
             </div>

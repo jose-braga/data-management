@@ -1,6 +1,6 @@
 (function(){
     var personData = function ($http, authentication) {
-        var currentUser = authentication.currentUser();
+        //var currentUser = authentication.currentUser();
         var allPeople = function () {
             return $http.get('api/people/all');
         };

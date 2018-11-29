@@ -205,13 +205,14 @@
                     return false;
                 };
                 scope.removeRows = function (member) {
-                    var result = window.confirm('Are you sure this person was never a member of your lab?' +
+                    var result = window.confirm('Are you sure this person was never a member of this lab/group combination?' +
                     '\n\nThis will come into force only if, afterwards, you press the "Update" button.');
                     if (result) {
                         scope.deleteNeverMember.push(
                             {
                                 id: member.id,
                                 lab_id: member.lab_id,
+                                group_id: member.group_id,
                                 lab_position_id: member.lab_position_id,
                                 dedication: member.dedication,
                                 valid_from: member.valid_from,

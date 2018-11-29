@@ -1344,7 +1344,16 @@
         vm.initializeRoles = function () {
             personData.units()
                 .then(function (response) {
-                    vm.units = response.data.result;
+                    var units_temp = response.data.result;
+                    var units = [];
+                    var usedIDs = [];
+                    for (var el in units_temp) {
+                        if (usedIDs.indexOf(units_temp[el].id) === -1) {
+                            usedIDs.push(units_temp[el].id);
+                            units.push(units_temp[el]);
+                        }
+                    }
+                    vm.units = units;
                 })
                 .catch(function (err) {
                     console.log(err);
@@ -1423,7 +1432,16 @@
         vm.initializeProfessional = function () {
             personData.units()
                 .then(function (response) {
-                    vm.units = response.data.result;
+                    var units_temp = response.data.result;
+                    var units = [];
+                    var usedIDs = [];
+                    for (var el in units_temp) {
+                        if (usedIDs.indexOf(units_temp[el].id) === -1) {
+                            usedIDs.push(units_temp[el].id);
+                            units.push(units_temp[el]);
+                        }
+                    }
+                    vm.units = units;
                 })
                 .catch(function (err) {
                     console.log(err);

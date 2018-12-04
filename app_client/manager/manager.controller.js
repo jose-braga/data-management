@@ -415,24 +415,26 @@
                     } else {
                         toIncludeDueRole = 1;
                     }
-                    if (vm.searchActiveDate !== null
-                        && (vm.allPeople[member]['valid_until'] !== null && vm.allPeople[member]['valid_from'] !== null)) {
-                        if (moment(vm.allPeople[member]['valid_until']).isAfter(moment(vm.searchActiveDate))
-                         && moment(vm.allPeople[member]['valid_from']).isBefore(moment(vm.searchActiveDate))) {
-                            toIncludeDueDate = 1;
-                        }
-                    } else {
-                        if (vm.searchActiveDate !== null
-                         && (vm.allPeople[member]['valid_until'] === null && vm.allPeople[member]['valid_from'] !== null)) {
+                    if (vm.searchActiveDate !== null) {
+                        if (vm.allPeople[member]['valid_until'] !== null && vm.allPeople[member]['valid_from'] !== null) {
+                            if (moment(vm.allPeople[member]['valid_until']).isAfter(moment(vm.searchActiveDate))
+                                    && moment(vm.allPeople[member]['valid_from']).isBefore(moment(vm.searchActiveDate))) {
+                                toIncludeDueDate = 1;
+                            }
+
+                        } else if (vm.allPeople[member]['valid_until'] === null && vm.allPeople[member]['valid_from'] !== null) {
                             if (moment(vm.allPeople[member]['valid_from']).isBefore(moment(vm.searchActiveDate))) {
                                 toIncludeDueDate = 1;
                             }
-                        } else if (vm.searchActiveDate !== null
-                         && (vm.allPeople[member]['valid_until'] === null && vm.allPeople[member]['valid_from'] === null)) {
-                             toIncludeDueDate = 0;
+                        } else if (vm.allPeople[member]['valid_until'] !== null && vm.allPeople[member]['valid_from'] === null) {
+                            if (moment(vm.allPeople[member]['valid_until']).isAfter(moment(vm.searchActiveDate))) {
+                                toIncludeDueDate = 1;
+                            }
                         } else {
                             toIncludeDueDate = 1;
                         }
+                    } else {
+                        toIncludeDueDate = 1;
                     }
                     toInclude = toIncludeDueName * toIncludeDueUnit
                                 * toIncludeDueGroup * toIncludeDueLab

@@ -11,6 +11,7 @@ module.exports.generateJWT =  function (userID, personID, stat, username,labID,c
         username: username,
         labID: labID,
         cityID: cityID,
+        base_url: process.env.PATH_PREFIX,
         exp: parseInt(expiry.getTime()/1000, 10)
     }, process.env.JWT_SECRET);
 };

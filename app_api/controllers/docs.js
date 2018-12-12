@@ -383,7 +383,7 @@ var queryDeleteDocDB = function (req, res, next, docID) {
 /***************************** Entry Functions ********************************/
 module.exports.getUnitActiveDocs = function (req, res, next) {
     // managers can change data based on their geographical location
-    getUser(req, res, [0, 5, 10, 15, 16, 20],
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30, 40],
         function (req, res, username) {
             queryGetUnitsActiveDocs(req,res,next);
         }

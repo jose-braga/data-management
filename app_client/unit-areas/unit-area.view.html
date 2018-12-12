@@ -1,0 +1,18 @@
+<div layout="row">
+    <navigation-column></navigation-column>
+    <div ng-if="!vm.accessPermission" layout="column" flex>
+        <md-content class='md-padding' flex>
+            Make sure you have the appropriate permissions to access this page.
+        </md-content>
+    </div>
+    <div ng-if="vm.accessPermission" layout="column" flex>
+        <toolbar-row></toolbar-row>
+        <md-content>
+            <div flex layout="column" layout-padding>
+                <docs-active-list flex></docs-active-list>
+                <docs-queue-list ng-if="vm.publishPermission" flex></docs-queue-list>
+                <doc-add ng-if="vm.publishPermission" flex></doc-add>
+            </div>
+        </md-content>
+    </div>
+</div>

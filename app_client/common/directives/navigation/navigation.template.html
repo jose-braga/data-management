@@ -61,6 +61,20 @@
           </md-button>
         </md-list-item>
         <md-divider></md-divider>
+        <md-list-item ng-if="nav.showUCIBIO" style="padding:0px; border-radius:0px;">
+          <md-button ng-href="/#!unit-area/UCIBIO" style="border-radius:0px;" layout-align="center center"
+              class="md-toolbar-tools sidenav-button"  ng-class="nav.selected('/unit-area/UCIBIO')">
+            My UCIBIO
+          </md-button>
+        </md-list-item>
+        <md-divider></md-divider>
+        <md-list-item ng-if="nav.showLAQV" style="padding:0px; border-radius:0px;">
+          <md-button ng-href="/#!unit-area/LAQV" style="border-radius:0px;" layout-align="center center"
+              class="md-toolbar-tools sidenav-button"  ng-class="nav.selected('/unit-area/LAQV')">
+            My LAQV
+          </md-button>
+        </md-list-item>
+        <md-divider></md-divider>
       </div>
       <md-list-item style="padding:0px; border-radius:0px;">
         <md-button ng-href="/#!help" style="border-radius:0px;" layout-align="center center"

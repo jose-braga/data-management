@@ -82,15 +82,58 @@ passport.use(
         passReqToCallback : true // allows us to pass back the entire request to the callback
     },
     function(req, username, password, done) { // callback with username and password from our form
-        var query = 'SELECT users.id AS user_id, users.username, users.password, users.status AS stat, ' +
-            'people.id as person_id, people_institution_city.city_id, ' +
-            'people_labs.lab_id ' +
-            'FROM users ' +
-            'LEFT JOIN people ON people.user_id = users.id ' +
-            'LEFT JOIN people_institution_city ON people.id = people_institution_city.person_id ' +
-            'LEFT JOIN people_labs ON people.id = people_labs.person_id ' +
-            'WHERE users.username = ? AND people.status = 1;';
-        var places = [username];
+        var query = 'SELECT users.id AS user_id, users.username, users.password, users.status AS stat,' +
+                ' people.id as person_id, people_institution_city.city_id,' +
+                ' people_labs.lab_id, units.id AS unit_id' +
+                ' FROM users' +
+                ' LEFT JOIN people ON people.user_id = users.id' +
+                ' LEFT JOIN people_institution_city ON people.id = people_institution_city.person_id' +
+                ' LEFT JOIN people_labs ON people.id = people_labs.person_id' +
+                ' LEFT JOIN labs ON labs.id = people_labs.lab_id' +
+                ' JOIN labs_groups ON labs_groups.lab_id = labs.id' +
+                ' JOIN groups ON groups.id = labs_groups.group_id' +
+                ' JOIN groups_units ON groups_units.group_id = groups.id' +
+                ' JOIN units ON units.id = groups_units.unit_id' +
+                ' WHERE users.username = ? AND people.status = 1 AND' +
+                ' ((people_labs.valid_until >= CURRENT_DATE() OR people_labs.valid_until IS NULL) AND' +
+                ' (labs.finished >= CURRENT_DATE() OR labs.finished IS NULL) AND' +
+                ' (labs_groups.valid_until >= CURRENT_DATE() OR labs_groups.valid_until IS NULL) AND' +
+                ' (groups.finished >= CURRENT_DATE() OR groups.finished IS NULL) AND' +
+                ' (groups_units.valid_until >= CURRENT_DATE() OR groups_units.valid_until IS NULL))' +
+                ' UNION' +
+                ' SELECT users.id AS user_id, users.username, users.password, users.status AS stat,' +
+                ' people.id as person_id, people_institution_city.city_id,' +
+                ' NULL, technicians_units.unit_id' +
+                ' FROM users' +
+                ' LEFT JOIN people ON people.user_id = users.id' +
+                ' LEFT JOIN people_institution_city ON people.id = people_institution_city.person_id' +
+                ' LEFT JOIN technicians ON technicians.person_id = people.id' +
+                ' LEFT JOIN technicians_units ON technicians.id = technicians_units.technician_id' +
+                ' WHERE users.username = ? AND people.status = 1 AND' +
+                ' (technicians.valid_until >= CURRENT_DATE() OR technicians.valid_until IS NULL)' +
+                ' UNION' +
+                ' SELECT users.id AS user_id, users.username, users.password, users.status AS stat,' +
+                ' people.id as person_id, people_institution_city.city_id,' +
+                ' NULL, science_managers_units.unit_id' +
+                ' FROM users' +
+                ' LEFT JOIN people ON people.user_id = users.id' +
+                ' LEFT JOIN people_institution_city ON people.id = people_institution_city.person_id' +
+                ' LEFT JOIN science_managers ON science_managers.person_id = people.id' +
+                ' LEFT JOIN science_managers_units ON science_managers.id = science_managers_units.science_manager_id' +
+                ' WHERE users.username = ? AND people.status = 1 AND' +
+                ' (science_managers.valid_until >= CURRENT_DATE() OR science_managers.valid_until IS NULL)' +
+                ' UNION' +
+                ' SELECT users.id AS user_id, users.username, users.password, users.status AS stat,' +
+                ' people.id as person_id, people_institution_city.city_id,' +
+                ' NULL, people_administrative_units.unit_id' +
+                ' FROM users' +
+                ' LEFT JOIN people ON people.user_id = users.id' +
+                ' LEFT JOIN people_institution_city ON people.id = people_institution_city.person_id' +
+                ' LEFT JOIN people_administrative_offices ON people_administrative_offices.person_id = people.id' +
+                ' LEFT JOIN people_administrative_units ON people_administrative_offices.id = people_administrative_units.administrative_id' +
+                ' WHERE users.username = ? AND people.status = 1 AND' +
+                ' (people_administrative_offices.valid_until >= CURRENT_DATE() OR people_administrative_offices.valid_until IS NULL);';
+        var places = [username, username, username, username];
         pool.getConnection(function(err, connection) {
             if (err) {
                 return done(err);
@@ -102,7 +145,7 @@ passport.use(
                     if (err) {
                         return done(err);
                     }
-                    if (!rows.length) {
+                    if (rows.length < 1) {
                         return done(null, false, { message: 'Incorrect username.' });
                     }
                     // if the user is found but the password is wrong
@@ -112,8 +155,20 @@ passport.use(
                     // all is well, return successful user
                     var row = Object.assign({}, rows[0]);
                     row['lab_id'] = [];
+                    var usedLabs = [];
                     for (var indRow in rows) {
-                        row['lab_id'].push(rows[indRow]['lab_id']);
+                        if (usedLabs.indexOf(rows[indRow]['lab_id']) === -1
+                                && rows[indRow]['lab_id'] !== null) {
+                            row['lab_id'].push(rows[indRow]['lab_id']);
+                        }
+                    }
+                    row['unit_id'] = [];
+                    var usedUnits = [];
+                    for (var indRow in rows) {
+                        if (usedUnits.indexOf(rows[indRow]['unit_id']) === -1
+                                && rows[indRow]['unit_id'] !== null) {
+                            row['unit_id'].push(rows[indRow]['unit_id']);
+                        }
                     }
                     return done(null, row);
                 }

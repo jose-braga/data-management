@@ -1,5 +1,6 @@
  (function(){
     // Current version: 1.0.0
+    // TODO: 0 - AVOID LOCAL STORAGE
     // TODO: 0 - Change LAQV icon
     // TODO: 1 - Correct ordering by lab/office on manager
     // TODO: 2 - Email to FCT (revise with Teresa)
@@ -31,6 +32,11 @@
             .when('/unit', {
                 templateUrl: 'unit/unit.view.html',
                 controller: 'unitCtrl',
+                controllerAs: 'vm'
+            })
+            .when('/unit-area/:unit', {
+                templateUrl: 'unit-areas/unit-area.view.html',
+                controller: 'unitAreaCtrl',
                 controllerAs: 'vm'
             })
             .when('/manager', {

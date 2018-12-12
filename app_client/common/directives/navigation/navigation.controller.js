@@ -33,6 +33,15 @@
             } else {
                 nav.showAdmin = false;
             }
+            nav.showUCIBIO = false;
+            nav.showLAQV = false;
+            if (nav.currentUser.unitID.indexOf(1) !== -1) {
+                nav.showUCIBIO = true;
+            }
+            if (nav.currentUser.unitID.indexOf(2) !== -1) {
+                nav.showLAQV = true;
+            }
+
         }
         nav.logout = function() {
             $location.path('/');

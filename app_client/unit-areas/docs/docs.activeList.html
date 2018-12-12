@@ -1,0 +1,41 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Documents and announcements</span>
+        </md-card-title-text>
+    </md-card-title>
+    <md-card-content layout-gt-sm="row" layout="column" flex>
+        <div ng-if="vm.nothingToShow(vm.showData)" layout-padding>
+            <p>No data to show!</p>
+        </div>
+        <div layout="column" flex>
+            <div ng-repeat="lineData in vm.showData">
+                <div ng-repeat="(num, data) in lineData">
+                    <div layout="row" layout-padding class="documents" flex>
+                        <div layout="column">
+                            <div class="document-list-header">
+                                <span>{{data.type}}</span>
+                            </div>
+                            <md-list flex>
+                                <md-list-item ng-repeat="document in data.documents"
+                                        class="document-list-data">
+                                    <div class="md-list-item-text" layout="column">
+                                        <h3>{{ document.title }}</h3>
+                                        <h4>{{ document.content }}<br>
+                                            <a ng-if="document.show_link" href="{{document.attachment_url}}" target="_blank">Link</a>
+                                        </h4>
+                                        <span class="dates">
+                                            ({{document.valid_from | date : 'yyyy-MM-dd' }} - {{document.valid_until | date : 'yyyy-MM-dd'}})
+                                        </span>
+                                    </div>
+                                    <md-divider ng-if="!$last"></md-divider>
+                                </md-list-item>
+                            </md-list>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </md-card-content>
+</md-card>

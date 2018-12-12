@@ -61,7 +61,7 @@ module.exports.login = function(req, res, next) {
         }
         if (user) {
             var token = userModule.generateJWT(user.user_id,user.person_id,
-                            user.stat,user.username, user.lab_id, user.city_id);
+                            user.stat,user.username, user.lab_id, user.unit_id, user.city_id);
             sendJSONResponse(res, 200, {
                 "token" : token
             });

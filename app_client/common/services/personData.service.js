@@ -136,6 +136,9 @@
         var boardTypes = function () {
             return $http.get('api/list/board-types');
         };
+        var docTypes = function () {
+            return $http.get('api/list/doc-types');
+        };
 
         var permissions = function () {
             return $http.get('api/list/permissions');
@@ -394,6 +397,7 @@
             patentStatus: patentStatus,
             datasetTypes: datasetTypes,
             boardTypes: boardTypes,
+            docTypes: docTypes,
             permissions: permissions,
             updateInstitutionCityPersonByID: updateInstitutionCityPersonByID,
             updateJobsPersonByID: updateJobsPersonByID,

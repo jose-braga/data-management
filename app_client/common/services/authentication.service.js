@@ -93,7 +93,9 @@
                     userID: payload.userID,
                     personID: payload.personID,
                     stat: payload.stat,
-                    username : payload.username,
+                    username: payload.username,
+                    labID: payload.labID,
+                    unitID: payload.unitID,
                     base_url: payload.base_url,
                 };
             } else {

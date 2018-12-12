@@ -6346,6 +6346,9 @@ module.exports.listOf = function (req, res, next) {
     } else if (listOf === 'board-types') {
         querySQL = 'SELECT * FROM board_types;';
         getQueryResponse(querySQL, req, res, next);
+    } else if (listOf === 'doc-types') {
+        querySQL = 'SELECT * FROM document_types;';
+        getQueryResponse(querySQL, req, res, next);
     } else {
         var errorNum = 404;
         sendJSONResponse(res, errorNum, {"status": "error", "statusCode": errorNum, "error" : "Does not exist!"});

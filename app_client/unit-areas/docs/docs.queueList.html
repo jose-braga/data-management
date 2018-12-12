@@ -1,0 +1,27 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">For publishers: Documents in queue (active and inactive)</span>
+        </md-card-title-text>
+    </md-card-title>
+    <md-card-content layout="column" flex>
+        <ol>
+            <li ng-repeat="(num,document) in vm.docUnitQueue">
+                {{document.doc_type_name}}: {{document.title}} - {{document.content}}.
+                ({{document.valid_from | date : 'yyyy-MM-dd' }} - {{document.valid_until | date : 'yyyy-MM-dd'}}).
+                <a ng-if="document.show_link" href="{{document.attachment_url}}" target="_blank">Link</a>
+                <md-button ng-click="vm.showDetails(document)" class="md-icon-button interaction-button">
+                    <md-icon md-svg-src="images/icons/edit_24px.svg"></md-icon>
+                </md-button>
+                <md-button  ng-click="vm.deleteDocument(vm.forms['docDelete'], document)" class="md-icon-button interaction-button">
+                    <md-icon md-svg-src="images/icons/delete_24px.svg"></md-icon>
+                </md-button>
+            </li>
+        </ol>
+        <div class="status-message" ng-hide="vm.hideMessage[vm.forms['docDelete']]">
+            <span class="message" ng-class="vm.messageType[vm.forms['docDelete']]">
+                {{vm.updateStatus[vm.forms['docDelete']]}}
+            </span>
+        </div>
+    </md-card-content>
+</md-card>

@@ -532,3 +532,42 @@ ul.help-list li{
   font-size: 16px;
 }
 
+.documents {
+  width: 33%;
+  float: left;
+}
+
+
+.documents .document-list-header span{
+  font-weight: bold;
+  font-size: 18px;
+  color: blue;
+}
+
+.documents .document-list-data h3 {
+  font-weight: bold;
+  font-size: 12px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  color: #000000;
+}
+
+.documents .document-list-data h4 {
+  font-weight: normal;
+  font-size: 12px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  color: #333333;
+}
+
+.documents .document-list-data .dates {
+  font-weight: normal;
+  font-size: 10px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+  color: #999999;
+}
+
+.radio-margin {
+  margin-left: 15px;
+}

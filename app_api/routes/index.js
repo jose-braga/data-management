@@ -13,6 +13,7 @@ var ctrlTeamData = require('../controllers/team.js');
 var ctrlManagerData = require('../controllers/manager.js');
 var ctrlProductivityData = require('../controllers/productivity.js');
 var ctrlStatistics = require('../controllers/statistics.js');
+var ctrlDocsData = require('../controllers/docs.js');
 
 var ctrlRegistrationData = require('../controllers/registration.js');
 var ctrlPreRegistrationData = require('../controllers/pre-registration.js');
@@ -213,6 +214,13 @@ router.get('/trainings/person/:personID', auth, ctrlProductivityData.listPersonT
 router.put('/trainings/team/:groupID/:teamID', auth, ctrlProductivityData.addTrainingsLab);
 router.put('/trainings/team/:groupID/:teamID/delete', auth, ctrlProductivityData.deleteTrainingsTeam);
 router.put('/trainings/person/:personID', auth, ctrlProductivityData.updatePersonTrainings);
+
+// POST (Create) new user (authenticated)
+router.get('/docs/unit/:unitID/active', auth, ctrlDocsData.getUnitActiveDocs);
+router.get('/docs/unit/:unitID', auth, ctrlDocsData.getUnitDocs);
+router.post('/docs/unit/:unitID', auth, ctrlDocsData.addDoc);
+router.put('/docs/unit/:unitID/:docID', auth, ctrlDocsData.updateDoc);
+router.delete('/docs/unit/:unitID/:docID', auth, ctrlDocsData.deleteDoc);
 
 // POST (Create) new user (authenticated)
 router.post('/registration', auth, ctrlRegistrationData.addPerson);

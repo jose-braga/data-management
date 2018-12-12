@@ -1,7 +1,8 @@
 var bcrypt = require('bcryptjs');
 var jwt = require('jsonwebtoken');
 
-module.exports.generateJWT =  function (userID, personID, stat, username,labID,cityID) {
+module.exports.generateJWT =  function (userID, personID, stat, username,
+                                        labID, unitID, cityID) {
     var expiry = new Date();
     expiry.setDate(expiry.getDate() + 7);
     return jwt.sign({
@@ -10,6 +11,7 @@ module.exports.generateJWT =  function (userID, personID, stat, username,labID,c
         stat: stat,
         username: username,
         labID: labID,
+        unitID: unitID,
         cityID: cityID,
         base_url: process.env.PATH_PREFIX,
         exp: parseInt(expiry.getTime()/1000, 10)

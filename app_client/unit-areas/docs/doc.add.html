@@ -1,0 +1,88 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">For publishers: Add info to this area</span>
+        </md-card-title-text>
+    </md-card-title>
+    <form flex novalidate name="docAddForm" ng-submit="docAddForm.$valid
+        && vm.submitDocs(vm.forms['docAdd'])">
+        <md-card-content layout="column" flex>
+            <md-input-container flex>
+                <label>Doc. Type</label>
+                <md-select required ng-model="vm.doc.type"
+                        name="doc_type">
+                    <md-option ng-repeat="type in vm.docTypes"
+                        ng-value="type.id">
+                        {{type.name}}
+                    </md-option>
+                </md-select>
+            </md-input-container>
+            <md-input-container flex>
+                <label>Title</label>
+                <input required ng-model="vm.doc.title"
+                    md-maxlength="200"
+                    name="doc_title">
+            </md-input-container>
+            <md-input-container flex>
+                <label>Contents</label>
+                <textarea ng-model="vm.doc.contents"
+                    md-maxlength="2000" rows="5"
+                    name="doc_contents"></textarea>
+            </md-input-container>
+            <div layout="column" layout-gt-xs="row" layout-align="start center" flex>
+                <div>
+                    <p>Add File or URL?</p>
+                    <md-radio-group ng-model="vm.doc.hasAttachment">
+                        <md-radio-button value="None">None</md-radio-button>
+                        <md-radio-button value="File">File</md-radio-button>
+                        <md-radio-button value="URL">URL</md-radio-button>
+                    </md-radio-group>
+                </div>
+                <div ng-if="vm.doc.hasAttachment === 'File'" flex>
+                    <label for="doc_file">File upload:</label>
+                    <input readfile="vm.doc.file"
+                        id="document-file-add"
+                        type="file"
+                        accept=".docx, .xlsx,
+                                .doc, .xls,
+                                .pdf,
+                                .txt,.csv,
+                                image/*,
+                                video/*"
+                        name="doc_file">
+                </div>
+                <div ng-if="vm.doc.hasAttachment === 'URL'" flex>
+                    <md-input-container flex>
+                        <label>URL</label>
+                        <input required ng-model="vm.doc.doc_url"
+                            md-maxlength="400"
+                            name="doc_url">
+                    </md-input-container>
+                </div>
+            </div>
+            <div layout="column" layout-gt-xs="row">
+                <md-input-container class="input-row-longer">
+                    <label>Visible from</label>
+                    <md-datepicker md-current-view="month" ng-model="vm.doc.valid_from"
+                            name="doc_start" md-placeholder="Enter date"></md-datepicker>
+                </md-input-container>
+                <md-input-container class="input-row-longer">
+                    <label>Visible until</label>
+                    <md-datepicker md-current-view="month" ng-model="vm.doc.valid_until"
+                            md-min-date="vm.doc.valid_from"
+                            name="doc_end"
+                            md-placeholder="Enter date"></md-datepicker>
+                </md-input-container>
+            </div>
+            <div layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button id="document-add" type="submit"
+                    class="button-small md-raised md-primary">Add</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['docAdd']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['docAdd']]">
+                        {{vm.updateStatus[vm.forms['docAdd']]}}
+                    </span>
+                </div>
+            </div>
+        </md-card-content>
+    </form>
+</md-card>

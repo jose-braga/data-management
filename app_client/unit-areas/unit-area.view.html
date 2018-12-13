@@ -2,7 +2,8 @@
     <navigation-column></navigation-column>
     <div ng-if="!vm.accessPermission" layout="column" flex>
         <md-content class='md-padding' flex>
-            Make sure you have the appropriate permissions to access this page.
+            <p>You must login first.</p>
+            <p>If you are logged in make sure you have the appropriate permissions to access this page.</p>
         </md-content>
     </div>
     <div ng-if="vm.accessPermission" layout="column" flex>

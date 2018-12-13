@@ -71,8 +71,8 @@
                         vm.updateStatus[ind] = "Error!";
                         vm.messageType[ind] = 'message-error';
                     },
-                    function () {}
-                    );
+                    function () {
+                    });
             }
         };
         vm.showDetails = function (doc) {
@@ -121,7 +121,7 @@
                             ctrl.updateStatus[ind] = "Error!";
                             ctrl.messageType[ind] = 'message-error';
                         },
-                        function () {}
+                        function (value) {}
                         );
                     return false;
                 };
@@ -255,6 +255,7 @@
                 });
         }
         function initializeInterface(currentUnitShortName, units) {
+            vm.progressSubmit = 0;
             vm.showData = [];
             vm.doc = {};
             vm.doc.hasAttachment = 'None';

@@ -1451,8 +1451,8 @@ var sendEmailsCar = function (req, res, next, mailError) {
                 let mailOptions = {
                     from: '"Admin" <admin@laqv-ucibio.info>', // sender address
                     to: recipients, // list of receivers (comma-separated)
-                    subject: 'Permissão de circulação no campus FCT - User: ' + req.data.colloquial_name +
-                             ', ID: ' +  req.data.person_id, // Subject line
+                    subject: 'Permissão de circulação no campus FCT - User: ' + req.body.colloquial_name +
+                             ', ID: ' +  req.body.person_id, // Subject line
                     text: 'Olá ,\n\n' +
                           'O utilizador requer autorização para circular no campus FCT.\n\n' +
                           'Dirija-se a https://laqv-ucibio.info/manager para recolher a informação necessária.\n\n' +

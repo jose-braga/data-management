@@ -54,11 +54,17 @@ typings/
 # Yarn Integrity file
 .yarn-integrity
 
+# Docker setup files
+Dockerfile
+docker-compose.yml
+.dockerignore
+
 # dotenv environment variables file
 .env
 
-# temp directory
+# ignore some directories
 temp/
+database/
 
 #user input images
 public/images/people/

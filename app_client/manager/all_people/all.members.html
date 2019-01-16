@@ -12,7 +12,7 @@
                     <ng-md-icon icon="search" size="24"></ng-md-icon>
                     <md-input-container flex>
                         <label>Name</label>
-                        <input ng-model="vm.searchName" ng-change="vm.renderPeople('new')">
+                        <input ng-model="vm.searchName" ng-change="vm.renderHub()">
                     </md-input-container>
                 </div>
                 <div layout="row" layout-align="none center" flex="20">
@@ -78,23 +78,31 @@
             <md-progress-circular ng-if="vm.loadingAllPeople" md-mode="indeterminate"></md-progress-circular>
             <div class="small-screens" layout="column" ng-if="!vm.showTable()">
                 <div ng-repeat="(memberNum,member) in vm.currPeople track by $index">
-                    <div layout="column">
-                        <div layout="row" layout-align=" center">
-                            <div class="question"><span class="highlight">Name:</span></div>
-                            <div class="answer"><span>{{member.person_name}}</span></div>
+                    <div ng-if="member.hiding_person === undefined">
+                        <div layout="column">
+                             <div layout="row" layout-align=" center">
+                                <div class="question"><span class="highlight">Name:</span></div>
+                                <div class="answer"><span>{{member.person_name}}</span></div>
+                            </div>
+                            <div layout="row" layout-align=" center">
+                                <div class="question"><span class="highlight">A. key:</span></div>
+                                <div class="answer"><span>{{member.association_key}}</span></div>
+                            </div>
+                            <div layout="row" layout-align=" center">
+                                <div class="question"><span class="highlight">ORCID:</span></div>
+                                <div class="answer"><span>{{member.ORCID}}</span></div>
+                            </div>
+                            <div layout="row" layout-align=" center">
+                                <div class="question"><span class="highlight">City:</span></div>
+                                <div class="answer"><span>{{member.pole_name}}</span></div>
+                            </div>
+                            <div layout="row" layout-align=" center">
+                                <div class="question"><span class="highlight">Role:</span></div>
+                                <div class="answer"><span>{{vm.roleName(member.role_id)}}</span></div>
+                            </div>
                         </div>
-                        <div layout="row" layout-align=" center">
-                            <div class="question"><span class="highlight">A. key:</span></div>
-                            <div class="answer"><span>{{member.association_key}}</span></div>
-                        </div>
-                        <div layout="row" layout-align=" center">
-                            <div class="question"><span class="highlight">City:</span></div>
-                            <div class="answer"><span>{{member.pole_name}}</span></div>
-                        </div>
-                        <div layout="row" layout-align=" center">
-                            <div class="question"><span class="highlight">City:</span></div>
-                            <div class="answer"><span>{{vm.roleName(member.pole_name)}}</span></div>
-                        </div>
+                    </div>
+                    <div ng-if="member.showing" ng-class="{darker: member.darker}">
                         <div ng-if="member.role_id==1" layout="row" layout-align=" center">
                             <div class="question"><span class="highlight">Lab:</span></div>
                             <div class="answer">
@@ -106,9 +114,9 @@
                                         <div class="scrollable">
                                             <md-optgroup ng-repeat="unit in vm.units" label="{{unit.short_name}}" class="large-optgroup">
                                                 <md-optgroup flex-offset="5" ng-repeat="group in vm.groups | filter: {unit_id: unit.id}"
-                                                             label="{{group.name}}">
+                                                                label="{{group.name}}">
                                                     <md-option ng-repeat="lab in vm.labs | filter: {group_id: group.group_id, unit_id: unit.id}:true"
-                                                               ng-value="lab.lab_row">{{vm.labNames(lab)}}
+                                                                ng-value="lab.lab_row">{{vm.labNames(lab)}}
                                                     </md-option>
                                                 </md-optgroup>
                                             </md-optgroup>
@@ -127,7 +135,7 @@
                                             name="member_office[memberNum]">
                                         <div class="scrollable">
                                             <md-option ng-repeat="fac in vm.facilities"
-                                                       ng-value="fac.id">{{fac.name_en}}
+                                                        ng-value="fac.id">{{fac.name_en}}
                                             </md-option>
                                         </div>
                                     </md-select>
@@ -144,7 +152,7 @@
                                             name="member_office[memberNum]">
                                         <div class="scrollable">
                                             <md-option ng-repeat="scm in vm.scienceManagementOffices"
-                                                       ng-value="scm.id">{{scm.name_en}}
+                                                        ng-value="scm.id">{{scm.name_en}}
                                             </md-option>
                                         </div>
                                     </md-select>
@@ -161,7 +169,7 @@
                                             name="member_office[memberNum]">
                                         <div class="scrollable">
                                             <md-option ng-repeat="adm in vm.administrativeOffices"
-                                                       ng-value="adm.id">{{adm.name_en}}
+                                                        ng-value="adm.id">{{adm.name_en}}
                                             </md-option>
                                         </div>
                                     </md-select>
@@ -247,10 +255,6 @@
                             </div>
                         </div>
                         <div layout="row" layout-align=" center">
-                            <div class="question"><span class="highlight">ORCID:</span></div>
-                            <div class="answer"><span>{{member.ORCID}}</span></div>
-                        </div>
-                        <div layout="row" layout-align=" center">
                             <div class="question"><span class="highlight">Started:</span></div>
                             <div class="answer">
                                 <md-input-container class="input-no-margin simple-input" ng-if="member.role_id==1">
@@ -308,6 +312,28 @@
                                 </md-input-container>
                             </div>
                         </div>
+                    </div>
+                    <div ng-if="member.last || member.hide.length === 0">
+                        <div layout="row" layout-align="start center">
+                            <div ng-if="member.last" layout="row">
+                                <span ng-show="!member.expanded" class="highlight">
+                                    <b>Expand info</b>
+                                </span>
+                                <span ng-show="member.expanded" class="highlight">
+                                    <b>Compact info</b>
+                                </span>
+                                <div>                                    
+                                    <ng-md-icon icon="expand_more" 
+                                        ng-show="!member.expanded" 
+                                        ng-click="vm.expandInfo(member)" 
+                                        size="22"></ng-md-icon>
+                                    <ng-md-icon icon="expand_less" 
+                                        ng-show="member.expanded" 
+                                        ng-click="vm.compactInfo(member)" 
+                                        size="22"></ng-md-icon>
+                                </div>
+                            </div>
+                        </div>
                         <div layout="row">
                             <md-button ng-click="vm.showDetailsPerson(member)"
                                         aria-label="Details"
@@ -320,14 +346,19 @@
                                 <md-icon md-svg-src="images/icons/delete_24px.svg"></md-icon>
                             </md-button>
                         </div>
+                        <md-divider ng-if="!vm.showTable()"></md-divider>
                     </div>
-                    <md-divider ng-if="!vm.showTable()"></md-divider>
+                    
+                    
                 </div>
             </div>
             <div ng-if="vm.showTable()">
                 <table>
                     <thead>
                         <tr>
+                            <th>
+
+                            </th>
                             <th>
                                 <a ng-click="vm.sortColumn('person_name')">Name</a>
                                 <ng-md-icon ng-if="!vm.sortReverse && vm.sortType=='person_name'"
@@ -390,7 +421,21 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr ng-repeat="(memberNum,member) in vm.currPeople track by $index">
+                        <tr ng-repeat="(memberNum,member) in vm.currPeople track by $index"
+                            ng-if="member.showing"
+                            ng-class="{darker: member.darker}">
+                            <td>
+                                <div ng-if="member.hiding_person === undefined && member.hide.length > 0">
+                                    <ng-md-icon icon="expand_more" 
+                                        ng-show="!member.expanded" 
+                                        ng-click="vm.expandInfo(member)" 
+                                        size="18"></ng-md-icon>
+                                    <ng-md-icon icon="expand_less" 
+                                        ng-show="member.expanded" 
+                                        ng-click="vm.compactInfo(member)" 
+                                        size="18"></ng-md-icon>
+                                </div>
+                            </td>
                             <td>{{member.person_name}}</td>
                             <td>{{member.association_key}}</td>
                             <td><span class="space-left">{{member.pole_name}}</span></td>
@@ -407,9 +452,9 @@
                                         <div class="scrollable">
                                             <md-optgroup ng-repeat="unit in vm.units" label="{{unit.short_name}}" class="large-optgroup">
                                                 <md-optgroup flex-offset="5" ng-repeat="group in vm.groups | filter: {unit_id: unit.id}"
-                                                             label="{{group.name}}">
+                                                                label="{{group.name}}">
                                                     <md-option ng-repeat="lab in vm.labs | filter: {group_id: group.group_id, unit_id: unit.id}:true"
-                                                               ng-value="lab.lab_row">{{vm.labNames(lab)}}
+                                                                ng-value="lab.lab_row">{{vm.labNames(lab)}}
                                                     </md-option>
                                                 </md-optgroup>
                                             </md-optgroup>
@@ -424,7 +469,7 @@
                                             name="member_office[memberNum]">
                                         <div class="scrollable">
                                             <md-option ng-repeat="fac in vm.facilities"
-                                                       ng-value="fac.id">{{fac.name_en}}
+                                                        ng-value="fac.id">{{fac.name_en}}
                                             </md-option>
                                         </div>
                                     </md-select>
@@ -437,7 +482,7 @@
                                             name="member_office[memberNum]">
                                         <div class="scrollable">
                                             <md-option ng-repeat="scm in vm.scienceManagementOffices"
-                                                       ng-value="scm.id">{{scm.name_en}}
+                                                        ng-value="scm.id">{{scm.name_en}}
                                             </md-option>
                                         </div>
                                     </md-select>
@@ -450,7 +495,7 @@
                                             name="member_office[memberNum]">
                                         <div class="scrollable">
                                             <md-option ng-repeat="adm in vm.administrativeOffices"
-                                                       ng-value="adm.id">{{adm.name_en}}
+                                                        ng-value="adm.id">{{adm.name_en}}
                                             </md-option>
                                         </div>
                                     </md-select>
@@ -594,6 +639,7 @@
                                 </md-button>
                             </td>
                         </tr>
+                       
                     </tbody>
                 </table>
             </div>

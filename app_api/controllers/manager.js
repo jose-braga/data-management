@@ -1559,6 +1559,56 @@ var getDegrees = function (req, res, next, rows, i, irole) {
                     return;
                 }
                 rows[irole][i] = joinResponses(rows[irole][i], rowsQuery, 'degrees');
+                return getWorkEmails(req, res, next, rows, i, irole);
+            }
+        );
+    });
+
+};
+var getWorkEmails = function (req, res, next, rows, i, irole) {
+    var query = 'SELECT email AS work_email ' +
+                ' FROM emails' +
+                ' WHERE person_id = ?;';
+    var places = [rows[irole][i].person_id];
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(query,places,
+            function (err, rowsQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                rows[irole][i] = joinResponses(rows[irole][i], rowsQuery, 'work_email');
+                return getPersonalEmails(req, res, next, rows, i, irole);
+            }
+        );
+    });
+
+};
+var getPersonalEmails = function (req, res, next, rows, i, irole) {
+    var query = 'SELECT email AS personal_email ' +
+                ' FROM personal_emails' +
+                ' WHERE person_id = ?;';
+    var places = [rows[irole][i].person_id];
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
+            return;
+        }
+        connection.query(query,places,
+            function (err, rowsQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
+                    return;
+                }
+                rows[irole][i] = joinResponses(rows[irole][i], rowsQuery, 'personal_email');
                 return getJobs(req, res, next, rows, i, irole);
             }
         );

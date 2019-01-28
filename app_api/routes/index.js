@@ -59,6 +59,7 @@ router.get('/list/:listOf', ctrlPeopleData.listOf);
 
 
 // PUT (Update) USER information (authenticated)
+router.put('/people/authorization-info/:personID', auth, ctrlPeopleData.updateAuthorizationInfoPerson);
 router.put('/people/nuclear-info/:personID', auth, ctrlPeopleData.updateNuclearInfoPerson);
 router.put('/people/contact-info/:personID', auth, ctrlPeopleData.updateContactInfoPerson);
 router.put('/people/identifications/:personID', auth, ctrlPeopleData.updateIdentificationsInfoPerson);

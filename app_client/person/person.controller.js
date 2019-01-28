@@ -60,6 +60,7 @@
             'personAgreements':         46,
             'personTrainings':          47,
             'personPubCorrect':         48,
+            'personAuthorization':      49,
         };
         vm.changePhoto = false;
         vm.photoSize = {w: 196, h: 196};
@@ -309,6 +310,66 @@
                 );
             return false;
         };
+
+        function getPersonUnits() {
+            let units = [];
+            for (var el in vm.currentAffiliationsLab) {
+                if (vm.currentAffiliationsLab[el].unit_id !== null
+                    && units.indexOf(vm.currentAffiliationsLab[el].unit_id) === -1) {
+                    units.push(vm.currentAffiliationsLab[el].unit_id);
+                }
+            }
+            for (var el in vm.currentTechnicianAffiliations) {
+                if (vm.currentTechnicianAffiliations[el].tech_unit_id !== null
+                    && units.indexOf(vm.currentTechnicianAffiliations[el].tech_unit_id) === -1) {
+                    units.push(vm.currentTechnicianAffiliations[el].tech_unit_id);
+                }
+            }
+            for (var el in vm.currentScManAffiliations) {
+                if (vm.currentScManAffiliations[el].sc_man_unit_id !== null
+                    && units.indexOf(vm.currentScManAffiliations[el].sc_man_unit_id) === -1) {
+                    units.push(vm.currentScManAffiliations[el].sc_man_unit_id);
+                }
+            }
+            for (var el in vm.currentAdmAffiliations) {
+                if (vm.currentAdmAffiliations[el].adm_unit_id !== null
+                    && units.indexOf(vm.currentAdmAffiliations[el].adm_unit_id) === -1) {
+                    units.push(vm.currentAdmAffiliations[el].adm_unit_id);
+                }
+            }
+            return units;
+        }
+
+        vm.submitAuthorization = function(ind) {
+            vm.updateStatus[ind] = "Updating...";
+            vm.messageType[ind] = 'message-updating';
+            vm.hideMessage[ind] = false;
+            let units = getPersonUnits();
+            var data = {
+                "units": units,
+                "user_id": vm.currentUser.userID,
+                "name": vm.thisPerson.name,
+                "colloquial_name": vm.thisPerson.colloquial_name,
+                "birth_date": vm.thisPerson.birth_date,
+                "gender": vm.thisPerson.gender,
+                "active_from": vm.thisPerson.active_from,
+                "active_until": vm.thisPerson.active_until,
+                "visible_public": vm.thisPerson.visible_public,
+                "changed_by": vm.currentUser.userID
+            };
+            personData.updateAuthorizationInfoPersonByID(vm.currentUser.personID,
+                                                        data)
+                .then(function () {
+                    getPersonData(vm.currentUser.personID, ind);
+                },
+                    function () {
+                        vm.updateStatus[ind] = "Error!";
+                        vm.messageType[ind] = 'message-error';
+                    },
+                    function () { }
+                );
+            return false;           
+        }
         vm.submitNuclearInfo = function (ind) {
             vm.updateStatus[ind] = "Updating...";
             vm.messageType[ind] = 'message-updating';
@@ -324,6 +385,7 @@
                 "user_id": vm.currentUser.userID,
                 "active_from": vm.thisPerson.active_from,
                 "active_until": vm.thisPerson.active_until,
+                "visible_public": vm.thisPerson.visible_public,
                 "changed_by": vm.currentUser.userID
             };
             personData.updateNuclearInfoPersonByID(vm.currentUser.personID,data)
@@ -4734,6 +4796,12 @@
             templateUrl: 'person/institutional/person.institutionalContacts.html'
         };
     };
+    var personDataAuthorization = function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'person/personal/person.dataAuthorization.html'
+        };
+    };
     var personNuclearInfo = function () {
         return {
             restrict: 'E',
@@ -5089,6 +5157,7 @@
         .directive('personEmergencyContacts', personEmergencyContacts)
         .directive('personFinishedDegrees', personFinishedDegrees)
         .directive('personIdentificationsInfo', personIdentificationsInfo)
+        .directive('personDataAuthorization', personDataAuthorization)
         .directive('personNuclearInfo', personNuclearInfo)
         .directive('personUrls', personUrls)
         .directive('personResearchInterests', personResearchInterests)

@@ -3893,6 +3893,63 @@ var queryInstitutionalContactsPerson = function (req, res, next, userCity) {
     }
 };
 
+var queryAuthorizationInfoPerson = function (req, res, next, userCity) {
+    var hasPermission = getGeoPermissions(req, userCity);
+    if ((req.payload.personID !== req.params.personID && hasPermission)
+        || req.payload.personID === req.params.personID) {
+        // data to be added/updated to resource
+        var personID = req.params.personID;
+        var name = req.body.name;
+        var colloquial_name = req.body.colloquial_name;
+        var birth_date = momentToDate(req.body.birth_date);
+        var user_id = req.body.user_id;
+        var active_from = momentToDate(req.body.active_from);
+        var active_until = momentToDate(req.body.active_until);
+        var visible_public = req.body.visible_public;
+        var updated = momentToDate(moment(), undefined, 'YYYY-MM-DD HH:mm:ss');
+        var changed_by = req.body.changed_by;
+        var gender = req.body.gender;
+        var units = req.body.units;
+        var places = [];
+        var querySQL = 'UPDATE `people`' +
+            ' SET `visible_public` = ?' +
+            ' WHERE `id` = ?';
+        querySQL = querySQL + '; ';
+        places.push(visible_public, personID);
+        querySQL = querySQL + 'INSERT INTO `people_history`' +
+            ' (`person_id`,`user_id`,`name`,`colloquial_name`,`birth_date`,`gender`,' +
+            '`active_from`,`active_until`,`status`,`updated`,`operation`,`changed_by`,`visible_public`)' +
+            ' VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)';
+        querySQL = querySQL + '; ';
+        places.push(personID, user_id, name, colloquial_name, birth_date, gender,
+            active_from, active_until, 1, updated, 'U', changed_by, visible_public);
+        
+        if (units.indexOf(1) !== -1) {
+            if (visible_public === 1) {
+                externalAPI.contact(WEBSITE_API_BASE_URL[1], 'create', 'people', personID,
+                    'UCIBIO API error updating person information (nuclear information) :', personID);
+            } else {
+                externalAPI.contact(WEBSITE_API_BASE_URL[1], 'delete', 'people', personID,
+                    'UCIBIO API error updating person information (nuclear information) :', personID);
+            }
+        }
+        if (units.indexOf(2) !== -1) {
+            if (visible_public === 1) {
+                externalAPI.contact(WEBSITE_API_BASE_URL[2], 'create', 'people', personID,
+                    'LAQV API error updating person information (nuclear information) :', personID);
+            } else {
+                externalAPI.contact(WEBSITE_API_BASE_URL[2], 'delete', 'people', personID,
+                    'LAQV API error updating person information (nuclear information) :', personID);
+            }
+        }
+        
+        
+        escapedQuery(querySQL, places, req, res, next);
+    } else {
+        sendJSONResponse(res, 403, { message: 'This user is not authorized to this operation.' });
+    }
+};
+
 var queryNuclearInfoPerson = function (req, res, next, userCity) {
     var hasPermission = getGeoPermissions(req, userCity);
     if ((req.payload.personID !== req.params.personID && hasPermission)
@@ -3905,6 +3962,7 @@ var queryNuclearInfoPerson = function (req, res, next, userCity) {
         var user_id = req.body.user_id;
         var active_from = momentToDate(req.body.active_from);
         var active_until = momentToDate(req.body.active_until);
+        var visible_public = req.body.visible_public;
         var updated = momentToDate(moment(),undefined,'YYYY-MM-DD HH:mm:ss');
         var changed_by = req.body.changed_by;
         var gender = req.body.gender;
@@ -3921,11 +3979,11 @@ var queryNuclearInfoPerson = function (req, res, next, userCity) {
         places.push(name,colloquial_name,birth_date,gender,personID);
         querySQL = querySQL + 'INSERT INTO `people_history`' +
                        ' (`person_id`,`user_id`,`name`,`colloquial_name`,`birth_date`,`gender`,' +
-                         '`active_from`,`active_until`,`status`,`updated`,`operation`,`changed_by`)' +
-                       ' VALUES (?,?,?,?,?,?,?,?,?,?,?,?)';
+                         '`active_from`,`active_until`,`status`,`updated`,`operation`,`changed_by`, `visible_public`)' +
+                       ' VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)';
         querySQL = querySQL + '; ';
         places.push(personID,user_id,name,colloquial_name,birth_date,gender,
-                    active_from,active_until,1,updated,'U',changed_by);
+                    active_from,active_until,1,updated,'U',changed_by, visible_public);
         if (newNationalities.length > 0) {
             for (var ind in newNationalities) {
                 querySQL = querySQL + 'INSERT INTO `people_countries` (`person_id`,`country_id`)' +
@@ -6372,6 +6430,14 @@ module.exports.listAllPeople = function (req, res, next) {
                    ' WHERE status = 1' +
                    ' ORDER BY colloquial_name;';
     getQueryResponse(querySQL, req, res, next);
+};
+
+module.exports.updateAuthorizationInfoPerson = function (req, res, next) {
+    getUserPermitSelf(req, res, [0, 5, 10, 15, 16],
+        function (req, res, username) {
+            getLocation(req, res, next, queryAuthorizationInfoPerson);
+        }
+    );
 };
 
 module.exports.updateIdentificationsInfoPerson = function (req, res, next) {

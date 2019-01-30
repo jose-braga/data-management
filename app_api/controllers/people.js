@@ -5717,7 +5717,7 @@ module.exports.searchPeople = function (req, res, next) {
                   ' LEFT JOIN units AS administrative_units ON administrative_units.id = people_administrative_units.unit_id' +
                   ' LEFT JOIN administrative_positions ON administrative_positions.id = people_administrative_offices.administrative_position_id' +
                       ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
-                      ' WHERE people.name LIKE ?' +
+                      ' WHERE people.visible_public = 1 AND people.name LIKE ?' +
                         ' AND (people.active_until > ? OR (people.active_from < ? AND people.active_until IS NULL) OR (people.active_from IS NULL AND people.active_until IS NULL))' +
                       ';';
         places = [name,now,now];
@@ -5771,7 +5771,7 @@ module.exports.searchPeople = function (req, res, next) {
                   ' LEFT JOIN units AS administrative_units ON administrative_units.id = people_administrative_units.unit_id' +
                   ' LEFT JOIN administrative_positions ON administrative_positions.id = people_administrative_offices.administrative_position_id' +
                       ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
-                      ' WHERE (labs.name LIKE ?)' +
+                      ' WHERE people.visible_public = 1 AND (labs.name LIKE ?)' +
                         ' AND (people.active_until > ? OR (people.active_from < ? AND people.active_until IS NULL) OR (people.active_from IS NULL AND people.active_until IS NULL))' +
                       ';';
         places = [lab,now,now];
@@ -5827,7 +5827,7 @@ module.exports.searchPeople = function (req, res, next) {
                   ' LEFT JOIN units AS administrative_units ON administrative_units.id = people_administrative_units.unit_id' +
                   ' LEFT JOIN administrative_positions ON administrative_positions.id = people_administrative_offices.administrative_position_id' +
                       ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
-                      ' WHERE people.name LIKE ?' +
+                      ' WHERE people.visible_public = 1 AND people.name LIKE ?' +
                         ' AND (labs.name LIKE ?)' +
                         ' AND (people.active_until > ? OR (people.active_from < ? AND people.active_until IS NULL) OR (people.active_from IS NULL AND people.active_until IS NULL))' +
                       ';';
@@ -5915,7 +5915,7 @@ module.exports.getAllPeople = function (req, res, next) {
                   ' LEFT JOIN units AS administrative_units ON administrative_units.id = people_administrative_units.unit_id' +
                   ' LEFT JOIN administrative_positions ON administrative_positions.id = people_administrative_offices.administrative_position_id' +
                   ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
-                  ' WHERE people.status = ?';
+                  ' WHERE people.status = ? AND people.visible_public = 1';
     var places = [1];
     if (unitID !== null) {
         querySQL = querySQL + ' AND (units.id = ? OR technicians_units.id = ? OR science_managers_units.id = ? OR administrative_units.id = ?)';
@@ -6003,7 +6003,7 @@ module.exports.getPersonInfo = function (req, res, next) {
                   ' LEFT JOIN units AS administrative_units ON administrative_units.id = people_administrative_units.unit_id' +
                   ' LEFT JOIN administrative_positions ON administrative_positions.id = people_administrative_offices.administrative_position_id' +
                   ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
-                  ' WHERE people.id = ?;';
+                  ' WHERE people.id = ? AND people.visible_public = 1;';
     var places = [personID];
     var mergeRules = [
                       ['personal_url_data', 'url', 'url_type_id', 'url_type', 'url_description'],
@@ -6096,6 +6096,7 @@ module.exports.getLabMembers = function (req, res, next) {
                   ' LEFT JOIN lab_positions ON lab_positions.id = people_labs.lab_position_id' +
                   ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
                   ' WHERE labs.id = ? AND groups.id = ?' +
+                  ' AND people.visible_public = 1'
                   ' AND (people.active_until > ? OR (people.active_from < ? AND people.active_until IS NULL) OR (people.active_from IS NULL AND people.active_until IS NULL))' +
                   ';';
     var places = [lab,group,now,now];
@@ -6127,7 +6128,7 @@ module.exports.getFacilityMembers = function (req, res, next) {
                   ' LEFT JOIN technician_positions ON technician_positions.id = technicians.technician_position_id' +
 
                   ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
-                  ' WHERE technician_offices.id = ?' +
+                  ' WHERE technician_offices.id = ? AND people.visible_public = 1' +
                   ' AND (people.active_until > ? OR (people.active_from < ? AND people.active_until IS NULL) OR (people.active_from IS NULL AND people.active_until IS NULL))' +
                   ';';
     var places = [facility,now,now];
@@ -6159,7 +6160,7 @@ module.exports.getScienceOfficeMembers = function (req, res, next) {
                   ' LEFT JOIN science_manager_positions ON science_manager_positions.id = science_managers.science_manager_position_id' +
 
                   ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
-                  ' WHERE science_manager_offices.id = ?' +
+                  ' WHERE science_manager_offices.id = ? AND people.visible_public = 1' +
                   ' AND (people.active_until > ? OR (people.active_from < ? AND people.active_until IS NULL) OR (people.active_from IS NULL AND people.active_until IS NULL))' +
                   ';';
     var places = [office,now,now];
@@ -6191,7 +6192,7 @@ module.exports.getAdministrativeOfficeMembers = function (req, res, next) {
                   ' LEFT JOIN administrative_positions ON administrative_positions.id = people_administrative_offices.administrative_position_id' +
 
                   ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
-                  ' WHERE administrative_offices.id = ?' +
+                  ' WHERE administrative_offices.id = ? AND people.visible_public = 1' +
                   ' AND (people.active_until > ? OR (people.active_from < ? AND people.active_until IS NULL) OR (people.active_from IS NULL AND people.active_until IS NULL))' +
                   ';';
     var places = [office,now,now];

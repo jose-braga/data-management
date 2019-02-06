@@ -1,48 +1,49 @@
 <md-card>
     <md-card-title>
         <md-card-title-text>
-            <span class="md-headline">Search your ORCID</span>
+            <span class="md-headline">Search Institutional Repository (e.g. PURE@FCT)</span>
         </md-card-title-text>
     </md-card-title>
     <md-card-content layout="column">
-        <p>These are publications found on ORCID that are not part of LAQV/UCIBIO database yet.<br>
+        <p>These are publications found on your Institutional Repository that are not part of LAQV/UCIBIO database or are not associated with you yet.<br>
             To add publications to the database, the procedure is:
             <ol>
-                <li>Press "Connect ORCID". <br></li>
+                <li>Press "Connect Repository". <br></li>
                 <li>A list of <b>publications not present in the database</b> will be shown.</li>
                 <li>Edit publication details (Doc. Type, I am..., Author rank <b>are optional</b>).</li>
                 <li>"Add to DB" Checkbox: Select publications to be added to the database.</li>
-                <li>Press "Add ORCID pub.".</li>
+                <li>Press "Synchronize Repository/DB".</li>
             </ol>
         </p>
+        <p>Currently this is only available for FCT NOVA.</p>
         <div layout="row">
-            <md-button type="submit" ng-click="vm.connectORCID()"
-                class="button-small md-raised md-warn">Connect ORCID</md-button>
-            <md-progress-circular ng-disabled="!vm.progressORCID" md-diameter="20"></md-progress-circular>
+            <md-button type="submit" ng-click="vm.connectPURE()"
+                class="button-small md-raised md-warn">Connect Repository</md-button>
+            <md-progress-circular ng-disabled="!vm.progressPURE" md-diameter="20"></md-progress-circular>
         </div>
 
-        <form flex novalidate name="personAddORCIDPublicationsForm"
-                ng-submit="personAddORCIDPublicationsForm.$valid && vm.submitAddORCIDPublications(vm.forms['personORCIDAdd'])">
+        <form flex novalidate name="personAddPUREPublicationsForm"
+                ng-submit="personAddPUREPublicationsForm.$valid && vm.submitAddPUREPublications(vm.forms['personPUREAdd'])">
             <div class="publication small-screens" layout="column">
                 <div layout="row" layout-align="start center">
                     <div class="question"><span class="highlight"><h2>Select all:</h2></span></div>
                     <div class="answer align-publication">
                         <span>
-                            <md-checkbox ng-model="vm.selectAllPublicationsORCID"
-                                    ng-change="vm.changeAllPublications(vm.selectAllPublicationsORCID, vm.publicationDetailsORCID)"
+                            <md-checkbox ng-model="vm.selectAllPublicationsPURE"
+                                    ng-change="vm.changeAllPublications(vm.selectAllPublicationsPURE, vm.newPUREPublications)"
                                     aria-label="choose all"></md-checkbox>
                         </span>
                     </div>
                 </div>
                 <md-divider></md-divider>
-                <div ng-repeat="(pubNum,publication) in vm.publicationDetailsORCID track by $index">
+                <div ng-repeat="(pubNum,publication) in vm.newPUREPublications track by $index">
                     <div layout="column">
                         <div layout="row" layout-align=" center">
                             <div class="question"><span class="highlight">Title:</span></div>
                             <div class="answer">
                                 <span>
                                     <md-input-container class="area md-block">
-                                        <textarea ng-model="vm.publicationDetailsORCID[pubNum].title" name="title"></textarea>
+                                        <textarea ng-model="vm.newPUREPublications[pubNum].title" name="title"></textarea>
                                     </md-input-container>
                                 </span>
                             </div>
@@ -51,7 +52,7 @@
                             <div class="question"><span class="highlight">Authors:</span></div>
                             <div class="answer">
                                 <md-input-container class="md-block">
-                                    <input ng-model="vm.publicationDetailsORCID[pubNum].authors_raw" name="authors_raw">
+                                    <input ng-model="vm.newPUREPublications[pubNum].authors_raw" name="authors_raw">
                                 </md-input-container>
                             </div>
                         </div>
@@ -59,7 +60,7 @@
                             <div class="question"><span class="highlight">Journal:</span></div>
                             <div class="answer">
                                 <md-input-container class="md-block">
-                                    <input ng-model="vm.publicationDetailsORCID[pubNum].journal_name" name="journal_name">
+                                    <input ng-model="vm.newPUREPublications[pubNum].journal_name" name="journal_name">
                                 </md-input-container>
                             </div>
                         </div>
@@ -68,13 +69,13 @@
                             <div class="answer">
                                 <div layout="row">
                                     <md-input-container class="input-no-margin simple-input">
-                                        <input ng-model="vm.publicationDetailsORCID[pubNum].volume" name="volume">
+                                        <input ng-model="vm.newPUREPublications[pubNum].volume" name="volume">
                                     </md-input-container><span class="small-top">/</span>
                                     <md-input-container class="input-no-margin simple-input">
-                                        <input ng-model="vm.publicationDetailsORCID[pubNum].number" name="number">
+                                        <input ng-model="vm.newPUREPublications[pubNum].number" name="number">
                                     </md-input-container><span class="small-top">/</span>
                                     <md-input-container class="input-no-margin simple-input">
-                                        <input ng-model="vm.publicationDetailsORCID[pubNum].pages" name="pages">
+                                        <input ng-model="vm.newPUREPublications[pubNum].pages" name="pages">
                                     </md-input-container>
                                 </div>
                             </div>
@@ -142,15 +143,13 @@
             <div class="spacer-top"
                     layout="column" layout-gt-sm="row" layout-align="none center">
                 <md-button type="submit"
-                    class="button-small md-raised md-primary">Add ORCID Pub.</md-button>
-                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personORCIDAdd']]">
-                    <span class="message" ng-class="vm.messageType[vm.forms['personORCIDAdd']]">
-                        {{vm.updateStatus[vm.forms['personORCIDAdd']]}}
+                    class="button-small md-raised md-primary">Synchronize Repository/DB</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personPUREAdd']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['personPUREAdd']]">
+                        {{vm.updateStatus[vm.forms['personPUREAdd']]}}
                     </span>
                 </div>
             </div>
         </form>
-
-
     </md-card-content>
 </md-card>

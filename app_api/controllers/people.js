@@ -4328,6 +4328,7 @@ var queryResearcherInfoPerson = function (req, res, next, userCity) {
         var researcherID = req.body.researcherID;
         var scopusID = req.body.scopusID;
         var ORCID = req.body.ORCID;
+        var pure_id = req.body.pure_id;
         var pluriannual = req.body.pluriannual;
         var integrated = req.body.integrated;
         var nuclearCV = req.body.nuclearCV;
@@ -4337,6 +4338,7 @@ var queryResearcherInfoPerson = function (req, res, next, userCity) {
             querySQL = querySQL + 'UPDATE `researchers`' +
                        ' SET `researcherID` = ?,' +
                        ' `ORCID` = ?,' +
+                       ' `pure_id` = ?,' +
                        ' `scopusID` = ?,' +
                        ' `association_key` = ?,' +
                        ' `pluriannual` = ?,' +
@@ -4344,15 +4346,15 @@ var queryResearcherInfoPerson = function (req, res, next, userCity) {
                        ' `nuclearCV` = ?' +
                        ' WHERE `id` = ?';
             querySQL = querySQL + '; ';
-            places.push(researcherID, ORCID,scopusID,association_key,
+            places.push(researcherID, ORCID, pure_id,scopusID,association_key,
                         pluriannual, integrated, nuclearCV,
                         researcher_id);
         } else {
             querySQL = querySQL + 'INSERT INTO `researchers`' +
-                       ' (`person_id`,`researcherID`,`ORCID`,`scopusID`,`association_key`,`pluriannual`,`integrated`,`nuclearCV`)' +
-                       ' VALUES (?,?,?,?,?,?,?,?)';
+                       ' (`person_id`,`researcherID`,`ORCID`,`pure_id`,`scopusID`,`association_key`,`pluriannual`,`integrated`,`nuclearCV`)' +
+                       ' VALUES (?,?,?,?,?,?,?,?,?)';
             querySQL = querySQL + '; ';
-            places.push(personID,researcherID,ORCID,scopusID,association_key,pluriannual,integrated, nuclearCV);
+            places.push(personID,researcherID,ORCID,pure_id,scopusID,association_key,pluriannual,integrated, nuclearCV);
         }
         // insert role in case it doesn't exist already
         querySQL = querySQL + 'INSERT INTO `people_roles`' +
@@ -5086,7 +5088,7 @@ var queryGetRoles = function (req,res,next, personID, row) {
 
 var queryGetResearcherData = function (req,res,next, personID, row) {
     var query = 'SELECT researchers.id AS researcher_id,' +
-                ' researchers.researcherID,researchers.ORCID,researchers.scopusID,researchers.association_key,' +
+                ' researchers.researcherID,researchers.ORCID,researchers.scopusID, researchers.pure_id, researchers.association_key,' +
                 ' researchers.integrated,researchers.nuclearCV,researchers.pluriannual,' +
                 ' researchers.valid_from AS res_valid_from, researchers.valid_until AS res_valid_until' +
                 ' FROM people' +
@@ -5179,7 +5181,7 @@ var queryGetTechnicianAffiliation = function (req,res,next, personID, row) {
 
 var queryGetTechnicianData = function (req,res,next, personID, row) {
     var query = 'SELECT technicians_info.id AS id,' +
-                ' technicians_info.researcherID, technicians_info.ORCID, technicians_info.association_key' +
+                ' technicians_info.researcherID, technicians_info.ORCID, technicians_info.pure_id, technicians_info.association_key' +
                 ' FROM people' +
                 ' LEFT JOIN technicians_info ON people.id = technicians_info.person_id' +
                 ' WHERE people.id = ?;';
@@ -5241,7 +5243,7 @@ var queryGetScienceManagerAffiliation = function (req,res,next, personID, row) {
 
 var queryGetScienceManagerData = function (req,res,next, personID, row) {
     var query = 'SELECT science_managers_info.id AS id,' +
-                ' science_managers_info.association_key, science_managers_info.researcherID, science_managers_info.ORCID' +
+                ' science_managers_info.association_key, science_managers_info.researcherID, science_managers_info.ORCID, science_managers_info.pure_id' +
                 ' FROM people' +
                 ' LEFT JOIN science_managers_info ON people.id = science_managers_info.person_id' +
                 ' WHERE people.id = ?;';
@@ -5399,23 +5401,25 @@ var queryTechnicianInfoPerson = function (req, res, next, userCity) {
         var association_key = req.body.association_key;
         var researcherID = req.body.researcherID;
         var ORCID = req.body.ORCID;
+        var pure_id = req.body.pure_id;
         var places = [];
         var querySQL = '';
         if (id !== null && id !== 'new') {
             querySQL = querySQL + 'UPDATE `technicians_info`' +
                        ' SET `researcherID` = ?,' +
                        ' `ORCID` = ?,' +
+                       ' `pure_id` = ?,' +
                        ' `association_key` = ?' +
                        ' WHERE `id` = ?';
             querySQL = querySQL + '; ';
-            places.push(researcherID, ORCID,association_key,
+            places.push(researcherID, ORCID, pure_id, association_key,
                         id);
         } else {
             querySQL = querySQL + 'INSERT INTO `technicians_info`' +
-                       ' (`person_id`,`researcherID`,`ORCID`,`association_key`)' +
-                       ' VALUES (?,?,?,?)';
+                       ' (`person_id`,`researcherID`,`ORCID`,`pure_id`,`association_key`)' +
+                       ' VALUES (?,?,?,?,?)';
             querySQL = querySQL + '; ';
-            places.push(personID,researcherID,ORCID,association_key);
+            places.push(personID,researcherID,ORCID,pure_id,association_key);
         }
         // insert role in case it doesn't exist already
         querySQL = querySQL + 'INSERT INTO `people_roles`' +
@@ -5440,23 +5444,25 @@ var queryScienceManagerInfoPerson = function (req, res, next, userCity) {
         var association_key = req.body.association_key;
         var researcherID = req.body.researcherID;
         var ORCID = req.body.ORCID;
+        var pure_id = req.body.pure_id;
         var places = [];
         var querySQL = '';
         if (id !== null) {
             querySQL = querySQL + 'UPDATE `science_managers_info`' +
                        ' SET `researcherID` = ?,' +
                        ' `ORCID` = ?,' +
+                       ' `pure_id` = ?,' +
                        ' `association_key` = ?' +
                        ' WHERE `id` = ?';
             querySQL = querySQL + '; ';
-            places.push(researcherID, ORCID,association_key,
+            places.push(researcherID, ORCID,pure_id,association_key,
                         id);
         } else {
             querySQL = querySQL + 'INSERT INTO `science_managers_info`' +
-                       ' (`person_id`,`researcherID`,`ORCID`,`association_key`)' +
-                       ' VALUES (?,?,?,?)';
+                       ' (`person_id`,`researcherID`,`ORCID`,`pure_id`,`association_key`)' +
+                       ' VALUES (?,?,?,?,?)';
             querySQL = querySQL + '; ';
-            places.push(personID,researcherID,ORCID,association_key);
+            places.push(personID,researcherID,ORCID,pure_id,association_key);
         }
         // insert role in case it doesn't exist already
         querySQL = querySQL + 'INSERT INTO `people_roles`' +

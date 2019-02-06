@@ -7,6 +7,12 @@ var baseURL = {1: 'https://www.requimte.pt/ucibio/api',
                2: 'https://www.requimte.pt/laqv/api'};;
 }
 */
+
+var sendJSONResponse = function (res, status, content) {
+    res.status(status);
+    res.json(content);
+};
+
 exports.baseURL = baseURL;
 
 var RETRIABLE_ERRORS = ['ECONNRESET', 'ENOTFOUND', 'ESOCKETTIMEDOUT', 'ETIMEDOUT', 'ECONNREFUSED', 'EHOSTUNREACH', 'EPIPE', 'EAI_AGAIN'];
@@ -38,7 +44,7 @@ var contact = function (baseURL, operation, entityType, entityID, errorMessage, 
             retryStrategy: retryBodyOrHTTPOrNetwork
         }, function (error, response, body) {
             if (body !== undefined) {
-                if (body.length >0) {
+                if (body.length > 0) {
                     try {
                         body = JSON.parse(body);
                     }
@@ -56,11 +62,79 @@ var contact = function (baseURL, operation, entityType, entityID, errorMessage, 
                 console.log(errorMessage, errorIDs);
                 console.log('error:', error);
             }
-            if (error === null && body.statusCode !== 200) {
-                console.log(errorMessage, errorIDs);
-                console.log('statusCode:', body.statusCode);
-            }
         });
+};
+
+var contactPURE = function (req, res, baseURL, version, apiKey, entity, 
+                            entityID, entityData, q,
+                            offset, size, dataList) {
+    let qs = {
+           "apiKey": apiKey,
+           "offset": offset,
+           "size": size,
+    };
+    if (q !== undefined) {
+        qs['q'] = q;
+    }
+    let url = '';
+    if (entityData === undefined && entityID === undefined) {
+        url = baseURL + '/' + version + '/' + entity;
+    } else if (entityData === undefined) {
+        url = baseURL + '/' + version + '/' + entity + '/' + entityID;
+    } else {
+        url = baseURL + '/' + version + '/' + entity + '/' + entityID + '/' + entityData;
+    }
+
+    request({
+        url: url,
+        headers: { "Accept": "application/json" },
+        qs: qs,
+        maxAttempts: 5,
+        retryDelay: 1000,
+        retryStrategy: retryBodyOrHTTPOrNetwork
+    }, 
+    function (error, response, body) {
+        if (body !== undefined) {
+            if (body.length > 0) {
+                try {
+                    body = JSON.parse(body);
+                    dataList = dataList.concat(body.items);
+                    if (offset + size < body.count) {
+                        offset = offset + size;
+                        contactPURE(req, res,
+                            process.env.PURE_BASE_URL,
+                            process.env.PURE_VERSION,
+                            process.env.PURE_API_KEY,
+                            'persons',
+                            entityID,
+                            'research-outputs',
+                            undefined,
+                            offset,
+                            size,
+                            dataList
+                        )
+                    } else {
+                        sendJSONResponse(res, 200, dataList);
+                        return;
+                    }
+                }
+                catch (err) {
+                    console.log('error response:', err);
+                    body = { 'statusCode': 500, 'error': err };
+                    sendJSONResponse(res, 500, body);
+                    return;
+                }
+            } else {
+                body = { 'statusCode': 503 };
+                sendJSONResponse(res, 503, body); 
+                return;
+            }
+        } else {
+            body = { 'statusCode': 503 };
+            sendJSONResponse(res, 503, body);
+            return;
+        }
+    });
 };
 
 exports.contact = contact;
@@ -96,6 +170,8 @@ exports.contactCreateOrUpdate = function (baseURL, entityType, entityID, errorMe
             }
         });
 };
+
+exports.contactPURE = contactPURE;
 
 
 

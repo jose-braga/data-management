@@ -129,6 +129,22 @@
             );
         };
 
+        var getPUREPublicationsPerson = function (person_pure_id, offset, size) {
+            // despite its name in this function we get all Works (from PURE) by the person, not only publications
+            return $http.get('api/publications/person/pure/' + person_pure_id,
+                {
+                    headers: {Authorization: 'Bearer ' + authentication.getToken()},
+                    params: {'offset': offset, 'size': size}
+                });
+        };
+        var addPUREPublicationsPerson = function (personID, data) {
+            return $http.put('api/publications/person/' + personID + '/add-pure', data,
+                {
+                    headers: { Authorization: 'Bearer ' + authentication.getToken() }
+                }
+            );
+        };
+
         var getORCIDPublicationsPerson = function (orcid) {
             // despite its name in this function we get all Works (from ORCID) by the person, not only publications
             return $http.get(orcid_base_url + '/' + orcid_version + '/' + orcid + '/works',
@@ -665,6 +681,8 @@
             updateAuthorNamesPerson: updateAuthorNamesPerson,
             removePublicationsPerson: removePublicationsPerson,
             addPublicationsPerson: addPublicationsPerson,
+            getPUREPublicationsPerson: getPUREPublicationsPerson,
+            addPUREPublicationsPerson: addPUREPublicationsPerson,
             getORCIDPublicationsPerson: getORCIDPublicationsPerson,
             getORCIDDetailsPublication: getORCIDDetailsPublication,
             addORCIDPublicationsPerson: addORCIDPublicationsPerson,

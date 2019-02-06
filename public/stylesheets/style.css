@@ -208,6 +208,13 @@ md-select-menu ._md .scrollable{
   max-width: 200px;
 }
 
+td .tighter.md-button.md-icon-button {
+  margin-left:2px;
+  margin-right:2px;
+  padding-left:2px;
+  padding-right:2px;
+}
+
 .interaction-button {
  /* margin-top: 10px !important;*/
 }
@@ -376,9 +383,9 @@ md-select-menu ._md .scrollable{
 }
 
 .center-tick {
-  align-items: center;
+  /*align-items: center;*/
   margin-bottom: 0px;
-  margin-left:30% !important;
+  /*margin-left:10% !important;*/
 }
 
 .publications tbody tr:nth-child(even) {

@@ -122,6 +122,8 @@ router.put('/manager/people/all', auth, ctrlManagerData.updateAllPeopleData);
 // PRODUCTIVITY information (authenticated)
 router.get('/publications/all', auth, ctrlProductivityData.listAllPublications);
 router.get('/publications/person/:personID', auth, ctrlProductivityData.listPersonPublications);
+router.get('/publications/person/pure/:pureID', auth, ctrlProductivityData.listPersonPUREPublications);
+router.put('/publications/person/:personID/add-pure', auth, ctrlProductivityData.addPUREPublicationsPerson);
 router.get('/publications/team/:groupID/:teamID/members', auth, ctrlProductivityData.listMembersPublications);
 router.get('/publications/team/:groupID/:teamID', auth, ctrlProductivityData.listTeamPublications);
 router.put('/publications/person/:personID/selected', auth, ctrlProductivityData.updatePersonSelectedPub);

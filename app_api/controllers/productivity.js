@@ -308,7 +308,7 @@ var queryPersonPublications = function (req, res, next) {
     var places = [];
     querySQL = querySQL + 'SELECT people_publications.id AS people_publications_id, people_publications.public, people_publications.position AS author_position,' +
                                 ' people_publications.author_type_id, author_types.name_en AS author_type, ' +
-                                ' people_publications.selected AS selected, publications.*,' +
+                                ' people_publications.selected AS selected, people_publications.in_institutional_repository, publications.*,' +
                                 ' journals.name AS journal_name, journals.short_name AS journal_short_name, ' +
                                 ' journals.publisher, journals.publisher_city, journals.issn, journals.eissn ' +
                           'FROM people_publications' +
@@ -341,6 +341,24 @@ var queryPersonPublications = function (req, res, next) {
         );
     });
 };
+var queryPersonPUREPublications = function (req, res, next) {
+    let pureID = req.params.pureID;
+    let offset = parseInt(req.query.offset, 10);
+    let size = parseInt(req.query.size, 10);
+    externalAPI.contactPURE(req, res,
+        process.env.PURE_BASE_URL,
+        process.env.PURE_VERSION,
+        process.env.PURE_API_KEY,
+        'persons',
+        pureID,
+        'research-outputs',
+        undefined,
+        offset,
+        size,
+        []
+        )
+};
+
 var queryPersonCommunications = function (req, res, next) {
     var personID = req.params.personID;
     var querySQL = '';
@@ -1077,6 +1095,321 @@ var queryAddPublicationsLab = function(req, res, next) {
                         {"status": "success", "statusCode": 200, "message": "No changes"});
     }
 };
+
+var queryPUREGetJournalID = function (req, res, next, i) {
+    // NOTE: position and year are strings, must be converted to int?
+    var add = req.body.newPURE;
+    if (add.length > 0) {
+        var querySQL = '';
+        var places = [];
+        var journal_name = add[i].journal_name
+            .toLowerCase()
+            .replace(/[:;,\-\(\)\.]/g, ' ')
+            .replace(/[\s\s]/g, ' ');
+        var journal_name_search = '%' + journal_name.replace(/\s/g, '%') + '%';
+        querySQL = querySQL + 'SELECT id, name, short_name from journals ' +
+            ' WHERE name LIKE ? OR short_name LIKE ?;';
+        places.push(journal_name_search, journal_name_search);
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                return;
+            }
+            connection.query(querySQL, places,
+                function (err, resQuery) {
+                    // And done with the connection.
+                    connection.release();
+                    if (err) {
+                        sendJSONResponse(res, 400, { "status": "error", "statusCode": 400, "error": err.stack });
+                        return;
+                    }
+                    if (resQuery.length === 0) {
+                        // journal name not found, add to journal list
+                        return queryPUREInsertNewJournal(req, res, next, i, add[i].journal_name);
+                    }
+                    if (resQuery.length === 1) {
+                        // only 1 journal found, get its identity
+                        return queryPURECheckIfExistsPublication(req, res, next, i, resQuery[0].id);
+                    }
+                    if (resQuery.length > 1) {
+                        // several journals found, get the most similar
+                        var minDistance, minInd;
+                        for (var ind in resQuery) {
+                            var distance = levenshtein.get(resQuery[ind].name.toLowerCase(), journal_name);
+                            if (ind == 0 || distance < minDistance) {
+                                minDistance = distance;
+                                minInd = ind;
+                            }
+                        }
+                        return queryPURECheckIfExistsPublication(req, res, next, i, resQuery[minInd].id);
+                    }
+                }
+            );
+        });
+    } else {
+        return queryUpdateInstitutionalRepository(req, res, next);
+    }
+};
+var queryPUREInsertNewJournal = function (req, res, next, i, journal_name) {
+    var querySQL = '';
+    var places = [];
+    // PURE journal information contains no short_name version for journal name
+    querySQL = querySQL + 'INSERT INTO journals (name, short_name) ' +
+        ' VALUES (?,?);';
+    places.push(journal_name, journal_name);
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        connection.query(querySQL, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, { "status": "error", "statusCode": 400, "error": err.stack });
+                    return;
+                }
+                var journalID = resQuery.insertId;
+                return queryPURECheckIfExistsPublication(req, res, next, i, journalID);
+            }
+        );
+    });
+};
+var queryPURECheckIfExistsPublication = function (req, res, next, i, journalID) {
+    var add = req.body.newPURE;
+    var querySQL = '';
+    var places = [];
+    if (add[i].title !== null && add[i].doi !== null) {
+        querySQL = querySQL + 'SELECT id, title, doi FROM publications' +
+            ' WHERE title = ? AND doi = ?;';
+        places.push(add[i].title, add[i].doi);
+    } else if (add[i].title !== null) {
+        querySQL = querySQL + 'SELECT id, title, doi FROM publications' +
+            ' WHERE title = ?;';
+        places.push(add[i].title);
+    }    
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        connection.query(querySQL, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, { "status": "error", "statusCode": 400, "error": err.stack });
+                    return;
+                }
+                if (resQuery.length === 0) {
+                    // publication does not exist
+                    return queryPUREInsertPublication(req, res, next, i, journalID);
+                } else {
+                    // if there are no duplicates only 1 publication at most should appear
+                    var pubID = resQuery[0].id;
+                    return queryPUREInsertPeoplePublications(req, res, next, i, pubID);
+                }
+            }
+        );
+    });       
+};
+var queryPUREInsertPublication = function (req, res, next, i, journalID) {
+    var add = req.body.newPURE;
+    var querySQL = '';
+    var places = [];
+    var numberAuthors;
+    if (add[i].authors_raw !== null && add[i].authors_raw !== undefined) {
+        numberAuthors = add[i].authors_raw.split(';').length;
+    } else {
+        numberAuthors = null;
+    }
+    var pageStart = null;
+    var pageEnd = null;
+    if (add[i].pages !== null) {
+        if (add[i].pages.indexOf('-') !== -1) {
+            var pageArray = add[i].pages.split('-');
+            pageStart = pageArray[0];
+            pageEnd = pageArray[1];
+        } else {
+            pageStart = add[i].pages;
+        }
+    }
+    var volume = null;
+    if (add[i].volume !== null 
+        && add[i].number !== null && add[i].number !== undefined) {
+        volume = add[i].volume + '(' + add[i].number + ')';
+    } else {
+        volume = add[i].volume;
+    }
+    var date = null;
+    var month;
+    if (add[i].month !== null) {
+        if (isNaN(+add[i].month)) {
+            month = moment().month(add[i].month).format('MMM');
+        } else {
+            month = moment().month(parseInt(add[i].month, 10) - 1).format('MMM');
+        }
+        if (add[i].day !== null) {
+            date = month + ' ' + add[i].day;
+        } else {
+            date = month;
+        }
+    }
+    if (add[i].doi !== null && add[i].doi !== undefined) {
+        add[i].doi = add[i].doi.toLowerCase()
+            .replace('https://doi.org/', '')
+            .replace('http://dx.doi.org/', '')
+            .replace('doi: ', '')
+            .replace('doi:', '')
+            .replace('doi ', '');
+    }
+    querySQL = querySQL + 'INSERT INTO  publications' +
+        ' (authors_raw,number_authors,title,year,journal_id,volume,page_start,page_end,publication_date,doi,publication_source_id)' +
+        ' VALUES (?,?,?,?,?,?,?,?,?,?,?);';
+    places.push(add[i].authors_raw, numberAuthors, add[i].title, add[i].year,
+        journalID, volume, pageStart, pageEnd, date, add[i].doi, 4);
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        connection.query(querySQL, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, { "status": "error", "statusCode": 400, "error": err.stack });
+                    return;
+                }
+                var pubID = resQuery.insertId;
+                externalAPI.contact(WEBSITE_API_BASE_URL[1], 'create', 'publications', pubID,
+                    'UCIBIO API error creating (adding association of publication to person, from ORCID) (id) :', pubID);
+                externalAPI.contact(WEBSITE_API_BASE_URL[2], 'create', 'publications', pubID,
+                    'LAQV API error creating (adding association of publication to person, from ORCID) (id) :', pubID);
+                if (add[i].publication_type_id !== null && add[i].publication_type_id !== undefined) {
+                    if (add[i].publication_type_id.length > 0) {
+                        return queryPUREInsertPublicationDescription(req, res, next, i, pubID);
+                    } else {
+                        return queryPUREInsertPeoplePublications(req, res, next, i, pubID);
+                    }
+                } else {
+                    return queryPUREInsertPeoplePublications(req, res, next, i, pubID);
+                }
+            }
+        );
+    });
+};
+var queryPUREInsertPublicationDescription = function (req, res, next, i, pubID) {
+    var add = req.body.newPURE;
+    var querySQL = '';
+    var places = [];
+    for (var ind in add[i].publication_type_id) {
+        querySQL = querySQL + 'INSERT INTO publication_descriptions (publication_id, publication_type) ' +
+            ' VALUES (?,?);';
+        places.push(pubID, add[i].publication_type_id[ind]);
+    }
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        connection.query(querySQL, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, { "status": "error", "statusCode": 400, "error": err.stack });
+                    return;
+                }
+                externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'publications', pubID,
+                    'UCIBIO API error updating (adding description, from ORCID) (id) :', pubID);
+                externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'publications', pubID,
+                    'LAQV API error updating (adding description, from ORCID) (id) :', pubID);
+                return queryPUREInsertPeoplePublications(req, res, next, i, pubID);
+            }
+        );
+    });
+};
+var queryPUREInsertPeoplePublications = function (req, res, next, i, pubID) {
+    var add = req.body.newPURE;
+    var personID = req.params.personID;
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'INSERT INTO people_publications (person_id, publication_id,author_type_id, position, in_institutional_repository) ' +
+        ' VALUES (?,?,?,?,?);';
+    places.push(personID, pubID, add[i].author_type_id, add[i].position,1);
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        connection.query(querySQL, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, { "status": "error", "statusCode": 400, "error": err.stack });
+                    return;
+                }
+                externalAPI.contactCreateOrUpdate(WEBSITE_API_BASE_URL[1], 'publications', pubID,
+                    'UCIBIO API error updating (adding association to person, from ORCID) (id) :', pubID);
+                externalAPI.contactCreateOrUpdate(WEBSITE_API_BASE_URL[2], 'publications', pubID,
+                    'LAQV API error updating (adding association to person, from ORCID) (id) :', pubID);
+                if (i + 1 < add.length) {
+                    return queryPUREGetJournalID(req, res, next, i + 1);
+                } else {
+                    return queryUpdateInstitutionalRepository(req, res, next);                    
+                }
+            }
+        );
+    });
+};
+var queryUpdateInstitutionalRepository = function (req, res, next) {
+    let update = req.body.matchedPURE;
+    if (update.length > 0) {
+        var query = 'UPDATE people_publications SET in_institutional_repository = 1 WHERE ';
+        var places = [];        
+        for (var el in update) {
+            if (parseInt(el,10) < update.length - 1) {
+                query = query + 'id = ? OR ';
+            } else {
+                query = query + 'id = ?;';
+            }
+            places.push(update[el].people_publications_id);
+        }
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                return;
+            }
+            connection.query(query, places,
+                function (err, resQuery) {
+                    // And done with the connection.
+                    connection.release();
+                    if (err) {
+                        sendJSONResponse(res, 400, { "status": "error", "statusCode": 400, "error": err.stack });
+                        return;
+                    }
+                    sendJSONResponse(res, 200,
+                        {
+                            "status": "success", "statusCode": 200, "count": 1,
+                            "result": "all done"
+                        });
+                }
+            );
+        });
+    } else {
+        sendJSONResponse(res, 200,
+            {
+                "status": "success", "statusCode": 200, "count": 0,
+                "result": "no changes"
+            });
+    }
+};
+
+
+
 var queryORCIDGetJournalID = function (req, res, next,i) {
     // NOTE: position and year are strings, must be converted to int?
     var add = req.body.addPublications;
@@ -1162,10 +1495,10 @@ var queryORCIDCheckIfExistsPublication = function (req, res, next,i, journalID) 
         querySQL = querySQL + 'SELECT id, title, doi FROM publications' +
                 ' WHERE title = ? AND doi = ?;';
         places.push(add[i].title,add[i].doi);
-    } else {
+    } else if (add[i].title !== null) {
         querySQL = querySQL + 'SELECT id, title, doi FROM publications' +
-                ' WHERE title = ? OR doi = ?;';
-        places.push(add[i].title,add[i].doi);
+            ' WHERE title = ?;';
+        places.push(add[i].title);
     }
     pool.getConnection(function(err, connection) {
         if (err) {
@@ -1214,7 +1547,8 @@ var queryORCIDInsertPublication = function (req, res, next,i, journalID) {
         }
     }
     var volume = null;
-    if (add[i].volume !== null && add[i].number !== null) {
+    if (add[i].volume !== null 
+        && add[i].number !== null && add[i].number !== undefined) {
         volume = add[i].volume + '(' + add[i].number + ')';
     } else {
         volume = add[i].volume;
@@ -6035,6 +6369,22 @@ module.exports.listPersonPublications = function (req, res, next) {
         }
     );
 };
+module.exports.listPersonPUREPublications = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30, 40],
+        function (req, res, username) {
+            queryPersonPUREPublications(req, res, next);
+        }
+    );
+};
+
+module.exports.addPUREPublicationsPerson = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30, 40],
+        function (req, res, username) {
+            queryPUREGetJournalID(req, res, next, 0);
+        }
+    );
+};
+
 module.exports.updatePersonSelectedPub = function (req, res, next) {
     getUser(req, res, [0, 5, 10, 15, 16, 20, 30, 40],
         function (req, res, username) {

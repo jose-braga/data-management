@@ -23,6 +23,11 @@
                         class="s48"></md-icon>
             </md-button>
         </div>
+        <p>
+            Publications labeled with <md-icon md-svg-src="images/icons/repository_24px.svg"></md-icon>
+            are also found in your institution's repository (e.g. PURE) and are associated to you in it 
+            (note: currently this is only available for FCT NOVA).
+        </p>
         <div>
             This list contains <strong>{{vm.selectedPublications.length}} publications</strong>.
         </div>
@@ -80,7 +85,7 @@
                                         ng-change="vm.changeSelectedStatus(publication)" ng-model="publication.selected"></md-checkbox>
                             </div>
                         </div>
-                        <div layout="row" layout-align=" center">
+                        <div layout="row" layout-align="center start">
                             <div class="question">
                                 <span class="highlight">Public?
                                     <md-icon md-svg-src="images/icons/public_24px.svg"></md-icon>:
@@ -93,6 +98,10 @@
                                 <md-checkbox class="center-tick" name="publicPublication" aria-label="Public Publication"
                                         ng-change="vm.changePublicStatus(publication)" ng-model="publication.public"></md-checkbox>
                             </div>
+                        </div>
+                        <div layout="row" layout-align=" center">
+                            <div class="question"><span class="highlight">Repository:</span></div>
+                            <div class="answer"><span><md-icon ng-if="publication.in_institutional_repository" md-svg-src="images/icons/repository_24px.svg"></md-icon></span></div>
                         </div>
                         <div layout="row" layout-align="none center">
                             Show pub. details:

@@ -1752,7 +1752,7 @@
                     $timeout(function () { 
                         vm.hideMessage[ind] = true; 
                         vm.gettingAllPublications = true;
-                        getPublications(-1);
+                        vm.initializePublications(-1);
                     }
                     , 1500);                    
                 },
@@ -1825,24 +1825,24 @@
                 let newPURE = [];
                 let alreadyDB = [];
                 for (var el in pubsDB) {
-                    let db_doi = pubsDB[el].doi;
+                    var db_doi = pubsDB[el].doi;
                     if (db_doi !== undefined && db_doi !== null) {
                         db_doi = db_doi.toLowerCase();
                     }
-                    let db_wos = pubsDB[el].wos;
+                    var db_wos = pubsDB[el].wos;
                     if (db_wos !== undefined && db_wos !== null) {
                         // PURE WOS id's do not have WOS: substring
                         db_wos = db_wos.replace('WOS:','');
                     }
-                    let db_pubmed_id = pubsDB[el].pubmed_id;
-                    let db_title = pubsDB[el].title;
-                    let db_journal = pubsDB[el].journal_name;
+                    var db_pubmed_id = pubsDB[el].pubmed_id;
+                    var db_title = prepareStringComparison(pubsDB[el].title);
+                    var db_journal = prepareStringComparison(pubsDB[el].journal_name);
                     for (var elPURE in pubsPURE) {
                         // tries to match based on DOI
-                        let electronicVersion = pubsPURE[elPURE].electronicVersions;
+                        var electronicVersion = pubsPURE[elPURE].electronicVersions;
                         if (electronicVersion !== null && electronicVersion !== undefined
                                 && electronicVersion.length !== 0) {
-                            let pure_doi = electronicVersion[0].doi;
+                            var pure_doi = electronicVersion[0].doi;
                             if (pure_doi !== undefined && pure_doi !== null) {
                                 pubsPURE[elPURE].doi = pure_doi.toLowerCase();
                                 pure_doi = pure_doi
@@ -1938,7 +1938,7 @@
                                 }
                             }
                         }
-                    }                    
+                    }                                                                
                 }
                 for (var elPURE in pubsPURE) {
                     if (pubsPURE[elPURE].matched_pure_to_db === null 
@@ -2003,7 +2003,7 @@
                 }
                 for (var el in pubsDB) {
                     if (pubsDB[el].matched_db_to_pure !== null
-                        && pubsDB[el].matched_db_to_pure !== undefined) {
+                        && pubsDB[el].matched_db_to_pure !== undefined) {                        
                         alreadyDB.push(
                             {
                                 id: pubsDB[el].id,

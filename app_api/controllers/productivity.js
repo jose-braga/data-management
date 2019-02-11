@@ -1180,7 +1180,7 @@ var queryPURECheckIfExistsPublication = function (req, res, next, i, journalID) 
     var add = req.body.newPURE;
     var querySQL = '';
     var places = [];
-    if (add[i].title !== null && add[i].doi !== null) {
+    if (add[i].title !== null && add[i].doi !== null && add[i].doi !== undefined) {
         querySQL = querySQL + 'SELECT id, title, doi FROM publications' +
             ' WHERE title = ? AND doi = ?;';
         places.push(add[i].title, add[i].doi);
@@ -1244,13 +1244,13 @@ var queryPUREInsertPublication = function (req, res, next, i, journalID) {
     }
     var date = null;
     var month;
-    if (add[i].month !== null) {
+    if (add[i].month !== null && add[i].month !== undefined) {
         if (isNaN(+add[i].month)) {
             month = moment().month(add[i].month).format('MMM');
         } else {
             month = moment().month(parseInt(add[i].month, 10) - 1).format('MMM');
         }
-        if (add[i].day !== null) {
+        if (add[i].day !== null && add[i].day !== undefined) {
             date = month + ' ' + add[i].day;
         } else {
             date = month;
@@ -1283,10 +1283,12 @@ var queryPUREInsertPublication = function (req, res, next, i, journalID) {
                     return;
                 }
                 var pubID = resQuery.insertId;
+                /*
                 externalAPI.contact(WEBSITE_API_BASE_URL[1], 'create', 'publications', pubID,
-                    'UCIBIO API error creating (adding association of publication to person, from ORCID) (id) :', pubID);
+                    'UCIBIO API error creating (adding association of publication to person, from ORCID) (id) :', pubID, i);
                 externalAPI.contact(WEBSITE_API_BASE_URL[2], 'create', 'publications', pubID,
-                    'LAQV API error creating (adding association of publication to person, from ORCID) (id) :', pubID);
+                    'LAQV API error creating (adding association of publication to person, from ORCID) (id) :', pubID, i * add.length);
+                */
                 if (add[i].publication_type_id !== null && add[i].publication_type_id !== undefined) {
                     if (add[i].publication_type_id.length > 0) {
                         return queryPUREInsertPublicationDescription(req, res, next, i, pubID);
@@ -1322,10 +1324,12 @@ var queryPUREInsertPublicationDescription = function (req, res, next, i, pubID) 
                     sendJSONResponse(res, 400, { "status": "error", "statusCode": 400, "error": err.stack });
                     return;
                 }
+                /*
                 externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'publications', pubID,
                     'UCIBIO API error updating (adding description, from ORCID) (id) :', pubID);
                 externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'publications', pubID,
                     'LAQV API error updating (adding description, from ORCID) (id) :', pubID);
+                */
                 return queryPUREInsertPeoplePublications(req, res, next, i, pubID);
             }
         );
@@ -1353,9 +1357,9 @@ var queryPUREInsertPeoplePublications = function (req, res, next, i, pubID) {
                     return;
                 }
                 externalAPI.contactCreateOrUpdate(WEBSITE_API_BASE_URL[1], 'publications', pubID,
-                    'UCIBIO API error updating (adding association to person, from ORCID) (id) :', pubID);
+                    'UCIBIO API error updating (adding association to person, from ORCID) (id) :', pubID, i);
                 externalAPI.contactCreateOrUpdate(WEBSITE_API_BASE_URL[2], 'publications', pubID,
-                    'LAQV API error updating (adding association to person, from ORCID) (id) :', pubID);
+                    'LAQV API error updating (adding association to person, from ORCID) (id) :', pubID, i + add.length);
                 if (i + 1 < add.length) {
                     return queryPUREGetJournalID(req, res, next, i + 1);
                 } else {
@@ -1491,7 +1495,7 @@ var queryORCIDCheckIfExistsPublication = function (req, res, next,i, journalID) 
     var add = req.body.addPublications;
     var querySQL = '';
     var places = [];
-    if (add[i].title !== null && add[i].doi !== null) {
+    if (add[i].title !== null && add[i].doi !== null && add[i].doi !== undefined) {
         querySQL = querySQL + 'SELECT id, title, doi FROM publications' +
                 ' WHERE title = ? AND doi = ?;';
         places.push(add[i].title,add[i].doi);
@@ -1594,10 +1598,12 @@ var queryORCIDInsertPublication = function (req, res, next,i, journalID) {
                     return;
                 }
                 var pubID = resQuery.insertId;
+                /*
                 externalAPI.contact(WEBSITE_API_BASE_URL[1], 'create', 'publications', pubID,
                                                 'UCIBIO API error creating (adding association of publication to person, from ORCID) (id) :', pubID);
                 externalAPI.contact(WEBSITE_API_BASE_URL[2], 'create', 'publications', pubID,
                                                 'LAQV API error creating (adding association of publication to person, from ORCID) (id) :', pubID);
+                */
                 if (add[i].publication_type_id !== null && add[i].publication_type_id !== undefined) {
                     if (add[i].publication_type_id.length > 0) {
                         return queryORCIDInsertPublicationDescription(req,res,next,i, pubID);
@@ -1633,10 +1639,12 @@ var queryORCIDInsertPublicationDescription = function (req, res, next, i, pubID)
                     sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                     return;
                 }
+                /*
                 externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'publications', pubID,
                                                 'UCIBIO API error updating (adding description, from ORCID) (id) :', pubID);
                 externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'publications', pubID,
                                                 'LAQV API error updating (adding description, from ORCID) (id) :', pubID);
+                */                                                
                 return queryORCIDInsertPeoplePublications(req,res,next,i, pubID);
             }
         );
@@ -1665,9 +1673,9 @@ var queryORCIDInsertPeoplePublications = function (req, res, next, i, pubID) {
                     return;
                 }
                 externalAPI.contactCreateOrUpdate(WEBSITE_API_BASE_URL[1], 'publications', pubID,
-                                                'UCIBIO API error updating (adding association to person, from ORCID) (id) :', pubID);
+                                                'UCIBIO API error updating (adding association to person, from ORCID) (id) :', pubID, i);
                 externalAPI.contactCreateOrUpdate(WEBSITE_API_BASE_URL[2], 'publications', pubID,
-                                                'LAQV API error updating (adding association to person, from ORCID) (id) :', pubID);
+                                                'LAQV API error updating (adding association to person, from ORCID) (id) :', pubID, i + add.length);
                 if (i+1<add.length) {
                     return queryORCIDGetJournalID(req,res,next,i+1);
                 } else {

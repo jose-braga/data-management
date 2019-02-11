@@ -85,7 +85,8 @@
                         </td>
                         <td>
                             <md-input-container>
-                                <input ng-model="vm.newPUREPublications[pubNum].journal_name" name="journal_name">
+                                <input ng-required="publication.chosen" 
+                                    ng-model="vm.newPUREPublications[pubNum].journal_name" name="journal_name">
                             </md-input-container>
                         </td>
                         <td>

@@ -60,7 +60,8 @@
                             <div class="question"><span class="highlight">Journal:</span></div>
                             <div class="answer">
                                 <md-input-container class="md-block">
-                                    <input ng-model="vm.newPUREPublications[pubNum].journal_name" name="journal_name">
+                                    <input ng-required="publication.chosen" 
+                                        ng-model="vm.newPUREPublications[pubNum].journal_name" name="journal_name">
                                 </md-input-container>
                             </div>
                         </div>

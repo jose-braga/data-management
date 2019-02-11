@@ -16,7 +16,7 @@ var app = express();
 
 app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger(':date[iso] - :method :url :status :response-time ms - :res[content-length]'));
-app.use(bodyParser.json());
+app.use(bodyParser.json({limit: '10mb'}));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));

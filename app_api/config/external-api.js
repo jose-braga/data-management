@@ -24,6 +24,8 @@ function retryBodyOrHTTPOrNetwork(err, response, body) {
     var network_err = err && _.includes(RETRIABLE_ERRORS, err.code);
     var http_err = (response && 500 <= response.statusCode && response.statusCode < 600);
     var body_err;
+    if (body === undefined || body === null) return true; // body error
+    if (body.length > 0 && body[1] === '<') return true; // body error
     try {
         body = JSON.parse(body);
         body_err = false;
@@ -33,14 +35,31 @@ function retryBodyOrHTTPOrNetwork(err, response, body) {
     return network_err || http_err || body_err;
 }
 
-var contact = function (baseURL, operation, entityType, entityID, errorMessage, errorIDs) {
+function getSlotBackoff(attempts,slot) {
+    timeDelay = slot * 300 + attempts * 1000 + Math.floor(Math.random() * 500);
+    return timeDelay;
+}
+
+function slotBackoffStrategy(slot) {
+    let attempts = 0;
+    return () => {
+        attempts += 1;
+        return getSlotBackoff(attempts,slot);
+    };
+}
+
+var contact = function (baseURL, operation, entityType, entityID, 
+                        errorMessage, errorIDs, slot) {
     // Note: request is asynchronous !
     // errorIDs are the IDs associated with the request being done
     // (might give additional information besides entityID)
+    if (slot === undefined) {
+        slot = 1;
+    }
     request({
             url: baseURL + '/' + operation + '/' + entityType + '/' + entityID,
             maxAttempts: 5,
-            retryDelay: 5000,
+            delayStrategy: slotBackoffStrategy(slot),
             retryStrategy: retryBodyOrHTTPOrNetwork
         }, function (error, response, body) {
             if (body !== undefined) {
@@ -49,7 +68,8 @@ var contact = function (baseURL, operation, entityType, entityID, errorMessage, 
                         body = JSON.parse(body);
                     }
                     catch (err) {
-                        console.log('error response:', err);
+                        console.log(errorMessage, errorIDs);
+                        //console.log('error slot:', slot);
                         body = {'statusCode': 5000};
                     }
                 }  else {
@@ -139,20 +159,24 @@ var contactPURE = function (req, res, baseURL, version, apiKey, entity,
 
 exports.contact = contact;
 
-exports.contactCreateOrUpdate = function (baseURL, entityType, entityID, errorMessage, errorIDs) {
+exports.contactCreateOrUpdate = function (baseURL, entityType, entityID, 
+                                         errorMessage, errorIDs, slot) {
+    if (slot === undefined) {
+        slot = 1;
+    }
     request({
             url: baseURL + '/' + 'create' + '/' + entityType + '/' + entityID,
             maxAttempts: 5,
-            retryDelay: 5000,
+            delayStrategy: slotBackoffStrategy(slot),
             retryStrategy: retryBodyOrHTTPOrNetwork
         }, function (error, response, body) {
             if (body !== undefined) {
-                if (body.length >0) {
+                if (body.length > 0) {
                     try {
                         body = JSON.parse(body);
                     }
                     catch (err) {
-                        console.log('error response:', err);
+                        console.log(errorMessage, errorIDs);
                         body = {'statusCode': 5000};
                     }
                 } else {
@@ -166,7 +190,7 @@ exports.contactCreateOrUpdate = function (baseURL, entityType, entityID, errorMe
                 console.log('error:', error);
             }
             if (body.statusCode !== 200) {
-                contact(baseURL, 'update', entityType, entityID, errorMessage + '- update', errorIDs);
+                contact(baseURL, 'update', entityType, entityID, errorMessage + '- update', errorIDs, slot);
             }
         });
 };

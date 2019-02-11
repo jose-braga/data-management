@@ -32,6 +32,9 @@
                         $rootScope.$on('updateManagerPersonORCIDPublicationsMessage', function (event,data) {
                             getPublications();
                         });
+                        $rootScope.$on('updateManagerPersonPUREPublicationsMessage', function (event, data) {
+                            getPublications();
+                        });
 
 
                         scope.showDetailsPublication = function (pub) {
@@ -1323,6 +1326,441 @@
             }];
     };
 
+    var managerAddPublicationsPURE = function (view) {
+        var url;
+        if (view === 'large') {
+            url = 'manager/person_details/productivity/publications/manager.person.addPublicationsPURE.large.html';
+        } else if (view === 'small') {
+            url = 'manager/person_details/productivity/publications/manager.person.addPublicationsPURE.small.html';
+        }
+        return ['personData', 'managerData', 'publications', 'authentication', '$q', '$timeout', '$mdMedia', '$mdPanel', '$rootScope',
+            function (personData, managerData, publications, authentication, $q, $timeout, $mdMedia, $mdPanel, $rootScope) {
+                return {
+                    restrict: 'E',
+                    //transclude: true,
+                    scope: {
+                        person: "@",
+                        pureres: "@",
+                        puretech: "@",
+                        purescman: "@",
+                    },
+                    templateUrl: url,
+                    link:
+                        function (scope, element, attrs) {
+                            var personID = parseInt(scope.person, 10);
+                            var researcher_pure_id = scope.pureres;
+                            var technician_pure_id = scope.puretech;
+                            var sc_man_pure_id = scope.purescman;
+
+                            initializeInterface();
+                            initializeVariables();
+                            getAllPublications();
+
+                            scope.connectPURE = function () {
+                                scope.progressPURE = true;
+                                var pure_id;
+                                if (researcher_pure_id !== null || researcher_pure_id !== '') {
+                                    pure_id = researcher_pure_id;
+                                } else if (technician_pure_id !== null || technician_pure_id !== '') {
+                                    pure_id = technician_pure_id;
+                                } else if (sc_man_pure_id !== null || sc_man_pure_id !== '') {
+                                    pure_id = sc_man_pure_id;
+                                } else {
+                                    pure_id = null;
+                                }
+                                if (pure_id === null) {
+                                    alert('Please insert your PURE in your role data');
+                                } else {
+                                    publications.getPUREPublicationsPerson(pure_id, 0, 10)
+                                        .then(function (response) {
+                                            let pubPUREList = response.data;
+                                            let filtered = removeCommonPURE(pubPUREList, scope.allPublicationsPrior);
+                                            scope.newPUREPublications = filtered.newPURE;
+                                            scope.matchedPURE = filtered.alreadyDB;
+                                            scope.progressPURE = false;                                            
+                                        })
+                                        .catch(function (err) {
+                                            console.log(err);
+                                        });
+                                }
+                            };
+                            
+                            scope.submitAddPUREPublications = function (ind) {
+                                scope.updateStatus[ind] = "Updating...";
+                                scope.messageType[ind] = 'message-updating';
+                                scope.hideMessage[ind] = false;
+                                let addPUREPublications = [];
+                                for (var indPub in scope.newPUREPublications) {
+                                    if (scope.newPUREPublications[indPub].chosen) {
+                                        addPUREPublications.push(scope.newPUREPublications[indPub]);
+                                    }
+                                }
+                                var data = {
+                                    newPURE: addPUREPublications,
+                                    matchedPURE: scope.matchedPURE
+                                };
+                                publications.addPUREPublicationsPerson(personID, data)
+                                    .then(function () {
+                                        scope.updateStatus[ind] = "Updated!";
+                                        scope.messageType[ind] = 'message-success';
+                                        scope.hideMessage[ind] = false;
+                                        $timeout(function () { scope.hideMessage[ind] = true; }, 1500);
+                                        scope.gettingAllPublications = true;
+                                        $rootScope.$broadcast('updateManagerPersonPUREPublicationsMessage', data);
+                                        initializeInterface();
+                                        initializeVariables();
+                                        getAllPublications();
+                                    },
+                                        function () {
+                                            scope.updateStatus[ind] = "Error!";
+                                            scope.messageType[ind] = 'message-error';
+                                        },
+                                        function () { }
+                                    );
+                                        
+                                    
+                                
+                                return false;
+                            };
+
+                            scope.changeAllPublications = function (selectAll, pubs) {
+                                if (pubs.length > 0) {
+                                    if (selectAll) {
+                                        for (var el in pubs) {
+                                            pubs[el].chosen = true;
+                                        }
+                                    } else {
+                                        for (var el in pubs) {
+                                            pubs[el].chosen = false;
+                                        }
+                                    }
+                                }
+                            };
+
+                            function removeCommonPURE(pubsPURE, pubsDB) {
+                                let newPURE = [];
+                                let alreadyDB = [];
+                                for (var el in pubsDB) {
+                                    var db_doi = pubsDB[el].doi;
+                                    if (db_doi !== undefined && db_doi !== null) {
+                                        db_doi = db_doi.toLowerCase();
+                                    }
+                                    var db_wos = pubsDB[el].wos;
+                                    if (db_wos !== undefined && db_wos !== null) {
+                                        // PURE WOS id's do not have WOS: substring
+                                        db_wos = db_wos.replace('WOS:', '');
+                                    }
+                                    var db_pubmed_id = pubsDB[el].pubmed_id;
+                                    var db_title = prepareStringComparison(pubsDB[el].title);
+                                    var db_journal = prepareStringComparison(pubsDB[el].journal_name);
+                                    for (var elPURE in pubsPURE) {
+                                        // tries to match based on DOI
+                                        var electronicVersion = pubsPURE[elPURE].electronicVersions;
+                                        if (electronicVersion !== null && electronicVersion !== undefined
+                                            && electronicVersion.length !== 0) {
+                                            var pure_doi = electronicVersion[0].doi;
+                                            if (pure_doi !== undefined && pure_doi !== null) {
+                                                pubsPURE[elPURE].doi = pure_doi.toLowerCase();
+                                                pure_doi = pure_doi
+                                                    .toLowerCase()
+                                                    .replace('https://doi.org/', '');
+                                                pubsPURE[elPURE].doi = pure_doi;
+                                                if (db_doi !== undefined && db_doi !== null) {
+                                                    if (pure_doi === db_doi) {
+                                                        pubsDB[el].matched_db_to_pure = pubsPURE[elPURE].pureId;
+                                                        pubsPURE[elPURE].matched_pure_to_db = pubsDB[el].id;
+                                                        break;
+                                                    } else {
+                                                        continue;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        // tries to match based on WOS and PubMed
+                                        let pure_wos = null;
+                                        let pure_pubmed_id = null;
+                                        let info = pubsPURE[elPURE].info;
+                                        if (info !== undefined && info !== null) {
+                                            addExtID = info.additionalExternalIds;
+                                            if (addExtID !== undefined && addExtID !== null) {
+                                                for (var ind in addExtID) {
+                                                    if (addExtID[ind].idSource === 'WOS') {
+                                                        pure_wos = addExtID[ind].value;
+                                                    } else if (addExtID[ind].idSource === 'PubMed') {
+                                                        pure_pubmed_id = addExtID[ind].value;
+                                                    }
+                                                }
+                                                if (pure_wos !== null && pure_wos !== undefined
+                                                    && db_wos !== null && db_wos !== undefined) {
+                                                    if (pure_wos === db_wos) {
+                                                        pubsDB[el].matched_db_to_pure = pubsPURE[elPURE].pureId;
+                                                        pubsPURE[elPURE].matched_pure_to_db = pubsDB[el].id;
+                                                        break;
+                                                    } else {
+                                                        continue;
+                                                    }
+                                                }
+                                                if (pure_pubmed_id !== null && pure_pubmed_id !== undefined
+                                                    && db_pubmed_id !== null && db_pubmed_id !== undefined) {
+                                                    if (pure_pubmed_id === db_pubmed_id) {
+                                                        pubsDB[el].matched_db_to_pure = pubsPURE[elPURE].pureId;
+                                                        pubsPURE[elPURE].matched_pure_to_db = pubsDB[el].id;
+                                                        break;
+                                                    } else {
+                                                        continue;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        if (pubsPURE[elPURE].externalIdSource === 'WOS') {
+                                            pure_wos = pubsPURE[elPURE].externalId;
+                                            if (pure_wos !== null && pure_wos !== undefined
+                                                && db_wos !== null && db_wos !== undefined) {
+                                                if (pure_wos === db_wos) {
+                                                    pubsDB[el].matched_db_to_pure = pubsPURE[elPURE].pureId;
+                                                    pubsPURE[elPURE].matched_pure_to_db = pubsDB[el].id;
+                                                    break;
+                                                } else {
+                                                    continue;
+                                                }
+                                            }
+                                        }
+                                        if (pubsPURE[elPURE].externalIdSource === 'PubMed') {
+                                            pure_pubmed_id = pubsPURE[elPURE].externalId;
+                                            if (pure_pubmed_id !== null && pure_pubmed_id !== undefined
+                                                && db_pubmed_id !== null && db_pubmed_id !== undefined) {
+                                                if (pure_pubmed_id === db_pubmed_id) {
+                                                    pubsDB[el].matched_db_to_pure = pubsPURE[elPURE].pureId;
+                                                    pubsPURE[elPURE].matched_pure_to_db = pubsDB[el].id;
+                                                    break;
+                                                } else {
+                                                    continue;
+                                                }
+                                            }
+                                        }
+                                        // tries to match based on title and journal name
+                                        if (pubsPURE[elPURE].title !== null
+                                            && pubsPURE[elPURE].title !== undefined) {
+                                            pure_title = prepareStringComparison(pubsPURE[elPURE].title);
+                                            if (pubsPURE[elPURE].journalAssociation !== null
+                                                && pubsPURE[elPURE].journalAssociation !== undefined) {
+                                                pure_journal = prepareStringComparison(
+                                                    pubsPURE[elPURE].journalAssociation.title.value)
+                                                if (compareTwoStrings(db_title, pure_title) > 0.95
+                                                    && compareTwoStrings(db_journal, pure_journal) > 0.95) {
+                                                    pubsDB[el].matched_db_to_pure = pubsPURE[elPURE].pureId;
+                                                    pubsPURE[elPURE].matched_pure_to_db = pubsDB[el].id;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                for (var elPURE in pubsPURE) {
+                                    if (pubsPURE[elPURE].matched_pure_to_db === null
+                                        || pubsPURE[elPURE].matched_pure_to_db === undefined) {
+                                        let authors_raw = '';
+                                        for (var aut in pubsPURE[elPURE].personAssociations) {
+                                            if (pubsPURE[elPURE].personAssociations[aut].name !== null
+                                                && pubsPURE[elPURE].personAssociations[aut].name !== undefined) {
+                                                firstName = pubsPURE[elPURE].personAssociations[aut].name.firstName;
+                                                lastName = pubsPURE[elPURE].personAssociations[aut].name.lastName;
+                                                if (lastName !== null && lastName !== undefined) {
+                                                    if (firstName !== null && firstName !== undefined) {
+                                                        authors_raw = authors_raw + lastName + ', '
+                                                            + firstName;
+                                                    } else {
+                                                        authors_raw = authors_raw + lastName;
+                                                    }
+                                                } else {
+                                                    if (firstName !== null && firstName !== undefined) {
+                                                        authors_raw = authors_raw + firstName;
+                                                    }
+                                                }
+                                                if (parseInt(aut, 10) < pubsPURE[elPURE].personAssociations.length - 1) {
+                                                    authors_raw = authors_raw + '; ';
+                                                }
+                                            }
+                                        }
+                                        pubsPURE[elPURE].authors_raw = authors_raw;
+                                        // extracts some info
+                                        // journal name
+                                        if (pubsPURE[elPURE].journalAssociation !== null
+                                            && pubsPURE[elPURE].journalAssociation !== undefined) {
+                                            pubsPURE[elPURE].journal_name = pubsPURE[elPURE].journalAssociation.title.value;
+                                        }
+                                        // publication date
+                                        if (pubsPURE[elPURE].publicationStatuses !== null
+                                            && pubsPURE[elPURE].publicationStatuses !== undefined) {
+                                            for (var stat in pubsPURE[elPURE].publicationStatuses) {
+                                                if (pubsPURE[elPURE].publicationStatuses[stat].current === true) {
+                                                    pubsPURE[elPURE].year = pubsPURE[elPURE].publicationStatuses[stat].publicationDate.year;
+                                                    pubsPURE[elPURE].month = pubsPURE[elPURE].publicationStatuses[stat].publicationDate.month;
+                                                    pubsPURE[elPURE].day = pubsPURE[elPURE].publicationStatuses[stat].publicationDate.day;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                        // type
+                                        if (pubsPURE[elPURE].type !== null
+                                            && pubsPURE[elPURE].type !== undefined) {
+                                            let types = [];
+                                            for (var t in pubsPURE[elPURE].type) {
+                                                if (pubsPURE[elPURE].type[t].value === 'Article') {
+                                                    types.push(1);
+                                                } else if (pubsPURE[elPURE].type[t].value === 'Review article') {
+                                                    types.push(4);
+                                                }
+                                            }
+                                            pubsPURE[elPURE].publication_type_id = types;
+                                        }
+                                        newPURE.push(pubsPURE[elPURE]);
+                                    }
+                                }
+                                for (var el in pubsDB) {
+                                    if (pubsDB[el].matched_db_to_pure !== null
+                                        && pubsDB[el].matched_db_to_pure !== undefined) {
+                                        alreadyDB.push(
+                                            {
+                                                id: pubsDB[el].id,
+                                                people_publications_id: pubsDB[el].people_publications_id,
+                                            });
+                                    }
+                                }
+                                return { newPURE: newPURE, alreadyDB: alreadyDB };
+                            }
+
+                            function getAllPublications() {
+                                // gets all publications from DB and excludes the ones that are already attributed to you
+                                publications.allPublications()
+                                    .then(function (response) {
+                                        scope.allPublicationsPrior = response.data.result;
+                                        scope.gettingAllPublications = false;
+                                    })
+                                    .catch(function (err) {
+                                        console.log(err);
+                                    });
+                            }
+
+                            function initializeVariables() {
+                                scope.sortReverse = true;
+                                scope.sortType = 'year';
+
+                                scope.newPUREPublications = [];
+                                scope.matchedPURE = [];
+                                personData.publicationTypes()
+                                    .then(function (response) {
+                                        scope.publicationTypes = response.data.result;
+                                    })
+                                    .catch(function (err) {
+                                        console.log(err);
+                                    });
+                                personData.authorTypes()
+                                    .then(function (response) {
+                                        scope.authorTypes = response.data.result;
+                                    })
+                                    .catch(function (err) {
+                                        console.log(err);
+                                    });
+                            }
+                            function initializeInterface() {
+                                scope.forms = {
+                                    'managerPUREAdd': 0,
+                                };
+                                var numberCards = Object.keys(scope.forms).length; // the number of cards with "Update" in each tab
+                                scope.updateStatus = [];
+                                scope.messageType = [];
+                                scope.hideMessage = [];
+                                for (var i = 0; i < numberCards; i++) {
+                                    scope.updateStatus.push('');
+                                    scope.messageType.push('message-updating');
+                                    scope.hideMessage.push(true);
+                                }
+                                scope.sortType = 'year';
+                                scope.progressPURE = false;
+                                scope.addPublications = [];
+                                scope.gettingAllPublications = true;
+
+                                scope.allPublicationsSearchTitle = '';
+                                scope.allPublicationsSearchAuthors = '';
+
+                            }
+
+                            function prepareStringComparison(str) {
+                                return str.toLowerCase()
+                                    .replace(/[áàãâä]/g, 'a')
+                                    .replace(/[éèêë]/g, 'e')
+                                    .replace(/[íìîï]/g, 'i')
+                                    .replace(/[óòõôö]/g, 'o')
+                                    .replace(/[úùûü]/g, 'u')
+                                    .replace(/[ç]/g, 'c')
+                                    .replace(/[ñ]/g, 'n')
+                                    .replace(/(\.\s)/g, '')
+                                    .replace(/(\.)/g, '')
+                                    .replace(/[-:\(\)]/g, ' ')
+                                    .trim()
+                                    ;
+                            }
+                            // this function was taken from 
+                            //https://github.com/aceakash/string-similarity/blob/master/compare-strings.js
+                            function compareTwoStrings(first, second) {
+                                first = first.replace(/\s+/g, '')
+                                second = second.replace(/\s+/g, '')
+
+                                if (!first.length && !second.length) return 1;                   // if both are empty strings
+                                if (!first.length || !second.length) return 0;                   // if only one is empty string
+                                if (first === second) return 1;       							 // identical
+                                if (first.length === 1 && second.length === 1) return 0;         // both are 1-letter strings
+                                if (first.length < 2 || second.length < 2) return 0;			 // if either is a 1-letter string
+
+                                let firstBigrams = new Map();
+                                for (let i = 0; i < first.length - 1; i++) {
+                                    const bigram = first.substr(i, 2);
+                                    const count = firstBigrams.has(bigram)
+                                        ? firstBigrams.get(bigram) + 1
+                                        : 1;
+
+                                    firstBigrams.set(bigram, count);
+                                };
+
+                                let intersectionSize = 0;
+                                for (let i = 0; i < second.length - 1; i++) {
+                                    const bigram = second.substr(i, 2);
+                                    const count = firstBigrams.has(bigram)
+                                        ? firstBigrams.get(bigram)
+                                        : 0;
+
+                                    if (count > 0) {
+                                        firstBigrams.set(bigram, count - 1);
+                                        intersectionSize++;
+                                    }
+                                }
+
+                                return (2.0 * intersectionSize) / (first.length + second.length - 2);
+                            }
+
+                            function sorter(a, b) {
+                                if (scope.sortType === 'year') {
+                                    if (scope.sortReverse) {
+                                        return -(a[scope.sortType] - b[scope.sortType]);
+                                    } else {
+                                        return (a[scope.sortType] - b[scope.sortType]);
+                                    }
+                                } else {
+                                    if (scope.sortReverse) {
+                                        return -(a[scope.sortType] ? a[scope.sortType] : '')
+                                            .localeCompare(b[scope.sortType] ? b[scope.sortType] : '');
+                                    } else {
+                                        return (a[scope.sortType] ? a[scope.sortType] : '')
+                                            .localeCompare(b[scope.sortType] ? b[scope.sortType] : '');
+                                    }
+                                }
+                            }
+                        }
+                };
+            }];
+    };
+
     var managerPersonPublicationsLarge = managerPublications('large');
     var managerPersonPublicationsSmall = managerPublications('small');
 
@@ -1332,6 +1770,9 @@
     var managerAddPersonPublicationsOrcidLarge = managerAddPublicationsORCID('large');
     var managerAddPersonPublicationsOrcidSmall = managerAddPublicationsORCID('small');
 
+    var managerAddPersonPublicationsPureLarge = managerAddPublicationsPURE('large');
+    var managerAddPersonPublicationsPureSmall = managerAddPublicationsPURE('small');
+
     angular.module('managementApp')
         .directive('managerPersonPublicationsLarge', managerPersonPublicationsLarge)
         .directive('managerPersonPublicationsSmall', managerPersonPublicationsSmall)
@@ -1339,6 +1780,8 @@
         .directive('managerAddPersonPublicationsSmall', managerAddPersonPublicationsSmall)
         .directive('managerAddPersonPublicationsOrcidLarge', managerAddPersonPublicationsOrcidLarge)
         .directive('managerAddPersonPublicationsOrcidSmall', managerAddPersonPublicationsOrcidSmall)
+        .directive('managerAddPersonPublicationsPureLarge', managerAddPersonPublicationsPureLarge)
+        .directive('managerAddPersonPublicationsPureSmall', managerAddPersonPublicationsPureSmall)
         ;
 
 })();

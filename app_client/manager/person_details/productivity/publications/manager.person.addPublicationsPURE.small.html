@@ -1,0 +1,150 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Search Institutional Repository (e.g. PURE@FCT)</span>
+        </md-card-title-text>
+    </md-card-title>
+    <md-card-content layout="column">
+        <div ng-show="gettingAllPublications" layout-padding>
+            <p>Getting information from database...</p>
+            <md-progress-circular md-mode="indeterminate" md-diameter="60px"></md-progress-circular>
+        </div>
+        <div ng-show="!gettingAllPublications">
+            <div layout="row">
+                <md-button type="submit" ng-click="connectPURE()"
+                    class="button-small md-raised md-warn">Connect Repository</md-button>
+                <md-progress-circular ng-disabled="!progressPURE" md-diameter="20"></md-progress-circular>
+            </div>
+            <form flex novalidate name="managerAddPUREPublicationsForm"
+                    ng-submit="managerAddPUREPublicationsForm.$valid && submitAddPUREPublications(forms['managerPUREAdd'])">
+                <div class="publication small-screens" layout="column">
+                    <div layout="row" layout-align="start center">
+                        <div class="question"><span class="highlight"><h2>Select all:</h2></span></div>
+                        <div class="answer align-publication">
+                            <span>
+                                <md-checkbox ng-model="selectAllPublicationsPURE"
+                                        ng-change="changeAllPublications(selectAllPublicationsPURE, newPUREPublications)"
+                                        aria-label="choose all"></md-checkbox>
+                            </span>
+                        </div>
+                    </div>
+                    <md-divider></md-divider>
+                    <div ng-repeat="(pubNum,publication) in newPUREPublications track by $index">
+                        <div layout="column">
+                            <div layout="row" layout-align=" center">
+                                <div class="question"><span class="highlight">Title:</span></div>
+                                <div class="answer">
+                                    <span>
+                                        <md-input-container class="area md-block">
+                                            <textarea ng-model="newPUREPublications[pubNum].title" name="title"></textarea>
+                                        </md-input-container>
+                                    </span>
+                                </div>
+                            </div>
+                            <div layout="row" layout-align=" center">
+                                <div class="question"><span class="highlight">Authors:</span></div>
+                                <div class="answer">
+                                    <md-input-container class="md-block">
+                                        <input ng-model="newPUREPublications[pubNum].authors_raw" name="authors_raw">
+                                    </md-input-container>
+                                </div>
+                            </div>
+                            <div layout="row" layout-align=" center">
+                                <div class="question"><span class="highlight">Journal:</span></div>
+                                <div class="answer">
+                                    <md-input-container class="md-block">
+                                        <input ng-required="publication.chosen" 
+                                                ng-model="newPUREPublications[pubNum].journal_name" name="journal_name">
+                                    </md-input-container>
+                                </div>
+                            </div>
+                            <div layout="row" layout-align=" center">
+                                <div class="question"><span class="highlight">Vol/Num/Pages:</span></div>
+                                <div class="answer">
+                                    <div layout="row">
+                                        <md-input-container class="input-no-margin simple-input">
+                                            <input ng-model="newPUREPublications[pubNum].volume" name="volume">
+                                        </md-input-container><span class="small-top">/</span>
+                                        <md-input-container class="input-no-margin simple-input">
+                                            <input ng-model="newPUREPublications[pubNum].number" name="number">
+                                        </md-input-container><span class="small-top">/</span>
+                                        <md-input-container class="input-no-margin simple-input">
+                                            <input ng-model="newPUREPublications[pubNum].pages" name="pages">
+                                        </md-input-container>
+                                    </div>
+                                </div>
+                            </div>
+                            <div layout="row" layout-align=" center">
+                                <div class="question"><span class="highlight">Year:</span></div>
+                                <div class="answer"><span>{{publication.year}}</span></div>
+                            </div>
+                            <div layout="row">
+                                <div class="question"><span class="highlight">Doc. type:</span></div>
+                                <div class="answer">
+                                    <span>
+                                        <md-input-container class="select-container select-no-margin card-type">
+                                            <md-select multiple ng-model="publication.publication_type_id"
+                                                    aria-label="publication type"
+                                                    name="publication_pure_publication_type[pubNum]">
+                                                <div class="scrollable">
+                                                    <md-option ng-repeat="type in publicationTypes"
+                                                            ng-value="type.id">{{type.name_en}}</md-option>
+                                                </div>
+                                            </md-select>
+                                        </md-input-container>
+                                    </span>
+                                </div>
+                            </div>
+                            <div layout="row">
+                                <div class="question"><span class="highlight">I am:</span></div>
+                                <div class="answer">
+                                    <span><md-input-container class="select-container select-no-margin card-type">
+                                        <md-select ng-model="publication.author_type_id"
+                                                    aria-label="author type"
+                                                    name="publication_author_type[pubNum]">
+                                                <div class="scrollable">
+                                                    <md-option ng-repeat="type in authorTypes" ng-value="type.id">{{type.name_en}} author</md-option>
+                                                </div>
+                                            </md-select>
+                                        </md-input-container>
+                                    </span>
+                                </div>
+                            </div>
+                            <div layout="row">
+                                <div class="question"><span class="highlight">Author rank:</span></div>
+                                <div class="answer">
+                                    <span><md-input-container class="input-no-margin">
+                                            <input ng-model="publication.position"
+                                                aria-label="dedication"
+                                                name="publication_position[pubNum]"
+                                                integer-validate>
+                                        </md-input-container>
+                                    </span>
+                                </div>
+                            </div>
+                            <div layout="row">
+                                <div class="question"><span class="highlight">Add to DB:</span></div>
+                                <div class="answer">
+                                    <span>
+                                        <md-checkbox ng-model="publication.chosen" aria-label="chosen"></md-checkbox>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <md-divider></md-divider>
+                    </div>
+                </div>
+                <div class="spacer-top"
+                        layout="column" layout-gt-sm="row" layout-align="none center">
+                    <md-button type="submit"
+                        class="button-small md-raised md-primary">Synchronize Repository/DB</md-button>
+                    <div class="status-message" ng-hide="hideMessage[forms['managerPUREAdd']]">
+                        <span class="message" ng-class="messageType[forms['managerPUREAdd']]">
+                            {{updateStatus[forms['managerPUREAdd']]}}
+                        </span>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </md-card-content>
+</md-card>

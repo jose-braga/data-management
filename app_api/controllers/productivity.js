@@ -1370,17 +1370,18 @@ var queryPUREInsertPeoplePublications = function (req, res, next, i, pubID) {
     });
 };
 var queryUpdateInstitutionalRepository = function (req, res, next) {
+    var personID = req.params.personID;
     let update = req.body.matchedPURE;
     if (update.length > 0) {
         var query = 'UPDATE people_publications SET in_institutional_repository = 1 WHERE ';
         var places = [];        
         for (var el in update) {
             if (parseInt(el,10) < update.length - 1) {
-                query = query + 'id = ? OR ';
+                query = query + '(person_id = ? AND publication_id = ?) OR ';
             } else {
-                query = query + 'id = ?;';
+                query = query + '(person_id = ? AND publication_id = ?);';
             }
-            places.push(update[el].people_publications_id);
+            places.push(personID, update[el].id);
         }
         pool.getConnection(function (err, connection) {
             if (err) {

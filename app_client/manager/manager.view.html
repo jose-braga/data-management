@@ -78,6 +78,22 @@
                                         data-person="{{person.id}}"
                                         flex>
                                     </manager-add-person-publications-small>
+
+                                    <manager-add-person-publications-pure-large ng-if="vm.showTable()" 
+                                        data-person="{{person.id}}"
+                                        data-pureres="{{person.researcher_data[0].pure_id}}" 
+                                        data-puretech="{{person.technician_data[0].pure_id}}"
+                                        data-purescman="{{person.science_manager_data[0].pure_id}}" flex>
+                                    </manager-add-person-publications-pure-large>
+                                    <manager-add-person-publications-pure-small ng-if="!vm.showTable()" 
+                                        data-person="{{person.id}}"
+                                        data-pureres="{{person.researcher_data[0].pure_id}}" 
+                                        data-puretech="{{person.technician_data[0].pure_id}}"
+                                        data-purescman="{{person.science_manager_data[0].pure_id}}" flex>
+                                    </manager-add-person-publications-pure-small>
+
+
+
                                     <manager-add-person-publications-orcid-large
                                         ng-if="vm.showTable()"
                                         data-person="{{person.id}}"

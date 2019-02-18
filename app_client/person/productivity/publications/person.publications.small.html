@@ -25,8 +25,9 @@
         </div>
         <p>
             Publications labeled with <md-icon md-svg-src="images/icons/repository_24px.svg"></md-icon>
-            are also found in your institution's repository (e.g. PURE) and are associated to you in it 
-            (note: currently this is only available for FCT NOVA).
+            are also found in your institution's repository (e.g. PURE) and are associated to you in it
+            (go to "Pub Add" tab, "Connect Repository" and then "Synchronize"). <br>
+            Note: Currently this is only available for FCT NOVA.
         </p>
         <div>
             This list contains <strong>{{vm.selectedPublications.length}} publications</strong>.
@@ -81,7 +82,7 @@
                                 </span>
                             </div>
                             <div class="answer">
-                                <md-checkbox class="center-tick" name="selectedPublication" aria-label="Selected Publication"
+                                <md-checkbox name="selectedPublication" aria-label="Selected Publication"
                                         ng-change="vm.changeSelectedStatus(publication)" ng-model="publication.selected"></md-checkbox>
                             </div>
                         </div>
@@ -95,7 +96,7 @@
                                 </span>
                             </div>
                             <div class="answer">
-                                <md-checkbox class="center-tick" name="publicPublication" aria-label="Public Publication"
+                                <md-checkbox name="publicPublication" aria-label="Public Publication"
                                         ng-change="vm.changePublicStatus(publication)" ng-model="publication.public"></md-checkbox>
                             </div>
                         </div>

@@ -383,9 +383,9 @@ td .tighter.md-button.md-icon-button {
 }
 
 .center-tick {
-  /*align-items: center;*/
+  align-items: center;
   margin-bottom: 0px;
-  /*margin-left:10% !important;*/
+  margin-left:10% !important;
 }
 
 .publications tbody tr:nth-child(even) {

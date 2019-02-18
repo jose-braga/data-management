@@ -6,7 +6,7 @@
     </md-card-title>
     <form flex novalidate name="personResponsiblesForm"
         ng-submit="personResponsiblesForm.$valid
-            && vm.submitResponsibles(vm.forms['personResponsibles'], vm.selectedIndex-2)">
+            && vm.submitResponsibles(vm.forms['personResponsibles'], vm.selectedIndex-2, vm.thisPerson[vm.selectedIndex-2])">
         <md-card-content layout="column" flex>
             <div ng-if="!vm.nothingToShow(vm.currentResponsibles[vm.selectedIndex-2],'people_responsibles_id')" layout="column">
                 <div ng-repeat="(num,resp) in vm.currentResponsibles[vm.selectedIndex-2] track by $index"

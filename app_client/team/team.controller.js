@@ -64,7 +64,7 @@
         vm.removeRows = function (current, ind) {
             current.splice(ind,1);
         };
-        vm.submitRegistration = function(ind) {
+        vm.submitRegistration = function(ind, form) {
             vm.updateStatus[ind] = "Creating...";
             vm.messageType[ind] = 'message-updating';
             vm.hideMessage[ind] = false;
@@ -108,6 +108,12 @@
                         vm.hideMessage[ind] = false;
                         $timeout(function () {
                             vm.hideMessage[ind] = true;
+                            vm.newPerson.username = undefined;
+                            vm.newPerson.personal_email = undefined;
+                            vm.newPerson.institution_city = undefined;
+                            vm.newPerson.affiliations = [{ people_lab_id: undefined, dedication: undefined, start: undefined, end: undefined }];
+                            form.$setUntouched();
+                            form.$setPristine();
                         }, 5000);
                     }
                 },
@@ -259,6 +265,21 @@
             }
         };
 
+        vm.checkUsername = function (username, form) {
+            teamData.checkUsername(username)
+                .then(function (response) {
+                    var validity = response.data.message;
+                    if (validity === 'Not valid') {
+                        form.username.$setValidity('username', false);
+                    } else {
+                        form.username.$setValidity('username', true);
+                    }
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });            
+        }
+
         vm.gotoSection = function (place) {
             $anchorScroll(place);
         };
@@ -404,13 +425,15 @@
 
         /* Initialization functions */
         function getDataLists() {
-             personData.usernames()
+            /*
+            personData.usernames()
                 .then(function (response) {
                     vm.usernames = response.data.result;
                 })
                 .catch(function (err) {
                     console.log(err);
                 });
+            */
 
             personData.institutionCities()
                 .then(function (response) {

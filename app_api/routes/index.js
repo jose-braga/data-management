@@ -91,7 +91,10 @@ router.delete('/people/role/:role/:personID', auth, ctrlPeopleData.deleteRolePer
 
 // GET TEAM information (authenticated)
 // TODO: listLabData is a dummy function right now
+router.get('/username/:username/check', auth, ctrlTeamData.checkUsername);
+
 router.get('/labs/:teamID', auth, ctrlTeamData.listLabData);
+
 
 router.get('/labs/:groupID/:teamID/people', auth, ctrlTeamData.listLabPeopleData);
 router.get('/facilities/:unitID/:teamID/people', auth, ctrlTeamData.listTechPeopleData);

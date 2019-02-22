@@ -79,6 +79,14 @@ var teamData = function ($http, authentication) {
         );
     };
 
+    var checkUsername = function (username) {
+        return $http.get('api/username/' + username + '/check',
+            {
+                headers: { Authorization: 'Bearer ' + authentication.getToken() }
+            }
+        );
+    }
+
     return {
         allPeopleData: allPeopleData,
         thisLabPeopleData: thisLabPeopleData,
@@ -89,7 +97,8 @@ var teamData = function ($http, authentication) {
         updateTechPeopleTeamByID: updateTechPeopleTeamByID,
         updateScManPeopleTeamByID: updateScManPeopleTeamByID,
         updateAdmPeopleTeamByID: updateAdmPeopleTeamByID,
-        preRegisterMember: preRegisterMember
+        preRegisterMember: preRegisterMember,
+        checkUsername: checkUsername,
     };
 };
 

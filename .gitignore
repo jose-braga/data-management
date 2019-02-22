@@ -62,7 +62,8 @@ docker-compose.yml
 # dotenv environment variables file
 .env
 
-# ignore some directories
+# ignore some directories and files
+test.js
 temp/
 database/
 

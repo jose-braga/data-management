@@ -2551,6 +2551,36 @@ var sendEmailsToUsers = function (req, res, next, userID, personID,
 
 
 /**************************** SQL Generators **********************************/
+module.exports.checkUsername = function (req, res, next) {
+    var username = req.params.username;
+    var query = 'SELECT * FROM users WHERE username = ?';
+    var placeholders = [username];
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        connection.query(query, placeholders,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, { "status": "error", "statusCode": 400, "error": err.stack });
+                    return;
+                }
+                if (resQuery.length > 0) {
+                    sendJSONResponse(res, 200, { "status": "sucess", "statusCode": 200, "message": "Not valid" });
+                    return;
+                } else {
+                    sendJSONResponse(res, 200, { "status": "sucess", "statusCode": 200, "message": "Valid" });
+                    return;
+                }
+            }
+        );
+    });
+};
+
+
 /* TODO: check if this is really needed */
 module.exports.listLabData = function (req, res, next) {
 

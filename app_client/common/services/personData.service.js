@@ -151,6 +151,13 @@
                 }
             );
         };
+        var updateAuthorizationInfoPersonByID = function (personID, data) {
+            return $http.put('api/people/authorization-info/' + personID, data,
+                {
+                    headers: { Authorization: 'Bearer ' + authentication.getToken() }
+                }
+            );
+        };
 
         var updateNuclearInfoPersonByID = function (personID, data) {
             return $http.put('api/people/nuclear-info/' + personID, data,
@@ -399,6 +406,7 @@
             boardTypes: boardTypes,
             docTypes: docTypes,
             permissions: permissions,
+            updateAuthorizationInfoPersonByID: updateAuthorizationInfoPersonByID,
             updateInstitutionCityPersonByID: updateInstitutionCityPersonByID,
             updateJobsPersonByID: updateJobsPersonByID,
             updateURLsPersonByID: updateURLsPersonByID,

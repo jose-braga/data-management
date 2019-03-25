@@ -2523,6 +2523,7 @@ var sendEmailsToUsers = function (req, res, next, userID, personID,
         } else if (req.body.institution_city.city === 'Porto') {
             recipients = req.body.personal_email;
         }
+        let username = req.body.username.replace(' ','%20')
         let mailOptions = {
             from: '"Admin" <admin@laqv-ucibio.info>', // sender address
             to: recipients, // list of receivers (comma-separated)

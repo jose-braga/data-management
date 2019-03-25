@@ -1,0 +1,30 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Data visibility authorization</span>
+        </md-card-title-text>
+    </md-card-title>
+    
+    <md-card-content layout="column" flex>
+        <h4>The following data is visible to external partners (e.g. LAQV or UCIBIO website):</h4>
+        <span style="padding-left: 20px;">Full name, Colloquial name, Photo URL, Academic degrees & academic jobs, Lab and group affiliations within LAQV or
+        UCIBIO, Institutional contacts: Email, Phone and Internal Phone extension, Institutional personal webpage & CV, ORCID &
+        Researcher ID and Publications</span>
+        <div layout="row" layout-align="center center">
+            <md-switch ng-model="vm.thisPerson.visible_public"
+                    ng-true-value="1" ng-false-value="0"
+                    ng-change="vm.submitAuthorization(vm.forms['personAuthorization'])"
+                    class="md-warn" aria-label="authorization">
+                Authorize? {{ vm.switchValue(vm.thisPerson.visible_public) }}
+            </md-switch>
+        </div>
+        <div layout="row" layout-align="center center">
+            <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personAuthorization']]">
+                <span class="message" ng-class="vm.messageType[vm.forms['personAuthorization']]">
+                    {{vm.updateStatus[vm.forms['personAuthorization']]}}
+                </span>
+            </div>
+        </div>
+    </md-card-content>
+
+</md-card>

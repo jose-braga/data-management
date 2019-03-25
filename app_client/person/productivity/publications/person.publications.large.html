@@ -23,10 +23,15 @@
                         class="s48"></md-icon>
             </md-button>
         </div>
+        <p>
+            Publications labeled with <md-icon md-svg-src="images/icons/repository_24px.svg"></md-icon> 
+            are also found in your institution's repository (e.g. PURE) and are associated to you in it 
+            (go to "Pub Add" tab, "Connect Repository" and then "Synchronize"). <br>
+            Note: Currently this is only available for FCT NOVA.
+        </p>
         <div>
             This list contains <strong>{{vm.selectedPublications.length}} publications</strong>.
         </div>
-
         <form flex novalidate name="personPublicationsForm"
                 ng-submit="personPublicationsForm.$valid && vm.submitSelectedPersonPublications(vm.forms['personSelectedPub'])">
             <div layout="row" class="paginator">
@@ -117,14 +122,16 @@
                         <td>
                             <md-button ng-click="vm.showDetailsPublication(publication)"
                                         aria-label="Details"
-                                        class="md-icon-button interaction-button">
+                                        class="md-icon-button interaction-button tighter">
                                 <md-icon md-svg-src="images/icons/description_24px.svg"></md-icon>
                             </md-button>
                             <md-button ng-click="vm.removePublication(publication)"
                                         aria-label="Remove publication"
-                                        class="md-icon-button interaction-button">
+                                        class="md-icon-button interaction-button tighter">
                                 <md-icon md-svg-src="images/icons/remove_24px.svg"></md-icon>
                             </md-button>
+                            <md-icon ng-if="publication.in_institutional_repository" 
+                                    md-svg-src="images/icons/repository_24px.svg"></md-icon>
                         </td>
                     </tr>
                 </tbody>

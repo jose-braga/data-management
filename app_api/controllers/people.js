@@ -3893,6 +3893,63 @@ var queryInstitutionalContactsPerson = function (req, res, next, userCity) {
     }
 };
 
+var queryAuthorizationInfoPerson = function (req, res, next, userCity) {
+    var hasPermission = getGeoPermissions(req, userCity);
+    if ((req.payload.personID !== req.params.personID && hasPermission)
+        || req.payload.personID === req.params.personID) {
+        // data to be added/updated to resource
+        var personID = req.params.personID;
+        var name = req.body.name;
+        var colloquial_name = req.body.colloquial_name;
+        var birth_date = momentToDate(req.body.birth_date);
+        var user_id = req.body.user_id;
+        var active_from = momentToDate(req.body.active_from);
+        var active_until = momentToDate(req.body.active_until);
+        var visible_public = req.body.visible_public;
+        var updated = momentToDate(moment(), undefined, 'YYYY-MM-DD HH:mm:ss');
+        var changed_by = req.body.changed_by;
+        var gender = req.body.gender;
+        var units = req.body.units;
+        var places = [];
+        var querySQL = 'UPDATE `people`' +
+            ' SET `visible_public` = ?' +
+            ' WHERE `id` = ?';
+        querySQL = querySQL + '; ';
+        places.push(visible_public, personID);
+        querySQL = querySQL + 'INSERT INTO `people_history`' +
+            ' (`person_id`,`user_id`,`name`,`colloquial_name`,`birth_date`,`gender`,' +
+            '`active_from`,`active_until`,`status`,`updated`,`operation`,`changed_by`,`visible_public`)' +
+            ' VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)';
+        querySQL = querySQL + '; ';
+        places.push(personID, user_id, name, colloquial_name, birth_date, gender,
+            active_from, active_until, 1, updated, 'U', changed_by, visible_public);
+        
+        if (units.indexOf(1) !== -1) {
+            if (visible_public === 1) {
+                externalAPI.contact(WEBSITE_API_BASE_URL[1], 'create', 'people', personID,
+                    'UCIBIO API error updating person information (nuclear information) :', personID);
+            } else {
+                externalAPI.contact(WEBSITE_API_BASE_URL[1], 'delete', 'people', personID,
+                    'UCIBIO API error updating person information (nuclear information) :', personID);
+            }
+        }
+        if (units.indexOf(2) !== -1) {
+            if (visible_public === 1) {
+                externalAPI.contact(WEBSITE_API_BASE_URL[2], 'create', 'people', personID,
+                    'LAQV API error updating person information (nuclear information) :', personID);
+            } else {
+                externalAPI.contact(WEBSITE_API_BASE_URL[2], 'delete', 'people', personID,
+                    'LAQV API error updating person information (nuclear information) :', personID);
+            }
+        }
+        
+        
+        escapedQuery(querySQL, places, req, res, next);
+    } else {
+        sendJSONResponse(res, 403, { message: 'This user is not authorized to this operation.' });
+    }
+};
+
 var queryNuclearInfoPerson = function (req, res, next, userCity) {
     var hasPermission = getGeoPermissions(req, userCity);
     if ((req.payload.personID !== req.params.personID && hasPermission)
@@ -3905,6 +3962,7 @@ var queryNuclearInfoPerson = function (req, res, next, userCity) {
         var user_id = req.body.user_id;
         var active_from = momentToDate(req.body.active_from);
         var active_until = momentToDate(req.body.active_until);
+        var visible_public = req.body.visible_public;
         var updated = momentToDate(moment(),undefined,'YYYY-MM-DD HH:mm:ss');
         var changed_by = req.body.changed_by;
         var gender = req.body.gender;
@@ -3921,11 +3979,11 @@ var queryNuclearInfoPerson = function (req, res, next, userCity) {
         places.push(name,colloquial_name,birth_date,gender,personID);
         querySQL = querySQL + 'INSERT INTO `people_history`' +
                        ' (`person_id`,`user_id`,`name`,`colloquial_name`,`birth_date`,`gender`,' +
-                         '`active_from`,`active_until`,`status`,`updated`,`operation`,`changed_by`)' +
-                       ' VALUES (?,?,?,?,?,?,?,?,?,?,?,?)';
+                         '`active_from`,`active_until`,`status`,`updated`,`operation`,`changed_by`, `visible_public`)' +
+                       ' VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)';
         querySQL = querySQL + '; ';
         places.push(personID,user_id,name,colloquial_name,birth_date,gender,
-                    active_from,active_until,1,updated,'U',changed_by);
+                    active_from,active_until,1,updated,'U',changed_by, visible_public);
         if (newNationalities.length > 0) {
             for (var ind in newNationalities) {
                 querySQL = querySQL + 'INSERT INTO `people_countries` (`person_id`,`country_id`)' +
@@ -4270,6 +4328,7 @@ var queryResearcherInfoPerson = function (req, res, next, userCity) {
         var researcherID = req.body.researcherID;
         var scopusID = req.body.scopusID;
         var ORCID = req.body.ORCID;
+        var pure_id = req.body.pure_id;
         var pluriannual = req.body.pluriannual;
         var integrated = req.body.integrated;
         var nuclearCV = req.body.nuclearCV;
@@ -4279,6 +4338,7 @@ var queryResearcherInfoPerson = function (req, res, next, userCity) {
             querySQL = querySQL + 'UPDATE `researchers`' +
                        ' SET `researcherID` = ?,' +
                        ' `ORCID` = ?,' +
+                       ' `pure_id` = ?,' +
                        ' `scopusID` = ?,' +
                        ' `association_key` = ?,' +
                        ' `pluriannual` = ?,' +
@@ -4286,15 +4346,15 @@ var queryResearcherInfoPerson = function (req, res, next, userCity) {
                        ' `nuclearCV` = ?' +
                        ' WHERE `id` = ?';
             querySQL = querySQL + '; ';
-            places.push(researcherID, ORCID,scopusID,association_key,
+            places.push(researcherID, ORCID, pure_id,scopusID,association_key,
                         pluriannual, integrated, nuclearCV,
                         researcher_id);
         } else {
             querySQL = querySQL + 'INSERT INTO `researchers`' +
-                       ' (`person_id`,`researcherID`,`ORCID`,`scopusID`,`association_key`,`pluriannual`,`integrated`,`nuclearCV`)' +
-                       ' VALUES (?,?,?,?,?,?,?,?)';
+                       ' (`person_id`,`researcherID`,`ORCID`,`pure_id`,`scopusID`,`association_key`,`pluriannual`,`integrated`,`nuclearCV`)' +
+                       ' VALUES (?,?,?,?,?,?,?,?,?)';
             querySQL = querySQL + '; ';
-            places.push(personID,researcherID,ORCID,scopusID,association_key,pluriannual,integrated, nuclearCV);
+            places.push(personID,researcherID,ORCID,pure_id,scopusID,association_key,pluriannual,integrated, nuclearCV);
         }
         // insert role in case it doesn't exist already
         querySQL = querySQL + 'INSERT INTO `people_roles`' +
@@ -5028,7 +5088,7 @@ var queryGetRoles = function (req,res,next, personID, row) {
 
 var queryGetResearcherData = function (req,res,next, personID, row) {
     var query = 'SELECT researchers.id AS researcher_id,' +
-                ' researchers.researcherID,researchers.ORCID,researchers.scopusID,researchers.association_key,' +
+                ' researchers.researcherID,researchers.ORCID,researchers.scopusID, researchers.pure_id, researchers.association_key,' +
                 ' researchers.integrated,researchers.nuclearCV,researchers.pluriannual,' +
                 ' researchers.valid_from AS res_valid_from, researchers.valid_until AS res_valid_until' +
                 ' FROM people' +
@@ -5121,7 +5181,7 @@ var queryGetTechnicianAffiliation = function (req,res,next, personID, row) {
 
 var queryGetTechnicianData = function (req,res,next, personID, row) {
     var query = 'SELECT technicians_info.id AS id,' +
-                ' technicians_info.researcherID, technicians_info.ORCID, technicians_info.association_key' +
+                ' technicians_info.researcherID, technicians_info.ORCID, technicians_info.pure_id, technicians_info.association_key' +
                 ' FROM people' +
                 ' LEFT JOIN technicians_info ON people.id = technicians_info.person_id' +
                 ' WHERE people.id = ?;';
@@ -5183,7 +5243,7 @@ var queryGetScienceManagerAffiliation = function (req,res,next, personID, row) {
 
 var queryGetScienceManagerData = function (req,res,next, personID, row) {
     var query = 'SELECT science_managers_info.id AS id,' +
-                ' science_managers_info.association_key, science_managers_info.researcherID, science_managers_info.ORCID' +
+                ' science_managers_info.association_key, science_managers_info.researcherID, science_managers_info.ORCID, science_managers_info.pure_id' +
                 ' FROM people' +
                 ' LEFT JOIN science_managers_info ON people.id = science_managers_info.person_id' +
                 ' WHERE people.id = ?;';
@@ -5341,23 +5401,25 @@ var queryTechnicianInfoPerson = function (req, res, next, userCity) {
         var association_key = req.body.association_key;
         var researcherID = req.body.researcherID;
         var ORCID = req.body.ORCID;
+        var pure_id = req.body.pure_id;
         var places = [];
         var querySQL = '';
         if (id !== null && id !== 'new') {
             querySQL = querySQL + 'UPDATE `technicians_info`' +
                        ' SET `researcherID` = ?,' +
                        ' `ORCID` = ?,' +
+                       ' `pure_id` = ?,' +
                        ' `association_key` = ?' +
                        ' WHERE `id` = ?';
             querySQL = querySQL + '; ';
-            places.push(researcherID, ORCID,association_key,
+            places.push(researcherID, ORCID, pure_id, association_key,
                         id);
         } else {
             querySQL = querySQL + 'INSERT INTO `technicians_info`' +
-                       ' (`person_id`,`researcherID`,`ORCID`,`association_key`)' +
-                       ' VALUES (?,?,?,?)';
+                       ' (`person_id`,`researcherID`,`ORCID`,`pure_id`,`association_key`)' +
+                       ' VALUES (?,?,?,?,?)';
             querySQL = querySQL + '; ';
-            places.push(personID,researcherID,ORCID,association_key);
+            places.push(personID,researcherID,ORCID,pure_id,association_key);
         }
         // insert role in case it doesn't exist already
         querySQL = querySQL + 'INSERT INTO `people_roles`' +
@@ -5382,23 +5444,25 @@ var queryScienceManagerInfoPerson = function (req, res, next, userCity) {
         var association_key = req.body.association_key;
         var researcherID = req.body.researcherID;
         var ORCID = req.body.ORCID;
+        var pure_id = req.body.pure_id;
         var places = [];
         var querySQL = '';
         if (id !== null) {
             querySQL = querySQL + 'UPDATE `science_managers_info`' +
                        ' SET `researcherID` = ?,' +
                        ' `ORCID` = ?,' +
+                       ' `pure_id` = ?,' +
                        ' `association_key` = ?' +
                        ' WHERE `id` = ?';
             querySQL = querySQL + '; ';
-            places.push(researcherID, ORCID,association_key,
+            places.push(researcherID, ORCID,pure_id,association_key,
                         id);
         } else {
             querySQL = querySQL + 'INSERT INTO `science_managers_info`' +
-                       ' (`person_id`,`researcherID`,`ORCID`,`association_key`)' +
-                       ' VALUES (?,?,?,?)';
+                       ' (`person_id`,`researcherID`,`ORCID`,`pure_id`,`association_key`)' +
+                       ' VALUES (?,?,?,?,?)';
             querySQL = querySQL + '; ';
-            places.push(personID,researcherID,ORCID,association_key);
+            places.push(personID,researcherID,ORCID,pure_id,association_key);
         }
         // insert role in case it doesn't exist already
         querySQL = querySQL + 'INSERT INTO `people_roles`' +
@@ -5659,7 +5723,7 @@ module.exports.searchPeople = function (req, res, next) {
                   ' LEFT JOIN units AS administrative_units ON administrative_units.id = people_administrative_units.unit_id' +
                   ' LEFT JOIN administrative_positions ON administrative_positions.id = people_administrative_offices.administrative_position_id' +
                       ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
-                      ' WHERE people.name LIKE ?' +
+                      ' WHERE people.visible_public = 1 AND people.name LIKE ?' +
                         ' AND (people.active_until > ? OR (people.active_from < ? AND people.active_until IS NULL) OR (people.active_from IS NULL AND people.active_until IS NULL))' +
                       ';';
         places = [name,now,now];
@@ -5713,7 +5777,7 @@ module.exports.searchPeople = function (req, res, next) {
                   ' LEFT JOIN units AS administrative_units ON administrative_units.id = people_administrative_units.unit_id' +
                   ' LEFT JOIN administrative_positions ON administrative_positions.id = people_administrative_offices.administrative_position_id' +
                       ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
-                      ' WHERE (labs.name LIKE ?)' +
+                      ' WHERE people.visible_public = 1 AND (labs.name LIKE ?)' +
                         ' AND (people.active_until > ? OR (people.active_from < ? AND people.active_until IS NULL) OR (people.active_from IS NULL AND people.active_until IS NULL))' +
                       ';';
         places = [lab,now,now];
@@ -5769,7 +5833,7 @@ module.exports.searchPeople = function (req, res, next) {
                   ' LEFT JOIN units AS administrative_units ON administrative_units.id = people_administrative_units.unit_id' +
                   ' LEFT JOIN administrative_positions ON administrative_positions.id = people_administrative_offices.administrative_position_id' +
                       ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
-                      ' WHERE people.name LIKE ?' +
+                      ' WHERE people.visible_public = 1 AND people.name LIKE ?' +
                         ' AND (labs.name LIKE ?)' +
                         ' AND (people.active_until > ? OR (people.active_from < ? AND people.active_until IS NULL) OR (people.active_from IS NULL AND people.active_until IS NULL))' +
                       ';';
@@ -5857,7 +5921,7 @@ module.exports.getAllPeople = function (req, res, next) {
                   ' LEFT JOIN units AS administrative_units ON administrative_units.id = people_administrative_units.unit_id' +
                   ' LEFT JOIN administrative_positions ON administrative_positions.id = people_administrative_offices.administrative_position_id' +
                   ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
-                  ' WHERE people.status = ?';
+                  ' WHERE people.status = ? AND people.visible_public = 1';
     var places = [1];
     if (unitID !== null) {
         querySQL = querySQL + ' AND (units.id = ? OR technicians_units.id = ? OR science_managers_units.id = ? OR administrative_units.id = ?)';
@@ -5945,7 +6009,7 @@ module.exports.getPersonInfo = function (req, res, next) {
                   ' LEFT JOIN units AS administrative_units ON administrative_units.id = people_administrative_units.unit_id' +
                   ' LEFT JOIN administrative_positions ON administrative_positions.id = people_administrative_offices.administrative_position_id' +
                   ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
-                  ' WHERE people.id = ?;';
+                  ' WHERE people.id = ? AND people.visible_public = 1;';
     var places = [personID];
     var mergeRules = [
                       ['personal_url_data', 'url', 'url_type_id', 'url_type', 'url_description'],
@@ -6038,6 +6102,7 @@ module.exports.getLabMembers = function (req, res, next) {
                   ' LEFT JOIN lab_positions ON lab_positions.id = people_labs.lab_position_id' +
                   ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
                   ' WHERE labs.id = ? AND groups.id = ?' +
+                  ' AND people.visible_public = 1'
                   ' AND (people.active_until > ? OR (people.active_from < ? AND people.active_until IS NULL) OR (people.active_from IS NULL AND people.active_until IS NULL))' +
                   ';';
     var places = [lab,group,now,now];
@@ -6069,7 +6134,7 @@ module.exports.getFacilityMembers = function (req, res, next) {
                   ' LEFT JOIN technician_positions ON technician_positions.id = technicians.technician_position_id' +
 
                   ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
-                  ' WHERE technician_offices.id = ?' +
+                  ' WHERE technician_offices.id = ? AND people.visible_public = 1' +
                   ' AND (people.active_until > ? OR (people.active_from < ? AND people.active_until IS NULL) OR (people.active_from IS NULL AND people.active_until IS NULL))' +
                   ';';
     var places = [facility,now,now];
@@ -6101,7 +6166,7 @@ module.exports.getScienceOfficeMembers = function (req, res, next) {
                   ' LEFT JOIN science_manager_positions ON science_manager_positions.id = science_managers.science_manager_position_id' +
 
                   ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
-                  ' WHERE science_manager_offices.id = ?' +
+                  ' WHERE science_manager_offices.id = ? AND people.visible_public = 1' +
                   ' AND (people.active_until > ? OR (people.active_from < ? AND people.active_until IS NULL) OR (people.active_from IS NULL AND people.active_until IS NULL))' +
                   ';';
     var places = [office,now,now];
@@ -6133,7 +6198,7 @@ module.exports.getAdministrativeOfficeMembers = function (req, res, next) {
                   ' LEFT JOIN administrative_positions ON administrative_positions.id = people_administrative_offices.administrative_position_id' +
 
                   ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
-                  ' WHERE administrative_offices.id = ?' +
+                  ' WHERE administrative_offices.id = ? AND people.visible_public = 1' +
                   ' AND (people.active_until > ? OR (people.active_from < ? AND people.active_until IS NULL) OR (people.active_from IS NULL AND people.active_until IS NULL))' +
                   ';';
     var places = [office,now,now];
@@ -6372,6 +6437,14 @@ module.exports.listAllPeople = function (req, res, next) {
                    ' WHERE status = 1' +
                    ' ORDER BY colloquial_name;';
     getQueryResponse(querySQL, req, res, next);
+};
+
+module.exports.updateAuthorizationInfoPerson = function (req, res, next) {
+    getUserPermitSelf(req, res, [0, 5, 10, 15, 16],
+        function (req, res, username) {
+            getLocation(req, res, next, queryAuthorizationInfoPerson);
+        }
+    );
 };
 
 module.exports.updateIdentificationsInfoPerson = function (req, res, next) {

@@ -21,6 +21,7 @@
                 <md-content>
                     <div layout-xs="column" layout="row" layout-padding>
                         <div flex-xs flex-sm flex-gt-sm="50" layout="column">
+                            <person-data-authorization></person-data-authorization>
                             <person-nuclear-info></person-nuclear-info>
                             <person-contact-info></person-contact-info>
                             <person-urls></person-urls>
@@ -149,6 +150,8 @@
                             <div ng-show="!vm.gettingAllPublications" layout-padding>
                                 <person-add-publications-large ng-if="vm.showTable()"></person-add-publications-large>
                                 <person-add-publications-small ng-if="!vm.showTable()"></person-add-publications-small>
+                                <person-add-publications-pure-large ng-if="vm.showTable()"></person-add-publications-pure-large>
+                                <person-add-publications-pure-small ng-if="!vm.showTable()"></person-add-publications-pure-small>
                                 <person-add-publications-orcid-large ng-if="vm.showTable()"></person-add-publications-orcid-large>
                                 <person-add-publications-orcid-small ng-if="!vm.showTable()"></person-add-publications-orcid-small>
                             </div>

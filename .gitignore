@@ -70,3 +70,6 @@ database/
 #user input images
 public/images/people/
 public/documents/
+
+# ignore test files
+test.js

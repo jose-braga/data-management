@@ -1226,7 +1226,7 @@ var queryPUREInsertPublication = function (req, res, next, i, journalID) {
     }
     var pageStart = null;
     var pageEnd = null;
-    if (add[i].pages !== null) {
+    if (add[i].pages !== null && add[i].pages !== undefined ) {
         if (add[i].pages.indexOf('-') !== -1) {
             var pageArray = add[i].pages.split('-');
             pageStart = pageArray[0];

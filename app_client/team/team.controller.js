@@ -543,7 +543,7 @@
                 getDataLists();
 
             }
-            getDataLists();
+            getDataLists(); /* TODO: remove this line???? */
         }
         function timeOverlap(d1_start,d1_end, d2_start, d2_end) {
             // returns false if no overlap

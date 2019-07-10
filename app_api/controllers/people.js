@@ -6414,6 +6414,27 @@ module.exports.listOf = function (req, res, next) {
     } else if (listOf === 'doc-types') {
         querySQL = 'SELECT * FROM document_types;';
         getQueryResponse(querySQL, req, res, next);
+    } else if (listOf === 'item-categories') {
+        querySQL = 'SELECT * FROM list_categories;';
+        getQueryResponse(querySQL, req, res, next);
+    } else if (listOf === 'item-unit-types') {
+        querySQL = 'SELECT * FROM quantity_types;';
+        getQueryResponse(querySQL, req, res, next);
+    } else if (listOf === 'order-statuses') {
+        querySQL = 'SELECT * FROM order_statuses;';
+        getQueryResponse(querySQL, req, res, next);
+    } else if (listOf === 'stock-statuses') {
+        querySQL = 'SELECT * FROM stock_item_statuses;';
+        getQueryResponse(querySQL, req, res, next);
+    } else if (listOf === 'order-cost-centers') {
+        querySQL = 'SELECT * FROM cost_centers_orders;';
+        getQueryResponse(querySQL, req, res, next);
+    } else if (listOf === 'order-accounts') {
+        querySQL = 'SELECT * FROM accounts;';
+        getQueryResponse(querySQL, req, res, next);
+    } else if (listOf === 'order-account-roles') {
+        querySQL = 'SELECT * FROM account-roles;';
+        getQueryResponse(querySQL, req, res, next);
     } else {
         var errorNum = 404;
         sendJSONResponse(res, errorNum, {"status": "error", "statusCode": errorNum, "error" : "Does not exist!"});

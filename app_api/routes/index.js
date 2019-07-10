@@ -15,6 +15,8 @@ var ctrlProductivityData = require('../controllers/productivity.js');
 var ctrlStatistics = require('../controllers/statistics.js');
 var ctrlDocsData = require('../controllers/docs.js');
 
+var ctrlOrders = require('../controllers/internal-orders.js');
+
 var ctrlRegistrationData = require('../controllers/registration.js');
 var ctrlPreRegistrationData = require('../controllers/pre-registration.js');
 var ctrlAuth = require('../controllers/authentication.js');
@@ -238,6 +240,15 @@ router.post('/pre-registration', ctrlAuth.preRegistration);
 router.post('/pre-registration/data', auth, ctrlPreRegistrationData.preRegisterPerson);
 router.post('/pre-registration/photo/:personID/:imageType', auth, ctrlPreRegistrationData.updatePhoto);
 router.get('/pre-registration/people/:personID', auth, ctrlPreRegistrationData.getPersonData);
+
+/* Internal orders API */
+router.get('/users/:userID/orders', auth, ctrlOrders.getUserOrders);
+router.post('/users/:userID/orders', auth, ctrlOrders.makeOrder);
+router.get('/users/:userID/inventory', auth, ctrlOrders.getInventory);
+
+
+
+
 
 // API points for authentication
 //router.post('/register', ctrlAuth.register); // registration will be done afterwards

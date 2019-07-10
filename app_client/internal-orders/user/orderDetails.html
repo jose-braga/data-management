@@ -1,0 +1,44 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Order Details</span>
+        </md-card-title-text>
+    </md-card-title>
+    <md-card-content layout="column">
+        <table class="materialize-table">
+            <thead>
+                <tr>
+                    <th>Prod. Name
+                    </th>
+                    <th>Refer.
+                    </th>
+                    <th>Ordered amount
+                    </th>
+                    <th>Cost
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="(itemNum,item) in ctrl.order.items track by $index">
+                    <td>{{item.name_en}}</td>
+                    <td>{{item.reference}}</td>
+                    <td>
+                        <div ng-if="item.decimal === 0">{{item.quantity}}</div>
+                        <div ng-if="item.decimal === 1">{{item.quantity_decimal}}</div>
+                    </td>
+                    <td>{{item.cost | currency:"":2}} €   
+                    </td>
+                </tr>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td>Total:</td>
+                    <td>{{ctrl.order.total_cost | currency:"":2}} €</td>
+                </tr>
+            </tfoot>
+        </table>
+    </md-card-content>
+</md-card>
+

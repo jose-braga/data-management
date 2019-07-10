@@ -59,6 +59,11 @@
                 controller: 'helpCtrl',
                 controllerAs: 'vm'
             })
+            .when('/internal-orders', {
+                templateUrl: 'internal-orders/internal-orders.view.html',
+                controller: 'ordersCtrl',
+                controllerAs: 'vm'
+            })
             .otherwise({redirectTo: '/'});
 
         $locationProvider.html5Mode(true);

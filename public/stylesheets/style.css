@@ -57,6 +57,47 @@ a {
   max-width: 150px;
 }
 
+.materialize-table {
+  border-spacing: 0;
+}
+
+.materialize-table th {
+  border-bottom-width: 2px;
+  border-bottom-style: solid;
+  border-block-color: rgba(0,0,0,.12);
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.materialize-table td {
+  border-bottom-width: 1px;
+  border-bottom-style: solid;
+  border-block-color: rgba(0,0,0,.12);
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+button.smaller-button {
+  min-height: 19px;
+  height: 19px;
+  line-height: 16px;
+  min-width: 40px;
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+md-icon.smaller-icon {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  min-height: 18px;
+}
+
+.smaller-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
 .input-no-margin .md-button.md-icon-button {
   margin-top: 5px;
   padding-top: 0px;
@@ -214,11 +255,11 @@ td .tighter.md-button.md-icon-button {
   padding-left:2px;
   padding-right:2px;
 }
-
+/*
 .interaction-button {
- /* margin-top: 10px !important;*/
+  margin-top: 10px !important;
 }
-
+*/
 .vertical-space {
   margin-bottom: 10px;
 }

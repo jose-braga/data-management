@@ -5476,6 +5476,66 @@
         };
     };
 
+    var positiveIntegerValidate = function () {
+        return {
+            require: 'ngModel',
+            link: function (scope, elm, attrs, ctrl) {
+                var filterInt = function (value) {
+                    if (/^\d+$/.test(value)) {
+                        return Number(value);
+                    }
+                    return NaN;
+                };
+                ctrl.$validators.positiveIntegerValidate = function (modelValue, viewValue) {
+                    if (isNaN(filterInt(viewValue))) {
+                        ctrl.$setValidity('pos_integer', false);
+                        return false;
+                    } else if (filterInt(viewValue) <= 0) {
+                        ctrl.$setValidity('pos_integer', false);
+                        return false;
+                    } else if (filterInt(viewValue) > attrs.positiveIntegerValidate){
+                        ctrl.$setValidity('pos_integer', false);
+                        return false;
+                    } else {
+                        ctrl.$setValidity('pos_integer', true);
+                        return true;
+                    }
+                };
+            }
+        };
+    };
+
+
+    var positiveFloatValidate = function () {
+        return {
+            require: 'ngModel',
+            link: function (scope, elm, attrs, ctrl) {
+                var filterFloat = function (value) {
+                    if (/^\d+(\.\d+)?$/.test(value)) {
+                        return Number(value);
+                    }
+                    return NaN;
+                };
+                ctrl.$validators.positiveFloatValidate = function (modelValue, viewValue) {
+                    if (isNaN(filterFloat(viewValue))) {
+                        ctrl.$setValidity('float', false);
+                        return false;
+                    } else if (filterFloat(viewValue) <= 0) {
+                        ctrl.$setValidity('float', false);
+                        return false;
+                    } else if (filterFloat(viewValue) > attrs.positiveFloatValidate) {
+                        ctrl.$setValidity('float', false);
+                        return false;
+                    } else {
+                        ctrl.$setValidity('float', true);
+                        return true;
+                        }
+
+                };
+            }
+        };
+    };
+
 /**************************** Register components *****************************/
     angular.module('managementApp')
         .directive('personAffiliationLab', personAffiliationLab)
@@ -5532,6 +5592,8 @@
         .directive('dedicationValidate', dedicationValidate)
         .directive('percentageValidate', percentageValidate)
         .directive('integerValidate', integerValidate)
+        .directive('positiveIntegerValidate', positiveIntegerValidate)
+        .directive('positiveFloatValidate', positiveFloatValidate)
 
         .controller('personCtrl',  personCtrl)
         .controller('commDetailsCtrl',  commDetailsCtrl)
@@ -5540,4 +5602,5 @@
         .controller('PeopleSelectCtrl', PeopleSelectCtrl)
         ;
 })();
+
 

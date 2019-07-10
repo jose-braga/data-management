@@ -1,0 +1,288 @@
+<div layout-xs="column" layout="row" layout-padding>
+    <div flex-xs flex-sm flex-gt-sm="50" layout="column">
+        <md-card>
+            <md-card-title>
+                <md-card-title-text>
+                    <span class="md-headline">Inventory</span>
+                </md-card-title-text>
+            </md-card-title>
+            <md-card-content layout="column">
+                <div layout="row" layout-align="none center">
+                    <ng-md-icon icon="search" size="24"></ng-md-icon>
+                    <md-input-container flex>
+                        <label>Search by product name, product type or reference</label>
+                        <input ng-model="searchString" ng-change="renderProducts('new')">
+                    </md-input-container>
+                </div>
+                <div layout="row" class="paginator">
+                    <md-input-container class="input-no-margin wider">
+                        <label>Results/page</label>
+                        <md-select ng-model="pageSize" md-on-close="renderProducts('new')" aria-label="pageSize" name="pageSize">
+                            <md-option ng-value="10">10</md-option>
+                            <md-option ng-value="20">20</md-option>
+                            <md-option ng-value="50">50</md-option>
+                        </md-select>
+                    </md-input-container>
+                    <md-input-container class="input-no-margin">
+                        <label>Page</label>
+                        <md-select ng-model="currentPage" md-on-close="renderProducts('page')" aria-label="currentPage"
+                            name="currentPage">
+                            <md-option ng-repeat="page in pages" ng-value="page">{{page}}</md-option>
+                        </md-select>
+                    </md-input-container>
+                </div>
+                <table class="materialize-table spacer-top">
+                    <thead>
+                        <tr>
+                            <th>
+                                <a ng-click="sortColumn('renderCategories', 'inventory')">Prod. Type</a>
+                                <ng-md-icon ng-if="!sortReverse && sortType=='renderCategories'" icon="arrow_downward" size="12"></ng-md-icon>
+                                <ng-md-icon ng-if="sortReverse  && sortType=='renderCategories'" icon="arrow_upwards" size="12"></ng-md-icon>
+                            </th>
+                            <th>
+                                <a ng-click="sortColumn('name_en', 'inventory')">Prod. Name</a>
+                                <ng-md-icon ng-if="!sortReverse && sortType=='name_en'" icon="arrow_downward" size="12"></ng-md-icon>
+                                <ng-md-icon ng-if="sortReverse  && sortType=='name_en'" icon="arrow_upwards" size="12"></ng-md-icon>
+                            </th>
+                            <th>Refer.
+                            </th>
+                            <th>
+                                <a ng-click="sortColumn('current_unit_price', 'inventory')">Price</a>
+                                <ng-md-icon ng-if="!sortReverse && sortType=='current_unit_price'" icon="arrow_downward" size="12"></ng-md-icon>
+                                <ng-md-icon ng-if="sortReverse  && sortType=='current_unit_price'" icon="arrow_upwards" size="12"></ng-md-icon>
+                            </th>
+                            <th>Available
+                            </th>
+                            <th>Add
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="(itemNum,item) in shownProducts track by $index">
+                            <td>{{item.renderCategories}}</td>
+                            <td>{{item.name_en}}</td>
+                            <td>{{item.reference}}</td>
+                            <td>{{item.current_unit_price | currency:"":2}} €/{{item.unit_singular_en}}</td>
+                            <td>{{item.renderQuantity}}</td>
+                            <td>
+                                <md-button class="smaller-button" ng-click="addToCart(item)" aria-label="Add to Cart" class="md-icon-button">
+                                    <md-icon 
+                                        class="smaller-icon"
+                                        md-svg-src="images/icons/add_shopping_cart_24px.svg"></md-icon>
+                                </md-button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div layout="row" class="paginator">
+                    <md-input-container class="input-no-margin wider">
+                        <label>Results/page</label>
+                        <md-select ng-model="pageSize" md-on-close="renderProducts('new')" aria-label="pageSize" name="pageSize">
+                            <md-option ng-value="10">10</md-option>
+                            <md-option ng-value="20">20</md-option>
+                            <md-option ng-value="50">50</md-option>
+                        </md-select>
+                    </md-input-container>
+                    <md-input-container class="input-no-margin">
+                        <label>Page</label>
+                        <md-select ng-model="currentPage" md-on-close="renderProducts('page')" aria-label="currentPage"
+                            name="currentPage">
+                            <md-option ng-repeat="page in pages" ng-value="page">{{page}}</md-option>
+                        </md-select>
+                    </md-input-container>
+                </div>
+
+
+                
+                <!-- In the form we are going to put or selected elements from stock -->
+                <!--
+                
+                </form>
+                -->
+
+            </md-card-content>
+        </md-card>
+    </div>
+    <div flex-xs flex-sm flex-gt-sm="50" layout="column">
+        <md-card>
+            <md-card-title>
+                <md-card-title-text>
+                    <span class="md-headline">Shopping Cart</span>
+                </md-card-title-text>
+            </md-card-title>
+            <md-card-content layout="column">
+                <form flex novalidate name="orderCartForm" 
+                        ng-submit="orderCartForm.$valid && submitOrder(forms['orderCart'])">
+                    <table class="materialize-table">
+                        <thead>
+                            <tr>
+                                <th>Prod. Name
+                                </th>
+                                <th>Refer.
+                                </th>
+                                <th>Price
+                                </th>
+                                <th>Available
+                                </th>
+                                <th>Order amount
+                                </th>
+                                <th>Cost
+                                </th>
+                                <th>Remove
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr ng-repeat="(itemNum,item) in shoppingCart track by $index">
+                                <td>{{item.name_en}}</td>
+                                <td>{{item.reference}}</td>
+                                <td>{{item.current_unit_price | currency:"":2}} €/{{item.unit_singular_en}}</td>
+                                <td>{{item.renderQuantity}}</td>
+                                <td>
+                                    <md-input-container class="input-no-margin">
+                                        <input 
+                                            ng-if="item.decimal === 0"
+                                            ng-model="item.amount_to_order"
+                                            aria-label="item amount"
+                                            name="item_amount[itemNum]"
+                                            positive-integer-validate="{{item.itemsAvailable}}">
+                                        <input 
+                                            ng-if="item.decimal === 1"
+                                            ng-model="item.amount_to_order"
+                                            aria-label="item amount"
+                                            name="item_amount[itemNum]"
+                                            
+                                            positive-float-validate="{{item.itemsAvailable_decimal}}">
+                                    </md-input-container>
+                                </td>
+                                <td>{{renderCost(item, item.current_unit_price,item.amount_to_order) | currency:""}} €
+
+                                </td>
+                                <td>
+                                    <md-button class="smaller-button" ng-click="removeFromCart(shoppingCart, itemNum)" aria-label="Add to Cart"
+                                        class="md-icon-button">
+                                        <md-icon class="smaller-icon" md-svg-src="images/icons/remove_shopping_cart_24px.svg"></md-icon>
+                                    </md-button>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td></td>
+                                <td>Total:</td>
+                                <td>{{renderTotalCost(shoppingCart) | currency:""}} €</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    <div layout="column" class="spacer-top" layout-gt-sm="row" layout-align="center center">
+                        <md-button type="submit"
+                            class="button-small md-raised md-primary">Submit order</md-button>
+                        <div class="status-message" ng-hide="hideMessage[forms['orderCart']]">
+                            <span class="message" ng-class="messageType[forms['orderCart']]">
+                                {{updateStatus[forms['orderCart']]}}
+                            </span>
+                        </div>
+                    </div>
+                </form>
+            </md-card-content>
+        </md-card>
+        <md-card>
+            <md-card-title>
+                <md-card-title-text>
+                    <span class="md-headline">My Orders</span>
+                </md-card-title-text>
+            </md-card-title>
+            <md-card-content layout="column">
+                <div layout="row" class="paginator">
+                    <md-input-container class="input-no-margin wider">
+                        <label>Results/page</label>
+                        <md-select ng-model="pageSizeOrders" md-on-close="renderOrders('new')" aria-label="pageSizeOrders" name="pageSizeOrders">
+                            <md-option ng-value="10">10</md-option>
+                            <md-option ng-value="20">20</md-option>
+                            <md-option ng-value="50">50</md-option>
+                        </md-select>
+                    </md-input-container>
+                    <md-input-container class="input-no-margin">
+                        <label>Page</label>
+                        <md-select ng-model="currentPageOrders" md-on-close="renderOrders('page')" aria-label="currentPageOrders"
+                            name="currentPageOrders">
+                            <md-option ng-repeat="page in pagesOrders" ng-value="page">{{page}}</md-option>
+                        </md-select>
+                    </md-input-container>
+                </div>
+                <table class="materialize-table spacer-top">
+                    <thead>
+                        <tr>
+                            <th>
+                                <a ng-click="sortColumn('order_id', 'orders')">Order ID</a>
+                                <ng-md-icon ng-if="!sortReverseOrders && sortTypeOrders=='order_id'" icon="arrow_downward" size="12"></ng-md-icon>
+                                <ng-md-icon ng-if="sortReverseOrders  && sortTypeOrders=='order_id'" icon="arrow_upwards" size="12"></ng-md-icon>
+                            </th>
+                            <th>
+                                <a ng-click="sortColumn('user_ordered_name', 'orders')">Who</a>
+                                <ng-md-icon ng-if="!sortReverseOrders && sortTypeOrders=='user_ordered_name'" icon="arrow_downward" size="12"></ng-md-icon>
+                                <ng-md-icon ng-if="sortReverseOrders  && sortTypeOrders=='user_ordered_name'" icon="arrow_upwards" size="12"></ng-md-icon>
+                            </th>
+                            <th>
+                                <a ng-click="sortColumn('datetime', 'orders')">Date</a>
+                                <ng-md-icon ng-if="!sortReverseOrders && sortTypeOrders=='datetime'" icon="arrow_downward" size="12"></ng-md-icon>
+                                <ng-md-icon ng-if="sortReverseOrders  && sortTypeOrders=='datetime'" icon="arrow_upwards" size="12"></ng-md-icon>
+                            </th>
+                            <th>
+                                <a ng-click="sortColumn('total_cost', 'orders')">Order amount</a>
+                                <ng-md-icon ng-if="!sortReverseOrders && sortTypeOrders=='total_cost'" icon="arrow_downward" size="12"></ng-md-icon>
+                                <ng-md-icon ng-if="sortReverseOrders  && sortTypeOrders=='total_cost'" icon="arrow_upwards" size="12"></ng-md-icon>
+                            </th>
+                            <th>
+                                <a ng-click="sortColumn('last_status', 'orders')">Status</a>
+                                <ng-md-icon ng-if="!sortReverseOrders && sortTypeOrders=='last_status'" icon="arrow_downward" size="12"></ng-md-icon>
+                                <ng-md-icon ng-if="sortReverseOrders  && sortTypeOrders=='last_status'" icon="arrow_upwards" size="12"></ng-md-icon>
+                            </th>
+                            <th>Details
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="(ordNum,order) in shownOrders track by $index">
+                            <td>{{order.order_id}}</td>
+                            <td>{{order.user_ordered_name}}</td>
+                            <td>{{order.datetime}}</td>
+                            <td>{{order.total_cost| currency:"":2}} €</td>
+                            <td>{{order.last_status.name_en}}</td>
+                            <td>
+                                <md-button ng-click="showDetailsOrder(order)" 
+                                        aria-label="Details" 
+                                        class="md-icon-button interaction-button">
+                                    <md-icon md-svg-src="images/icons/description_24px.svg"></md-icon>
+                                </md-button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div layout="row" class="paginator spacer-top">
+                    <md-input-container class="input-no-margin wider">
+                        <label>Results/page</label>
+                        <md-select ng-model="pageSizeOrders" md-on-close="renderOrders('new')" aria-label="pageSizeOrders"
+                            name="pageSizeOrders">
+                            <md-option ng-value="10">10</md-option>
+                            <md-option ng-value="20">20</md-option>
+                            <md-option ng-value="50">50</md-option>
+                        </md-select>
+                    </md-input-container>
+                    <md-input-container class="input-no-margin">
+                        <label>Page</label>
+                        <md-select ng-model="currentPageOrders" md-on-close="renderOrders('page')" aria-label="currentPageOrders"
+                            name="currentPageOrders">
+                            <md-option ng-repeat="page in pagesOrders" ng-value="page">{{page}}</md-option>
+                        </md-select>
+                    </md-input-container>
+                </div>
+            </md-card-content>
+        </md-card>
+    </div>
+</div>

@@ -33,6 +33,19 @@
             .catch(function (err) {
                 console.log(err);
             });
+
+        ordersData.getUserAccountInfo(vm.currentUser.userID)
+            .then(function (response) {
+                if (response !== null && response !== undefined) {
+                    // for now we are assuming that there is only 1 account per user
+                    if (response.data.result.length === 1) {
+                        vm.account = response.data.result;
+                    }
+                }
+            })
+            .catch(function (err) {
+                console.log(err);
+            });
         
 
     };

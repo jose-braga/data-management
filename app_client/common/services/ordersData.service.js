@@ -42,6 +42,14 @@
             );
         };
 
+        var getUserAccountInfo = function (currentUser) {
+            return $http.get('api/users/' + currentUser + '/accounts-orders',
+                {
+                    headers: { Authorization: 'Bearer ' + authentication.getToken() }
+                }
+            );
+        };
+
         var createOrder = function (currentUser, data) {
             return $http.post('api/users/' + currentUser + '/orders', data,
                 {
@@ -49,20 +57,13 @@
                 }
             );
         };
-        /*
-        var updateAuthorizationInfoPersonByID = function (personID, data) {
-            return $http.put('api/people/authorization-info/' + personID, data,
-                {
-                    headers: { Authorization: 'Bearer ' + authentication.getToken() }
-                }
-            );
-        };
-        */
+        
 
         return {
             getInventory: getInventory,
             getUserOrders: getUserOrders,
             createOrder: createOrder,
+            getUserAccountInfo: getUserAccountInfo,
             itemCategories: itemCategories,
             unitTypes: unitTypes,
             orderStatuses: orderStatuses,

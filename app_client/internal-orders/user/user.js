@@ -10,6 +10,7 @@
                         account: '@',
                         inventory: '=',
                         orders: '=',
+                        finaccount: '=',
                     },
                     templateUrl: 'internal-orders/user/inventory.html',
                     link:
@@ -23,11 +24,13 @@
                         scope.sortTypeOrders = 'order_id';
                         scope.sortReverseOrders = false;
                         scope.searchString = '';
+                        scope.foundFinances = false;
+                        scope.currentFinances = {};
                         scope.shoppingCart = [];
                         scope.shoppingCartTotal = 0;
                         scope.forms = {
                             'orderCart': 0,
-                        };
+                        };                        
                         var numberCards = Object.keys(scope.forms).length; // the number of cards with "Update" in each tab
                         scope.updateStatus = [];
                         scope.messageType = [];
@@ -46,11 +49,15 @@
                             for (let item in scope.inventory) {
                                 var toInclude = 0;
                                 var toIncludeDueName = 0;
+                                var toIncludeDueBrand = 0;
                                 var toIncludeDueReference = 0;
                                 var toIncludeDueType = 0;
                                 if (scope.searchString !== '') {
                                     if (nameMatching(scope.inventory[item]['name_en'], scope.searchString) !== null) {
                                         toIncludeDueName = 1;
+                                    }
+                                    if (nameMatching(scope.inventory[item]['brand'], scope.searchString) !== null) {
+                                        toIncludeDueBrand = 1;
                                     }
                                     if (nameMatching(scope.inventory[item]['reference'], scope.searchString) !== null) {
                                         toIncludeDueReference = 1;
@@ -65,10 +72,12 @@
                                     
                                 } else {
                                     toIncludeDueName = 1;
+                                    toIncludeDueBrand = 1;
                                     toIncludeDueReference = 1;
                                     toIncludeDueType = 1;
                                 }
-                                if (toIncludeDueName === 1 || toIncludeDueReference === 1 || toIncludeDueType === 1) {
+                                if (toIncludeDueName === 1 || toIncludeDueBrand === 1 
+                                    || toIncludeDueReference === 1 || toIncludeDueType === 1) {
                                     toInclude = 1;
                                 }
                                 if (toInclude === 1 
@@ -116,6 +125,20 @@
                                 scope.shownOrders.push(scope.orders[item]);
                             }
 
+                        };
+                        scope.renderFinances = function () {
+                            // assuming only 1 account per user
+                            if (scope.finaccount !== undefined 
+                                    && scope.finaccount !== null
+                                    && scope.finaccount.length === 1) {
+                                let finances = scope.finaccount[0].account_finances;
+                                for (let el in finances) {
+                                    if (finances[el].year === moment().year()) {
+                                        scope.foundFinances = true;
+                                        scope.currentFinances = finances[el];
+                                    }
+                                }
+                            }
                         };
                         scope.sortColumn = function (colName, table) {
                             if (table === 'inventory') {
@@ -220,8 +243,6 @@
 
 
                         };
-
-
                         scope.showDetailsOrder = function (order) {
                             var position = $mdPanel.newPanelPosition()
                                 .absolute()
@@ -287,11 +308,6 @@
                                             }
                                         }
                                     }
-                                    /*
-                                    if (!inventoryLevels) {
-                                        break;
-                                    }
-                                    */
                                 }
                                 return inventoryLevels;                                
                             }
@@ -310,6 +326,19 @@
                                                 if (response !== null && response !== undefined) {
                                                     scope.orders = response.data.result;
                                                     scope.renderOrders('new');
+                                                }
+                                            })
+                                            .catch(function (err) {
+                                                console.log(err);
+                                            });
+                                        ordersData.getUserAccountInfo(scope.user)
+                                            .then(function (response) {
+                                                if (response !== null && response !== undefined) {
+                                                    // for now we are assuming that there is only 1 account per user
+                                                    if (response.data.result.length === 1) {
+                                                        scope.finaccount = response.data.result;
+                                                    }
+                                                    scope.renderFinances();
                                                 }
                                             })
                                             .catch(function (err) {
@@ -344,8 +373,8 @@
                                     );
 
                             }
-                            
-                            if (scope.shoppingCart.length > 0) {
+                            if (scope.shoppingCart.length > 0 
+                                    && scope.foundFinances) {
                                 scope.updateStatus[ind] = "Checking current inventory levels.";
                                 scope.messageType[ind] = 'message-updating';
                                 scope.hideMessage[ind] = false;
@@ -367,6 +396,7 @@
                                                     let data = {
                                                         totalCost: scope.shoppingCartTotal,
                                                         cart: scope.shoppingCart,
+                                                        currentFinances: scope.currentFinances,
                                                     };
                                                     performOrder(data);
                                                 }
@@ -386,12 +416,18 @@
                                         $timeout(function () { scope.hideMessage[ind] = true; }, 1500);
                                         console.log(err);
                                     });
-                            }                            
+                            } else if (!scope.foundFinances) {
+                                scope.updateStatus[ind] = "Error! Solve 'financial information not found' problem.";
+                                scope.messageType[ind] = 'message-error';
+                                scope.hideMessage[ind] = false;
+                                $timeout(function () { scope.hideMessage[ind] = true; }, 1500);
+                            }
                         };
 
                         // to initialize inventory 
                         scope.renderProducts('new');
                         scope.renderOrders('new');
+                        scope.renderFinances();
 
 
                         function nameMatching(name1, str) {
@@ -418,7 +454,8 @@
                         }
                         function sorterInventory(a, b) {
                             if (scope.sortType === 'renderCategories' 
-                                || scope.sortType === 'name_en'){
+                                || scope.sortType === 'name_en'
+                                || scope.sortType === 'brand'){
                                 if (scope.sortReverse) {
                                     return -(a[scope.sortType] ? a[scope.sortType] : '')
                                         .localeCompare(b[scope.sortType] ? b[scope.sortType] : '');

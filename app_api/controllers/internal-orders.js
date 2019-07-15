@@ -4,6 +4,7 @@ var pool = server.pool;
 var permissions = require('../config/permissions');
 const nodemailer = require('../controllers/emailer');
 let transporter = nodemailer.transporter;
+let recipients = nodemailer.emailRecipients.orders;
 
 var sendJSONResponse = function (res, status, content) {
     res.status(status);
@@ -22,7 +23,12 @@ function momentToDate(timedate, timezone, timeformat) {
 
 var checksOrderPermissions = function (req, res, next, callback, callbackOptions) {
     var userID = req.params.userID;
-    var query = "SELECT account_id FROM accounts_people WHERE user_id = ?";
+    var query = 'SELECT accounts_people.account_id, emails.email'
+              + ' FROM accounts_people'
+              + ' JOIN accounts ON accounts.id = accounts_people.account_id'
+              + ' JOIN people ON people.user_id = accounts_people.user_id'
+              + ' LEFT JOIN emails ON emails.person_id = people.id'
+              + ' WHERE accounts_people.user_id = ? AND accounts.active = 1;';
     var places = [userID];
     pool.getConnection(function (err, connection) {
         if (err) {
@@ -42,9 +48,11 @@ var checksOrderPermissions = function (req, res, next, callback, callbackOptions
                         && resQuery[0].account_id !== null 
                         && resQuery[0].account_id !== undefined) {
                     callbackOptions.userID = userID;
+                    callbackOptions.userEmail = resQuery[0].email;
                     callbackOptions.accountID = resQuery[0].account_id;
                     return callback(req, res, next, callbackOptions);
                 } else if (resQuery.length > 1) {
+                    // TODO: if necessary, a user might belong to more than 1 account
                     sendJSONResponse(res, 403, {
                         "status": "error",
                         "statusCode": 403,
@@ -141,8 +149,6 @@ var getItemCategories = function (req, res, next, rows, i, options) {
 };
 
 var startOrderProcedure = function (req, res, next, options) {
-    // ?????TODO: first we have to check if quantities in currently stock
-
     let data = req.body;
     let datetime = momentToDate(moment(), undefined, 'YYYY-MM-DD HH:mm:ss');
     var query = 'INSERT INTO orders (datetime, account_id, user_ordered_id, total_cost)'
@@ -167,8 +173,7 @@ var startOrderProcedure = function (req, res, next, options) {
                 options.orderTime = datetime;
                 return writeOrderItems(req, res, next, options, 0);
             });
-    });   
-
+    });
 };
 
 var writeOrderItems = function (req, res, next, options, i) {
@@ -273,6 +278,40 @@ var updateStockRequestsLevels = function (req, res, next, options, i) {
                     sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
                     return;
                 }
+                if (i === 0) {
+                    options.updatedStockValues = []
+                }
+                return getStockRequestsLevelsUpdatedValue(req, res, next, options, i);
+            });
+    });
+};
+
+var getStockRequestsLevelsUpdatedValue = function (req, res, next, options, i) {
+    let data = req.body;
+    let cart = data.cart;
+    // there should be at least 1 order item
+    let query;
+    let places;
+    query = 'SELECT quantity_in_requests, quantity_in_requests_decimal'
+        + ' FROM stock'
+        + ' WHERE id = ?;';
+    places = [cart[i].stock_id];
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        // Use the connection
+        connection.query(query, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                    return;
+                }
+                // there should be only 1 value per request
+                options.updatedStockValues.push(resQuery[0])
                 if (i + 1 < cart.length) {
                     return updateStockRequestsLevels(req, res, next, options, i + 1);
                 } else {
@@ -296,9 +335,9 @@ var writeStockHistory = function (req, res, next, options, i) {
         cart[i].stock_id,
         cart[i].id,
         cart[i].quantity_in_stock_decimal,
-        cart[i].quantity_in_requests_decimal,
+        options.updatedStockValues[i].quantity_in_requests_decimal,
         cart[i].quantity_in_stock,
-        cart[i].quantity_in_requests,
+        options.updatedStockValues[i].quantity_in_requests,
         cart[i].status_id,
         options.orderTime];
     
@@ -319,19 +358,110 @@ var writeStockHistory = function (req, res, next, options, i) {
                 if (i + 1 < cart.length) {
                     return writeStockHistory(req, res, next, options, i + 1);
                 } else {
-                    return sendEmailStockManager(req, res, next, options);
-
+                    return updateAccountFinances(req, res, next, options);
                 }
             });
     });
 };
 
+var updateAccountFinances = function (req, res, next, options) {
+    let data = req.body;
+    if (data.currentFinances !== null && data.currentFinances !== undefined) {
+        var query = 'UPDATE account_finances'
+            + ' SET amount_requests = amount_requests + ?'
+            + ' WHERE id = ?';
+        var places = [data.totalCost, data.currentFinances.id];
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                return;
+            }
+            // Use the connection
+            connection.query(query, places,
+                function (err, resQuery) {
+                    // And done with the connection.
+                    connection.release();
+                    if (err) {
+                        sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                        return;
+                    }
+                    return getAccountFinancesUpdatedValue(req, res, next, options);
+                });
+        });
+
+    } else {
+        sendJSONResponse(res, 403, {
+            "status": "error",
+            "statusCode": 403,
+            "message": "No financial information."
+        });
+        return;
+    }
+};
+var getAccountFinancesUpdatedValue = function (req, res, next, options) {
+    let data = req.body;  
+    var query = 'SELECT amount_requests FROM account_finances'
+                + ' WHERE id = ?;';
+    var places = [data.currentFinances.id];
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        // Use the connection
+        connection.query(query, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                    return;
+                }
+                // there should be only 1 value
+                options.amountRequestsUpdate = resQuery[0].amount_requests;
+                return writeAccountFinancesHistory(req, res, next, options);
+            });
+    });
+};
+
+var writeAccountFinancesHistory = function (req, res, next, options) {
+    let data = req.body;
+    var query = 'INSERT INTO account_finances_history'
+        + ' (account_finance_id, account_id, initial_amount, current_amount, amount_requests, year, datetime)'
+        + ' VALUES (?,?,?,?,?,?,?);';
+    var places = [
+            data.currentFinances.id, 
+            data.currentFinances.account_id,
+            data.currentFinances.initial_amount,
+            data.currentFinances.current_amount,
+            options.amountRequestsUpdate,
+            data.currentFinances.year,
+            options.orderTime
+        ];
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        // Use the connection
+        connection.query(query, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                    return;
+                }
+                return sendEmailStockManager(req, res, next, options);;
+            });
+    });
+};
+
 var sendEmailStockManager = function (req, res, next, options) {
-    //var recipients = req.body.personal_email;
     let mailOptions = {
         from: '"Admin" <admin@laqv-ucibio.info>', // sender address
-        to: 'josecbraga@gmail.com', // list of receivers (comma-separated)
-        subject: 'An user placed order nr: ' + options.orderID, // Subject line
+        to: recipients.stock_manager, // list of receivers (comma-separated)
+        subject: 'A user placed order nr: ' + options.orderID, // Subject line
         text: 'Hi ,\n\n' +
             'Head to https://laqv-ucibio.info/internal-orders and validate this order.\n\n' +
             'Best regards,\nAdmin',
@@ -339,22 +469,43 @@ var sendEmailStockManager = function (req, res, next, options) {
     // send mail with defined transport object
     transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
-            console.log('Message to %s not sent due to error below.', 'Stock Manager');
+            console.log('Error: Order ID: %s. Message to %s not sent due to error below.', 
+                            options.orderID, 'Stock Manager');
             console.log(error);
-            sendJSONResponse(res, 500,
-                {
-                    "status": "error", "statusCode": 500, "message": "Order created but mail not sent."
-                });
-            return;
         }
-        console.log('Message %s was sent to person %s with response: %s', info.messageId, 'Stock Manager', info.response);
-        sendJSONResponse(res, 200,
-            {
-                "status": "success", "statusCode": 200, "message": "Order created and mail sent"
-            });
+        console.log('OK! Order ID: %s. Message %s was sent to %s with response: %s', 
+                    options.orderID, info.messageId, 'Stock Manager', info.response);
     });
+    return sendEmailUser(req, res, next, options);
+};
+
+var sendEmailUser = function (req, res, next, options) {
+    //to: options.userEmail,
+    let mailOptions = {
+        from: '"Admin" <admin@laqv-ucibio.info>', // sender address
+        to: 'josecbraga@gmail.com', // list of receivers (comma-separated)
+        subject: 'Successfully placed order nr: ' + options.orderID, // Subject line
+        text: 'Hi ,\n\n' +
+            'You successfully placed this order. Note that all orders require validation by stock manager.\n\n' +
+            'Best regards,\nAdmin',
+    };
+    // send mail with defined transport object
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            console.log('Error: Order ID: %s. Message to %s not sent due to error below.', 
+                            options.orderID, 'user');
+            console.log(error);
+        }
+        console.log('OK! Order ID: %s. Message %s was sent to requester with response: %s', 
+                        options.orderID, info.messageId, info.response);
+    });    
+    sendJSONResponse(res, 200,
+        {
+            "status": "success", "statusCode": 200, "message": "Order created."
+        });
     return;
 };
+
 
 var makeUserOrdersQuery = function (req, res, next, options) {
     var query = 'SELECT orders.id AS order_id, orders.datetime, orders.user_ordered_id,' 
@@ -477,6 +628,86 @@ var getOrderDetailsInfo = function (req, res, next, options, rows, i) {
             });
     });
     
+};
+
+var makeUserAccountsQuery = function (req, res, next, options) {
+    // then I have to add account_finances
+    var query = 'SELECT accounts_people.user_id, accounts_people.account_id,'
+        + ' accounts.name_en AS account_name_en, accounts.name_pt AS account_name_pt,'
+        + ' cost_centers_orders.name_en AS cost_center_name_en, cost_centers_orders.name_pt AS cost_center_name_pt'
+        + ' FROM accounts_people'
+        + ' JOIN accounts ON accounts.id = accounts_people.account_id' 
+        + ' JOIN cost_centers_orders ON cost_centers_orders.id = accounts.cost_center_id'
+        + ' WHERE accounts_people.user_id = ?;';
+    var places = [options.userID];
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        // Use the connection
+        connection.query(query, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                    return;
+                }
+                // could a user belong to more than 1 account???
+                if (resQuery.length > 0) {
+                    return getAccountFinances(req, res, next, options, resQuery, 0);
+                } else {
+                    sendJSONResponse(res, 403, {
+                        "status": "error",
+                        "statusCode": 403,
+                        "message": "This user didn't belong to any account."
+                    });
+                    return;
+                }
+            });
+    });
+};
+
+var getAccountFinances = function (req, res, next, options, rows, i) {
+    var query = 'SELECT *'
+        + ' FROM account_finances'
+        + ' WHERE account_id = ?;';
+
+    var places = [rows[i].account_id];
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        // Use the connection
+        connection.query(query, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                    return;
+                }
+                rows[i].account_finances = resQuery;
+                if (i + 1 < rows.length) {
+                    return getAccountFinances(req, res, next, options, rows, i + 1);
+                } else {
+                    sendJSONResponse(res, 200,
+                        {
+                            "status": "success", "statusCode": 200, "count": rows.length,
+                            "result": rows
+                        });
+                    return;
+                }
+            });
+    });
+
+};
+
+module.exports.getUserAccounts = function (req, res, next) {
+    // Actually we will be getting orders from the account user is associated with
+    checksOrderPermissions(req, res, next, makeUserAccountsQuery, {});
 };
 
 module.exports.getUserOrders = function (req, res, next) {

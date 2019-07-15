@@ -10,6 +10,8 @@
                 <tr>
                     <th>Prod. Name
                     </th>
+                    <th>Brand
+                    </th>
                     <th>Refer.
                     </th>
                     <th>Ordered amount
@@ -21,6 +23,7 @@
             <tbody>
                 <tr ng-repeat="(itemNum,item) in ctrl.order.items track by $index">
                     <td>{{item.name_en}}</td>
+                    <td>{{item.brand}}</td>
                     <td>{{item.reference}}</td>
                     <td>
                         <div ng-if="item.decimal === 0">{{item.quantity}}</div>

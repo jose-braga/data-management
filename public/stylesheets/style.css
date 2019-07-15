@@ -624,3 +624,16 @@ ul.help-list li{
 .darker {
   background-color: #E4E4E4;
 }
+
+.snippet {
+  font-size: 13px;
+  border: #000000 solid 1px;
+  width: 300px;
+  margin-bottom: 15px;
+}
+
+.snippet p {
+  margin-left: 10px;
+  margin-bottom: 0px;
+  font-weight: bold;
+}

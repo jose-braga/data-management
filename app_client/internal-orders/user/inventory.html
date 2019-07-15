@@ -10,7 +10,7 @@
                 <div layout="row" layout-align="none center">
                     <ng-md-icon icon="search" size="24"></ng-md-icon>
                     <md-input-container flex>
-                        <label>Search by product name, product type or reference</label>
+                        <label>Search by product name, brand, product type or reference</label>
                         <input ng-model="searchString" ng-change="renderProducts('new')">
                     </md-input-container>
                 </div>
@@ -44,6 +44,11 @@
                                 <ng-md-icon ng-if="!sortReverse && sortType=='name_en'" icon="arrow_downward" size="12"></ng-md-icon>
                                 <ng-md-icon ng-if="sortReverse  && sortType=='name_en'" icon="arrow_upwards" size="12"></ng-md-icon>
                             </th>
+                            <th>
+                                <a ng-click="sortColumn('brand', 'inventory')">Brand</a>
+                                <ng-md-icon ng-if="!sortReverse && sortType=='brand'" icon="arrow_downward" size="12"></ng-md-icon>
+                                <ng-md-icon ng-if="sortReverse  && sortType=='brand'" icon="arrow_upwards" size="12"></ng-md-icon>
+                            </th>
                             <th>Refer.
                             </th>
                             <th>
@@ -61,6 +66,7 @@
                         <tr ng-repeat="(itemNum,item) in shownProducts track by $index">
                             <td>{{item.renderCategories}}</td>
                             <td>{{item.name_en}}</td>
+                            <td>{{item.brand}}</td>
                             <td>{{item.reference}}</td>
                             <td>{{item.current_unit_price | currency:"":2}} €/{{item.unit_singular_en}}</td>
                             <td>{{item.renderQuantity}}</td>
@@ -113,11 +119,14 @@
             </md-card-title>
             <md-card-content layout="column">
                 <form flex novalidate name="orderCartForm" 
-                        ng-submit="orderCartForm.$valid && submitOrder(forms['orderCart'])">
+                        ng-submit="orderCartForm.$valid && submitOrder(forms['orderCart'])"
+                        class="spacer-top">
                     <table class="materialize-table">
                         <thead>
                             <tr>
                                 <th>Prod. Name
+                                </th>
+                                <th>Brand
                                 </th>
                                 <th>Refer.
                                 </th>
@@ -136,6 +145,7 @@
                         <tbody>
                             <tr ng-repeat="(itemNum,item) in shoppingCart track by $index">
                                 <td>{{item.name_en}}</td>
+                                <td>{{item.brand}}</td>
                                 <td>{{item.reference}}</td>
                                 <td>{{item.current_unit_price | currency:"":2}} €/{{item.unit_singular_en}}</td>
                                 <td>{{item.renderQuantity}}</td>
@@ -198,6 +208,19 @@
                 </md-card-title-text>
             </md-card-title>
             <md-card-content layout="column">
+                <div ng-if="foundFinances" class="snippet" layout="column" layout-align="start start">
+                    <p>Financial information ({{finaccount[0].account_name_en}}@{{finaccount[0].cost_center_name_en}}):</p>
+                    <div>
+                        <ul>
+                            <li>Current available amount: {{(currentFinances.current_amount - currentFinances.amount_requests) | currency:"":2}}
+                                €</li>
+                            <li>Amount in pending requests: {{currentFinances.amount_requests | currency:"":2}} €</li>
+                            <li>Funds allocated on {{currentFinances.year}}: {{currentFinances.initial_amount | currency:"":2}} €</li>
+                        </ul>
+                    </div>
+                </div>
+                <p ng-if="!foundFinances">Didn't find financial information for current year.
+                    Please contact account manager.</p>
                 <div layout="row" class="paginator">
                     <md-input-container class="input-no-margin wider">
                         <label>Results/page</label>

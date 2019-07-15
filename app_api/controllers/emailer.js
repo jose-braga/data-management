@@ -18,7 +18,11 @@ var emailRecipients = {
                 Lisboa: 'tsc@fct.unl.pt, josebraga@fct.unl.pt',
                 Porto: 'tsc@fct.unl.pt, josebraga@fct.unl.pt',
                 Aveiro: 'josebraga@fct.unl.pt'
-            }
+            },
+        orders: {
+            stock_manager: 'josebraga@fct.unl.pt',
+            account_manager: 'josecbraga@gmail.com',
+        }
     };
 
 exports.transporter = transporter;

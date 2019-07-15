@@ -244,6 +244,7 @@ router.get('/pre-registration/people/:personID', auth, ctrlPreRegistrationData.g
 /* Internal orders API */
 router.get('/users/:userID/orders', auth, ctrlOrders.getUserOrders);
 router.post('/users/:userID/orders', auth, ctrlOrders.makeOrder);
+router.get('/users/:userID/accounts-orders', auth, ctrlOrders.getUserAccounts);
 router.get('/users/:userID/inventory', auth, ctrlOrders.getInventory);
 
 

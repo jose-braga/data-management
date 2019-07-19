@@ -68,13 +68,15 @@
                             <th>Refer.
                             </th>
                             <th>
-                                <a ng-click="sortColumn('current_unit_price', 'inventory')">Price</a>
+                                <a ng-click="sortColumn('current_unit_price', 'inventory')">Price (€)</a>
                                 <ng-md-icon ng-if="!sortReverse && sortType=='current_unit_price'" icon="arrow_downward"
                                     size="12">
                                 </ng-md-icon>
                                 <ng-md-icon ng-if="sortReverse  && sortType=='current_unit_price'" icon="arrow_upwards"
                                     size="12">
                                 </ng-md-icon>
+                            </th>
+                            <th>Tax (%)
                             </th>
                             <th>In stock
                             </th>
@@ -129,6 +131,14 @@
                             <td>
                                 <md-input-container class="input-row">
                                     <input ng-model="item.current_unit_price"
+                                            ng-change="processChange(item,'money')"
+                                            name="money[itemNum]"
+                                            positive-float-validate="1000000000">
+                                </md-input-container>
+                            </td>
+                            <td>
+                                <md-input-container class="input-row">
+                                    <input ng-model="item.tax"
                                             ng-change="processChange(item,'money')"
                                             name="money[itemNum]"
                                             positive-float-validate="1000000000">
@@ -231,6 +241,8 @@
                             </th>
                             <th>Price (€)
                             </th>
+                            <th>Tax (%)
+                            </th>
                             <th>In stock
                             </th>
                             <th>Unit type
@@ -272,6 +284,12 @@
                                 <md-input-container class="input-row">
                                     <input ng-model="newItem.current_unit_price"
                                             name="newmoney">
+                                </md-input-container>
+                            </td>
+                            <td>
+                                <md-input-container class="input-row">
+                                    <input ng-model="newItem.tax"
+                                            name="newtax">
                                 </md-input-container>
                             </td>
                             <td>

@@ -321,6 +321,7 @@ var updateStockItem = function (req, res, next, options, i) {
             + ' reference = ?,'
             + ' quantity_type_id = ?,'
             + ' current_unit_price = ?,'
+            + ' tax = ?,'
             + ' visible = ?'
             + ' WHERE id = ?;';
     query = query + 'UPDATE stock'
@@ -334,6 +335,7 @@ var updateStockItem = function (req, res, next, options, i) {
         items[i].reference,
         items[i].quantity_type_id,
         items[i].current_unit_price,
+        items[i].tax,
         items[i].visible,
         items[i].id,
         items[i].quantity_in_stock_decimal,
@@ -365,14 +367,15 @@ var createStockItem = function (req, res, next, options, i) {
     let query;
     let places;
     query = 'INSERT INTO items'
-        + ' (name_en, brand, reference, quantity_type_id, current_unit_price, visible)'
-        + ' VALUES (?,?,?,?,?,?)';
+        + ' (name_en, brand, reference, quantity_type_id, current_unit_price, tax, visible)'
+        + ' VALUES (?,?,?,?,?,?,?)';
     places = [
         items[i].name_en,
         items[i].brand,
         items[i].reference,
         items[i].quantity_type_id,
         items[i].current_unit_price,
+        items[i].tax,
         items[i].visible
     ];
     pool.getConnection(function (err, connection) {
@@ -529,11 +532,12 @@ var insertCostHistory = function (req, res, next, options, i, operation) {
     let query;
     let places;
     query = 'INSERT INTO items_unit_prices_history'
-        + ' (item_id, price, timestamp)'
-        + ' VALUES (?,?,?);';
+        + ' (item_id, price, tax, timestamp)'
+        + ' VALUES (?,?,?,?);';
     places = [
         items[i].id,
         items[i].current_unit_price,
+        items[i].tax,
         options.datetime
     ];
     pool.getConnection(function (err, connection) {

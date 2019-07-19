@@ -1,9 +1,346 @@
-<md-card>
-    <md-card-title>
-        <md-card-title-text>
-            <span class="md-headline">Inventory Management</span>
-        </md-card-title-text>
-    </md-card-title>
-    <md-card-content layout="column">
-    </md-card-content>
-</md-card>
+<div layout-padding flex>
+    <md-card>
+        <md-card-title>
+            <md-card-title-text>
+                <span class="md-headline">Inventory Management</span>
+            </md-card-title-text>
+        </md-card-title>
+        <md-card-content layout="column">
+            <div layout="row" layout-align="none center">
+                <ng-md-icon icon="search" size="24"></ng-md-icon>
+                <md-input-container flex>
+                    <label>Search by product name, brand, product type or reference</label>
+                    <input ng-model="searchString" ng-change="renderProducts('new')">
+                </md-input-container>
+            </div>
+            
+            <!--
+                {{inventory}} <br>-----------<br>-----------<br>-----------<br>
+            {{originalInventory}}
+
+            -->
+
+            <form flex novalidate name="inventoryForm" 
+                ng-submit="inventoryForm.$valid && submitStockChanges(forms['stock'])"
+                class="spacer-top">
+                <div layout="row" class="paginator">
+                    <md-input-container class="input-no-margin wider">
+                        <label>Results/page</label>
+                        <md-select ng-model="pageSize" md-on-close="renderProducts('new')" aria-label="pageSize" name="pageSize">
+                            <md-option ng-value="10">10</md-option>
+                            <md-option ng-value="20">20</md-option>
+                            <md-option ng-value="50">50</md-option>
+                        </md-select>
+                    </md-input-container>
+                    <md-input-container class="input-no-margin">
+                        <label>Page</label>
+                        <md-select ng-model="currentPage" md-on-close="renderProducts('page')" aria-label="currentPage"
+                            name="currentPage">
+                            <md-option ng-repeat="page in pages" ng-value="page">{{page}}</md-option>
+                        </md-select>
+                    </md-input-container>
+                </div>
+                <table class="materialize-table spacer-top">
+                    <thead>
+                        <tr>
+                            <th>
+                                <a ng-click="sortColumn('renderCategories', 'inventory')">Prod. Type</a>
+                                <ng-md-icon ng-if="!sortReverse && sortType=='renderCategories'" icon="arrow_downward"
+                                    size="12">
+                                </ng-md-icon>
+                                <ng-md-icon ng-if="sortReverse  && sortType=='renderCategories'" icon="arrow_upwards" size="12">
+                                </ng-md-icon>
+                            </th>
+                            <th>
+                                <a ng-click="sortColumn('name_en', 'inventory')">Prod. Name</a>
+                                <ng-md-icon ng-if="!sortReverse && sortType=='name_en'" icon="arrow_downward" size="12">
+                                </ng-md-icon>
+                                <ng-md-icon ng-if="sortReverse  && sortType=='name_en'" icon="arrow_upwards" size="12">
+                                </ng-md-icon>
+                            </th>
+                            <th>
+                                <a ng-click="sortColumn('brand', 'inventory')">Brand</a>
+                                <ng-md-icon ng-if="!sortReverse && sortType=='brand'" icon="arrow_downward" size="12">
+                                </ng-md-icon>
+                                <ng-md-icon ng-if="sortReverse  && sortType=='brand'" icon="arrow_upwards" size="12">
+                                </ng-md-icon>
+                            </th>
+                            <th>Refer.
+                            </th>
+                            <th>
+                                <a ng-click="sortColumn('current_unit_price', 'inventory')">Price</a>
+                                <ng-md-icon ng-if="!sortReverse && sortType=='current_unit_price'" icon="arrow_downward"
+                                    size="12">
+                                </ng-md-icon>
+                                <ng-md-icon ng-if="sortReverse  && sortType=='current_unit_price'" icon="arrow_upwards"
+                                    size="12">
+                                </ng-md-icon>
+                            </th>
+                            <th>In stock
+                            </th>
+                            <th>In requests
+                            </th>
+                            <th>Unit type
+                            </th>
+                            <th>Status
+                            </th>
+                            <th>Visible
+                            </th>
+                            <th>Delete
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="(itemNum,item) in shownProducts track by $index">
+                            <td>
+                                <md-input-container class="select-container input-row">
+                                    <md-select multiple ng-model="item.item_categories"
+                                        ng-model-options="{trackBy: '$value.id'}" 
+                                        multiple 
+                                        class="select-no-margin" aria-label="item type"
+                                        name="item_type[itemNum]"
+                                        md-on-close="processChange(item)">
+                                        <md-option ng-repeat="type in itemCategories" 
+                                                ng-value="type">{{type.name_en}}</md-option>
+                                    </md-select>
+                                </md-input-container>
+                            </td>
+                            <td>
+                                <md-input-container class="input-row">
+                                    <input ng-model="item.name_en"
+                                            ng-change="processChange(item)"
+                                            name="name[itemNum]">
+                                </md-input-container>
+                            </td>
+                            <td>
+                                <md-input-container class="input-row">
+                                    <input ng-model="item.brand" 
+                                            ng-change="processChange(item)"
+                                            name="brand[itemNum]">
+                                </md-input-container>
+                            </td>
+                            <td>
+                                <md-input-container class="input-row">
+                                    <input ng-model="item.reference" 
+                                            ng-change="processChange(item)"
+                                            name="reference[itemNum]">
+                                </md-input-container>
+                            </td>
+                            <td>
+                                <md-input-container class="input-row">
+                                    <input ng-model="item.current_unit_price"
+                                            ng-change="processChange(item,'money')"
+                                            name="money[itemNum]"
+                                            positive-float-validate="1000000000">
+                                </md-input-container>
+                            </td>
+                            <td>
+                                <md-input-container ng-if="item.decimal === 0"
+                                        class="input-row">
+                                    <input ng-model="item.quantity_in_stock"
+                                            ng-change="processChange(item)"
+                                            name="quantity[itemNum]"
+                                            positive-integer-validate="1000000000">
+                                </md-input-container>
+                                <md-input-container ng-if="item.decimal === 1"
+                                        class="input-row">
+                                    <input ng-model="item.quantity_in_stock_decimal" 
+                                        ng-change="processChange(item)"
+                                        name="quantity[itemNum]"
+                                        positive-float-validate="1000000000">
+                                </md-input-container>
+                            </td>
+                            <td>
+                                <span ng-if="item.decimal === 0">{{item.quantity_in_requests}}</span>
+                                <span ng-if="item.decimal === 1">{{item.quantity_in_requests_decimal}}</span>
+                            </td>
+                            <td>
+                                <md-input-container>
+                                    <md-select ng-model="item.quantity_type_id"
+                                                ng-change="processChange(item)"
+                                                name="unit_type[num]">
+                                        <md-option ng-repeat="type in unitTypes" ng-value="type.id">{{type.name_singular_en}}</md-option>
+                                    </md-select>
+                                </md-input-container>
+                            </td>
+                            <td>
+                                <md-select ng-model="item.status_id" 
+                                        ng-change="processChange(item)"
+                                        name="newunit_type">
+                                    <md-option ng-value="1">
+                                        <md-icon class="smaller-icon" md-svg-src="images/icons/check_24px.svg">
+                                        </md-icon><span class="small-text">Available</span>
+                                    </md-option>
+                                    <md-option ng-value="2">
+                                        <md-icon class="smaller-icon" md-svg-src="images/icons/watch_24px.svg">
+                                        </md-icon><span class="small-text">Waiting supplies</span>
+                                    </md-option>
+                                    <md-option ng-value="3">
+                                        <md-icon class="smaller-icon" md-svg-src="images/icons/unavailable_24px.svg">
+                                        </md-icon><span class="small-text">Unavailable</span>
+                                    </md-option>
+                                </md-select>
+                            </td>
+                            <td>
+                                <md-checkbox ng-model="item.visible" 
+                                        ng-change="processChange(item)"
+                                        ng-true-value="1"
+                                        ng-false-value="0"
+                                        aria-label="visible">
+                                </md-checkbox>                            
+                            </td>
+                            <td>
+                                <md-button ng-click="removeInventory(inventory, item.id, item.brand, item.reference)" aria-label="Remove" 
+                                            class="md-icon-button interaction-button">
+                                    <md-icon md-svg-src="images/icons/delete_24px.svg"></md-icon>
+                                </md-button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div layout="row" class="paginator">
+                    <md-input-container class="input-no-margin wider">
+                        <label>Results/page</label>
+                        <md-select ng-model="pageSize" md-on-close="renderProducts('new')" aria-label="pageSize" name="pageSize">
+                            <md-option ng-value="10">10</md-option>
+                            <md-option ng-value="20">20</md-option>
+                            <md-option ng-value="50">50</md-option>
+                        </md-select>
+                    </md-input-container>
+                    <md-input-container class="input-no-margin">
+                        <label>Page</label>
+                        <md-select ng-model="currentPage" md-on-close="renderProducts('page')" aria-label="currentPage"
+                            name="currentPage">
+                            <md-option ng-repeat="page in pages" ng-value="page">{{page}}</md-option>
+                        </md-select>
+                    </md-input-container>
+                </div>
+                <div class="search-header spacer-top space-left">
+                    <span>Add a new item</span>
+                </div>
+                <table class="materialize-table spacer-top">
+                    <thead>
+                        <tr>
+                            <th>Prod. Type
+                            </th>
+                            <th>Prod. Name
+                            </th>
+                            <th>Brand
+                            </th>
+                            <th>Refer.
+                            </th>
+                            <th>Price (€)
+                            </th>
+                            <th>In stock
+                            </th>
+                            <th>Unit type
+                            </th>
+                            <th>Status
+                            </th>
+                            <th>Visible
+                            </th>
+                            <th>Add
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <md-input-container class="select-container input-row">
+                                    <md-select multiple ng-model="newItem.item_categories" ng-model-options="{trackBy: '$value.id'}"
+                                        multiple class="select-no-margin" aria-label="item type" name="newitem_type">
+                                        <md-option ng-repeat="type in itemCategories" ng-value="type">{{type.name_en}}</md-option>
+                                    </md-select>
+                                </md-input-container>
+                            </td>
+                            <td>
+                                <md-input-container class="input-row">
+                                    <input ng-model="newItem.name_en" name="newname">
+                                </md-input-container>
+                            </td>
+                            <td>
+                                <md-input-container class="input-row">
+                                    <input ng-model="newItem.brand" name="newbrand">
+                                </md-input-container>
+                            </td>
+                            <td>
+                                <md-input-container class="input-row">
+                                    <input ng-model="newItem.reference" name="newreference">
+                                </md-input-container>
+                            </td>
+                            <td>
+                                <md-input-container class="input-row">
+                                    <input ng-model="newItem.current_unit_price"
+                                            name="newmoney">
+                                </md-input-container>
+                            </td>
+                            <td>
+                                <md-input-container ng-if="newItem.decimal === 0" 
+                                        class="input-row">
+                                    <input ng-model="newItem.quantity_in_stock" 
+                                            name="newquantity">
+                                </md-input-container>
+                                <md-input-container ng-if="newItem.decimal === 1"
+                                        class="input-row">
+                                    <input ng-model="newItem.quantity_in_stock_decimal"
+                                            name="newquantity">
+                                </md-input-container>
+                            </td>
+                            <td>
+                                <md-input-container>
+                                    <md-select ng-model="newItem.quantity_type"
+                                            ng-change="checkIsDecimal(newItem)" name="newunit_type">
+                                        <md-option ng-repeat="type in unitTypes" ng-value="type">{{type.name_singular_en}}
+                                        </md-option>
+                                    </md-select>
+                                </md-input-container>
+                            </td>
+                            <td>
+                                <md-input-container>
+                                    <md-select ng-model="newItem.status_id"
+                                             name="newstatus">
+                                        <md-option ng-value="1">
+                                            <md-icon class="smaller-icon" md-svg-src="images/icons/check_24px.svg">
+                                            </md-icon><span class="small-text">Available</span>
+                                        </md-option>
+                                        <md-option ng-value="2">
+                                            <md-icon class="smaller-icon" md-svg-src="images/icons/watch_24px.svg">
+                                            </md-icon><span class="small-text">Waiting supplies</span>
+                                        </md-option>
+                                        <md-option ng-value="3">
+                                            <md-icon class="smaller-icon" md-svg-src="images/icons/unavailable_24px.svg">
+                                            </md-icon><span class="small-text">Unavailable</span>
+                                        </md-option>
+                                    </md-select>
+                                </md-input-container>
+                            </td>
+                            <td>
+                                <md-checkbox ng-model="newItem.visible" ng-true-value="1" ng-false-value="0" aria-label="visible">
+                                </md-checkbox>
+                            </td>
+                            <td>
+                                <md-button ng-click="addToInventory(newItem)" aria-label="Add"
+                                    class="md-icon-button interaction-button">
+                                    <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                                </md-button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                
+                <div layout="column" class="spacer-top" layout-gt-sm="row" layout-align="center center">
+                    <md-button type="submit" class="button-small md-raised md-primary">Submit changes</md-button>
+                    <div class="status-message" ng-hide="hideMessage[forms['stock']]">
+                        <span class="message" ng-class="messageType[forms['stock']]">
+                            {{updateStatus[forms['stock']]}}
+                        </span>
+                    </div>
+                </div>
+                
+
+            </form>
+    
+            
+        </md-card-content>
+    </md-card>
+</div>

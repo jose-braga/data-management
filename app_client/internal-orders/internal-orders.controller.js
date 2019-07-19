@@ -3,11 +3,14 @@
         ordersData, authentication) {
         var vm = this;
         vm.showUserOrders = false;
+        vm.showStock = false;
+        vm.showFinancial = false;
 
         vm.toolbarData = { title: 'Make and manage orders from internal warehouse' };
         vm.isLoggedIn = authentication.isLoggedIn();
         vm.currentUser = authentication.currentUser();
         vm.inventory = [];
+        vm.managersInventory = [];
         // this controller is just to initialize interface
         ordersData.getInventory(vm.currentUser.userID)
             .then(function (response) {
@@ -46,6 +49,38 @@
             .catch(function (err) {
                 console.log(err);
             });
+        ordersData.getManagementPermissions(vm.currentUser.userID)
+            .then(function (response) {
+                if (response !== null && response !== undefined) {
+                    // for now we are assuming that there is only 1 account per user
+                    if (response.data.result !== undefined) {
+                        vm.showStock = response.data.result.stockAuthorization;
+                        vm.showFinancial = response.data.result.financialAuthorization;
+                        if (vm.showStock) {
+                            getManagersInventory()
+                        }
+                        if (vm.showFinancial) {
+
+                        }
+                    }
+                }
+            })
+            .catch(function (err) {
+                console.log(err);
+            });
+
+        
+        function getManagersInventory() {
+            ordersData.getManagersInventory(vm.currentUser.userID)
+                .then(function (response) {
+                    if (response !== null && response !== undefined) {
+                        vm.managersInventory = response.data.result.inventory;
+                    }
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+        }
         
 
     };

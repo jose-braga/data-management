@@ -5529,8 +5529,7 @@
                     } else {
                         ctrl.$setValidity('float', true);
                         return true;
-                        }
-
+                    }
                 };
             }
         };
@@ -5602,5 +5601,6 @@
         .controller('PeopleSelectCtrl', PeopleSelectCtrl)
         ;
 })();
+
 
 

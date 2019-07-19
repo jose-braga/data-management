@@ -58,6 +58,8 @@
                             </th>
                             <th>Available
                             </th>
+                            <th>Status
+                            </th>
                             <th>Add
                             </th>
                         </tr>
@@ -70,6 +72,14 @@
                             <td>{{item.reference}}</td>
                             <td>{{item.current_unit_price | currency:"":2}} €/{{item.unit_singular_en}}</td>
                             <td>{{item.renderQuantity}}</td>
+                            <td>
+                                <md-icon ng-if="item.status_id === 1"
+                                    class="smaller-icon" md-svg-src="images/icons/check_24px.svg"></md-icon>
+                                <md-icon ng-if="item.status_id === 2" 
+                                    class="smaller-icon" md-svg-src="images/icons/watch_24px.svg"></md-icon>
+                                <md-icon ng-if="item.status_id === 3" 
+                                    class="smaller-icon" md-svg-src="images/icons/unavailable_24px.svg"></md-icon>
+                            </td>
                             <td>
                                 <md-button class="smaller-button" ng-click="addToCart(item)" aria-label="Add to Cart" class="md-icon-button">
                                     <md-icon 
@@ -98,15 +108,6 @@
                         </md-select>
                     </md-input-container>
                 </div>
-
-
-                
-                <!-- In the form we are going to put or selected elements from stock -->
-                <!--
-                
-                </form>
-                -->
-
             </md-card-content>
         </md-card>
     </div>

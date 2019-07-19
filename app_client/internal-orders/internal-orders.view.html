@@ -19,9 +19,30 @@
                     </internal-order-inventory>
                 </md-content>
             </md-tab>
-            <md-tab label="Stock">
-            </md-tab>
-            <md-tab label="Financial">
+            <md-tab label="Management" 
+                    ng-if="vm.showStock || vm.showFinancial">
+                <md-tabs md-dynamic-height md-border-bottom>
+                    <md-tab label="Stock" ng-if="vm.showStock">
+                        <md-content>
+                            <inventory-management 
+                                data-user="{{vm.currentUser.userID}}"
+                                data-inventory="vm.managersInventory"
+                                flex>
+                            </inventory-management>
+                        </md-content>
+                    </md-tab>
+                    <md-tab label="Orders" ng-if="vm.showStock">
+                        <md-content>
+                            <orders-management flex>
+                            </orders-management>
+                        </md-content>
+                    </md-tab>
+                    <md-tab label="Users" ng-if="vm.showStock">
+                        
+                    </md-tab>
+                    <md-tab label="Financial" ng-if="vm.showFinancial">
+                    </md-tab>
+                </md-tabs>                
             </md-tab>
         </md-tabs>
     </div>

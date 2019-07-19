@@ -246,7 +246,9 @@ router.get('/users/:userID/orders', auth, ctrlOrders.getUserOrders);
 router.post('/users/:userID/orders', auth, ctrlOrders.makeOrder);
 router.get('/users/:userID/accounts-orders', auth, ctrlOrders.getUserAccounts);
 router.get('/users/:userID/inventory', auth, ctrlOrders.getInventory);
-
+router.get('/users/:userID/management-permissions', auth, ctrlOrders.getManagementPermissions);
+router.get('/stock-managers/:userID/inventory', auth, ctrlOrders.getManagementInventory);
+router.put('/stock-managers/:userID/inventory', auth, ctrlOrders.updateManagementInventory);
 
 
 

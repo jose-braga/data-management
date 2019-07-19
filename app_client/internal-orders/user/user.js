@@ -276,6 +276,7 @@
                             scope.orderPanel = $mdPanel.open(config);
                         };
 
+                        // TODO: CHECK IF ITEM IS DELETED FROM STOCK!!!!!!!!
                         scope.submitOrder = function (ind) {
                             function checkInventoryLevels () {
                                 let inventoryLevels = true;

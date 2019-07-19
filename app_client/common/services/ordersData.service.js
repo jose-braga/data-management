@@ -25,9 +25,32 @@
             return $http.get('api/list/order-account-roles');
         };
         
+        var getManagementPermissions = function (currentUser) {
+            return $http.get('api/users/' + currentUser + '/management-permissions',
+                {
+                    headers: { Authorization: 'Bearer ' + authentication.getToken() }
+                }
+            );
+        };
 
         var getInventory = function (currentUser) {
             return $http.get('api/users/' + currentUser + '/inventory',
+                {
+                    headers: { Authorization: 'Bearer ' + authentication.getToken() }
+                }
+            );
+        };
+
+        var getManagersInventory = function (currentUser) {
+            return $http.get('api/stock-managers/' + currentUser + '/inventory',
+                {
+                    headers: { Authorization: 'Bearer ' + authentication.getToken() }
+                }
+            );
+        };
+
+        var updateManagersInventory = function (currentUser, data) {
+            return $http.put('api/stock-managers/' + currentUser + '/inventory', data,
                 {
                     headers: { Authorization: 'Bearer ' + authentication.getToken() }
                 }
@@ -61,6 +84,9 @@
 
         return {
             getInventory: getInventory,
+            getManagementPermissions: getManagementPermissions,
+            getManagersInventory: getManagersInventory,
+            updateManagersInventory: updateManagersInventory,
             getUserOrders: getUserOrders,
             createOrder: createOrder,
             getUserAccountInfo: getUserAccountInfo,

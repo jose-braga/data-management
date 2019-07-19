@@ -16,6 +16,8 @@
                     </th>
                     <th>Ordered amount
                     </th>
+                    <th>Cost (no tax)
+                    </th>
                     <th>Cost
                     </th>
                 </tr>
@@ -29,7 +31,9 @@
                         <div ng-if="item.decimal === 0">{{item.quantity}}</div>
                         <div ng-if="item.decimal === 1">{{item.quantity_decimal}}</div>
                     </td>
-                    <td>{{item.cost | currency:"":2}} €   
+                    <td>{{item.cost | currency:"":2}} €
+                    </td>
+                    <td>{{item.cost_tax | currency:"":2}} €   
                     </td>
                 </tr>
             </tbody>
@@ -37,8 +41,10 @@
                 <tr>
                     <td></td>
                     <td></td>
+                    <td></td>
+                    <td></td>
                     <td>Total:</td>
-                    <td>{{ctrl.order.total_cost | currency:"":2}} €</td>
+                    <td>{{ctrl.order.total_cost_tax | currency:"":2}} €</td>
                 </tr>
             </tfoot>
         </table>

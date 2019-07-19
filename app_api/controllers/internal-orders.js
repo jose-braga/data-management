@@ -249,6 +249,7 @@ var makeManagerInventoryItemQuery = function (req, res, next, options) {
     }    
 };
 
+
 var updateManagememtInventoryQuery = function (req, res, next, options) {
     options.delete = req.body.delete;
     options.update = req.body.update;
@@ -705,9 +706,13 @@ var getItemCategories = function (req, res, next, rows, i, options) {
 var startOrderProcedure = function (req, res, next, options) {
     let data = req.body;
     let datetime = momentToDate(moment(), undefined, 'YYYY-MM-DD HH:mm:ss');
-    var query = 'INSERT INTO orders (datetime, account_id, user_ordered_id, total_cost)'
-        + ' VALUES (?, ?, ?, ?)';
-    var places = [datetime, options.accountID, options.userID, data.totalCost];
+    var query = 'INSERT INTO orders (datetime, account_id, user_ordered_id, total_cost, total_cost_tax)'
+        + ' VALUES (?,?,?,?,?)';
+    var places = [datetime, 
+        options.accountID, 
+        options.userID, 
+        data.totalCostNoTax,
+        data.totalCost];
     pool.getConnection(function (err, connection) {
         if (err) {
             sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
@@ -737,16 +742,23 @@ var writeOrderItems = function (req, res, next, options, i) {
     let query;
     let places;
     if (cart[i].decimal === 0) {
-        query = 'INSERT INTO items_orders (item_id, order_id, quantity, cost)'
-            + ' VALUES (?, ?, ?, ?)';
-        places = [cart[i].id, options.orderID, 
+        query = 'INSERT INTO items_orders (item_id, order_id, quantity, cost, cost_tax)'
+            + ' VALUES (?,?,?,?,?)';
+        places = [
+                cart[i].id, 
+                options.orderID, 
                 parseInt(cart[i].amount_to_order, 10), 
-                parseFloat(cart[i].cost_truncated)];
+                parseFloat(cart[i].cost_truncated_no_tax),
+                parseFloat(cart[i].cost_truncated)
+            ];
     } else {
-        query = 'INSERT INTO items_orders (item_id, order_id, quantity_decimal, cost)'
-            + ' VALUES (?, ?, ?, ?)';
-        places = [cart[i].id, options.orderID,
+        query = 'INSERT INTO items_orders (item_id, order_id, quantity_decimal, cost, cost_tax)'
+            + ' VALUES (?,?,?,?,?)';
+        places = [
+                cart[i].id, 
+                options.orderID,
                 parseFloat(cart[i].amount_to_order),
+                parseFloat(cart[i].cost_truncated_no_tax),
                 parseFloat(cart[i].cost_truncated)];
     }
     pool.getConnection(function (err, connection) {
@@ -922,9 +934,13 @@ var updateAccountFinances = function (req, res, next, options) {
     let data = req.body;
     if (data.currentFinances !== null && data.currentFinances !== undefined) {
         var query = 'UPDATE account_finances'
-            + ' SET amount_requests = amount_requests + ?'
+            + ' SET amount_requests = amount_requests + ?,'
+            + ' amount_requests_tax = amount_requests_tax + ?'
             + ' WHERE id = ?';
-        var places = [data.totalCost, data.currentFinances.id];
+        var places = [
+            data.totalCostNoTax,
+            data.totalCost,
+            data.currentFinances.id];
         pool.getConnection(function (err, connection) {
             if (err) {
                 sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
@@ -954,7 +970,7 @@ var updateAccountFinances = function (req, res, next, options) {
 };
 var getAccountFinancesUpdatedValue = function (req, res, next, options) {
     let data = req.body;  
-    var query = 'SELECT amount_requests FROM account_finances'
+    var query = 'SELECT amount_requests, amount_requests_tax FROM account_finances'
                 + ' WHERE id = ?;';
     var places = [data.currentFinances.id];
     pool.getConnection(function (err, connection) {
@@ -972,7 +988,8 @@ var getAccountFinancesUpdatedValue = function (req, res, next, options) {
                     return;
                 }
                 // there should be only 1 value
-                options.amountRequestsUpdate = resQuery[0].amount_requests;
+                options.amountRequestsNoTaxUpdate = resQuery[0].amount_requests;
+                options.amountRequestsUpdate = resQuery[0].amount_requests_tax;
                 return writeAccountFinancesHistory(req, res, next, options);
             });
     });
@@ -981,13 +998,17 @@ var getAccountFinancesUpdatedValue = function (req, res, next, options) {
 var writeAccountFinancesHistory = function (req, res, next, options) {
     let data = req.body;
     var query = 'INSERT INTO account_finances_history'
-        + ' (account_finance_id, account_id, initial_amount, current_amount, amount_requests, year, datetime)'
-        + ' VALUES (?,?,?,?,?,?,?);';
+        + ' (account_finance_id, account_id, initial_amount,'
+        + ' current_amount, amount_requests,' 
+        + ' current_amount_tax, amount_requests_tax, year, datetime)'
+        + ' VALUES (?,?,?,?,?,?,?,?,?);';
     var places = [
             data.currentFinances.id, 
             data.currentFinances.account_id,
             data.currentFinances.initial_amount,
             data.currentFinances.current_amount,
+            options.amountRequestsNoTaxUpdate,
+            data.currentFinances.current_amount_tax,
             options.amountRequestsUpdate,
             data.currentFinances.year,
             options.orderTime
@@ -1063,7 +1084,7 @@ var sendEmailUser = function (req, res, next, options) {
 
 var makeUserOrdersQuery = function (req, res, next, options) {
     var query = 'SELECT orders.id AS order_id, orders.datetime, orders.user_ordered_id,' 
-        + ' orders.account_id, orders.total_cost,'
+        + ' orders.account_id, orders.total_cost, orders.total_cost_tax,'
         + ' people.colloquial_name AS user_ordered_name'
         + ' FROM orders'
         + ' JOIN users ON users.id = orders.user_ordered_id'
@@ -1143,7 +1164,7 @@ var getOrderStatus = function (req, res, next, options, rows, i) {
 };
 
 var getOrderDetailsInfo = function (req, res, next, options, rows, i) {
-    var query = 'SELECT items_orders.quantity, items_orders.quantity_decimal, items_orders.cost,'
+    var query = 'SELECT items_orders.quantity, items_orders.quantity_decimal, items_orders.cost, items_orders.cost_tax,'
         + ' items.*,'
         + ' quantity_types.name_plural_en AS unit_plural_en, quantity_types.name_singular_en AS unit_singular_en,'
         + ' quantity_types.name_plural_pt AS unit_plural_pt, quantity_types.name_singular_pt AS unit_singular_pt,'

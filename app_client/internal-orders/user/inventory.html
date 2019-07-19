@@ -56,6 +56,12 @@
                                 <ng-md-icon ng-if="!sortReverse && sortType=='current_unit_price'" icon="arrow_downward" size="12"></ng-md-icon>
                                 <ng-md-icon ng-if="sortReverse  && sortType=='current_unit_price'" icon="arrow_upwards" size="12"></ng-md-icon>
                             </th>
+                            <th>
+                                <a ng-click="sortColumn('tax', 'inventory')">Tax</a>
+                                <ng-md-icon ng-if="!sortReverse && sortType=='tax'" icon="arrow_downward" size="12"></ng-md-icon>
+                                <ng-md-icon ng-if="sortReverse  && sortType=='tax'" icon="arrow_upwards" size="12"></ng-md-icon>
+                            </th>
+
                             <th>Available
                             </th>
                             <th>Status
@@ -71,6 +77,7 @@
                             <td>{{item.brand}}</td>
                             <td>{{item.reference}}</td>
                             <td>{{item.current_unit_price | currency:"":2}} €/{{item.unit_singular_en}}</td>
+                            <td>{{item.tax | number:1}} %</td>
                             <td>{{item.renderQuantity}}</td>
                             <td>
                                 <md-icon ng-if="item.status_id === 1"
@@ -133,6 +140,8 @@
                                 </th>
                                 <th>Price
                                 </th>
+                                <th>Tax
+                                </th>
                                 <th>Available
                                 </th>
                                 <th>Order amount
@@ -149,6 +158,7 @@
                                 <td>{{item.brand}}</td>
                                 <td>{{item.reference}}</td>
                                 <td>{{item.current_unit_price | currency:"":2}} €/{{item.unit_singular_en}}</td>
+                                <td>{{item.tax | number:1}} %</td>
                                 <td>{{item.renderQuantity}}</td>
                                 <td>
                                     <md-input-container class="input-no-margin">
@@ -167,7 +177,7 @@
                                             positive-float-validate="{{item.itemsAvailable_decimal}}">
                                     </md-input-container>
                                 </td>
-                                <td>{{renderCost(item, item.current_unit_price,item.amount_to_order) | currency:""}} €
+                                <td>{{renderCost(item, item.current_unit_price,item.tax,item.amount_to_order) | currency:""}} €
 
                                 </td>
                                 <td>
@@ -180,6 +190,8 @@
                         </tbody>
                         <tfoot>
                             <tr>
+                                <td></td>
+                                <td></td>
                                 <td></td>
                                 <td></td>
                                 <td></td>
@@ -213,9 +225,9 @@
                     <p>Financial information ({{finaccount[0].account_name_en}}@{{finaccount[0].cost_center_name_en}}):</p>
                     <div>
                         <ul>
-                            <li>Current available amount: {{(currentFinances.current_amount - currentFinances.amount_requests) | currency:"":2}}
+                            <li>Current available amount: {{(currentFinances.current_amount_tax - currentFinances.amount_requests_tax) | currency:"":2}}
                                 €</li>
-                            <li>Amount in pending requests: {{currentFinances.amount_requests | currency:"":2}} €</li>
+                            <li>Amount in pending requests: {{currentFinances.amount_requests_tax | currency:"":2}} €</li>
                             <li>Funds allocated on {{currentFinances.year}}: {{currentFinances.initial_amount | currency:"":2}} €</li>
                         </ul>
                     </div>
@@ -258,9 +270,14 @@
                                 <ng-md-icon ng-if="sortReverseOrders  && sortTypeOrders=='datetime'" icon="arrow_upwards" size="12"></ng-md-icon>
                             </th>
                             <th>
-                                <a ng-click="sortColumn('total_cost', 'orders')">Order amount</a>
+                                <a ng-click="sortColumn('total_cost', 'orders')">Amount (no tax)</a>
                                 <ng-md-icon ng-if="!sortReverseOrders && sortTypeOrders=='total_cost'" icon="arrow_downward" size="12"></ng-md-icon>
                                 <ng-md-icon ng-if="sortReverseOrders  && sortTypeOrders=='total_cost'" icon="arrow_upwards" size="12"></ng-md-icon>
+                            </th>
+                            <th>
+                                <a ng-click="sortColumn('total_cost', 'orders')">Amount</a>
+                                <ng-md-icon ng-if="!sortReverseOrders && sortTypeOrders=='total_cost_tax'" icon="arrow_downward" size="12"></ng-md-icon>
+                                <ng-md-icon ng-if="sortReverseOrders  && sortTypeOrders=='total_cost_tax'" icon="arrow_upwards" size="12"></ng-md-icon>
                             </th>
                             <th>
                                 <a ng-click="sortColumn('last_status', 'orders')">Status</a>
@@ -277,6 +294,7 @@
                             <td>{{order.user_ordered_name}}</td>
                             <td>{{order.datetime}}</td>
                             <td>{{order.total_cost| currency:"":2}} €</td>
+                            <td>{{order.total_cost_tax| currency:"":2}} €</td>
                             <td>{{order.last_status.name_en}}</td>
                             <td>
                                 <md-button ng-click="showDetailsOrder(order)" 

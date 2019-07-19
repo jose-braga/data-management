@@ -25,9 +25,11 @@
                         scope.sortReverseOrders = false;
                         scope.searchString = '';
                         scope.foundFinances = false;
+                        scope.currentFinancesNoTax = {};
                         scope.currentFinances = {};
                         scope.shoppingCart = [];
                         scope.shoppingCartTotal = 0;
+                        scope.shoppingCartTotalNoTax = 0;
                         scope.forms = {
                             'orderCart': 0,
                         };                        
@@ -159,22 +161,32 @@
                                 scope.renderOrders('new')
                             }                            
                         };
-                        scope.renderCost = function (item, unit_price, quantity) {
-                            let cost = unit_price * quantity;
+                        scope.renderCost = function (item, unit_price, tax, quantity) {
+                            let cost = unit_price * (1.0 + tax/100.0) * quantity;
+                            let cost_no_tax = unit_price * quantity;
                             let cost_truncated = cost.toFixed(2);
+                            let cost_truncated_no_tax = cost_no_tax.toFixed(2);
                             item.cost_truncated = cost_truncated;
+                            item.cost_truncated_no_tax = cost_truncated_no_tax;
                             return cost_truncated;
                         };
                         scope.renderTotalCost = function (cart) {
                             let total = 0;
+                            let total_no_tax = 0;
                             for (let el in cart) {
                                 if (cart[el].cost_truncated !== undefined
                                         && cart[el].cost_truncated !== null
                                         && !isNaN(cart[el].cost_truncated)) {
                                     total = total + Number(cart[el].cost_truncated);
                                 }
+                                if (cart[el].cost_truncated_no_tax !== undefined
+                                    && cart[el].cost_truncated_no_tax !== null
+                                    && !isNaN(cart[el].cost_truncated_no_tax)) {
+                                    total_no_tax = total_no_tax + Number(cart[el].cost_truncated_no_tax);
+                                }
                             }
                             scope.shoppingCartTotal = total.toFixed(2);
+                            scope.shoppingCartTotalNoTax = total_no_tax.toFixed(2);
                             return scope.shoppingCartTotal;
                         };
                         scope.renderCategories = function (cat) {
@@ -396,6 +408,7 @@
                                                     scope.hideMessage[ind] = false;
                                                     let data = {
                                                         totalCost: scope.shoppingCartTotal,
+                                                        totalCostNoTax: scope.shoppingCartTotalNoTax,
                                                         cart: scope.shoppingCart,
                                                         currentFinances: scope.currentFinances,
                                                     };
@@ -464,7 +477,8 @@
                                     return (a[scope.sortType] ? a[scope.sortType] : '')
                                         .localeCompare(b[scope.sortType] ? b[scope.sortType] : '');
                                 }
-                            } else if (scope.sortType === 'current_unit_price') {
+                            } else if (scope.sortType === 'current_unit_price'
+                                    || scope.sortType === 'tax') {
                                 if (scope.sortReverse) {
                                     return -(a[scope.sortType] - b[scope.sortType]);
                                 } else {

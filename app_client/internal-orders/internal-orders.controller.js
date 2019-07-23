@@ -15,7 +15,7 @@
         ordersData.getInventory(vm.currentUser.userID)
             .then(function (response) {
                 if (response !== null && response !== undefined) {
-                    if (response.data.result !== undefined) {
+                    if (response.data.result.account_info !== undefined) {
                         if (response.data.result.account_info.accountID !== undefined
                             && response.data.result.account_info.accountID !== null) {
                             vm.showUserOrders = true;

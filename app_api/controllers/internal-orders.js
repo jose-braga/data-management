@@ -207,7 +207,7 @@ var makeInventoryItemQuery = function (req, res, next, options) {
                     sendJSONResponse(res, 200,
                         {
                             "status": "success", "statusCode": 200, "count": 0,
-                            "result": []
+                            "result": {"account_info": options, "inventory": []}
                         });
                     return;
                 }
@@ -250,7 +250,7 @@ var makeManagerInventoryItemQuery = function (req, res, next, options) {
                         sendJSONResponse(res, 200,
                             {
                                 "status": "success", "statusCode": 200, "count": 0,
-                                "result": []
+                                "result": { "account_info": options, "inventory": [] }
                             });
                         return;
                     }                    

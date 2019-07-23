@@ -57,7 +57,7 @@
                         vm.showStock = response.data.result.stockAuthorization;
                         vm.showFinancial = response.data.result.financialAuthorization;
                         if (vm.showStock) {
-                            getManagersInventory()
+                            getManagersData();
                         }
                         if (vm.showFinancial) {
 
@@ -70,11 +70,20 @@
             });
 
         
-        function getManagersInventory() {
+        function getManagersData() {
             ordersData.getManagersInventory(vm.currentUser.userID)
                 .then(function (response) {
                     if (response !== null && response !== undefined) {
                         vm.managersInventory = response.data.result.inventory;
+                    }
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            ordersData.getManagersOrders(vm.currentUser.userID)
+                .then(function (response) {
+                    if (response !== null && response !== undefined) {
+                        vm.managersOrders = response.data.result;
                     }
                 })
                 .catch(function (err) {

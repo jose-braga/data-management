@@ -13,13 +13,6 @@
                     <input ng-model="searchString" ng-change="renderProducts('new')">
                 </md-input-container>
             </div>
-            
-            <!--
-                {{inventory}} <br>-----------<br>-----------<br>-----------<br>
-            {{originalInventory}}
-
-            -->
-
             <form flex novalidate name="inventoryForm" 
                 ng-submit="inventoryForm.$valid && submitStockChanges(forms['stock'])"
                 class="spacer-top">
@@ -197,7 +190,7 @@
                                         ng-true-value="1"
                                         ng-false-value="0"
                                         aria-label="visible">
-                                </md-checkbox>                            
+                                </md-checkbox>
                             </td>
                             <td>
                                 <md-button ng-click="removeInventory(inventory, item.id, item.brand, item.reference)" aria-label="Remove" 

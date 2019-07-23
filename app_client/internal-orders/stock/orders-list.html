@@ -5,5 +5,174 @@
         </md-card-title-text>
     </md-card-title>
     <md-card-content layout="column">
+        {{ orders }}
+        <div layout="row" layout-align="none center">
+            <ng-md-icon icon="search" size="24"></ng-md-icon>
+            <md-input-container flex>
+                <label>Search by person name, account, cost center</label>
+                <input ng-model="searchString" ng-change="renderProducts('new')">
+            </md-input-container>
+        </div>
+
+        <div layout="row" class="paginator spacer-top">
+            <md-input-container class="input-no-margin wider">
+                <label>Results/page</label>
+                <md-select ng-model="pageSize" md-on-close="renderOrders('new')" aria-label="pageSize" name="pageSize">
+                    <md-option ng-value="10">10</md-option>
+                    <md-option ng-value="20">20</md-option>
+                    <md-option ng-value="50">50</md-option>
+                </md-select>
+            </md-input-container>
+            <md-input-container class="input-no-margin">
+                <label>Page</label>
+                <md-select ng-model="currentPage" md-on-close="renderOrders('page')" aria-label="currentPage"
+                    name="currentPage">
+                    <md-option ng-repeat="page in pages" ng-value="page">{{page}}</md-option>
+                </md-select>
+            </md-input-container>
+        </div>
+
+        <table class="materialize-table spacer-top">
+            <thead>
+                <tr>
+                    <th>
+                        <a ng-click="sortColumn('order_id', 'orders')">Order ID</a>
+                        <ng-md-icon ng-if="!sortReverse && sortType=='order_id'" icon="arrow_downward" size="12">
+                        </ng-md-icon>
+                        <ng-md-icon ng-if="sortReverse  && sortType=='order_id'" icon="arrow_upwards" size="12">
+                        </ng-md-icon>
+                    </th>
+                    <th>
+                        <a ng-click="sortColumn('user_ordered_name', 'orders')">Who</a>
+                        <ng-md-icon ng-if="!sortReverse && sortType=='user_ordered_name'" icon="arrow_downward"
+                            size="12"></ng-md-icon>
+                        <ng-md-icon ng-if="sortReverse  && sortType=='user_ordered_name'" icon="arrow_upwards"
+                            size="12"></ng-md-icon>
+                    </th>
+                    <th>
+                        <a ng-click="sortColumn('account_name_en', 'orders')">Account</a>
+                        <ng-md-icon ng-if="!sortReverse && sortType=='account_name_en'" icon="arrow_downward"
+                            size="12"></ng-md-icon>
+                        <ng-md-icon ng-if="sortReverse  && sortType=='account_name_en'" icon="arrow_upwards"
+                            size="12"></ng-md-icon>
+                    </th>
+                    <th>
+                        <a ng-click="sortColumn('cost_center_name_en', 'orders')">Cost Center</a>
+                        <ng-md-icon ng-if="!sortReverse && sortType=='cost_center_name_en'" icon="arrow_downward"
+                            size="12"></ng-md-icon>
+                        <ng-md-icon ng-if="sortReverse  && sortType=='cost_center_name_en'" icon="arrow_upwards"
+                            size="12"></ng-md-icon>
+                    </th>
+                    <th>
+                        <a ng-click="sortColumn('datetime', 'orders')">Date</a>
+                        <ng-md-icon ng-if="!sortReverse && sortType=='datetime'" icon="arrow_downward" size="12">
+                        </ng-md-icon>
+                        <ng-md-icon ng-if="sortReverse  && sortType=='datetime'" icon="arrow_upwards" size="12">
+                        </ng-md-icon>
+                    </th>
+                    
+                    <th>
+                        <a ng-click="sortColumn('total_cost_tax', 'orders')">Amount</a>
+                        <ng-md-icon ng-if="!sortReverse && sortType=='total_cost_tax'" icon="arrow_downward"
+                            size="12"></ng-md-icon>
+                        <ng-md-icon ng-if="sortReverse  && sortType=='total_cost_tax'" icon="arrow_upwards"
+                            size="12"></ng-md-icon>
+                    </th>
+                    <th>
+                        <a ng-click="sortColumn('last_status', 'orders')">Status</a>
+                        <ng-md-icon ng-if="!sortReverse && sortType=='last_status'" icon="arrow_downward" size="12">
+                        </ng-md-icon>
+                        <ng-md-icon ng-if="sortReverse  && sortType=='last_status'" icon="arrow_upwards" size="12">
+                        </ng-md-icon>
+                    </th>
+                    <th>
+                        <a ng-click="sortColumn('last_status', 'orders')">€ available</a>
+                        <ng-md-icon ng-if="!sortReverse && sortType=='last_status'" icon="arrow_downward" size="12">
+                        </ng-md-icon>
+                        <ng-md-icon ng-if="sortReverse  && sortType=='last_status'" icon="arrow_upwards" size="12">
+                        </ng-md-icon>
+                    </th>
+                    <th>Details
+                    </th>
+                    <th>Aprove/Reject
+                    </th>
+                    <th>Delivered?
+                    </th>
+                    <th><!-- For API interaction status --></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="(ordNum,order) in shownOrders track by $index">
+                    <td>{{order.id}}</td>
+                    <td>{{order.colloquial_name}}</td>
+                    <td>{{order.account_name_en}}</td>
+                    <td>{{order.cost_center_name_en}}</td>
+                    <td>{{order.datetime}}</td>
+                    <td>{{order.total_cost_tax| currency:"":2}} €</td>
+                    <td>{{order.last_status.name_en}}</td>
+                    <td>{{order.order_finances[0].current_amount_tax - order.order_finances[0].amount_requests_tax | currency:"":2}} €</td>
+                    <td>
+                        <md-button ng-click="showDetailsOrder(order)" aria-label="Details"
+                            class="md-icon-button interaction-button">
+                            <md-icon md-svg-src="images/icons/description_24px.svg"></md-icon>
+                        </md-button>
+                    </td>
+                    <td>
+                        <div ng-if="order.orderPending">
+                            <md-button ng-click="aproveOrder(ordNum, order)" aria-label="Approve" class="md-icon-button interaction-button">
+                                <md-icon md-svg-src="images/icons/thumb_up_24px.svg"></md-icon>
+                            </md-button>
+                            <md-button ng-click="rejectOrder(ordNum, order)" aria-label="Reject" class="md-icon-button interaction-button">
+                                <md-icon md-svg-src="images/icons/thumb_down_24px.svg"></md-icon>
+                            </md-button>
+                        </div>
+                    </td>
+                    <td>
+                        <div ng-if="!order.orderPending && order.orderNotDelivered">
+                            <md-button ng-click="deliveredOrder(ordNum, order)" aria-label="Delivered" class="md-icon-button interaction-button">
+                                <md-icon md-svg-src="images/icons/delivered_24px.svg"></md-icon>
+                            </md-button>
+                        </div>
+                        <div ng-if="order.orderPending">
+                            <md-checkbox ng-model="order.orderNotDelivered" 
+                                        ng-disabled="true"
+                                        ng-true-value="1"
+                                        ng-false-value="0"
+                                        aria-label="visible">
+                            </md-checkbox>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="status-message" 
+                                ng-hide="hideMessage[ordNum]">
+                            <span class="message" 
+                                ng-class="messageType[ordNum]">
+                                {{updateStatus[ordNum]}}
+                            </span>
+                        </div>
+
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <div layout="row" class="paginator">
+            <md-input-container class="input-no-margin wider">
+                <label>Results/page</label>
+                <md-select ng-model="pageSize" md-on-close="renderOrders('new')" aria-label="pageSize" name="pageSize">
+                    <md-option ng-value="10">10</md-option>
+                    <md-option ng-value="20">20</md-option>
+                    <md-option ng-value="50">50</md-option>
+                </md-select>
+            </md-input-container>
+            <md-input-container class="input-no-margin">
+                <label>Page</label>
+                <md-select ng-model="currentPage" md-on-close="renderOrders('page')" aria-label="currentPage"
+                    name="currentPage">
+                    <md-option ng-repeat="page in pages" ng-value="page">{{page}}</md-option>
+                </md-select>
+            </md-input-container>
+        </div>
+
+
     </md-card-content>
 </md-card>

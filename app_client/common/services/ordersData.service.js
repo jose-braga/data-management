@@ -49,6 +49,14 @@
             );
         };
 
+        var getManagersOrders = function (currentUser) {
+            return $http.get('api/stock-managers/' + currentUser + '/orders',
+                {
+                    headers: { Authorization: 'Bearer ' + authentication.getToken() }
+                }
+            );
+        };
+
         var updateManagersInventory = function (currentUser, data) {
             return $http.put('api/stock-managers/' + currentUser + '/inventory', data,
                 {
@@ -86,6 +94,7 @@
             getInventory: getInventory,
             getManagementPermissions: getManagementPermissions,
             getManagersInventory: getManagersInventory,
+            getManagersOrders: getManagersOrders,
             updateManagersInventory: updateManagersInventory,
             getUserOrders: getUserOrders,
             createOrder: createOrder,

@@ -1,0 +1,85 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Order Details</span>
+        </md-card-title-text>
+    </md-card-title>
+    <md-card-content layout="column">
+        <form flex novalidate name="orderDetailsForm" 
+                ng-submit="orderDetailsForm.$valid && ctrl.submitOrderChanges(ctrl.forms['orderChange'])">
+            <table class="materialize-table">
+                <thead>
+                    <tr>
+                        <th>Prod. Name
+                        </th>
+                        <th>Brand
+                        </th>
+                        <th>Refer.
+                        </th>
+                        <th>Ordered amount
+                        </th>
+                        <th>Cost (no tax)
+                        </th>
+                        <th>Cost
+                        </th>
+                        <th>Change reason
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="(itemNum,item) in ctrl.order.order_items track by $index">
+                        <td>{{item.item_name_en}}</td>
+                        <td>{{item.brand}}</td>
+                        <td>{{item.reference}}</td>
+                        <td>
+                            <div ng-if="item.decimal === 0">
+                                <md-input-container class="input-row">
+                                        <input ng-model="item.quantity"
+                                                ng-change="ctrl.processChange(item)"
+                                                name="quantityorder[itemNum]"
+                                                positive-integer-validate="1000000000">
+                                </md-input-container>
+                            </div>
+                            <div ng-if="item.decimal === 1">
+                                <md-input-container class="input-row">
+                                        <input ng-model="item.quantity_decimal" 
+                                            ng-change="ctrl.processChange(item)"
+                                            name="quantityorder[itemNum]"
+                                            positive-float-validate="1000000000">
+                                </md-input-container>
+                            </div>
+                        </td>
+                        <td>{{item.cost | currency:"":2}} €
+                        </td>
+                        <td>{{item.cost_tax | currency:"":2}} €
+                        </td>
+                        <td>
+                            <md-input-container class="input-row">
+                                <input ng-model="item.change_reason" 
+                                    name="changeReason[itemNum]">
+                            </md-input-container>
+                        </td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td>Total:</td>
+                        <td>{{ctrl.order.total_cost_tax | currency:"":2}} €</td>
+                    </tr>
+                </tfoot>
+            </table>
+            <div layout="column" class="spacer-top" layout-gt-sm="row" layout-align="center center">
+                <md-button type="submit" class="button-small md-raised md-primary">Submit changes</md-button>
+                <div class="status-message" ng-hide="ctrl.hideMessage[ctrl.forms['orderChange']]">
+                    <span class="message" ng-class="ctrl.messageType[ctrl.forms['orderChange']]">
+                        {{ctrl.updateStatus[ctrl.forms['orderChange']]}}
+                    </span>
+                </div>
+            </div>
+        </form>
+    </md-card-content>
+</md-card>

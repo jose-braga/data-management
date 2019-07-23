@@ -249,6 +249,7 @@ router.get('/users/:userID/inventory', auth, ctrlOrders.getInventory);
 router.get('/users/:userID/management-permissions', auth, ctrlOrders.getManagementPermissions);
 router.get('/stock-managers/:userID/inventory', auth, ctrlOrders.getManagementInventory);
 router.put('/stock-managers/:userID/inventory', auth, ctrlOrders.updateManagementInventory);
+router.get('/stock-managers/:userID/orders', auth, ctrlOrders.getManagementOrders);
 
 
 

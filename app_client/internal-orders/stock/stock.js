@@ -101,7 +101,7 @@
                                     scope.shownProducts.push(scope.searchResults[item]);
                                 }
 
-                            };                            
+                            };
                             scope.sortColumn = function (colName, table) {
                                 if (table === 'inventory') {
                                     if (colName === scope.sortType) {
@@ -295,11 +295,201 @@
                 return {
                     restrict: 'E',
                     scope: {
-                    
+                        user: '@',
+                        orders: '=',
                     },
                     templateUrl: 'internal-orders/stock/orders-list.html',
                     link:
-                        function (scope, element, attrs) {}
+                        function (scope, element, attrs) {
+                            scope.currentPage = 1;
+                            scope.pageSize = 10;
+                            scope.sortType = 'renderCategories';
+                            scope.sortReverse = false;
+                            scope.searchString = '';
+                                                       
+
+                            scope.renderOrders = function (str) {
+                                if (str === 'new') {
+                                    scope.currentPage = 1;
+                                }
+                                scope.searchResults = [];
+                                for (let item in scope.orders) {
+                                    var toInclude = 0;
+                                    var toIncludeDueName = 0;
+                                    if (scope.orders[item].last_status.order_status_id === 1) {
+                                        scope.orders[item].orderPending = true;
+                                        scope.orders[item].orderNotDelivered = true;
+                                    } else if (scope.orders[item].last_status.order_status_id === 2) {
+                                        scope.orders[item].orderPending = false;
+                                        scope.orders[item].orderNotDelivered = true;
+                                    } else {
+                                        scope.orders[item].orderPending = false;
+                                        scope.orders[item].orderNotDelivered = false;
+                                    }
+                                    if (scope.searchString !== '') {
+                                        if (nameMatching(scope.orders[item]['colloquial_name'], scope.searchString) !== null) {
+                                            toIncludeDueName = 1;
+                                        }
+                                    } else {
+                                        toIncludeDueName = 1;
+                                        
+                                    }
+                                    if (toIncludeDueName === 1) {
+                                        toInclude = 1;
+                                    }
+                                    if (toInclude === 1) {
+                                        scope.searchResults.push(scope.orders[item]);
+                                    }
+                                }
+                                scope.totalFromSearch = scope.searchResults.length;
+                                scope.totalPages = Math.ceil(scope.totalFromSearch / scope.pageSize);
+                                scope.pages = [];
+                                for (var num = 1; num <= scope.totalPages; num++) {
+                                    scope.pages.push(num);
+                                }
+                                // Sort searchResults according to defined order, before
+                                // defining page contents
+                                scope.searchResults = scope.searchResults.sort(sorterOrders);
+                                scope.shownOrders = [];
+                                for (let item = (scope.currentPage - 1) * scope.pageSize;
+                                        item < scope.currentPage * scope.pageSize && item < scope.totalFromSearch;
+                                        item++) {
+                                    scope.shownOrders.push(scope.searchResults[item]);
+                                }
+                                var numberCards = scope.pageSize;
+                                scope.updateStatus = [];
+                                scope.messageType = [];
+                                scope.hideMessage = [];
+                                for (var i = 0; i < numberCards; i++) {
+                                    scope.updateStatus.push('');
+                                    scope.messageType.push('message-updating');
+                                    scope.hideMessage.push(true);
+                                }
+
+                            };
+
+                            scope.showDetailsOrder = function (order) {
+                                var position = $mdPanel.newPanelPosition()
+                                    .absolute()
+                                    .center();
+                                var orderManagerDetailsCtrl = function (mdPanelRef) {
+                                    var ctrl = this;
+                                    this._mdPanelRef = mdPanelRef;
+                                    ctrl.forms = {
+                                        'orderChange': 0,
+                                    };
+                                    let numberCards = Object.keys(ctrl.forms).length; // the number of cards with "Update" in each tab
+                                    ctrl.updateStatus = [];
+                                    ctrl.messageType = [];
+                                    ctrl.hideMessage = [];
+                                    for (var i = 0; i < numberCards; i++) {
+                                        ctrl.updateStatus.push('');
+                                        ctrl.messageType.push('message-updating');
+                                        ctrl.hideMessage.push(true);
+                                    }
+
+                                    ctrl.closePanel = function () {
+                                        mdPanelRef.close();
+                                    };
+
+                                    ctrl.processChange = function (item) {
+                                        item.changed_by_manager = 1;
+                                    };
+
+                                    ctrl.submitOrderChanges = function (ind) {
+                                        ctrl.updateStatus[ind] = "Updating order detaills.";
+                                        ctrl.messageType[ind] = 'message-updating';
+                                        ctrl.hideMessage[ind] = false;
+                                        
+                                    };
+                                };
+                                var config = {
+                                    //attachTo: angular.element(document.body),
+                                    controller: orderManagerDetailsCtrl,
+                                    controllerAs: 'ctrl',
+                                    templateUrl: 'internal-orders/stock/orderDetails.html',
+                                    locals: {
+                                        order: order,
+                                    },
+                                    hasBackdrop: true,
+                                    //panelClass: 'publication-details',
+                                    position: position,
+                                    disableParentScroll: true,
+                                    trapFocus: true,
+                                    zIndex: 150,
+                                    clickOutsideToClose: true,
+                                    escapeToClose: true,
+                                    focusOnOpen: true
+                                };
+                                scope.orderPanel = $mdPanel.open(config);
+                            };
+
+                            scope.sortColumn = function (colName, table) {
+                                if (table === 'orders') {
+                                    if (colName === scope.sortType) {
+                                        scope.sortReverse = !scope.sortReverse;
+                                    } else {
+                                        scope.sortType = colName;
+                                        scope.sortReverse = false;
+                                    }
+                                    scope.renderOrders('new')
+                                }
+                            };
+
+                            scope.renderOrders('new');
+
+                            function nameMatching(name1, str) {
+                                var name1Final = prepareString(name1);
+                                var strFinal = prepareString(str);
+                                var strSplit = strFinal.split(' ');
+                                for (var el in strSplit) {
+                                    if (name1Final.match(strSplit[el]) === null) {
+                                        return null;
+                                    }
+
+                                }
+                                return true;
+                            }
+                            function prepareString(str) {
+                                return str.toLowerCase()
+                                    .replace(/[áàãâä]/g, 'a')
+                                    .replace(/[éèêë]/g, 'e')
+                                    .replace(/[íìîï]/g, 'i')
+                                    .replace(/[óòõôö]/g, 'o')
+                                    .replace(/[úùûü]/g, 'u')
+                                    .replace(/[ç]/g, 'c')
+                                    .replace(/[ñ]/g, 'n');
+                            }
+                            function sorterOrders(a, b) {
+                                if (scope.sortTypeOrders === 'order_id'
+                                    || scope.sortTypeOrders === 'total_cost'
+                                    || scope.sortTypeOrders === 'total_cost_tax') {
+                                    if (scope.sortReverseOrders) {
+                                        return -(a[scope.sortTypeOrders] - b[scope.sortTypeOrders]);
+                                    } else {
+                                        return a[scope.sortTypeOrders] - b[scope.sortTypeOrders];
+                                    }
+                                } else if (scope.sortTypeOrders === 'user_ordered_name'
+                                    || scope.sortTypeOrders === 'datetime') {
+                                    if (scope.sortReverseOrders) {
+                                        return -(a[scope.sortTypeOrders] ? a[scope.sortTypeOrders] : '')
+                                            .localeCompare(b[scope.sortTypeOrders] ? b[scope.sortTypeOrders] : '');
+                                    } else {
+                                        return (a[scope.sortTypeOrders] ? a[scope.sortTypeOrders] : '')
+                                            .localeCompare(b[scope.sortTypeOrders] ? b[scope.sortTypeOrders] : '');
+                                    }
+                                } else if (scope.sortTypeOrders === 'last_status') {
+                                    if (scope.sortReverseOrders) {
+                                        return -(a[scope.sortTypeOrders].name_en ? a[scope.sortTypeOrders].name_en : '')
+                                            .localeCompare(b[scope.sortTypeOrders].name_en ? b[scope.sortTypeOrders].name_en : '');
+                                    } else {
+                                        return (a[scope.sortTypeOrders].name_en ? a[scope.sortTypeOrders].name_en : '')
+                                            .localeCompare(b[scope.sortTypeOrders].name_en ? b[scope.sortTypeOrders].name_en : '');
+                                    }
+                                }
+                                return 0;
+                            }
+                        }
                 };
             }];
 

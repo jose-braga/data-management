@@ -663,6 +663,160 @@ var writeStockItemHistory = function (req, res, next, options, i, operation) {
 };
 
 
+var makeManagerOrdersQuery = function (req, res, next, options) {
+    // afterwards we pick items information for each order, order status
+    var query = 'SELECT orders.*,'
+        + ' people.id AS person_id, people.colloquial_name,'
+        + ' accounts.id AS account_id, accounts.name_en as account_name_en, accounts.name_pt as account_name_pt,'
+        + ' cost_centers_orders.id AS cost_center_id, cost_centers_orders.name_en AS cost_center_name_en, cost_centers_orders.name_pt AS cost_center_name_pt'
+        + ' FROM orders'
+        + ' LEFT JOIN accounts ON accounts.id = orders.account_id'
+        + ' LEFT JOIN cost_centers_orders ON cost_centers_orders.id = accounts.cost_center_id'
+        + ' LEFT JOIN users ON users.id = orders.user_ordered_id'
+        + ' LEFT JOIN people ON people.user_id = users.id'
+        + ' WHERE DATE_SUB(CURDATE(),INTERVAL 90 DAY) <= DATE(orders.datetime);';
+
+    var places = [1, 0]; //only visible and non-deleted stock items
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        // Use the connection
+        connection.query(query, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                    return;
+                }
+                if (resQuery.length > 0) {
+                    return getManagerOrderItems(req, res, next, resQuery, 0, options);
+                } else {
+                    sendJSONResponse(res, 200,
+                        {
+                            "status": "success", "statusCode": 200, "count": 0,
+                            "result": []
+                        });
+                    return;                    
+                }
+            });
+    });
+};
+var getManagerOrderItems = function (req, res, next, rows, i, options) {
+    var query = 'SELECT items_orders.*,'
+        + ' items.name_en AS item_name_en, items.name_pt AS item_name_pt,'
+        + ' items.brand, items.reference, items.quantity_type_id,'
+        + ' quantity_types.name_plural_en AS unit_plural_en, quantity_types.name_plural_pt AS unit_plural_pt,'
+        + ' quantity_types.name_singular_en AS unit_singular_en, quantity_types.name_singular_pt AS unit_singular_pt,'
+        + ' quantity_types.decimal,'
+        + ' stock.quantity_in_stock_decimal, stock.quantity_in_stock,'
+        + ' stock.quantity_in_requests_decimal, stock.quantity_in_requests, stock.status_id AS stock_item_status_id,'
+        + ' stock_item_statuses.name_en AS stock_item_status_en, stock_item_statuses.name_pt AS stock_item_status_pt'
+        + ' FROM items_orders'
+        + ' LEFT JOIN items ON items.id = items_orders.item_id'
+        + ' JOIN quantity_types ON quantity_types.id = items.quantity_type_id'
+        + ' JOIN stock ON stock.item_id = items.id'
+        + ' JOIN stock_item_statuses ON stock_item_statuses.id = stock.status_id'
+        + ' WHERE items_orders.order_id = ?;';
+    var places = [rows[i].id];
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        // Use the connection
+        connection.query(query, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                    return;
+                }
+                rows[i].order_items = resQuery;
+                if (i + 1 < rows.length) {
+                    return getManagerOrderItems(req, res, next, rows, i + 1, options);
+                } else {
+                    return getManagerOrderStatus(req, res, next, rows, 0, options)
+                }
+            });
+    });
+};
+var getManagerOrderStatus = function (req, res, next, rows, i, options) {
+    var query = 'SELECT order_status_track.*,'
+        + ' order_statuses.name_en, order_statuses.name_pt'
+        + ' FROM order_status_track'
+        + ' LEFT JOIN order_statuses ON order_statuses.id = order_status_track.order_status_id'
+        + ' WHERE order_status_track.order_id = ?;';
+    var places = [rows[i].id];
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        // Use the connection
+        connection.query(query, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                    return;
+                }
+                let lastStatus = '';
+                let indLast = 0;
+                for (let el in resQuery) {
+                    if (lastStatus.length === 0 || resQuery[el].datetime > lastStatus) {
+                        lastStatus = resQuery[el].datetime;
+                        indLast = el;
+                    }
+                }
+                rows[i].last_status = resQuery[indLast];
+                rows[i].order_status = resQuery;
+                if (i + 1 < rows.length) {
+                    return getManagerOrderStatus(req, res, next, rows, i + 1, options);
+                } else {
+                    return getManagerOrderFinances(req, res, next, rows, 0, options)
+                }
+            });
+    });
+};
+var getManagerOrderFinances = function (req, res, next, rows, i, options) {
+    var query = 'SELECT *'
+        + ' FROM account_finances'
+        + ' WHERE account_id = ? AND year = ?;';
+    var places = [rows[i].account_id, parseInt(momentToDate(rows[i].datetime,undefined, 'YYYY'),10)];
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        // Use the connection
+        connection.query(query, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                    return;
+                }
+                rows[i].order_finances = resQuery;
+                if (i + 1 < rows.length) {
+                    return getManagerOrderFinances(req, res, next, rows, i + 1, options);
+                } else {
+                    sendJSONResponse(res, 200,
+                        {
+                            "status": "success", "statusCode": 200, "count": rows.length,
+                            "result": rows
+                        });
+                    return;
+                }
+            });
+    });
+};
+
 
 var getItemCategories = function (req, res, next, rows, i, options) {
     var query = 'SELECT items_categories.id AS items_categories_id, items_categories.category_id AS id,'
@@ -699,12 +853,7 @@ var getItemCategories = function (req, res, next, rows, i, options) {
                     return;
                 }
             });
-    });
-
-    
-
-
-    
+    });    
 };
 
 var startOrderProcedure = function (req, res, next, options) {
@@ -1308,6 +1457,10 @@ module.exports.getManagementInventory = function (req, res, next) {
 
 module.exports.updateManagementInventory = function (req, res, next) {
     checkManagementPermissions(req, res, next, updateManagememtInventoryQuery, {});
+};
+
+module.exports.getManagementOrders = function (req, res, next) {
+    checkManagementPermissions(req, res, next, makeManagerOrdersQuery, {});
 };
 
 module.exports.makeOrder = function (req, res, next) {

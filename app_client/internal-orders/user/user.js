@@ -489,7 +489,8 @@
                         }
                         function sorterOrders(a, b) {
                             if (scope.sortTypeOrders === 'order_id'
-                                    || scope.sortTypeOrders === 'total_cost') {
+                                    || scope.sortTypeOrders === 'total_cost'
+                                    || scope.sortTypeOrders === 'total_cost_tax') {
                                 if (scope.sortReverseOrders) {
                                     return -(a[scope.sortTypeOrders] - b[scope.sortTypeOrders]);
                                 } else {

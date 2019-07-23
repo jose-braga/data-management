@@ -15,12 +15,14 @@
         ordersData.getInventory(vm.currentUser.userID)
             .then(function (response) {
                 if (response !== null && response !== undefined) {
-                    if (response.data.result.account_info.accountID !== undefined
+                    if (response.data.result !== undefined) {
+                        if (response.data.result.account_info.accountID !== undefined
                             && response.data.result.account_info.accountID !== null) {
-                        vm.showUserOrders = true;
-                        vm.currentUser.accountID = response.data.result.account_info.accountID;
-                        vm.inventory = response.data.result.inventory;
-                    }
+                            vm.showUserOrders = true;
+                            vm.currentUser.accountID = response.data.result.account_info.accountID;
+                            vm.inventory = response.data.result.inventory;
+                        }
+                    }                    
                 }                
             })
             .catch(function (err) {

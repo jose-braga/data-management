@@ -201,8 +201,16 @@ var makeInventoryItemQuery = function (req, res, next, options) {
                     sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
                     return;
                 }
-                return getItemCategories(req, res, next, resQuery, 0, options);
-                
+                if (resQuery.length > 0) {
+                    return getItemCategories(req, res, next, resQuery, 0, options);
+                } else {
+                    sendJSONResponse(res, 200,
+                        {
+                            "status": "success", "statusCode": 200, "count": 0,
+                            "result": []
+                        });
+                    return;
+                }
             });
     });
 };
@@ -236,7 +244,16 @@ var makeManagerInventoryItemQuery = function (req, res, next, options) {
                         sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
                         return;
                     }
-                    return getItemCategories(req, res, next, resQuery, 0, options);
+                    if (resQuery.length  > 0) {
+                        return getItemCategories(req, res, next, resQuery, 0, options);
+                    } else {
+                        sendJSONResponse(res, 200,
+                            {
+                                "status": "success", "statusCode": 200, "count": 0,
+                                "result": []
+                            });
+                        return;
+                    }                    
                 });
         });
     } else {

@@ -1498,7 +1498,7 @@ var sendEmailUserUpdateStatus = function (req, res, next, options) {
             //to: options.userEmail,
             mailOptions = {
                 from: '"Admin" <admin@laqv-ucibio.info>', // sender address
-                to: 'josecbraga@gmail.com', // list of receivers (comma-separated)
+                to: options.userEmail, // list of receivers (comma-separated)
                 subject: 'Manager approved order nr: ' + order.id, // Subject line
                 text: 'Hi,\n\n' +
                     'Order was validated, wait for its delivery.\n\n' +
@@ -1513,7 +1513,7 @@ var sendEmailUserUpdateStatus = function (req, res, next, options) {
             //to: options.userEmail,
             mailOptions = {
                 from: '"Admin" <admin@laqv-ucibio.info>', // sender address
-                to: 'josecbraga@gmail.com', // list of receivers (comma-separated)
+                to: options.userEmail, // list of receivers (comma-separated)
                 subject: 'Manager refused order nr: ' + order.id, // Subject line
                 text: 'Hi,\n\n' +
                     'Order was refused, contact manager for further details.\n\n' +
@@ -1528,7 +1528,7 @@ var sendEmailUserUpdateStatus = function (req, res, next, options) {
             //to: options.userEmail,
             mailOptions = {
                 from: '"Admin" <admin@laqv-ucibio.info>', // sender address
-                to: 'josecbraga@gmail.com', // list of receivers (comma-separated)
+                to: options.userEmail, // list of receivers (comma-separated)
                 subject: 'Order nr: ' + order.id + ' was delivered', // Subject line
                 text: 'Hi,\n\n' +
                     'Order was delivered, so its status was changed to \'Finished\'.\n\n' +
@@ -1968,7 +1968,7 @@ var sendEmailUser = function (req, res, next, options) {
     if (options.userEmail !== undefined && options.userEmail !== null) {
         let mailOptions = {
             from: '"Admin" <admin@laqv-ucibio.info>', // sender address
-            to: 'josecbraga@gmail.com', // list of receivers (comma-separated)
+            to: options.userEmail, // list of receivers (comma-separated)
             subject: 'Successfully placed order nr: ' + options.orderID, // Subject line
             text: 'Hi ,\n\n' +
                 'You successfully placed this order. Note that all orders require validation by stock manager.\n\n' +

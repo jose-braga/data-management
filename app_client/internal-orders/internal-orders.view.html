@@ -6,9 +6,9 @@
     </div>
     <div ng-if="vm.showUserOrders" layout="column" flex>
         <toolbar-row></toolbar-row>
-        <md-tabs md-dynamic-height md-border-bottom>
+        <md-tabs md-dynamic-height md-border-bottom md-selected="vm.tab_level_1">
             <md-tab label="Orders">
-                <md-content>                  
+                <md-content>
                     <internal-order-inventory 
                         data-user="{{vm.currentUser.userID}}"
                         data-account="{{vm.currentUser.accountID}}"
@@ -21,7 +21,7 @@
             </md-tab>
             <md-tab label="Management" 
                     ng-if="vm.showStock || vm.showFinancial">
-                <md-tabs md-dynamic-height md-border-bottom>
+                <md-tabs md-dynamic-height md-border-bottom  md-selected="vm.tab_level_2">
                     <md-tab label="Stock" ng-if="vm.showStock">
                         <md-content>
                             <inventory-management 

@@ -5,6 +5,12 @@
         </md-card-title-text>
     </md-card-title>
     <md-card-content layout="column">
+        <div flex layout-padding>
+            Reload orders information
+            <md-button ng-click="reloadOrders()" aria-label="Reload" class="md-icon-button md-raised">
+                <md-icon md-svg-src="images/icons/reload_24px.svg"></md-icon>
+            </md-button>
+        </div>
         <div layout="row" layout-align="none center">
             <ng-md-icon icon="search" size="24"></ng-md-icon>
             <md-input-container flex>

@@ -40,6 +40,25 @@
                                 scope.hideMessage.push(true);
                             }
 
+                            scope.reloadInventory = function () {
+                                ordersData.getManagersInventory(scope.user)
+                                    .then(function (response) {
+                                        if (response !== null && response !== undefined) {
+                                            scope.inventory = response.data.result.inventory;
+                                            scope.inventoryChanges = {
+                                                create: [],
+                                                update: [],
+                                                delete: [],
+                                            }
+                                            scope.renderProducts('new');
+                                        }
+                                    })
+                                    .catch(function (err) {
+                                        console.log(err);
+                                    });
+
+                            };
+
                             scope.renderProducts = function (str) {
                                 if (str === 'new') {
                                     scope.currentPage = 1;
@@ -305,8 +324,21 @@
                             scope.pageSize = 10;
                             scope.sortType = 'renderCategories';
                             scope.sortReverse = false;
-                            scope.searchString = '';                                                       
+                            scope.searchString = '';
+                            
+                            scope.reloadOrders = function () {
+                                ordersData.getManagersOrders(scope.user)
+                                    .then(function (response) {
+                                        if (response !== null && response !== undefined) {
+                                            scope.orders = response.data.result;
+                                            scope.renderOrders('new');
+                                        }
+                                    })
+                                    .catch(function (err) {
+                                        console.log(err);
+                                    });
 
+                            };
                             scope.renderOrders = function (str) {
                                 if (str === 'new') {
                                     scope.currentPage = 1;

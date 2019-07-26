@@ -41,7 +41,51 @@
                             scope.updateStatus.push('');
                             scope.messageType.push('message-updating');
                             scope.hideMessage.push(true);
-                        }                
+                        }  
+                        
+                        scope.reloadInventory = function () {
+                            ordersData.getInventory(scope.user)
+                                .then(function (response) {
+                                    if (response !== null && response !== undefined) {
+                                        if (response.data.result.account_info.accountID !== undefined
+                                            && response.data.result.account_info.accountID !== null) {
+                                            scope.inventory = response.data.result.inventory;
+                                            scope.renderProducts('new');
+                                        }
+                                    }
+                                })
+                                .catch(function (err) {
+                                    scope.updateStatus[ind] = "Error! Order might have been submited but couldn't retrieve inventory.";
+                                    console.log(err);
+                                });
+
+                        };
+                        scope.reloadOrders = function () {
+                            ordersData.getUserOrders(scope.user)
+                                .then(function (response) {
+                                    if (response !== null && response !== undefined) {
+                                        scope.orders = response.data.result;
+                                        scope.renderOrders('new');
+                                    }
+                                })
+                                .catch(function (err) {
+                                    console.log(err);
+                                });
+                            ordersData.getUserAccountInfo(scope.user)
+                                .then(function (response) {
+                                    if (response !== null && response !== undefined) {
+                                        // for now we are assuming that there is only 1 account per user
+                                        if (response.data.result.length === 1) {
+                                            scope.finaccount = response.data.result;
+                                        }
+                                        scope.renderFinances();
+                                    }
+                                })
+                                .catch(function (err) {
+                                    console.log(err);
+                                });
+
+                        };
 
                         scope.renderProducts = function (str) {
                             if (str === 'new') {

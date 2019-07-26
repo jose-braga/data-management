@@ -1301,7 +1301,8 @@ var getManagerNewQuantitiesStock = function (req, res, next, i, options, callbac
     let item = order.order_items[i];
     let query;
     let places;
-    query = 'SELECT id AS stock_id, quantity_in_requests, quantity_in_requests_decimal'
+    query = 'SELECT id AS stock_id, quantity_in_stock, quantity_in_requests,'
+        + ' quantity_in_stock_decimal, quantity_in_requests_decimal'
         + ' FROM stock'
         + ' WHERE item_id = ?;';
     places = [item.item_id];
@@ -1339,7 +1340,7 @@ var moveQuantitiesWithinStockHistory = function (req, res, next, i, options) {
         places = [
             options.updatedStockValues.stock_id,
             item.item_id,
-            item.quantity_in_stock,
+            options.updatedStockValues.quantity_in_stock,
             options.updatedStockValues.quantity_in_requests,
             item.stock_item_status_id,
             'U',
@@ -1352,7 +1353,7 @@ var moveQuantitiesWithinStockHistory = function (req, res, next, i, options) {
         places = [
             options.updatedStockValues.stock_id,
             item.item_id,
-            item.quantity_in_stock_decimal,
+            options.updatedStockValues.quantity_in_stock_decimal,
             options.updatedStockValues.quantity_in_requests_decimal,
             item.stock_item_status_id,
             'U',
@@ -1805,8 +1806,8 @@ var writeStockHistory = function (req, res, next, options, i) {
     let places;
     query = 'INSERT INTO stock_history'
         + ' (stock_id, item_id, quantity_in_stock_decimal, quantity_in_requests_decimal,'
-        + ' quantity_in_stock, quantity_in_requests, status_id, timestamp)'
-        + ' VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+        + ' quantity_in_stock, quantity_in_requests, status_id, operation, timestamp)'
+        + ' VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)';
     places = [
         cart[i].stock_id,
         cart[i].id,
@@ -1815,6 +1816,7 @@ var writeStockHistory = function (req, res, next, options, i) {
         cart[i].quantity_in_stock,
         options.updatedStockValues[i].quantity_in_requests,
         cart[i].status_id,
+        'U',
         options.orderTime];    
     pool.getConnection(function (err, connection) {
         if (err) {

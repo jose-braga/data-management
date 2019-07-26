@@ -275,14 +275,18 @@
                                 return true;
                             }
                             function prepareString(str) {
-                                return str.toLowerCase()
-                                    .replace(/[áàãâä]/g, 'a')
-                                    .replace(/[éèêë]/g, 'e')
-                                    .replace(/[íìîï]/g, 'i')
-                                    .replace(/[óòõôö]/g, 'o')
-                                    .replace(/[úùûü]/g, 'u')
-                                    .replace(/[ç]/g, 'c')
-                                    .replace(/[ñ]/g, 'n');
+                                if (str !== null && str !== undefined) {
+                                    return str.toLowerCase()
+                                        .replace(/[áàãâä]/g, 'a')
+                                        .replace(/[éèêë]/g, 'e')
+                                        .replace(/[íìîï]/g, 'i')
+                                        .replace(/[óòõôö]/g, 'o')
+                                        .replace(/[úùûü]/g, 'u')
+                                        .replace(/[ç]/g, 'c')
+                                        .replace(/[ñ]/g, 'n');
+                                } else {
+                                    return '';
+                                }
                             }
                             function sorterInventory(a, b) {
                                 if (scope.sortType === 'renderCategories'
@@ -669,14 +673,18 @@
                                 return true;
                             }
                             function prepareString(str) {
-                                return str.toLowerCase()
-                                    .replace(/[áàãâä]/g, 'a')
-                                    .replace(/[éèêë]/g, 'e')
-                                    .replace(/[íìîï]/g, 'i')
-                                    .replace(/[óòõôö]/g, 'o')
-                                    .replace(/[úùûü]/g, 'u')
-                                    .replace(/[ç]/g, 'c')
-                                    .replace(/[ñ]/g, 'n');
+                                if (str !== null && str !== undefined) {
+                                    return str.toLowerCase()
+                                        .replace(/[áàãâä]/g, 'a')
+                                        .replace(/[éèêë]/g, 'e')
+                                        .replace(/[íìîï]/g, 'i')
+                                        .replace(/[óòõôö]/g, 'o')
+                                        .replace(/[úùûü]/g, 'u')
+                                        .replace(/[ç]/g, 'c')
+                                        .replace(/[ñ]/g, 'n');
+                                } else {
+                                    return '';
+                                }
                             }
                             function sorterOrders(a, b) {
                                 if (scope.sortTypeOrders === 'order_id'

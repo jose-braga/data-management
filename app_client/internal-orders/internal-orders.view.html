@@ -1,13 +1,13 @@
 <div layout="row">
-    <div ng-if="!vm.showUserOrders" layout="column" flex>
+    <div ng-if="!vm.showUserOrders && !vm.showStock && !vm.showFinancial" layout="column" flex>
         <md-content class='md-padding' flex>
             Make sure you have the appropriate permissions to access this page.
         </md-content>
     </div>
-    <div ng-if="vm.showUserOrders" layout="column" flex>
+    <div ng-if="vm.showUserOrders || vm.showStock || vm.showFinancial" layout="column" flex>
         <toolbar-row></toolbar-row>
         <md-tabs md-dynamic-height md-border-bottom md-selected="vm.tab_level_1">
-            <md-tab label="Orders">
+            <md-tab label="My orders" ng-if="vm.showUserOrders">
                 <md-content>
                     <internal-order-inventory 
                         data-user="{{vm.currentUser.userID}}"

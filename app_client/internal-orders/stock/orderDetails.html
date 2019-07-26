@@ -32,21 +32,31 @@
                         <td>{{item.brand}}</td>
                         <td>{{item.reference}}</td>
                         <td>
-                            <div ng-if="item.decimal === 0">
-                                <md-input-container class="input-row">
-                                        <input ng-model="item.quantity"
-                                                ng-change="ctrl.processChange(item)"
+                            <div ng-if="ctrl.order.orderPending">
+                                <div ng-if="item.decimal === 0">
+                                    <md-input-container class="input-row">
+                                            <input ng-model="item.quantity"
+                                                    ng-change="ctrl.processChange(item, ctrl.order)"
+                                                    name="quantityorder[itemNum]"
+                                                    positive-integer-validate="1000000000">
+                                    </md-input-container>
+                                </div>
+                                <div ng-if="item.decimal === 1">
+                                    <md-input-container class="input-row">
+                                            <input ng-model="item.quantity_decimal" 
+                                                ng-change="ctrl.processChange(item, ctrl.order)"
                                                 name="quantityorder[itemNum]"
-                                                positive-integer-validate="1000000000">
-                                </md-input-container>
+                                                positive-float-validate="1000000000">
+                                    </md-input-container>
+                                </div>
                             </div>
-                            <div ng-if="item.decimal === 1">
-                                <md-input-container class="input-row">
-                                        <input ng-model="item.quantity_decimal" 
-                                            ng-change="ctrl.processChange(item)"
-                                            name="quantityorder[itemNum]"
-                                            positive-float-validate="1000000000">
-                                </md-input-container>
+                            <div ng-if="!ctrl.order.orderPending">
+                                <div ng-if="item.decimal === 0">
+                                    {{ item.quantity }}
+                                </div>
+                                <div ng-if="item.decimal === 1">
+                                    {{ item.quantity_decimal }}
+                                </div>
                             </div>
                         </td>
                         <td>{{item.cost | currency:"":2}} €
@@ -54,10 +64,15 @@
                         <td>{{item.cost_tax | currency:"":2}} €
                         </td>
                         <td>
-                            <md-input-container class="input-row">
-                                <input ng-model="item.change_reason" 
-                                    name="changeReason[itemNum]">
-                            </md-input-container>
+                            <div ng-if="ctrl.order.orderPending">
+                                <md-input-container class="input-row">
+                                    <input ng-model="item.change_reason" 
+                                        name="changeReason[itemNum]">
+                                </md-input-container>
+                            </div>
+                            <div ng-if="!ctrl.order.orderPending">
+                                {{ item.change_reason }}
+                            </div>
                         </td>
                     </tr>
                 </tbody>
@@ -72,7 +87,8 @@
                     </tr>
                 </tfoot>
             </table>
-            <div layout="column" class="spacer-top" layout-gt-sm="row" layout-align="center center">
+            <div ng-if="ctrl.order.orderPending" layout="column" class="spacer-top" 
+                    layout-gt-sm="row" layout-align="center center">
                 <md-button type="submit" class="button-small md-raised md-primary">Submit changes</md-button>
                 <div class="status-message" ng-hide="ctrl.hideMessage[ctrl.forms['orderChange']]">
                     <span class="message" ng-class="ctrl.messageType[ctrl.forms['orderChange']]">

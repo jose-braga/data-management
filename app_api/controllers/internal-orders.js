@@ -54,6 +54,7 @@ var checksOrderPermissions = function (req, res, next, callback, callbackOptions
                         callbackOptions.accountID = resQuery[0].account_id;
                         return callback(req, res, next, callbackOptions);
                     } else if (resQuery.length > 1) {
+                        console.log(resQuery)
                         // TODO: if necessary, a user might belong to more than 1 account
                         sendJSONResponse(res, 403, {
                             "status": "error",
@@ -683,7 +684,7 @@ var writeStockItemHistory = function (req, res, next, options, i, operation) {
 var makeManagerOrdersQuery = function (req, res, next, options) {
     // afterwards we pick items information for each order, order status
     var query = 'SELECT orders.*,'
-        + ' people.id AS person_id, people.colloquial_name,'
+        + ' people.id AS person_id, people.colloquial_name, emails.email,'
         + ' accounts.id AS account_id, accounts.name_en as account_name_en, accounts.name_pt as account_name_pt,'
         + ' cost_centers_orders.id AS cost_center_id, cost_centers_orders.name_en AS cost_center_name_en, cost_centers_orders.name_pt AS cost_center_name_pt'
         + ' FROM orders'
@@ -691,6 +692,7 @@ var makeManagerOrdersQuery = function (req, res, next, options) {
         + ' LEFT JOIN cost_centers_orders ON cost_centers_orders.id = accounts.cost_center_id'
         + ' LEFT JOIN users ON users.id = orders.user_ordered_id'
         + ' LEFT JOIN people ON people.user_id = users.id'
+        + ' LEFT JOIN emails ON emails.person_id = people.id'
         + ' WHERE DATE_SUB(CURDATE(),INTERVAL 90 DAY) <= DATE(orders.datetime);';
 
     var places = [1, 0]; //only visible and non-deleted stock items
@@ -819,7 +821,18 @@ var getManagerOrderFinances = function (req, res, next, rows, i, options) {
                     sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
                     return;
                 }
-                rows[i].order_finances = resQuery;
+                // we are asking only for the finances of specific year
+                if (resQuery.length > 0) {
+                    // anyway there should be only one row for this year
+                    rows[i].order_finances = resQuery[0];
+                } else {
+                    sendJSONResponse(res, 403, {
+                        "status": "error",
+                        "statusCode": 403,
+                        "message": "No financial information for order: " + rows[i],
+                    });
+                    return;
+                }                 
                 if (i + 1 < rows.length) {
                     return getManagerOrderFinances(req, res, next, rows, i + 1, options);
                 } else {
@@ -832,6 +845,732 @@ var getManagerOrderFinances = function (req, res, next, rows, i, options) {
                 }
             });
     });
+};
+
+var makeUpdateManagerOrdersQuery = function (req, res, next, options) {
+    options.datetime = momentToDate(moment(), undefined, 'YYYY-MM-DD HH:mm:ss');
+    let order = req.body;
+    // order item quantiy is changed (and its cost)
+    // total cost of order is changed
+    // account finances are changed
+    // account finances history is changed
+    // stock is changed
+    // stock history is changed
+    // only pending orders are changed!!!!
+    var query = 'UPDATE orders'
+        + ' SET total_cost = ?,'
+        + ' total_cost_tax = ?'
+        + ' WHERE id = ?;';
+    var places = [
+            order.total_cost,
+            order.total_cost_tax,
+            req.params.orderID];
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        // Use the connection
+        connection.query(query, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                    return;
+                }
+                return updateManagerOrderItems(req, res, next, 0, options);
+            });
+    });
+};
+var updateManagerOrderItems = function (req, res, next, i, options) {
+    let order = req.body;
+    let item = order.order_items[i];
+
+    if (item.changed_by_manager === 1) {
+        var query = 'UPDATE items_orders'
+            + ' SET quantity = ?,'
+            + ' quantity_decimal = ?,'
+            + ' cost = ?,'
+            + ' cost_tax = ?,'
+            + ' changed_by_manager = ?,'
+            + ' change_reason = ?'
+            + ' WHERE id = ?;';
+        var places = [
+            item.quantity,
+            item.quantity_decimal,
+            item.cost,
+            item.cost_tax,
+            item.changed_by_manager,
+            item.change_reason,
+            item.id
+        ];
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                return;
+            }
+            // Use the connection
+            connection.query(query, places,
+                function (err, resQuery) {
+                    // And done with the connection.
+                    connection.release();
+                    if (err) {
+                        sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                        return;
+                    }
+                    if (i + 1 < order.order_items.length) {
+                        return updateManagerOrderItems(req, res, next, i + 1, options);
+                    } else {
+                        return updateManagerAccountFinancesOrder(req, res, next, options);
+                    }
+                });
+        });
+    } else if (i + 1 < order.order_items.length){
+        return updateManagerOrderItems(req, res, next, i + 1, options);
+    } else {
+        return updateManagerAccountFinancesOrder(req, res, next, options);
+    }
+};
+var updateManagerAccountFinancesOrder = function (req, res, next, options) {
+    let order = req.body;
+    let finances = order.order_finances;
+    
+    var query = 'UPDATE account_finances'
+        + ' SET amount_requests = ?,'
+        + ' amount_requests_tax = ?'
+        + ' WHERE id = ?;';
+    var places = [
+        finances.amount_requests,
+        finances.amount_requests_tax,
+        finances.id
+    ];
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        // Use the connection
+        connection.query(query, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                    return;
+                }
+                return updateManagerAccountFinancesHistoryOrder(req, res, next, options);
+            });
+    });
+};
+var updateManagerAccountFinancesHistoryOrder = function (req, res, next, options) {
+    let order = req.body;
+    let finances = order.order_finances;
+
+    var query = 'INSERT INTO account_finances_history'
+        + ' (account_finance_id, account_id, initial_amount,'
+        + ' current_amount, amount_requests,'
+        + ' current_amount_tax, amount_requests_tax, year, datetime)'
+        + ' VALUES (?,?,?,?,?,?,?,?,?);';
+    var places = [
+        finances.id,
+        finances.account_id,
+        finances.initial_amount,
+        finances.current_amount,
+        finances.amount_requests,
+        finances.current_amount_tax,
+        finances.amount_requests_tax,
+        finances.year,
+        options.datetime
+    ];
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        // Use the connection
+        connection.query(query, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                    return;
+                }
+                return updateManagerStockOrder(req, res, next, 0, options);
+            });
+    });
+};
+var updateManagerStockOrder = function (req, res, next, i, options) {
+    let order = req.body;
+    let item = order.order_items[i];
+    var query;
+    var places;
+
+    if (item.changed_by_manager === 1) {
+        if (item.decimal === 0) {
+            query = 'UPDATE stock'
+                + ' SET quantity_in_requests = quantity_in_requests + ?'
+                + ' WHERE item_id = ?;';
+            places = [
+                item.quantity - item.original_quantity,
+                item.item_id
+            ];
+        } else {
+            query = 'UPDATE stock'
+                + ' SET quantity_in_requests_decimal = quantity_in_requests_decimal + ?'
+                + ' WHERE item_id = ?;';
+            places = [
+                item.quantity_decimal - item.original_quantity_decimal,
+                item.item_id
+            ];
+
+        }
+        
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                return;
+            }
+            // Use the connection
+            connection.query(query, places,
+                function (err, resQuery) {
+                    // And done with the connection.
+                    connection.release();
+                    if (err) {
+                        sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                        return;
+                    }
+                    return getManagerStockUpdatedLevelsOrder(req, res, next, i, options);
+                });
+        });
+    } else if (i + 1 < order.order_items.length) {
+        return updateManagerStockOrder(req, res, next, i + 1, options);
+    } else {
+        sendJSONResponse(res, 200,
+            {
+                "status": "success",
+                "statusCode": 200,
+                "message": "Order updated by manager."
+            });
+        return; 
+    }
+};
+var getManagerStockUpdatedLevelsOrder = function (req, res, next, i, options) {
+    let order = req.body;
+    let item = order.order_items[i];
+    let query;
+    let places;
+    query = 'SELECT id AS stock_id, quantity_in_requests, quantity_in_requests_decimal'
+        + ' FROM stock'
+        + ' WHERE item_id = ?;';
+    places = [item.item_id];
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        // Use the connection
+        connection.query(query, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                    return;
+                }
+                // there should be only 1 value per request
+                options.updatedStockValues = resQuery[0];
+                return updateManagerStockHistoryOrder(req, res, next, i, options);
+            });
+    });
+};
+var updateManagerStockHistoryOrder = function (req, res, next, i, options) {
+    let order = req.body;
+    let item = order.order_items[i];
+    let query;
+    let places;
+    if (item.decimal === 0) {
+        query = 'INSERT INTO stock_history'
+            + ' (stock_id, item_id,'
+            + ' quantity_in_stock, quantity_in_requests, status_id, operation, timestamp)'
+            + ' VALUES (?, ?, ?, ?, ?, ?, ?)';
+        places = [
+            options.updatedStockValues.stock_id,
+            item.item_id,
+            item.quantity_in_stock,
+            options.updatedStockValues.quantity_in_requests,
+            item.stock_item_status_id,
+            'U',
+            options.datetime];
+    } else {
+        query = 'INSERT INTO stock_history'
+            + ' (stock_id, item_id, quantity_in_stock_decimal, quantity_in_requests_decimal,'
+            + ' status_id, operation, timestamp)'
+            + ' VALUES (?, ?, ?, ?, ?, ?, ?)';
+        places = [
+            options.updatedStockValues.stock_id,
+            item.item_id,
+            item.quantity_in_stock_decimal,
+            options.updatedStockValues.quantity_in_requests_decimal,
+            item.stock_item_status_id,
+            'U',
+            options.datetime];
+    }
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        // Use the connection
+        connection.query(query, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                    return;
+                }
+                if (i + 1 < order.order_items.length) {
+                    return updateManagerStockOrder(req, res, next, i + 1, options);
+                } else {
+                    sendJSONResponse(res, 200,
+                        {
+                            "status": "success",
+                            "statusCode": 200,
+                            "message": "Order updated by manager."
+                        });
+                    return;
+                }
+            });
+    });
+};
+
+var makeApproveManagerOrdersQuery = function (req, res, next, options) {
+    options.datetime = momentToDate(moment(), undefined, 'YYYY-MM-DD HH:mm:ss');
+    let order = req.body;
+    options.userEmail = order.email;
+    let query = 'INSERT INTO order_status_track (order_id, order_status_id, datetime)'
+                + ' VALUES (?,?,?);';
+    let places = [order.id, 2, options.datetime]; // 2 = approved status id
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        // Use the connection
+        connection.query(query, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                    return;
+                }
+                options.current_status_order = 'approve';
+                return sendEmailUserUpdateStatus(req, res, next, options);
+            });
+    });
+
+};
+var makeRejectManagerOrdersQuery = function (req, res, next, options) { 
+    // remove from pending requests amounts and from account finances
+    options.datetime = momentToDate(moment(), undefined, 'YYYY-MM-DD HH:mm:ss');
+    let order = req.body;
+    options.userEmail = order.email;
+    let query = 'INSERT INTO order_status_track' 
+                + ' (order_id, order_status_id, datetime)'
+                + ' VALUES (?,?,?);';
+    let places = [order.id, 4, options.datetime]; // 4 = rejected status id
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        // Use the connection
+        connection.query(query, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                    return;
+                }
+                options.current_status_order = 'reject';
+                return moveQuantitiesWithinStock(req, res, next, 0, options);
+            });
+    });
+
+};
+var makeDeliveredManagerOrdersQuery = function (req, res, next, options) { 
+    // ??? a delivered(=closed) order affects cost centers also ???
+
+    options.datetime = momentToDate(moment(), undefined, 'YYYY-MM-DD HH:mm:ss');
+    let order = req.body;
+    options.userEmail = order.email;
+    let query = 'INSERT INTO order_status_track (order_id, order_status_id, datetime)'
+        + ' VALUES (?,?,?);';
+    let places = [order.id, 3, options.datetime]; // 3 = delivered(=closed) status id
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        // Use the connection
+        connection.query(query, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                    return;
+                }
+                options.current_status_order = 'delivered';
+                return moveQuantitiesWithinStock(req, res, next, 0, options);
+            });
+    });
+};
+var moveQuantitiesWithinStock = function (req, res, next, i, options) {
+    let order = req.body;
+    let item = order.order_items[i];
+    var query;
+    var places;
+
+    if (options.current_status_order === 'reject') {
+        if (item.decimal === 0) {
+            query = 'UPDATE stock'
+                + ' SET quantity_in_requests = quantity_in_requests - ?'
+                + ' WHERE item_id = ?;';
+            places = [
+                item.quantity,
+                item.item_id
+            ];
+        } else {
+            query = 'UPDATE stock'
+                + ' SET quantity_in_requests_decimal = quantity_in_requests_decimal - ?'
+                + ' WHERE item_id = ?;';
+            places = [
+                item.quantity_decimal,
+                item.item_id
+            ];
+        }
+    } else {
+        if (item.decimal === 0) {
+            query = 'UPDATE stock'
+                + ' SET quantity_in_requests = quantity_in_requests - ?,'
+                + ' quantity_in_stock = quantity_in_stock - ?'
+                + ' WHERE item_id = ?;';
+            places = [
+                item.quantity,
+                item.quantity,
+                item.item_id
+            ];
+        } else {
+            query = 'UPDATE stock'
+                + ' SET quantity_in_requests_decimal = quantity_in_requests_decimal - ?,'
+                + ' quantity_in_stock_decimal = quantity_in_stock_decimal - ?'
+                + ' WHERE item_id = ?;';
+            places = [
+                item.quantity_decimal,
+                item.quantity_decimal,
+                item.item_id
+            ];
+        }
+    }    
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        // Use the connection
+        connection.query(query, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                    return;
+                }
+                return getManagerNewQuantitiesStock(req, res, next, i, options, moveQuantitiesWithinStockHistory);
+            });
+    });
+
+};
+var getManagerNewQuantitiesStock = function (req, res, next, i, options, callback) {
+    let order = req.body;
+    let item = order.order_items[i];
+    let query;
+    let places;
+    query = 'SELECT id AS stock_id, quantity_in_requests, quantity_in_requests_decimal'
+        + ' FROM stock'
+        + ' WHERE item_id = ?;';
+    places = [item.item_id];
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        // Use the connection
+        connection.query(query, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                    return;
+                }
+                // there should be only 1 value per request
+                options.updatedStockValues = resQuery[0];
+                return callback(req, res, next, i, options);
+            });
+    });
+};
+var moveQuantitiesWithinStockHistory = function (req, res, next, i, options) {
+    let order = req.body;
+    let item = order.order_items[i];
+    let query;
+    let places;
+
+    if (item.decimal === 0) {
+        query = 'INSERT INTO stock_history'
+            + ' (stock_id, item_id,'
+            + ' quantity_in_stock, quantity_in_requests, status_id, operation, timestamp)'
+            + ' VALUES (?, ?, ?, ?, ?, ?, ?)';
+        places = [
+            options.updatedStockValues.stock_id,
+            item.item_id,
+            item.quantity_in_stock,
+            options.updatedStockValues.quantity_in_requests,
+            item.stock_item_status_id,
+            'U',
+            options.datetime];
+    } else {
+        query = 'INSERT INTO stock_history'
+            + ' (stock_id, item_id, quantity_in_stock_decimal, quantity_in_requests_decimal,'
+            + ' status_id, operation, timestamp)'
+            + ' VALUES (?, ?, ?, ?, ?, ?, ?)';
+        places = [
+            options.updatedStockValues.stock_id,
+            item.item_id,
+            item.quantity_in_stock_decimal,
+            options.updatedStockValues.quantity_in_requests_decimal,
+            item.stock_item_status_id,
+            'U',
+            options.datetime];
+    }
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        // Use the connection
+        connection.query(query, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                    return;
+                }
+                if (i + 1 < order.order_items.length) {
+                    return moveQuantitiesWithinStock(req, res, next, i + 1, options);
+                } else {
+                    return moveAmountsWithinFinances(req, res, next, options);
+                }
+            });
+    });
+};
+var moveAmountsWithinFinances = function (req, res, next, options) {
+    let order = req.body;
+    let finances = order.order_finances;
+    var query;
+    var places;
+    
+    if (options.current_status_order === 'reject') {
+        query = 'UPDATE account_finances'
+            + ' SET amount_requests = amount_requests - ?,'
+            + ' amount_requests_tax = amount_requests_tax - ?'
+            + ' WHERE id = ?;';
+        places = [
+            order.total_cost,
+            order.total_cost_tax,
+            finances.id
+        ];
+    } else {
+        query = 'UPDATE account_finances'
+            + ' SET amount_requests = amount_requests - ?,'
+            + ' current_amount = current_amount - ?,'
+            + ' amount_requests_tax = amount_requests_tax - ?,'
+            + ' current_amount_tax = current_amount_tax - ?'
+            + ' WHERE id = ?;';
+        places = [
+            order.total_cost,
+            order.total_cost,
+            order.total_cost_tax,
+            order.total_cost_tax,
+            finances.id
+        ];
+    }    
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        // Use the connection
+        connection.query(query, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                    return;
+                }
+                return moveAmountsWithinFinancesHistory(req, res, next, options);
+            });
+    });
+
+};
+var moveAmountsWithinFinancesHistory = function (req, res, next, options) {
+    let order = req.body;
+    let finances = order.order_finances;
+    var query;
+    var places;
+
+    if (options.current_status_order === 'reject') {
+        query = 'INSERT INTO account_finances_history'
+            + ' (account_finance_id, account_id, initial_amount,'
+            + ' current_amount, amount_requests,'
+            + ' current_amount_tax, amount_requests_tax, year, datetime)'
+            + ' VALUES (?,?,?,?,?,?,?,?,?);';
+        places = [
+            finances.id,
+            finances.account_id,
+            finances.initial_amount,
+            finances.current_amount,
+            finances.amount_requests - order.total_cost,
+            finances.current_amount_tax,
+            finances.amount_requests_tax - order.total_cost_tax,
+            finances.year,
+            options.datetime
+        ];
+    } else {
+        query = 'INSERT INTO account_finances_history'
+            + ' (account_finance_id, account_id, initial_amount,'
+            + ' current_amount, amount_requests,'
+            + ' current_amount_tax, amount_requests_tax, year, datetime)'
+            + ' VALUES (?,?,?,?,?,?,?,?,?);';
+        places = [
+            finances.id,
+            finances.account_id,
+            finances.initial_amount,
+            finances.current_amount - order.total_cost,
+            finances.amount_requests - order.total_cost,
+            finances.current_amount_tax - order.total_cost_tax,
+            finances.amount_requests_tax - order.total_cost_tax,
+            finances.year,
+            options.datetime
+        ];
+    }
+
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        // Use the connection
+        connection.query(query, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                    return;
+                }
+                return sendEmailUserUpdateStatus(req, res, next, options);
+            });
+    });
+};
+var sendEmailUserUpdateStatus = function (req, res, next, options) {
+    let order = req.body;
+    let mailOptions;
+    if (options.userEmail !== undefined && options.userEmail !== null) {
+        if (options.current_status_order === 'approve') {
+            //to: options.userEmail,
+            mailOptions = {
+                from: '"Admin" <admin@laqv-ucibio.info>', // sender address
+                to: 'josecbraga@gmail.com', // list of receivers (comma-separated)
+                subject: 'Manager approved order nr: ' + order.id, // Subject line
+                text: 'Hi,\n\n' +
+                    'Order was validated, wait for its delivery.\n\n' +
+                    'Best regards,\nAdmin',
+            };
+            // send mail with defined transport object
+            sendJSONResponse(res, 200,
+                {
+                    "status": "success", "statusCode": 200, "message": "Order approved."
+                });
+        } else if (options.current_status_order === 'reject') {
+            //to: options.userEmail,
+            mailOptions = {
+                from: '"Admin" <admin@laqv-ucibio.info>', // sender address
+                to: 'josecbraga@gmail.com', // list of receivers (comma-separated)
+                subject: 'Manager refused order nr: ' + order.id, // Subject line
+                text: 'Hi,\n\n' +
+                    'Order was refused, contact manager for further details.\n\n' +
+                    'Best regards,\nAdmin',
+            };
+            // send mail with defined transport object
+            sendJSONResponse(res, 200,
+                {
+                    "status": "success", "statusCode": 200, "message": "Order rejected."
+                });
+        } else if (options.current_status_order === 'delivered') {
+            //to: options.userEmail,
+            mailOptions = {
+                from: '"Admin" <admin@laqv-ucibio.info>', // sender address
+                to: 'josecbraga@gmail.com', // list of receivers (comma-separated)
+                subject: 'Order nr: ' + order.id + ' was delivered', // Subject line
+                text: 'Hi,\n\n' +
+                    'Order was delivered, so its status was changed to \'Finished\'.\n\n' +
+                    'Best regards,\nAdmin',
+            };
+            // send mail with defined transport object
+            sendJSONResponse(res, 200,
+                {
+                    "status": "success", "statusCode": 200, "message": "Order was delivered."
+                });
+
+        }
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                console.log('Error: Order ID: %s. Message to %s not sent due to error below.',
+                    order.id, 'user');
+                console.log(error);
+            }
+            console.log('OK! Order ID: %s. Message %s was sent to requester with response: %s',
+                order.id, info.messageId, info.response);
+        });
+        return;
+
+    } else {
+        if (options.current_status_order === 'approve') {
+            sendJSONResponse(res, 200,
+                {
+                    "status": "success", "statusCode": 200, "message": "Order approved."
+                });
+        } else if (options.current_status_order === 'reject') {
+            sendJSONResponse(res, 200,
+                {
+                    "status": "success", "statusCode": 200, "message": "Order rejected."
+                });
+        } else if (options.current_status_order === 'delivered') {
+            sendJSONResponse(res, 200,
+                {
+                    "status": "success", "statusCode": 200, "message": "Order was delivered."
+                });
+        }
+        return;
+    }    
 };
 
 
@@ -1226,24 +1965,26 @@ var sendEmailStockManager = function (req, res, next, options) {
 
 var sendEmailUser = function (req, res, next, options) {
     //to: options.userEmail,
-    let mailOptions = {
-        from: '"Admin" <admin@laqv-ucibio.info>', // sender address
-        to: 'josecbraga@gmail.com', // list of receivers (comma-separated)
-        subject: 'Successfully placed order nr: ' + options.orderID, // Subject line
-        text: 'Hi ,\n\n' +
-            'You successfully placed this order. Note that all orders require validation by stock manager.\n\n' +
-            'Best regards,\nAdmin',
-    };
-    // send mail with defined transport object
-    transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            console.log('Error: Order ID: %s. Message to %s not sent due to error below.', 
-                            options.orderID, 'user');
-            console.log(error);
-        }
-        console.log('OK! Order ID: %s. Message %s was sent to requester with response: %s', 
-                        options.orderID, info.messageId, info.response);
-    });    
+    if (options.userEmail !== undefined && options.userEmail !== null) {
+        let mailOptions = {
+            from: '"Admin" <admin@laqv-ucibio.info>', // sender address
+            to: 'josecbraga@gmail.com', // list of receivers (comma-separated)
+            subject: 'Successfully placed order nr: ' + options.orderID, // Subject line
+            text: 'Hi ,\n\n' +
+                'You successfully placed this order. Note that all orders require validation by stock manager.\n\n' +
+                'Best regards,\nAdmin',
+        };
+        // send mail with defined transport object
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                console.log('Error: Order ID: %s. Message to %s not sent due to error below.', 
+                                options.orderID, 'user');
+                console.log(error);
+            }
+            console.log('OK! Order ID: %s. Message %s was sent to requester with response: %s', 
+                            options.orderID, info.messageId, info.response);
+        });
+    }
     sendJSONResponse(res, 200,
         {
             "status": "success", "statusCode": 200, "message": "Order created."
@@ -1478,6 +2219,20 @@ module.exports.updateManagementInventory = function (req, res, next) {
 
 module.exports.getManagementOrders = function (req, res, next) {
     checkManagementPermissions(req, res, next, makeManagerOrdersQuery, {});
+};
+
+module.exports.updateManagementOrder = function (req, res, next) {
+    checkManagementPermissions(req, res, next, makeUpdateManagerOrdersQuery, {});
+};
+
+module.exports.approveManagementOrder = function (req, res, next) {
+    checkManagementPermissions(req, res, next, makeApproveManagerOrdersQuery, {});
+};
+module.exports.rejectManagementOrder = function (req, res, next) {
+    checkManagementPermissions(req, res, next, makeRejectManagerOrdersQuery, {});
+};
+module.exports.deliveredManagementOrder = function (req, res, next) {
+    checkManagementPermissions(req, res, next, makeDeliveredManagerOrdersQuery, {});
 };
 
 module.exports.makeOrder = function (req, res, next) {

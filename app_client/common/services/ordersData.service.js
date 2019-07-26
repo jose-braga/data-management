@@ -65,6 +65,45 @@
             );
         };
 
+        var updateManagersOrder = function (currentUser, orderID, data) {
+            // for a manager to make changes in an order
+            return $http.put('api/stock-managers/' + currentUser + '/orders/' + orderID, data,
+                {
+                    headers: { Authorization: 'Bearer ' + authentication.getToken() }
+                }
+            );
+        };
+        var approveManagersOrder = function (currentUser, orderID, data) {
+            // for a manager to make changes in an order
+            return $http.put('api/stock-managers/' + currentUser 
+                            + '/orders/' + orderID + '/approve', 
+                data,
+                {
+                    headers: { Authorization: 'Bearer ' + authentication.getToken() }
+                }
+            );
+        };
+        var rejectManagersOrder = function (currentUser, orderID, data) {
+            // for a manager to make changes in an order
+            return $http.put('api/stock-managers/' + currentUser
+                + '/orders/' + orderID + '/reject',
+                data,
+                {
+                    headers: { Authorization: 'Bearer ' + authentication.getToken() }
+                }
+            );
+        };
+        var deliveredManagersOrder = function (currentUser, orderID, data) {
+            // for a manager to make changes in an order
+            return $http.put('api/stock-managers/' + currentUser
+                + '/orders/' + orderID + '/delivered',
+                data,
+                {
+                    headers: { Authorization: 'Bearer ' + authentication.getToken() }
+                }
+            );
+        };
+
         var getUserOrders = function (currentUser) {
             return $http.get('api/users/' + currentUser + '/orders',
                 {
@@ -96,6 +135,10 @@
             getManagersInventory: getManagersInventory,
             getManagersOrders: getManagersOrders,
             updateManagersInventory: updateManagersInventory,
+            updateManagersOrder: updateManagersOrder,
+            approveManagersOrder: approveManagersOrder,
+            rejectManagersOrder: rejectManagersOrder,
+            deliveredManagersOrder: deliveredManagersOrder,
             getUserOrders: getUserOrders,
             createOrder: createOrder,
             getUserAccountInfo: getUserAccountInfo,

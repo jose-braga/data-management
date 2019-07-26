@@ -250,6 +250,10 @@ router.get('/users/:userID/management-permissions', auth, ctrlOrders.getManageme
 router.get('/stock-managers/:userID/inventory', auth, ctrlOrders.getManagementInventory);
 router.put('/stock-managers/:userID/inventory', auth, ctrlOrders.updateManagementInventory);
 router.get('/stock-managers/:userID/orders', auth, ctrlOrders.getManagementOrders);
+router.put('/stock-managers/:userID/orders/:orderID', auth, ctrlOrders.updateManagementOrder);
+router.put('/stock-managers/:userID/orders/:orderID/approve', auth, ctrlOrders.approveManagementOrder);
+router.put('/stock-managers/:userID/orders/:orderID/reject', auth, ctrlOrders.rejectManagementOrder);
+router.put('/stock-managers/:userID/orders/:orderID/delivered', auth, ctrlOrders.deliveredManagementOrder);
 
 
 

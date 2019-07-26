@@ -305,8 +305,7 @@
                             scope.pageSize = 10;
                             scope.sortType = 'renderCategories';
                             scope.sortReverse = false;
-                            scope.searchString = '';
-                                                       
+                            scope.searchString = '';                                                       
 
                             scope.renderOrders = function (str) {
                                 if (str === 'new') {
@@ -314,17 +313,50 @@
                                 }
                                 scope.searchResults = [];
                                 for (let item in scope.orders) {
+                                    scope.orders[item].list_id = item;
+                                    for (let i in scope.orders[item].order_items) {
+                                        if (scope.orders[item].order_items[i].decimal === 0) {
+                                            scope.orders[item].order_items[i].original_quantity = 
+                                                    scope.orders[item].order_items[i].quantity;
+                                            scope.orders[item].order_items[i].unit_price =
+                                                (scope.orders[item].order_items[i].cost * 1.0) /
+                                                (scope.orders[item].order_items[i].quantity * 1.0)
+                                                .toFixed(2);
+                                            scope.orders[item].order_items[i].unit_price_tax =
+                                                (scope.orders[item].order_items[i].cost_tax * 1.0) /
+                                                (scope.orders[item].order_items[i].quantity * 1.0)
+                                                .toFixed(2);
+                                        } else {
+                                            scope.orders[item].order_items[i].original_quantity_decimal =
+                                                    scope.orders[item].order_items[i].quantity_decimal;
+                                            scope.orders[item].order_items[i].unit_price =
+                                                (scope.orders[item].order_items[i].cost * 1.0) /
+                                                (scope.orders[item].order_items[i].quantity_decimal * 1.0)
+                                                .toFixed(2);
+                                            scope.orders[item].order_items[i].unit_price_tax =
+                                                (scope.orders[item].order_items[i].cost_tax * 1.0) /
+                                                (scope.orders[item].order_items[i].quantity_decimal * 1.0)
+                                                .toFixed(2);
+                                        }
+                                    }
                                     var toInclude = 0;
                                     var toIncludeDueName = 0;
                                     if (scope.orders[item].last_status.order_status_id === 1) {
                                         scope.orders[item].orderPending = true;
                                         scope.orders[item].orderNotDelivered = true;
+                                        scope.orders[item].approved = undefined;
                                     } else if (scope.orders[item].last_status.order_status_id === 2) {
                                         scope.orders[item].orderPending = false;
                                         scope.orders[item].orderNotDelivered = true;
-                                    } else {
+                                        scope.orders[item].approved = true;
+                                    } else if (scope.orders[item].last_status.order_status_id === 3){
                                         scope.orders[item].orderPending = false;
                                         scope.orders[item].orderNotDelivered = false;
+                                        scope.orders[item].approved = true;
+                                    } else {
+                                        scope.orders[item].orderPending = false;
+                                        scope.orders[item].orderNotDelivered = undefined;
+                                        scope.orders[item].approved = false;
                                     }
                                     if (scope.searchString !== '') {
                                         if (nameMatching(scope.orders[item]['colloquial_name'], scope.searchString) !== null) {
@@ -356,7 +388,7 @@
                                         item++) {
                                     scope.shownOrders.push(scope.searchResults[item]);
                                 }
-                                var numberCards = scope.pageSize;
+                                var numberCards = scope.orders.length;
                                 scope.updateStatus = [];
                                 scope.messageType = [];
                                 scope.hideMessage = [];
@@ -367,7 +399,6 @@
                                 }
 
                             };
-
                             scope.showDetailsOrder = function (order) {
                                 var position = $mdPanel.newPanelPosition()
                                     .absolute()
@@ -392,15 +423,61 @@
                                         mdPanelRef.close();
                                     };
 
-                                    ctrl.processChange = function (item) {
+                                    ctrl.processChange = function (item, thisOrder) {
                                         item.changed_by_manager = 1;
+                                        if (item.decimal === 0) {
+                                            item.cost = (item.unit_price * item.quantity).toFixed(2);
+                                            item.cost_tax = (item.unit_price_tax * item.quantity).toFixed(2);
+                                        } else {
+                                            item.cost = (item.unit_price * item.quantity_decimal).toFixed(2);
+                                            item.cost_tax = (item.unit_price_tax * item.quantity_decimal).toFixed(2);
+                                        }
+                                        let totalCost = 0, totalCostTax = 0;
+                                        for (let ind in order.order_items) {
+                                            totalCost = totalCost + parseFloat(thisOrder.order_items[ind].cost);
+                                            totalCostTax = totalCostTax + parseFloat(thisOrder.order_items[ind].cost_tax);
+                                        }
+                                        let difference, differenceTax;
+                                        difference = totalCost - parseFloat(thisOrder.total_cost);
+                                        differenceTax = totalCostTax - parseFloat(thisOrder.total_cost_tax);
+                                        thisOrder.order_finances.amount_requests = parseFloat((thisOrder.order_finances.amount_requests + difference).toFixed(2));
+                                        thisOrder.order_finances.amount_requests_tax = parseFloat((thisOrder.order_finances.amount_requests_tax + differenceTax).toFixed(2));
+                                        thisOrder.total_cost = totalCost;
+                                        thisOrder.total_cost_tax = totalCostTax;
+                                        
+                                        
                                     };
 
                                     ctrl.submitOrderChanges = function (ind) {
-                                        ctrl.updateStatus[ind] = "Updating order detaills.";
+                                        ctrl.updateStatus[ind] = "Updating order details.";
                                         ctrl.messageType[ind] = 'message-updating';
                                         ctrl.hideMessage[ind] = false;
-                                        
+                                        ordersData.updateManagersOrder(scope.user, ctrl.order.id, ctrl.order)
+                                            .then(function () {
+                                                ordersData.getManagersOrders(scope.user)
+                                                    .then(function (response) {
+                                                        if (response !== null && response !== undefined) {
+                                                            scope.orders = response.data.result;
+                                                            scope.renderOrders('new');
+                                                        }
+                                                    })
+                                                    .catch(function (err) {
+                                                        console.log(err);
+                                                    });
+                                                if (ind > -1) {
+                                                    ctrl.updateStatus[ind] = "Changing order was successful.";
+                                                    ctrl.messageType[ind] = 'message-success';
+                                                    ctrl.hideMessage[ind] = false;
+                                                    $timeout(function () { ctrl.hideMessage[ind] = true; }, 1500);
+                                                }
+                                            }, function() {
+
+                                            })
+                                            .catch(function (err) {
+                                                ctrl.updateStatus[ind] = "Error!";
+                                                ctrl.messageType[ind] = 'message-error';
+                                                console.log(err);
+                                            });
                                     };
                                 };
                                 var config = {
@@ -423,7 +500,6 @@
                                 };
                                 scope.orderPanel = $mdPanel.open(config);
                             };
-
                             scope.sortColumn = function (colName, table) {
                                 if (table === 'orders') {
                                     if (colName === scope.sortType) {
@@ -435,6 +511,116 @@
                                     scope.renderOrders('new')
                                 }
                             };
+
+                            scope.approveOrder = function(ordNum, order) {
+                                let ind = order.list_id;
+                                scope.updateStatus[ind] = "Approving order.";
+                                scope.messageType[ind] = 'message-updating';
+                                scope.hideMessage[ind] = false;
+
+                                ordersData.approveManagersOrder(scope.user, order.id, order)
+                                    .then(function () {
+                                        ordersData.getManagersOrders(scope.user)
+                                            .then(function (response) {
+                                                if (response !== null && response !== undefined) {
+                                                    scope.orders = response.data.result;
+                                                    scope.renderOrders('new');
+                                                }
+                                            })
+                                            .catch(function (err) {
+                                                scope.updateStatus[ind] = "Error getting order list!";
+                                                scope.messageType[ind] = 'message-error';
+                                                scope.hideMessage[ind] = false;
+                                                $timeout(function () { scope.hideMessage[ind] = true; }, 1500);
+                                                console.log(err);
+                                            });
+                                            scope.updateStatus[ind] = "Approval successful.";
+                                            scope.messageType[ind] = 'message-success';
+                                            scope.hideMessage[ind] = false;
+                                            $timeout(function () { scope.hideMessage[ind] = true; }, 1500);
+                                    })
+                                    .catch(function (err) {
+                                        scope.updateStatus[ind] = "Error!";
+                                        scope.messageType[ind] = 'message-error';
+                                        scope.hideMessage[ind] = false;
+                                        $timeout(function () { scope.hideMessage[ind] = true; }, 1500);
+                                        console.log(err);
+                                    });
+                                                                
+                            };
+                            scope.rejectOrder = function (ordNum, order) {
+                                let ind = order.list_id;
+                                scope.updateStatus[ind] = "Rejecting...";
+                                scope.messageType[ind] = 'message-updating';
+                                scope.hideMessage[ind] = false;
+
+                                ordersData.rejectManagersOrder(scope.user, order.id, order)
+                                    .then(function () {
+                                        ordersData.getManagersOrders(scope.user)
+                                            .then(function (response) {
+                                                if (response !== null && response !== undefined) {
+                                                    scope.orders = response.data.result;
+                                                    scope.renderOrders('new');
+                                                }
+                                            })
+                                            .catch(function (err) {
+                                                scope.updateStatus[ind] = "Error getting order list!";
+                                                scope.messageType[ind] = 'message-error';
+                                                scope.hideMessage[ind] = false;
+                                                $timeout(function () { scope.hideMessage[ind] = true; }, 1500);
+                                                console.log(err);
+                                            });
+                                        scope.updateStatus[ind] = "Order rejection successful.";
+                                        scope.messageType[ind] = 'message-success';
+                                        scope.hideMessage[ind] = false;
+                                        $timeout(function () { scope.hideMessage[ind] = true; }, 1500);
+                                    })
+                                    .catch(function (err) {
+                                        scope.updateStatus[ind] = "Error!";
+                                        scope.messageType[ind] = 'message-error';
+                                        scope.hideMessage[ind] = false;
+                                        $timeout(function () { scope.hideMessage[ind] = true; }, 1500);
+                                        console.log(err);
+                                    });
+
+                            };
+                            scope.deliveredOrder = function (ordNum, order) {
+                                let ind = order.list_id;
+                                scope.updateStatus[ind] = "Updating...";
+                                scope.messageType[ind] = 'message-updating';
+                                scope.hideMessage[ind] = false;
+
+                                ordersData.deliveredManagersOrder(scope.user, order.id, order)
+                                    .then(function () {
+                                        ordersData.getManagersOrders(scope.user)
+                                            .then(function (response) {
+                                                if (response !== null && response !== undefined) {
+                                                    scope.orders = response.data.result;
+                                                    scope.renderOrders('new');
+                                                }
+                                            })
+                                            .catch(function (err) {
+                                                scope.updateStatus[ind] = "Error getting order list!";
+                                                scope.messageType[ind] = 'message-error';
+                                                scope.hideMessage[ind] = false;
+                                                $timeout(function () { scope.hideMessage[ind] = true; }, 1500);
+                                                console.log(err);
+                                            });
+                                        scope.updateStatus[ind] = "Closed order successfully.";
+                                        scope.messageType[ind] = 'message-success';
+                                        scope.hideMessage[ind] = false;
+                                        $timeout(function () { scope.hideMessage[ind] = true; }, 1500);
+                                    })
+                                    .catch(function (err) {
+                                        scope.updateStatus[ind] = "Error!";
+                                        scope.messageType[ind] = 'message-error';
+                                        scope.hideMessage[ind] = false;
+                                        $timeout(function () { scope.hideMessage[ind] = true; }, 1500);
+                                        console.log(err);
+                                    });
+
+                            };
+
 
                             scope.renderOrders('new');
 

@@ -20,8 +20,8 @@ var emailRecipients = {
                 Aveiro: 'josebraga@fct.unl.pt'
             },
         orders: {
-            stock_manager: 'josebraga@fct.unl.pt',
-            account_manager: 'josecbraga@gmail.com',
+            stock_manager: 'josebraga@fct.unl.pt, ejc@fct.unl.pt',
+            account_manager: 'josecbraga@gmail.com, mjr@fct.unl.pt',
         }
     };
 

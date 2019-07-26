@@ -5,7 +5,6 @@
         </md-card-title-text>
     </md-card-title>
     <md-card-content layout="column">
-        {{ orders }}
         <div layout="row" layout-align="none center">
             <ng-md-icon icon="search" size="24"></ng-md-icon>
             <md-input-container flex>
@@ -94,9 +93,9 @@
                     </th>
                     <th>Details
                     </th>
-                    <th>Aprove/Reject
+                    <th>Approve/Reject
                     </th>
-                    <th>Delivered?
+                    <th>Deliver
                     </th>
                     <th><!-- For API interaction status --></th>
                 </tr>
@@ -110,7 +109,7 @@
                     <td>{{order.datetime}}</td>
                     <td>{{order.total_cost_tax| currency:"":2}} €</td>
                     <td>{{order.last_status.name_en}}</td>
-                    <td>{{order.order_finances[0].current_amount_tax - order.order_finances[0].amount_requests_tax | currency:"":2}} €</td>
+                    <td>{{order.order_finances.current_amount_tax | currency:"":2}} €</td>
                     <td>
                         <md-button ng-click="showDetailsOrder(order)" aria-label="Details"
                             class="md-icon-button interaction-button">
@@ -119,35 +118,40 @@
                     </td>
                     <td>
                         <div ng-if="order.orderPending">
-                            <md-button ng-click="aproveOrder(ordNum, order)" aria-label="Approve" class="md-icon-button interaction-button">
+                            <md-button ng-click="approveOrder(ordNum, order)"
+                                    aria-label="Approve" 
+                                    class="md-icon-button md-raised">
                                 <md-icon md-svg-src="images/icons/thumb_up_24px.svg"></md-icon>
                             </md-button>
-                            <md-button ng-click="rejectOrder(ordNum, order)" aria-label="Reject" class="md-icon-button interaction-button">
+                            <md-button ng-click="rejectOrder(ordNum, order)" 
+                                    aria-label="Reject"
+                                    class="md-icon-button md-raised">
                                 <md-icon md-svg-src="images/icons/thumb_down_24px.svg"></md-icon>
                             </md-button>
                         </div>
+                        <!--
+                        <div ng-if="!order.orderPending">
+                            <md-icon ng-if="order.approved" 
+                                    md-svg-src="images/icons/thumb_up_24px.svg"></md-icon>
+                            <md-icon ng-if="!order.approved" 
+                                    md-svg-src="images/icons/thumb_down_24px.svg"></md-icon>
+                        </div>
+                        -->
                     </td>
                     <td>
                         <div ng-if="!order.orderPending && order.orderNotDelivered">
-                            <md-button ng-click="deliveredOrder(ordNum, order)" aria-label="Delivered" class="md-icon-button interaction-button">
+                            <md-button ng-click="deliveredOrder(ordNum, order)" aria-label="Delivered" 
+                                    class="md-icon-button md-raised">
                                 <md-icon md-svg-src="images/icons/delivered_24px.svg"></md-icon>
                             </md-button>
-                        </div>
-                        <div ng-if="order.orderPending">
-                            <md-checkbox ng-model="order.orderNotDelivered" 
-                                        ng-disabled="true"
-                                        ng-true-value="1"
-                                        ng-false-value="0"
-                                        aria-label="visible">
-                            </md-checkbox>
                         </div>
                     </td>
                     <td>
                         <div class="status-message" 
-                                ng-hide="hideMessage[ordNum]">
+                                ng-hide="hideMessage[order.list_id]">
                             <span class="message" 
-                                ng-class="messageType[ordNum]">
-                                {{updateStatus[ordNum]}}
+                                ng-class="messageType[order.list_id]">
+                                {{updateStatus[order.list_id]}}
                             </span>
                         </div>
 

@@ -173,6 +173,197 @@ var checkManagementPermissionsFinancial = function (req, res, next, callback, ca
     });
 };
 
+var makeAllUsersQuery = function (req, res, next, options) {
+    // afterwards we pick items information for each order, order status
+    var query = 'SELECT accounts_people.id AS accounts_people_id,'
+        + ' people.id AS person_id, people.user_id, people.colloquial_name, emails.email,'
+        + ' account_roles.id AS role_id, account_roles.name_en AS role_name_en,'
+        + ' accounts.id AS account_id, accounts.name_en AS account_name_en, accounts.name_pt AS account_name_pt, accounts.active AS account_active,'
+        + ' cost_centers_orders.id AS cost_center_id, cost_centers_orders.name_en AS cost_center_name_en, cost_centers_orders.name_pt AS cost_center_name_pt'
+        + ' FROM accounts_people'
+        + ' LEFT JOIN account_roles ON account_roles.id = accounts_people.account_role_id'
+        + ' LEFT JOIN accounts ON accounts.id = accounts_people.account_id'
+        + ' LEFT JOIN cost_centers_orders ON cost_centers_orders.id = accounts.cost_center_id'
+        + ' LEFT JOIN users ON users.id = accounts_people.user_id'
+        + ' LEFT JOIN people ON people.user_id = users.id'
+        + ' LEFT JOIN emails ON emails.person_id = people.id;';
+
+    var places = [];
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        // Use the connection
+        connection.query(query, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                    return;
+                }
+                sendJSONResponse(res, 200,
+                    {
+                        "status": "success", "statusCode": 200, "count": resQuery.length,
+                        "result": resQuery
+                    });
+                return;
+            });
+    });
+};
+var updateManagememtUsersInfoQuery = function (req, res, next, options) {
+    options.delete = req.body.delete;
+    options.update = req.body.update;
+    options.create = req.body.create;
+    if (options.stockAuthorization) {
+        if (options.delete.length > 0) {
+            return deleteUser(req, res, next, options, 0);
+        } else if (options.update.length > 0) {
+            return updateUser(req, res, next, options, 0);
+        } else if (options.create.length > 0) {
+            return createUser(req, res, next, options, 0);
+        } else {
+            sendJSONResponse(res, 200,
+                {
+                    "status": "success", "statusCode": 200,
+                    "message": "No changes."
+                });
+            return;
+        }
+    } else {
+        // not authorized
+        sendJSONResponse(res, 403, {
+            "status": "error",
+            "statusCode": 403,
+            "message": "You are not authorized to change these resources"
+        });
+        return;
+    }
+};
+var deleteUser = function (req, res, next, options, i) {
+    let items = options.delete;
+    // there should be at least 1 order item
+    let query;
+    let places;
+    query = 'DELETE FROM accounts_people WHERE id = ?;';
+    places = [items[i].accounts_people_id];
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        // Use the connection
+        connection.query(query, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                    return;
+                }
+                if (i + 1 < items.length) {
+                    return deleteUser(req, res, next, options, i + 1);
+                } else if (options.update.length > 0) {
+                    return updateUser(req, res, next, options, 0);
+                } else if (options.create.length > 0) {
+                    return createUser(req, res, next, options, 0);
+                } else {
+                    sendJSONResponse(res, 200,
+                        {
+                            "status": "success", "statusCode": 200,
+                            "message": "User info was changed succesfully."
+                        });
+                    return;
+                }
+            });
+    });
+};
+var updateUser = function (req, res, next, options, i) {
+    let items = options.update;
+    // there should be at least 1 order item
+    let query;
+    let places;
+    query = 'UPDATE accounts_people'
+        + ' SET account_id = ?,'
+        + ' account_role_id = ?'
+        + ' WHERE id = ?;';
+    places = [
+        items[i].account_id,
+        items[i].role_id,
+        items[i].accounts_people_id
+    ];
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        // Use the connection
+        connection.query(query, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                    return;
+                }
+                if (i + 1 < items.length) {
+                    return updateUser(req, res, next, options, i + 1);
+                } else if (options.create.length > 0) {
+                    return createUser(req, res, next, options, 0);
+                } else {
+                    sendJSONResponse(res, 200,
+                        {
+                            "status": "success", "statusCode": 200,
+                            "message": "User info was changed succesfully."
+                        });
+                    return;
+                }
+            });
+    });
+};
+var createUser = function (req, res, next, options, i) {
+    let items = options.create;
+    // there should be at least 1 order item
+    let query;
+    let places;
+    query = 'INSERT INTO accounts_people'
+        + ' (user_id, account_id, account_role_id)'
+        + ' VALUES (?,?,?)';
+    places = [
+        items[i].user_id,
+        items[i].account_id,
+        items[i].role_id
+    ];
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        // Use the connection
+        connection.query(query, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                    return;
+                }
+                if (i + 1 < items.length) {
+                    return createUser(req, res, next, options, i + 1);
+                } else {
+                    sendJSONResponse(res, 200,
+                        {
+                            "status": "success", "statusCode": 200,
+                            "message": "User info was changed succesfully."
+                        });
+                    return;
+                }
+            });
+    });
+};
+
+
 var makeInventoryItemQuery = function (req, res, next, options) {
     var query = 'SELECT items.*,'
         + ' quantity_types.name_plural_en AS unit_plural_en, quantity_types.name_singular_en  AS unit_singular_en,'
@@ -679,6 +870,7 @@ var writeStockItemHistory = function (req, res, next, options, i, operation) {
             });
     });
 };
+
 
 
 var makeManagerOrdersQuery = function (req, res, next, options) {
@@ -2211,6 +2403,10 @@ module.exports.getManagementPermissions = function (req, res, next) {
     checkManagementPermissions(req, res, next, undefined, {});
 };
 
+module.exports.getManagementUsersInfo = function (req, res, next) {
+    checkManagementPermissions(req, res, next, makeAllUsersQuery, {});
+};
+
 module.exports.getManagementInventory = function (req, res, next) {
     checkManagementPermissions(req, res, next, makeManagerInventoryItemQuery, {});
 };
@@ -2239,4 +2435,63 @@ module.exports.deliveredManagementOrder = function (req, res, next) {
 
 module.exports.makeOrder = function (req, res, next) {
     checksOrderPermissions(req, res, next, startOrderProcedure, {});
+};
+
+module.exports.searchPeopleSimple = function (req, res, next) {
+    var now = momentToDate(moment());
+    var name;
+    if (req.query.hasOwnProperty('name')) {
+        name = req.query.name.replace(/\s/gi, '%');
+    } else {
+        name = '';
+    }
+    var querySQL;
+    var places;
+    if (name !== '') {
+        name = '%' + name + '%';
+        querySQL = 'SELECT people.id AS person_id, people.user_id, people.name, people.colloquial_name,'
+            + ' emails.email'
+            + ' FROM people'
+            + ' LEFT JOIN emails ON people.id = emails.person_id'
+            + ' WHERE people.colloquial_name LIKE ?'
+            + ' AND (people.active_until > ? OR (people.active_from < ? AND people.active_until IS NULL) OR (people.active_from IS NULL AND people.active_until IS NULL))'
+            + ' ORDER BY people.colloquial_name'
+            + ';';
+        places = [name, now, now];
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                return;
+            }
+            // Use the connection
+            connection.query(querySQL, places,
+                function (err, resQuery) {
+                    // And done with the connection.
+                    connection.release();
+                    if (err) {
+                        sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                        return;
+                    }
+                    sendJSONResponse(res, 200,
+                        {
+                            "status": "OK!", 
+                            "statusCode": 200, 
+                            "count": resQuery.length,
+                            "result": resQuery
+                        });
+                    return;
+                });
+        });
+
+    } else {
+        sendJSONResponse(res, 200,
+            {
+                "status": "No information sent!", "statusCode": 200, "count": 0,
+                "result": []
+            });
+        return;
+    }
+};
+module.exports.updateManagementUsersInfo = function (req, res, next) {
+    checkManagementPermissions(req, res, next, updateManagememtUsersInfoQuery, {});
 };

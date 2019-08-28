@@ -70,7 +70,6 @@
             .catch(function (err) {
                 console.log(err);
             });
-
         
         function getManagersData() {
             ordersData.getManagersInventory(vm.currentUser.userID)
@@ -86,6 +85,15 @@
                 .then(function (response) {
                     if (response !== null && response !== undefined) {
                         vm.managersOrders = response.data.result;
+                    }
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
+            ordersData.getAllUsersInfo(vm.currentUser.userID)
+                .then(function (response) {
+                    if (response !== null && response !== undefined) {
+                        vm.managersUsersOrders = response.data.result;
                     }
                 })
                 .catch(function (err) {

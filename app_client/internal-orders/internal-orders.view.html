@@ -41,7 +41,13 @@
                         </md-content>
                     </md-tab>
                     <md-tab label="Users" ng-if="vm.showStock">
-                        
+                        <md-content>
+                            <order-users-management
+                                data-user="{{vm.currentUser.userID}}"
+                                data-usersorders="vm.managersUsersOrders"
+                                flex>
+                            </order-users-management>
+                        </md-content>                        
                     </md-tab>
                     <md-tab label="Financial" ng-if="vm.showFinancial">
                     </md-tab>

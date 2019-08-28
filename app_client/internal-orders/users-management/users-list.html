@@ -1,0 +1,229 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Users Management</span>
+        </md-card-title-text>
+    </md-card-title>
+    <md-card-content layout="column">
+        <div layout="row" layout-align="none center">
+            <ng-md-icon icon="search" size="24"></ng-md-icon>
+            <md-input-container flex>
+                <label>Search by person name, role, account, cost center</label>
+                <input ng-model="searchString" ng-change="renderUsers('new')">
+            </md-input-container>
+        </div>
+
+        <div layout="row" class="paginator spacer-top">
+            <md-input-container class="input-no-margin wider">
+                <label>Results/page</label>
+                <md-select ng-model="pageSize" md-on-close="renderOrders('new')" aria-label="pageSize" name="pageSize">
+                    <md-option ng-value="10">10</md-option>
+                    <md-option ng-value="20">20</md-option>
+                    <md-option ng-value="50">50</md-option>
+                </md-select>
+            </md-input-container>
+            <md-input-container class="input-no-margin">
+                <label>Page</label>
+                <md-select ng-model="currentPage" md-on-close="renderOrders('page')" aria-label="currentPage"
+                    name="currentPage">
+                    <md-option ng-repeat="page in pages" ng-value="page">{{page}}</md-option>
+                </md-select>
+            </md-input-container>
+        </div>
+        <form flex novalidate name="userManagementForm" 
+                ng-submit="userManagementForm.$valid && submitUserChanges(forms['userList'])"
+            class="spacer-top">
+            <table class="materialize-table spacer-top">
+                <thead>
+                    <tr>
+                        <th>
+                            <a ng-click="sortColumn('colloquial_name', 'orders')">Name</a>
+                            <ng-md-icon ng-if="!sortReverse && sortType=='colloquial_name'" icon="arrow_downward"
+                                size="12"></ng-md-icon>
+                            <ng-md-icon ng-if="sortReverse  && sortType=='colloquial_name'" icon="arrow_upwards"
+                                size="12"></ng-md-icon>
+                        </th>
+                        <th>
+                            <a ng-click="sortColumn('role_name_en', 'orders')">Role</a>
+                            <ng-md-icon ng-if="!sortReverse && sortType=='role_name_en'" icon="arrow_downward"
+                                size="12"></ng-md-icon>
+                            <ng-md-icon ng-if="sortReverse  && sortType=='role_name_en'" icon="arrow_upwards"
+                                size="12"></ng-md-icon>
+                        </th>
+                        <th>
+                            <a ng-click="sortColumn('cost_center_name_en', 'orders')">Cost Center</a>
+                            <ng-md-icon ng-if="!sortReverse && sortType=='cost_center_name_en'" icon="arrow_downward"
+                                size="12"></ng-md-icon>
+                            <ng-md-icon ng-if="sortReverse  && sortType=='cost_center_name_en'" icon="arrow_upwards"
+                                size="12"></ng-md-icon>
+                        </th>
+                        <th>
+                            <a ng-click="sortColumn('account_name_en', 'orders')">Account</a>
+                            <ng-md-icon ng-if="!sortReverse && sortType=='account_name_en'" icon="arrow_downward" size="12"></ng-md-icon>
+                            </ng-md-icon>
+                            <ng-md-icon ng-if="sortReverse  && sortType=='account_name_en'" icon="arrow_upwards" size="12">
+                            </ng-md-icon>
+                        </th>
+                        <th>Account<br>
+                            active?
+                        </th>                    
+                        <th>
+                            Email
+                        </th>
+                        
+                        <th>
+                            <!-- For removing person from allowed users -->
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="(userNum,user) in shownUsers track by $index">
+                        <td>{{user.colloquial_name}}</td>
+                        <td>
+                            <md-input-container class="select-container select-no-margin">
+                                <md-select ng-model="user.role_id"
+                                        ng-change="processChange(user)"
+                                        name="user_role[userNum]">
+                                    <md-option ng-repeat="role in accountRoles" ng-value="role.id">{{role.name_en}}</md-option>
+                                </md-select>
+                            </md-input-container>
+                        </td>
+                        <td>
+                            <md-input-container class="select-container select-no-margin">
+                                <md-select ng-model="user.cost_center_id"
+                                        ng-change="processChange(user, 'cost_center')"
+                                        name="user_cost_center[userNum]">
+                                    <md-option ng-repeat="center in costCentersList" ng-value="center.id">{{center.name_en}}</md-option>
+                                </md-select>
+                            </md-input-container>
+                        </td>
+                        <td>
+                            <md-input-container class="select-container select-no-margin">
+                                <md-select required ng-model="user.account_id"
+                                        ng-change="processChange(user, 'account')"
+                                        name="user_accounts[userNum]">
+                                    <md-option ng-repeat="account in accountsInCostCenters[user.cost_center_id]" ng-value="account.id">{{account.name_en}}</md-option>
+                                </md-select>
+                            </md-input-container>
+                        </td>
+                        <td><md-checkbox ng-model="user.account_active" 
+                                    ng-true-value="1"
+                                    ng-false-value="0"
+                                    ng-disabled="true"
+                                    aria-label="Active Account">
+                            </md-checkbox>
+                        </td>
+                        <td>{{user.email}}</td>
+                        <td>
+                            <md-button ng-click="removeUser(usersorders, user)" aria-label="Details"
+                                class="md-icon-button interaction-button">
+                                <md-icon md-svg-src="images/icons/delete_24px.svg"></md-icon>
+                            </md-button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div layout="row" class="paginator">
+                <md-input-container class="input-no-margin wider">
+                    <label>Results/page</label>
+                    <md-select ng-model="pageSize" md-on-close="renderOrders('new')" aria-label="pageSize" name="pageSize">
+                        <md-option ng-value="10">10</md-option>
+                        <md-option ng-value="20">20</md-option>
+                        <md-option ng-value="50">50</md-option>
+                    </md-select>
+                </md-input-container>
+                <md-input-container class="input-no-margin">
+                    <label>Page</label>
+                    <md-select ng-model="currentPage" md-on-close="renderOrders('page')" aria-label="currentPage"
+                        name="currentPage">
+                        <md-option ng-repeat="page in pages" ng-value="page">{{page}}</md-option>
+                    </md-select>
+                </md-input-container>
+            </div>
+
+            <div class="search-header spacer-top space-left">
+                <span>Add a new user</span>
+            </div>
+            <table class="materialize-table spacer-top">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Role</th>
+                        <th>Cost Center</th>
+                        <th>Account</th>            
+                        <th>
+                            <!-- For adding person icon -->
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <md-autocomplete
+                                    md-selected-item="newUser.userSelected"
+                                    md-search-text="searchName"
+                                    md-items="user in searchUser(searchName)"
+                                    md-item-text="user.colloquial_name"
+                                    md-input-minlength="3" >
+                                <md-item-template>
+                                    {{user.colloquial_name}}
+                                </md-item-template>
+                                <md-not-found>
+                                    No users matching "{{searchName}}" were found.
+                                </md-not-found>
+                            </md-autocomplete>
+                        
+                        </td>
+                        <td>
+                            <md-input-container class="select-container select-no-margin">
+                                <md-select ng-model="newUser.role_id" name="newuser_role">
+                                    <md-option ng-repeat="role in accountRoles" ng-value="role.id">{{role.name_en}}</md-option>
+                                </md-select>
+                            </md-input-container>                            
+                        </td>
+                        <td>
+                            <md-input-container class="select-container select-no-margin">
+                                <md-select ng-model="newUser.cost_center_id"
+                                    ng-change="processChangeNewUser(newUser)"
+                                    name="newuser_cost_center">
+                                    <md-option ng-repeat="center in costCentersList" 
+                                        ng-value="center.id">{{center.name_en}}
+                                    </md-option>
+                                </md-select>
+                            </md-input-container>
+                        </td>
+                        <td>
+                            <md-input-container class="select-container select-no-margin">
+                                <md-select ng-model="newUser.account_id"
+                                    name="newuser_account">
+                                    <md-option ng-repeat="account in accountsInCostCenters[newUser.cost_center_id]"
+                                        ng-value="account.id">{{account.name_en}}</md-option>
+                                </md-select>
+                            </md-input-container>
+                        </td>
+                        <td>
+                            <md-button ng-click="addToUsers(newUser)" aria-label="Details" class="md-icon-button interaction-button">
+                                <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                            </md-button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+
+            <div layout="column" class="spacer-top" layout-gt-sm="row" layout-align="start center">
+                <md-button type="submit" class="button-small md-raised md-primary">Submit changes</md-button>
+                <div class="status-message" ng-hide="hideMessage[forms['userList']]">
+                    <span class="message" ng-class="messageType[forms['userList']]">
+                        {{updateStatus[forms['userList']]}}
+                    </span>
+                </div>
+            </div>
+        </form>
+
+        
+
+        
+    </md-card-content>
+</md-card>

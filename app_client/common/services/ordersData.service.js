@@ -32,6 +32,28 @@
                 }
             );
         };
+        
+        var searchUsersSimple = function (currentUser, name) {
+            return $http.get('api/stock-managers/' + currentUser + '/users-search?name=' + name,
+                {
+                    headers: { Authorization: 'Bearer ' + authentication.getToken() }
+                }
+            );
+        };
+        var getAllUsersInfo = function (currentUser) {
+            return $http.get('api/stock-managers/' + currentUser + '/users-info',
+                {
+                    headers: { Authorization: 'Bearer ' + authentication.getToken() }
+                }
+            );
+        };
+        var updateManagersUsers = function (currentUser, data) {
+            return $http.put('api/stock-managers/' + currentUser + '/users-info', data,
+                {
+                    headers: { Authorization: 'Bearer ' + authentication.getToken() }
+                }
+            );
+        };
 
         var getInventory = function (currentUser) {
             return $http.get('api/users/' + currentUser + '/inventory',
@@ -130,6 +152,9 @@
         
 
         return {
+            searchUsersSimple: searchUsersSimple,
+            getAllUsersInfo: getAllUsersInfo,
+            updateManagersUsers: updateManagersUsers,
             getInventory: getInventory,
             getManagementPermissions: getManagementPermissions,
             getManagersInventory: getManagersInventory,

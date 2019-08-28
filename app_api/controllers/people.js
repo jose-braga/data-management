@@ -5654,7 +5654,7 @@ module.exports.searchPeople = function (req, res, next) {
     var lab;
     if (req.query.hasOwnProperty('name')) {
         // TODO: (not critical) change to REGEX global to replace all
-        name = req.query.name.replace(' ','%');
+        name = req.query.name.replace(/\s/gi,'%');
     } else {
         // TODO: change to REGEX global to replace all
         name = '';
@@ -6433,7 +6433,7 @@ module.exports.listOf = function (req, res, next) {
         querySQL = 'SELECT * FROM accounts;';
         getQueryResponse(querySQL, req, res, next);
     } else if (listOf === 'order-account-roles') {
-        querySQL = 'SELECT * FROM account-roles;';
+        querySQL = 'SELECT * FROM account_roles;';
         getQueryResponse(querySQL, req, res, next);
     } else {
         var errorNum = 404;

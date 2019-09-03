@@ -51,14 +51,20 @@
                     </md-tab>
                     <md-tab label="Financial" ng-if="vm.showFinancial">
                         <md-content>
-                            <order-financial-monitoring
-                                data-user="{{vm.currentUser.userID}}"                                
-                                flex>
-                            </order-financial-monitoring>
-                            <order-financial-structure
-                                data-user="{{vm.currentUser.userID}}"                                
-                                flex>
-                            </order-financial-structure>
+                            <div layout-xs="column" layout-sm="column" layout-md="column" layout-gt-md="row" layout-padding>
+                                <div flex-xs flex-sm flex-md flex-gt-md="50" layout="column">
+                                    <order-financial-monitoring
+                                        data-user="{{vm.currentUser.userID}}"                                
+                                        flex>
+                                    </order-financial-monitoring>
+                                </div>
+                                <div flex-xs flex-sm flex-md flex-gt-md="50" layout="column">
+                                    <order-financial-structure 
+                                        data-user="{{vm.currentUser.userID}}" 
+                                        flex>
+                                    </order-financial-structure>
+                                </div>
+                            </div>                            
                         </md-content>
                     </md-tab>
                 </md-tabs>                

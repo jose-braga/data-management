@@ -209,7 +209,7 @@
                                                         delete: [],
                                                     };
                                                     scope.renderUsers('new');
-                                                    getDataLists();
+                                                    scope.getDataLists();
                                                 }
                                             })
                                             .catch(function (err) {
@@ -221,7 +221,7 @@
                                             scope.messageType[ind] = 'message-success';
                                             scope.hideMessage[ind] = false;
                                             $timeout(function () { scope.hideMessage[ind] = true; }, 1500);
-                                        }                                        
+                                        }
                                     },
                                         function () {
                                             scope.updateStatus[ind] = "Error!";
@@ -231,11 +231,7 @@
                                     );
                             };
 
-                            // to initialize inventory 
-                            scope.renderUsers('new');
-                            getDataLists();
-                            
-                            function getDataLists() {                                
+                            scope.getDataLists = function () {
                                 ordersData.orderAccountRoles()
                                     .then(function (response) {
                                         if (response !== null && response !== undefined) {
@@ -254,8 +250,8 @@
                                                         for (let indCenter in scope.costCentersList) {
                                                             scope.accountsInCostCenters[scope.costCentersList[indCenter].id] = [];
                                                             for (let indAccount in scope.accountsList) {
-                                                                if (scope.accountsList[indAccount].cost_center_id 
-                                                                        === scope.costCentersList[indCenter].id) {
+                                                                if (scope.accountsList[indAccount].cost_center_id
+                                                                    === scope.costCentersList[indCenter].id) {
                                                                     scope.accountsInCostCenters[scope.costCentersList[indCenter].id].push(scope.accountsList[indAccount]);
                                                                 }
                                                             }
@@ -264,8 +260,14 @@
                                                 })
                                         }
                                     })
-            
+
                             }
+
+                            // to initialize inventory 
+                            scope.renderUsers('new');
+                            scope.getDataLists();
+                            
+                            
                             function nameMatching(name1, str) {
                                 var name1Final = prepareString(name1);
                                 var strFinal = prepareString(str);

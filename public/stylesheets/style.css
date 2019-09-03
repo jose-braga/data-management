@@ -317,6 +317,10 @@ td .tighter.md-button.md-icon-button {
   margin-top: 20px;
 }
 
+.paginator.spacer-top-wide {
+  margin-top: 40px;
+}
+
 .paginator .wider {
   width: 80px;
   margin-right: 20px;
@@ -636,4 +640,52 @@ ul.help-list li{
   margin-left: 10px;
   margin-bottom: 0px;
   font-weight: bold;
+}
+
+.compact-list .first-level {
+  height: 28px;
+}
+
+.compact-list .list-item {
+  margin-left: 50px;
+  padding-left: 10px;
+  height: 25px;
+  border-left: #000000 solid 1px;
+
+}
+
+.compact-list .list-item button,
+.compact-list .list-item .md-button {
+  padding: 0;
+  width: 24px;
+  height: 24px;
+}
+
+.compact-list .add-item {
+  margin-left: 50px;
+}
+
+.compact-list .input-no-margin .md-input{
+  line-height: 16px;
+  height: 18px;
+  max-width: 100px;
+}
+
+.show-finances {
+  border: #000000 solid 1px;
+  width: 350px;
+}
+
+.show-finances p {
+  font-weight: bold;
+}
+
+.show-finances .show-year {
+  width: 150px;
+}
+
+.show-finances .previous-year,
+.show-finances .next-year {
+  width: 100px;
+
 }

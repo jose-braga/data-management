@@ -1,0 +1,168 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Cost Centers Structure</span>
+        </md-card-title-text>
+    </md-card-title>
+    <md-card-content layout="column">
+        <div layout="row" layout-align="none center">
+            <ng-md-icon icon="search" size="24"></ng-md-icon>
+            <md-input-container flex>
+                <label>Search by account or cost center</label>
+                <input ng-model="searchString" ng-change="renderData('new')">
+            </md-input-container>
+        </div>
+
+        <div layout="row" class="paginator spacer-top">
+            <md-input-container class="input-no-margin wider">
+                <label>Results/page</label>
+                <md-select ng-model="pageSize" md-on-close="renderData('new')" aria-label="pageSize" name="pageSize">
+                    <md-option ng-value="10">10</md-option>
+                    <md-option ng-value="20">20</md-option>
+                    <md-option ng-value="50">50</md-option>
+                </md-select>
+            </md-input-container>
+            <md-input-container class="input-no-margin">
+                <label>Page</label>
+                <md-select ng-model="currentPage" md-on-close="renderData('page')" aria-label="currentPage"
+                    name="currentPage">
+                    <md-option ng-repeat="page in pages" ng-value="page">{{page}}</md-option>
+                </md-select>
+            </md-input-container>
+        </div>
+        <form flex novalidate name="costCentersManagementForm"
+            ng-submit="costCentersManagementForm.$valid && submitDataChanges(forms['finances'])" class="spacer-top">
+            
+            <div class="compact-list" 
+                    ng-repeat="(centerNum,center) in shownData track by $index">
+                <div class="first-level">
+                    <md-button ng-click="center.showAccounts = true"
+                            ng-if="!center.showAccounts"
+                            aria-label="Details" 
+                            class="md-icon-button interaction-button">
+                        <md-icon md-svg-src="images/icons/expand_more_24px.svg"></md-icon>
+                    </md-button>
+                    <md-button ng-click="center.showAccounts = false"
+                            ng-if="center.showAccounts"
+                            aria-label="Details" 
+                            class="md-icon-button interaction-button">
+                        <md-icon md-svg-src="images/icons/expand_less_24px.svg"></md-icon>
+                    </md-button>                    
+                    <md-input-container class="input-no-margin">
+                        <input ng-model="center.name_en"
+                                ng-change="processChange(center,'cost_center')"
+                                name="centerName[centerNum]">
+                    </md-input-container>
+                    <md-icon ng-if="center.active === 1" 
+                            class="financial-status"
+                            md-svg-src="images/icons/check_24px.svg"></md-icon>
+                    <md-icon ng-if="center.active === 0" 
+                            class="financial-status"
+                            md-svg-src="images/icons/unavailable_24px.svg"></md-icon>
+                    <md-button ng-click="removeCenter(costCentersList, center)"
+                            ng-if="center.active === 1"
+                            aria-label="Details" 
+                            class="md-icon-button interaction-button">
+                        <md-icon md-svg-src="images/icons/delete_24px.svg"></md-icon>
+                    </md-button>
+                </div>
+                <div ng-if="center.showAccounts"
+                    class="second-level">
+                    <div ng-repeat="(accountNum,account) in center.accountsMatching track by $index"
+                            class="list-item">
+                        <md-input-container class="input-no-margin">
+                            <input ng-model="account.name_en"
+                                    ng-change="processChange(account,'account')"
+                                    name="accountName[centerNum]">
+                        </md-input-container>
+                        <md-icon ng-if="account.active === 1" 
+                                class="financial-status"
+                                md-svg-src="images/icons/check_24px.svg"></md-icon>
+                        <md-icon ng-if="account.active === 0" 
+                                class="financial-status"
+                                md-svg-src="images/icons/unavailable_24px.svg"></md-icon>
+                        <md-button ng-click="removeAccount(center.accounts, account)"
+                                ng-if="account.active === 1"
+                                aria-label="Details" 
+                                class="md-icon-button interaction-button">
+                            <md-icon md-svg-src="images/icons/delete_24px.svg"></md-icon>
+                        </md-button>
+                    </div>
+                    <div class="add-item">
+                        Add an account:
+                        <md-input-container class="input-row">
+                            <input ng-model="center.newAccount"
+                                    name="newAccount[centerNum]">
+                        </md-input-container>
+                        <md-button ng-click="addAccount(center)"
+                                aria-label="Details" 
+                                class="md-icon-button interaction-button">
+                            <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                        </md-button>
+
+
+                    </div>
+                </div>
+            </div>
+
+            <div layout="row" class="spacer-top-wide paginator">
+                <md-input-container class="input-no-margin wider">
+                    <label>Results/page</label>
+                    <md-select ng-model="pageSize" md-on-close="renderData('new')" aria-label="pageSize"
+                        name="pageSize">
+                        <md-option ng-value="10">10</md-option>
+                        <md-option ng-value="20">20</md-option>
+                        <md-option ng-value="50">50</md-option>
+                    </md-select>
+                </md-input-container>
+                <md-input-container class="input-no-margin">
+                    <label>Page</label>
+                    <md-select ng-model="currentPage" md-on-close="renderData('page')" aria-label="currentPage"
+                        name="currentPage">
+                        <md-option ng-repeat="page in pages" ng-value="page">{{page}}</md-option>
+                    </md-select>
+                </md-input-container>
+            </div>
+
+            <div class="search-header spacer-top space-left">
+                <span>Add a new Cost Center</span>
+            </div>
+            <table class="materialize-table spacer-top">
+                <thead>
+                    <tr>
+                        <th>Cost Center</th>
+                        <th>
+                            <!-- For adding icon -->
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <md-input-container class="input-row">
+                                <input ng-model="newCenter.name_en"
+                                        name="newCenter">
+                            </md-input-container>
+                        </td>
+                        <td>
+                            <md-button ng-click="addCenter(newCenter)" aria-label="Details"
+                                class="md-icon-button interaction-button">
+                                <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                            </md-button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+
+            <div layout="column" class="spacer-top" layout-gt-sm="row" layout-align="start center">
+                <md-button type="submit" class="button-small md-raised md-primary">Submit changes</md-button>
+                <div class="status-message" ng-hide="hideMessage[forms['finances']]">
+                    <span class="message" ng-class="messageType[forms['finances']]">
+                        {{updateStatus[forms['finances']]}}
+                    </span>
+                </div>
+            </div>
+        </form>
+    </md-card-content>
+</md-card>

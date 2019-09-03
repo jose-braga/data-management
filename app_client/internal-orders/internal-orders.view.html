@@ -47,9 +47,19 @@
                                 data-usersorders="vm.managersUsersOrders"
                                 flex>
                             </order-users-management>
-                        </md-content>                        
+                        </md-content>
                     </md-tab>
                     <md-tab label="Financial" ng-if="vm.showFinancial">
+                        <md-content>
+                            <order-financial-monitoring
+                                data-user="{{vm.currentUser.userID}}"                                
+                                flex>
+                            </order-financial-monitoring>
+                            <order-financial-structure
+                                data-user="{{vm.currentUser.userID}}"                                
+                                flex>
+                            </order-financial-structure>
+                        </md-content>
                     </md-tab>
                 </md-tabs>                
             </md-tab>

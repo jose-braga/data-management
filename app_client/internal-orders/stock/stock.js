@@ -375,8 +375,7 @@
                                                 .toFixed(2);
                                         }
                                     }
-                                    var toInclude = 0;
-                                    var toIncludeDueName = 0;
+                                    
                                     if (scope.orders[item].last_status.order_status_id === 1) {
                                         scope.orders[item].orderPending = true;
                                         scope.orders[item].orderNotDelivered = true;
@@ -394,15 +393,26 @@
                                         scope.orders[item].orderNotDelivered = undefined;
                                         scope.orders[item].approved = false;
                                     }
+                                    var toInclude = 0;
+                                    var toIncludeDueName = 0;
+                                    var toIncludeDueCostCenter = 0;
+                                    var toIncludeDueAccount = 0;
                                     if (scope.searchString !== '') {
                                         if (nameMatching(scope.orders[item]['colloquial_name'], scope.searchString) !== null) {
                                             toIncludeDueName = 1;
                                         }
+                                        if (nameMatching(scope.orders[item]['cost_center_name_en'], scope.searchString) !== null) {
+                                            toIncludeDueCostCenter = 1;
+                                        }
+                                        if (nameMatching(scope.orders[item]['account_name_en'], scope.searchString) !== null) {
+                                            toIncludeDueAccount = 1;
+                                        }
                                     } else {
-                                        toIncludeDueName = 1;
-                                        
+                                        toInclude = 1;                                        
                                     }
-                                    if (toIncludeDueName === 1) {
+                                    if (toIncludeDueName === 1 
+                                            || toIncludeDueCostCenter === 1 
+                                            || toIncludeDueAccount === 1) {
                                         toInclude = 1;
                                     }
                                     if (toInclude === 1) {

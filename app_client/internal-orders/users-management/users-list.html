@@ -5,6 +5,12 @@
         </md-card-title-text>
     </md-card-title>
     <md-card-content layout="column">
+        <div flex layout-padding>
+            Reload cost centers information
+            <md-button ng-click="getDataLists()" aria-label="Reload" class="md-icon-button md-raised">
+                <md-icon md-svg-src="images/icons/reload_24px.svg"></md-icon>
+            </md-button>
+        </div>
         <div layout="row" layout-align="none center">
             <ng-md-icon icon="search" size="24"></ng-md-icon>
             <md-input-container flex>
@@ -16,7 +22,7 @@
         <div layout="row" class="paginator spacer-top">
             <md-input-container class="input-no-margin wider">
                 <label>Results/page</label>
-                <md-select ng-model="pageSize" md-on-close="renderOrders('new')" aria-label="pageSize" name="pageSize">
+                <md-select ng-model="pageSize" md-on-close="renderUsers('new')" aria-label="pageSize" name="pageSize">
                     <md-option ng-value="10">10</md-option>
                     <md-option ng-value="20">20</md-option>
                     <md-option ng-value="50">50</md-option>
@@ -24,7 +30,7 @@
             </md-input-container>
             <md-input-container class="input-no-margin">
                 <label>Page</label>
-                <md-select ng-model="currentPage" md-on-close="renderOrders('page')" aria-label="currentPage"
+                <md-select ng-model="currentPage" md-on-close="renderUsers('page')" aria-label="currentPage"
                     name="currentPage">
                     <md-option ng-repeat="page in pages" ng-value="page">{{page}}</md-option>
                 </md-select>
@@ -127,7 +133,7 @@
             <div layout="row" class="paginator">
                 <md-input-container class="input-no-margin wider">
                     <label>Results/page</label>
-                    <md-select ng-model="pageSize" md-on-close="renderOrders('new')" aria-label="pageSize" name="pageSize">
+                    <md-select ng-model="pageSize" md-on-close="renderUsers('new')" aria-label="pageSize" name="pageSize">
                         <md-option ng-value="10">10</md-option>
                         <md-option ng-value="20">20</md-option>
                         <md-option ng-value="50">50</md-option>
@@ -135,7 +141,7 @@
                 </md-input-container>
                 <md-input-container class="input-no-margin">
                     <label>Page</label>
-                    <md-select ng-model="currentPage" md-on-close="renderOrders('page')" aria-label="currentPage"
+                    <md-select ng-model="currentPage" md-on-close="renderUsers('page')" aria-label="currentPage"
                         name="currentPage">
                         <md-option ng-repeat="page in pages" ng-value="page">{{page}}</md-option>
                     </md-select>

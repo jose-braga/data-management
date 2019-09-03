@@ -212,7 +212,7 @@ var makeAllUsersQuery = function (req, res, next, options) {
             });
     });
 };
-var updateManagememtUsersInfoQuery = function (req, res, next, options) {
+var updateManagementUsersInfoQuery = function (req, res, next, options) {
     options.delete = req.body.delete;
     options.update = req.body.update;
     options.create = req.body.create;
@@ -362,6 +362,500 @@ var createUser = function (req, res, next, options, i) {
             });
     });
 };
+
+var updateManagementFinancialStructureQuery = function (req, res, next, options) {
+    options.delete = req.body.costCenters.delete;
+    options.update = req.body.costCenters.update;
+    options.create = req.body.costCenters.create;
+    options.deleteAccounts = req.body.accounts.delete;
+    options.updateAccounts = req.body.accounts.update;
+    options.createAccounts = req.body.accounts.create;
+    if (options.financialAuthorization) {
+        if (options.delete.length > 0) {
+            return deleteCostCenter(req, res, next, options, 0);
+        } else if (options.update.length > 0) {
+            return updateCostCenter(req, res, next, options, 0);
+        } else if (options.create.length > 0) {
+            return createCostCenter(req, res, next, options, 0);
+        } else if (options.deleteAccounts.length > 0) {
+            return deleteAccount(req, res, next, options, 0);
+        } else if (options.updateAccounts.length > 0) {
+            return updateAccount(req, res, next, options, 0);
+        } else if (options.createAccounts.length > 0) {
+            return createAccount(req, res, next, options, 0);
+        } else {
+            sendJSONResponse(res, 200,
+                {
+                    "status": "success", "statusCode": 200,
+                    "message": "No changes."
+                });
+            return;
+        }
+    } else {
+        // not authorized
+        sendJSONResponse(res, 403, {
+            "status": "error",
+            "statusCode": 403,
+            "message": "You are not authorized to change these resources"
+        });
+        return;
+    }
+};
+var deleteCostCenter = function (req, res, next, options, i) {
+    let items = options.delete;
+    let query;
+    let places;
+    query = 'UPDATE cost_centers_orders'
+            + ' SET active = 0'
+            + ' WHERE id = ?;';
+    places = [items[i].id];
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        // Use the connection
+        connection.query(query, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                    return;
+                }
+                if (i + 1 < items.length) {
+                    return deleteCostCenter(req, res, next, options, i + 1);
+                } else if (options.update.length > 0) {
+                    return updateCostCenter(req, res, next, options, 0);
+                } else if (options.create.length > 0) {
+                    return createCostCenter(req, res, next, options, 0);
+                } else if (options.deleteAccounts.length > 0) {
+                    return deleteAccount(req, res, next, options, 0);
+                } else if (options.updateAccounts.length > 0) {
+                    return updateAccount(req, res, next, options, 0);
+                } else if (options.createAccounts.length > 0) {
+                    return createAccount(req, res, next, options, 0);
+                } else {
+                    sendJSONResponse(res, 200,
+                        {
+                            "status": "success", "statusCode": 200,
+                            "message": "Financial structure was changed succesfully."
+                        });
+                    return;
+                }
+            });
+    });
+};
+var updateCostCenter = function (req, res, next, options, i) {
+    let items = options.update;
+    let query;
+    let places;
+    query = 'UPDATE cost_centers_orders'
+        + ' SET name_en = ?,'
+        + ' name_pt = ?,'
+        + ' active = ?'
+        + ' WHERE id = ?;';
+    places = [
+        items[i].name_en, 
+        items[i].name_en,
+        items[i].active,
+        items[i].id
+    ]; // for now EN=PT
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        // Use the connection
+        connection.query(query, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                    return;
+                }
+                if (i + 1 < items.length) {
+                    return updateCostCenter(req, res, next, options, i + 1);
+                } else if (options.create.length > 0) {
+                    return createCostCenter(req, res, next, options, 0);
+                } else if (options.deleteAccounts.length > 0) {
+                    return deleteAccount(req, res, next, options, 0);
+                } else if (options.updateAccounts.length > 0) {
+                    return updateAccount(req, res, next, options, 0);
+                } else if (options.createAccounts.length > 0) {
+                    return createAccount(req, res, next, options, 0);
+                } else {
+                    sendJSONResponse(res, 200,
+                        {
+                            "status": "success", "statusCode": 200,
+                            "message": "Financial structure was changed succesfully."
+                        });
+                    return;
+                }
+            });
+    });
+};
+var createCostCenter = function (req, res, next, options, i) {
+    let items = options.create;
+    // there should be at least 1 order item
+    let query;
+    let places;
+    query = 'INSERT INTO cost_centers_orders'
+        + ' (name_en, name_pt, active)'
+        + ' VALUES (?,?,?)';
+    places = [
+        items[i].name_en,
+        items[i].name_en,
+        items[i].active
+    ]; // same name EN & PT
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        // Use the connection
+        connection.query(query, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                    return;
+                }
+                options.create[i].id = resQuery.insertId;
+                if (i + 1 < items.length) {
+                    return createCostCenter(req, res, next, options, i + 1);
+                } else if (options.deleteAccounts.length > 0) {
+                    return deleteAccount(req, res, next, options, 0);
+                } else if (options.updateAccounts.length > 0) {
+                    return updateAccount(req, res, next, options, 0);
+                } else if (options.createAccounts.length > 0) {
+                    return createAccount(req, res, next, options, 0);
+                } else {
+                    sendJSONResponse(res, 200,
+                        {
+                            "status": "success", "statusCode": 200,
+                            "message": "Financial structure was changed succesfully."
+                        });
+                    return;
+                }
+            });
+    });
+};
+var deleteAccount = function (req, res, next, options, i) {
+    let items = options.deleteAccounts;
+    let query;
+    let places;
+    query = 'UPDATE accounts'
+        + ' SET active = 0'
+        + ' WHERE id = ?;';
+    places = [items[i].id];
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        // Use the connection
+        connection.query(query, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                    return;
+                }
+                if (i + 1 < items.length) {
+                    return deleteAccount(req, res, next, options, i + 1);
+                } else if (options.updateAccounts.length > 0) {
+                    return updateAccount(req, res, next, options, 0);
+                } else if (options.createAccounts.length > 0) {
+                    return createAccount(req, res, next, options, 0);
+                } else {
+                    sendJSONResponse(res, 200,
+                        {
+                            "status": "success", "statusCode": 200,
+                            "message": "Financial structure was changed succesfully."
+                        });
+                    return;
+                }
+            });
+    });
+};
+var updateAccount = function (req, res, next, options, i) {
+    let items = options.updateAccounts;
+    let query;
+    let places;
+    query = 'UPDATE accounts'
+        + ' SET name_en = ?,'
+        + ' name_pt = ?,'
+        + ' cost_center_id = ?,'
+        + ' active = ?'
+        + ' WHERE id = ?;';
+    places = [
+        items[i].name_en,
+        items[i].name_en,
+        items[i].cost_center_id,
+        items[i].active,
+        items[i].id
+    ]; // for now EN=PT
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        // Use the connection
+        connection.query(query, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                    return;
+                }
+                if (i + 1 < items.length) {
+                    return updateAccount(req, res, next, options, i + 1);
+                } else if (options.createAccounts.length > 0) {
+                    return createAccount(req, res, next, options, 0);
+                } else {
+                    sendJSONResponse(res, 200,
+                        {
+                            "status": "success", "statusCode": 200,
+                            "message": "Financial structure was changed succesfully."
+                        });
+                    return;
+                }
+            });
+    });
+};
+var createAccount = function (req, res, next, options, i) {
+    let items = options.createAccounts;
+    if (items[i].cost_center_id === 'new') {
+        // we have to search for the newly created Cost Center id
+        for (let indCenter in options.create) {
+            if (options.create[indCenter].name_en === items[i].cost_center_name_en) {
+                items[i].cost_center_id = options.create[indCenter].id;
+                break;
+            }
+        }
+    }
+    let query;
+    let places;
+    query = 'INSERT INTO accounts'
+        + ' (name_en, name_pt, cost_center_id, active)'
+        + ' VALUES (?,?,?,?)';
+    places = [
+        items[i].name_en,
+        items[i].name_en,
+        items[i].cost_center_id,
+        items[i].active
+    ]; // same name EN & PT
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        // Use the connection
+        connection.query(query, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                    return;
+                }
+                if (i + 1 < items.length) {
+                    return createAccount(req, res, next, options, i + 1);
+                } else {
+                    sendJSONResponse(res, 200,
+                        {
+                            "status": "success", "statusCode": 200,
+                            "message": "Financial structure was changed succesfully."
+                        });
+                    return;
+                }
+            });
+    });
+};
+
+
+var getManagementAccountFinancesQuery = function (req, res, next, options) {
+    let accountID = req.params.accountID
+    var query = 'SELECT *'
+        + ' FROM account_finances'
+        + ' WHERE account_id = ?;';
+    var places = [accountID];
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        // Use the connection
+        connection.query(query, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                    return;
+                }
+                if (resQuery.length > 0) {
+                    sendJSONResponse(res, 200,
+                        {
+                            "status": "success", "statusCode": 200, "count": resQuery.length,
+                            "result": resQuery
+                        });
+                } else {
+                    sendJSONResponse(res, 200,
+                        {
+                            "status": "success", "statusCode": 200, "count": 0,
+                            "result": []
+                        });
+                }
+                return;
+            });
+    });    
+};
+
+var updateManagementAccountFinancesQuery = function (req, res, next, options) {
+    let accountID = req.params.accountID
+    let i = options.i;
+    var query = null;
+    var places = null;
+    let hasData = false;
+    let isCreate = false;
+    while (!hasData && i < req.body.length) {
+        let finances = req.body[i];
+        if (finances.initial_amount !== null) {
+            hasData = true;
+            if (finances.id !== 'new') {
+                // update
+                query = 'UPDATE account_finances'
+                    + ' SET initial_amount = ?,'
+                    + ' current_amount = ?,'
+                    + ' current_amount_tax = ?'
+                    + ' WHERE id = ?;';
+                places = [
+                    parseFloat(finances.initial_amount),
+                    parseFloat(finances.current_amount),
+                    parseFloat(finances.current_amount_tax),
+                    finances.id
+                ];
+            } else {
+                // create
+                isCreate = true;
+                query = 'INSERT INTO account_finances'
+                    + ' (account_id, initial_amount, current_amount, amount_requests, current_amount_tax, amount_requests_tax, year)'
+                    + ' VALUES (?,?,?,?,?,?,?);';
+                places = [
+                    accountID,
+                    parseFloat(finances.initial_amount),
+                    parseFloat(finances.initial_amount),
+                    0,
+                    parseFloat(finances.initial_amount),
+                    0,
+                    finances.year
+                ];
+            }
+        } else {
+            i = i + 1;
+        }
+    }
+    if (query !== null) {
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                return;
+            }
+            // Use the connection
+            connection.query(query, places,
+                function (err, resQuery) {
+                    // And done with the connection.
+                    connection.release();
+                    if (err) {
+                        sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                        return;
+                    }
+                    if (isCreate) {
+                        let financeID = resQuery.insertId;
+                        req.body[i].id = financeID;
+                        req.body[i].created = true;
+                    } else {
+                        req.body[i].created = false;
+                    }
+                    return updateManagementAccountFinancesHistory(req, res, next, options);
+                });
+        });
+    } else {
+        sendJSONResponse(res, 200,
+            {
+                "status": "success", "statusCode": 200, "message": "No changes!"
+            });
+        return;
+    }   
+};
+var updateManagementAccountFinancesHistory = function (req, res, next, options) {
+    let accountID = req.params.accountID
+    let i = options.i;
+    let finances = req.body[i];
+    let query = 'INSERT INTO account_finances_history'
+        + ' (account_finance_id, account_id, initial_amount, current_amount, amount_requests,'
+        + ' current_amount_tax, amount_requests_tax, year, datetime)'
+        + ' VALUES (?,?,?,?,?,?,?,?,?);';
+    let places;
+    if (finances.created) {
+        places = [
+            finances.id,
+            accountID,
+            parseFloat(finances.initial_amount),
+            parseFloat(finances.initial_amount),
+            0,
+            parseFloat(finances.initial_amount),
+            0,
+            finances.year,
+            options.datetime
+        ];
+    } else {
+        places = [
+            finances.id,
+            accountID,
+            parseFloat(finances.initial_amount),
+            parseFloat(finances.current_amount),
+            parseFloat(finances.amount_requests),
+            parseFloat(finances.current_amount_tax),
+            parseFloat(finances.amount_requests_tax),
+            finances.year,
+            options.datetime
+        ];
+    }
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        // Use the connection
+        connection.query(query, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                    return;
+                }
+                if (i + 1 < req.body.length) {
+                    options.i = i + 1;
+                    return updateManagementAccountFinancesQuery(req, res, next, options);
+                } else {
+                    sendJSONResponse(res, 200,
+                        {
+                            "status": "success", "statusCode": 200, "message": "Changes were successful."
+                        });
+                    return;
+                }                    
+            });
+        });
+};
+
 
 
 var makeInventoryItemQuery = function (req, res, next, options) {
@@ -2493,5 +2987,18 @@ module.exports.searchPeopleSimple = function (req, res, next) {
     }
 };
 module.exports.updateManagementUsersInfo = function (req, res, next) {
-    checkManagementPermissions(req, res, next, updateManagememtUsersInfoQuery, {});
+    checkManagementPermissions(req, res, next, updateManagementUsersInfoQuery, {});
+};
+module.exports.updateManagementFinancialStructure = function (req, res, next) {
+    checkManagementPermissions(req, res, next, updateManagementFinancialStructureQuery, {});
+};
+module.exports.getManagementAccountFinances = function (req, res, next) {
+    checkManagementPermissions(req, res, next, getManagementAccountFinancesQuery, {});
+};
+module.exports.updateManagementAccountFinances = function (req, res, next) {
+    checkManagementPermissions(req, res, next, updateManagementAccountFinancesQuery, 
+    {
+        i: 0,
+        datetime: momentToDate(moment(), undefined, 'YYYY-MM-DD HH:mm:ss')
+    });
 };

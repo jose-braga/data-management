@@ -55,6 +55,31 @@
             );
         };
 
+        var updateManagersFinancialStructure = function (currentUser, data) {
+            return $http.put('api/financial-managers/' + currentUser + '/financial-structure', data,
+                {
+                    headers: { Authorization: 'Bearer ' + authentication.getToken() }
+                }
+            );
+        };
+
+        var getManagersAccountFinances = function (currentUser, accountID) {
+            return $http.get('api/financial-managers/' + currentUser + '/account-info/' + accountID,
+                {
+                    headers: { Authorization: 'Bearer ' + authentication.getToken() }
+                }
+            );
+        };
+
+        var updateManagersAccountFinances = function (currentUser, accountID, data) {
+            return $http.put('api/financial-managers/' + currentUser + '/account-info/' + accountID,
+                data,
+                {
+                    headers: { Authorization: 'Bearer ' + authentication.getToken() }
+                }
+            );
+        };
+
         var getInventory = function (currentUser) {
             return $http.get('api/users/' + currentUser + '/inventory',
                 {
@@ -155,6 +180,9 @@
             searchUsersSimple: searchUsersSimple,
             getAllUsersInfo: getAllUsersInfo,
             updateManagersUsers: updateManagersUsers,
+            updateManagersFinancialStructure: updateManagersFinancialStructure,
+            getManagersAccountFinances: getManagersAccountFinances,
+            updateManagersAccountFinances: updateManagersAccountFinances,
             getInventory: getInventory,
             getManagementPermissions: getManagementPermissions,
             getManagersInventory: getManagersInventory,

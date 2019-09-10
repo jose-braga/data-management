@@ -41,6 +41,7 @@ router.get('/v1/publication/person/:personID', ctrlProductivityData.getPersonPub
 router.get('/v1/publication/group/:groupID/lab/:labID', ctrlProductivityData.getLabPublicationInfo);
 router.get('/v1/publication/group/:groupID', ctrlProductivityData.getGroupPublicationInfo);
 router.get('/v1/publication/unit/:unitID', ctrlProductivityData.getUnitPublicationInfo);
+router.get('/v1/publication/unit/:unitID/latest', ctrlProductivityData.getLatestPublications);
 
 
 /**************************** APP SPECIFIC ENDPOINTS ****************************/

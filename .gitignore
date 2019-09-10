@@ -63,7 +63,7 @@ docker-compose.yml
 .env
 
 # ignore some directories and files
-test.js
+test*.js
 temp/
 database/
 

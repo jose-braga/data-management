@@ -265,6 +265,12 @@ function compactData(arr, key, aggregate_key) {
     return compact_arr;
 }
 
+function getRandomInt(min, max) {
+    min = Math.ceil(min);
+    max = Math.floor(max);
+    return Math.floor(Math.random() * (max - min)) + min; //The maximum is exclusive and the minimum is inclusive
+}
+
 /***************************** Query Functions ********************************/
 
 var queryAllPublications = function (req, res, next) {
@@ -6179,6 +6185,143 @@ module.exports.getAllPublications = function (req, res, next) {
                     {"status": "success", "statusCode": 200, "count": publications.length,
                      "result" : publications});
                 return;
+            }
+        );
+    });
+};
+module.exports.getLatestPublications = function (req, res, next) {
+    let unitID = req.params.unitID;
+    let numberPublications = 20; // the default number of publications to retrieve
+    let currentYear = moment().year();
+    
+    if (req.query.hasOwnProperty('size')) {
+        numberPublications = parseInt(req.query.size, 10);
+    }
+    
+    var querySQL = 'SELECT publications.*, journals.name AS journal_name'
+                + ' FROM publications'
+                + ' LEFT JOIN journals ON journals.id = publications.journal_id'
+                + ' LEFT JOIN units_publications ON units_publications.publication_id = publications.id'
+                + ' WHERE publications.year = ? AND units_publications.unit_id = ?;';
+    var places = [currentYear, unitID];
+    
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        connection.query(querySQL, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, { "status": "error", "statusCode": 400, "error": err.stack });
+                    return;
+                }
+                if (resQuery.length === 0 || resQuery === undefined) {
+                    sendJSONResponse(res, 200,
+                        {
+                            "status": "No data returned!", "statusCode": 200, "count": 0,
+                            "result": []
+                        });
+                    return;
+                } else {
+                    if (resQuery.length < numberPublications) {
+                        sendJSONResponse(res, 200,
+                            {
+                                "status": "Success", "statusCode": 200, "count": resQuery.length,
+                                "result": resQuery
+                            });
+                        return;
+
+                    } else {
+                        // get all publications in which month (and preferably day) is known
+                        // sorts publications according to publication date 
+                        // and then picks up first numberPublications
+                        let publicationsWithDate = [];
+                        let idsUsed = [];
+                        for (let ind in resQuery) {
+                            if (resQuery[ind].publication_date !== null) {
+                                let thisDate = resQuery[ind].publication_date;
+                                let dateComponents = thisDate.split(' ');
+                                let month = null;
+                                let day = null;
+                                let addToList = false;
+                                if (dateComponents.length === 1) {
+                                    // might be a number (reject)
+                                    // a string representing only month
+                                    // a range of months (e.g. 'MAY-JUN') (take only  first)
+                                    if (!Number.isNaN(parseInt(dateComponents[0], 10))) {
+                                        // is a number => do nothing                                    
+                                    } else if (dateComponents[0].includes('-')) {
+                                        let dateRangeSplit = dateComponents[0].split('-');
+                                        let initialMonth = dateRangeSplit[0];
+                                        if (moment(initialMonth, 'MMM').isValid()) {
+                                            month = moment(initialMonth, 'MMM').month();
+                                            day = 1;
+                                            addToList = true;
+                                        }
+                                    } else {
+                                        // this must be a single month
+                                        if (moment(dateComponents[0], 'MMM').isValid()) {
+                                            month = moment(dateComponents[0], 'MMM').month();
+                                            day = 1;
+                                            addToList = true;
+                                        }
+                                    }
+                                } else if (dateComponents.length === 2) {
+                                    if (moment(thisDate, ['MMM DD', 'MMM D']).isValid()) {
+                                        month = moment(thisDate, ['MMM DD', 'MMM D']).month();
+                                        day = moment(thisDate, ['MMM DD', 'MMM D']).date();
+                                        addToList = true;
+                                    }                                    
+                                }
+                                if (addToList) {
+                                    resQuery[ind].curated_date = moment({
+                                        year: currentYear,
+                                        month: month,
+                                        day: day
+                                    });
+                                    publicationsWithDate.push(resQuery[ind]);
+                                    idsUsed.push(resQuery[ind].id);
+                                }
+                            }
+                        }
+                        publicationsWithDate.sort((a, b) => {
+                            if (a.curated_date.isBefore(b.curated_date)) {
+                                return +1;
+                            } else {
+                                return -1;
+                            }
+                        });
+                        if (publicationsWithDate.length < numberPublications) {
+                            // adding random publications from the remaining to fill array
+                            while (publicationsWithDate.length < numberPublications
+                                    && publicationsWithDate.length < resQuery.length) {
+                                let indRand = getRandomInt(0, numberPublications);
+                                if (idsUsed.indexOf(indRand) === -1) {
+                                    publicationsWithDate.push(resQuery[indRand]);
+                                    idsUsed.push(resQuery[indRand].id);
+                                }
+                            }
+
+                            sendJSONResponse(res, 200,
+                                {
+                                    "status": "Success", "statusCode": 200, "count": publicationsWithDate.length,
+                                    "result": publicationsWithDate
+                                });
+                            return;
+
+                        } else {
+                            sendJSONResponse(res, 200,
+                                {
+                                    "status": "Success", "statusCode": 200, "count": numberPublications,
+                                    "result": publicationsWithDate.slice(0, numberPublications)
+                                });
+                            return;                            
+                        }
+                    }
+                }
             }
         );
     });

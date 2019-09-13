@@ -257,7 +257,8 @@ router.get('/stock-managers/:userID/orders', auth, ctrlOrders.getManagementOrder
 router.put('/stock-managers/:userID/orders/:orderID', auth, ctrlOrders.updateManagementOrder);
 router.put('/stock-managers/:userID/orders/:orderID/approve', auth, ctrlOrders.approveManagementOrder);
 router.put('/stock-managers/:userID/orders/:orderID/reject', auth, ctrlOrders.rejectManagementOrder);
-router.put('/stock-managers/:userID/orders/:orderID/delivered', auth, ctrlOrders.deliveredManagementOrder);
+router.put('/stock-managers/:userID/orders/:orderID/deliver-part', auth, ctrlOrders.partialDeliveryManagementOrder);
+router.put('/stock-managers/:userID/orders/:orderID/close', auth, ctrlOrders.closeManagementOrder);
 router.put('/financial-managers/:userID/financial-structure', auth, ctrlOrders.updateManagementFinancialStructure);
 router.get('/financial-managers/:userID/account-info/:accountID', auth, ctrlOrders.getManagementAccountFinances);
 router.put('/financial-managers/:userID/account-info/:accountID', auth, ctrlOrders.updateManagementAccountFinances);

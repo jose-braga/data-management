@@ -678,7 +678,6 @@ var createAccount = function (req, res, next, options, i) {
     });
 };
 
-
 var getManagementAccountFinancesQuery = function (req, res, next, options) {
     let accountID = req.params.accountID
     var query = 'SELECT *'
@@ -856,8 +855,6 @@ var updateManagementAccountFinancesHistory = function (req, res, next, options) 
         });
 };
 
-
-
 var makeInventoryItemQuery = function (req, res, next, options) {
     var query = 'SELECT items.*,'
         + ' quantity_types.name_plural_en AS unit_plural_en, quantity_types.name_singular_en  AS unit_singular_en,'
@@ -951,7 +948,6 @@ var makeManagerInventoryItemQuery = function (req, res, next, options) {
         return;
     }    
 };
-
 
 var updateManagememtInventoryQuery = function (req, res, next, options) {
     options.delete = req.body.delete;
@@ -1365,8 +1361,6 @@ var writeStockItemHistory = function (req, res, next, options, i, operation) {
     });
 };
 
-
-
 var makeManagerOrdersQuery = function (req, res, next, options) {
     // afterwards we pick items information for each order, order status
     var query = 'SELECT orders.*,'
@@ -1579,6 +1573,9 @@ var updateManagerOrderItems = function (req, res, next, i, options) {
             + ' quantity_decimal = ?,'
             + ' cost = ?,'
             + ' cost_tax = ?,'
+            + ' delivered = ?,'
+            + ' delivered_quantity = ?,'
+            + ' delivered_quantity_decimal = ?,'
             + ' changed_by_manager = ?,'
             + ' change_reason = ?'
             + ' WHERE id = ?;';
@@ -1587,6 +1584,9 @@ var updateManagerOrderItems = function (req, res, next, i, options) {
             item.quantity_decimal,
             item.cost,
             item.cost_tax,
+            item.delivered,
+            item.delivered_quantity,
+            item.delivered_quantity_decimal,
             item.changed_by_manager,
             item.change_reason,
             item.id
@@ -1888,7 +1888,150 @@ var makeRejectManagerOrdersQuery = function (req, res, next, options) {
     });
 
 };
-var makeDeliveredManagerOrdersQuery = function (req, res, next, options) { 
+var makePartialDeliveryManagerOrdersQuery = function (req, res, next, options) {
+    options.datetime = momentToDate(moment(), undefined, 'YYYY-MM-DD HH:mm:ss');
+    let order = req.body;
+    options.orderID = order.id;
+    let partialDelivery = order.itemsPartialDelivery;
+    options.userEmail = order.email;
+    options.partialDelivery = partialDelivery;
+    let query = 'INSERT INTO order_status_track (order_id, order_status_id, datetime)'
+        + ' VALUES (?,?,?);';
+    let places = [order.id, 5, options.datetime]; // 5 = partially delivered status id
+    if (partialDelivery.length > 0) {
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                return;
+            }
+            // Use the connection
+            connection.query(query, places,
+                function (err, resQuery) {
+                    // And done with the connection.
+                    connection.release();
+                    if (err) {
+                        sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                        return;
+                    }
+                    return updatePartialDeliveryItem(req, res, next, 0, options);
+                });
+        });
+    } else {
+        sendJSONResponse(res, 200,
+            {
+                "status": "success",
+                "statusCode": 200,
+                "message": "No changes."
+            });
+        return;
+    }
+};
+var updatePartialDeliveryItem = function (req, res, next, i, options) {
+    let item = options.partialDelivery[i];
+    let query;
+    let places;    
+    if (item.decimal === 0) {
+        item.delivered_quantity = parseInt(item.delivered_quantity,10);
+        item.quantity = parseInt(item.quantity, 10);
+        if (item.delivered_quantity < item.quantity) {
+            query = 'UPDATE items_orders'
+                    + ' SET delivered_quantity = ?'
+                    + ' WHERE id = ?;';
+            places = [item.delivered_quantity, item.id];
+        } else if (item.delivered_quantity === item.quantity) {
+            query = 'UPDATE items_orders'
+                + ' SET delivered_quantity = ?,'
+                + ' delivered = 1'
+                + ' WHERE id = ?;';
+            places = [item.delivered_quantity, item.id];
+        } 
+    } else {
+        item.delivered_quantity_decimal = parseFloat(item.delivered_quantity_decimal);
+        item.quantity_decimal = parseFloat(item.quantity_decimal);
+        if (item.delivered_quantity_decimal < item.quantity_decimal) {
+            query = 'UPDATE items_orders'
+                + ' SET delivered_quantity_decimal = ?'
+                + ' WHERE id = ?;';
+            places = [item.delivered_quantity_decimal, item.id];
+        } else if (item.delivered_quantity_decimal === item.quantity_decimal) {
+            query = 'UPDATE items_orders'
+                + ' SET delivered_quantity_decimal = ?,'
+                + ' delivered = 1'
+                + ' WHERE id = ?;';
+            places = [item.delivered_quantity_decimal, item.id];
+        }
+    }    
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        // Use the connection
+        connection.query(query, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                    return;
+                }
+                if (i + 1 < options.partialDelivery.length) {
+                    return updatePartialDeliveryItem(req, res, next, i + 1, options);
+                } else {
+                    return sendEmailUserPartialDelivery(req, res, next, options);                    
+                }                
+            });
+    });
+}
+var sendEmailUserPartialDelivery = function (req, res, next, options) {
+    if (options.userEmail !== undefined && options.userEmail !== null) {
+        let mailText = 'Hi, \n\n' +
+                'Stock manager is ready to deliver the following items:\n\n';
+        let str = ''; 
+        for (let ind in options.partialDelivery) {
+            let indList = parseInt(ind,10) + 1;
+            
+            str = str + (indList + ' - '
+                + options.partialDelivery[ind].brand + ', '
+                + options.partialDelivery[ind].item_name_en 
+                + ' (ref: ' + options.partialDelivery[ind].reference + '). Quantity: ');
+            if (options.partialDelivery[ind].decimal === 0) {
+                str = str + options.partialDelivery[ind].this_delivery + '.\n';
+            } else {
+                str = str + options.partialDelivery[ind].this_delivery_decimal + '.\n';
+            }
+        }
+        mailText = mailText + str;
+
+        let mailOptions = {
+            from: '"Admin" <admin@laqv-ucibio.info>', // sender address
+            to: options.userEmail, // list of receivers (comma-separated)
+            subject: 'Partial delivery for order nr: ' + options.orderID, // Subject line
+            text: mailText +
+                '\n\nBest regards,\nAdmin',
+        };
+        // send mail with defined transport object
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                console.log('Error: Order ID: %s. Message to %s not sent due to error below.',
+                    options.orderID, 'user');
+                console.log(error);
+            }
+            console.log('OK! Order ID: %s. Message %s was sent to requester with response: %s',
+                options.orderID, info.messageId, info.response);
+        });
+    }
+    sendJSONResponse(res, 200,
+        {
+            "status": "success",
+            "statusCode": 200,
+            "message": "Partial delivery information updated."
+        });
+    return;
+};
+
+
+var makeCloseManagerOrdersQuery = function (req, res, next, options) { 
     // ??? a delivered(=closed) order affects cost centers also ???
 
     options.datetime = momentToDate(moment(), undefined, 'YYYY-MM-DD HH:mm:ss');
@@ -2260,7 +2403,6 @@ var sendEmailUserUpdateStatus = function (req, res, next, options) {
     }    
 };
 
-
 var getItemCategories = function (req, res, next, rows, i, options) {
     var query = 'SELECT items_categories.id AS items_categories_id, items_categories.category_id AS id,'
                 + ' list_categories.name_en, list_categories.name_pt,' 
@@ -2330,7 +2472,6 @@ var startOrderProcedure = function (req, res, next, options) {
             });
     });
 };
-
 var writeOrderItems = function (req, res, next, options, i) {
     let data = req.body;
     let cart = data.cart;
@@ -2338,24 +2479,27 @@ var writeOrderItems = function (req, res, next, options, i) {
     let query;
     let places;
     if (cart[i].decimal === 0) {
-        query = 'INSERT INTO items_orders (item_id, order_id, quantity, cost, cost_tax)'
-            + ' VALUES (?,?,?,?,?)';
+        query = 'INSERT INTO items_orders (item_id, order_id, quantity, cost, cost_tax, delivered, delivered_quantity)'
+            + ' VALUES (?,?,?,?,?,?,?)';
         places = [
                 cart[i].id, 
                 options.orderID, 
                 parseInt(cart[i].amount_to_order, 10), 
                 parseFloat(cart[i].cost_truncated_no_tax),
-                parseFloat(cart[i].cost_truncated)
+                parseFloat(cart[i].cost_truncated),
+                0, 0
             ];
     } else {
-        query = 'INSERT INTO items_orders (item_id, order_id, quantity_decimal, cost, cost_tax)'
-            + ' VALUES (?,?,?,?,?)';
+        query = 'INSERT INTO items_orders (item_id, order_id, quantity_decimal, cost, cost_tax, delivered, delivered_quantity_decimal)'
+            + ' VALUES (?,?,?,?,?,?,?)';
         places = [
                 cart[i].id, 
                 options.orderID,
                 parseFloat(cart[i].amount_to_order),
                 parseFloat(cart[i].cost_truncated_no_tax),
-                parseFloat(cart[i].cost_truncated)];
+                parseFloat(cart[i].cost_truncated),
+                0, 0
+            ];
     }
     pool.getConnection(function (err, connection) {
         if (err) {
@@ -2380,7 +2524,6 @@ var writeOrderItems = function (req, res, next, options, i) {
             });
     });    
 };
-
 var writeInitialOrderStatus = function (req, res, next, options) {
     let query = 'INSERT INTO order_status_track (order_id, order_status_id, datetime)'
         + ' VALUES (?, ?, ?)';
@@ -2404,7 +2547,6 @@ var writeInitialOrderStatus = function (req, res, next, options) {
             });
     });
 };
-
 var updateStockRequestsLevels = function (req, res, next, options, i) {
     let data = req.body;
     let cart = data.cart;
@@ -2447,7 +2589,6 @@ var updateStockRequestsLevels = function (req, res, next, options, i) {
             });
     });
 };
-
 var getStockRequestsLevelsUpdatedValue = function (req, res, next, options, i) {
     let data = req.body;
     let cart = data.cart;
@@ -2482,7 +2623,6 @@ var getStockRequestsLevelsUpdatedValue = function (req, res, next, options, i) {
             });
     });
 };
-
 var writeStockHistory = function (req, res, next, options, i) {
     // this function is used when user makes orders
     let data = req.body;
@@ -2526,7 +2666,6 @@ var writeStockHistory = function (req, res, next, options, i) {
             });
     });
 };
-
 var updateAccountFinances = function (req, res, next, options) {
     let data = req.body;
     if (data.currentFinances !== null && data.currentFinances !== undefined) {
@@ -2591,7 +2730,6 @@ var getAccountFinancesUpdatedValue = function (req, res, next, options) {
             });
     });
 };
-
 var writeAccountFinancesHistory = function (req, res, next, options) {
     let data = req.body;
     var query = 'INSERT INTO account_finances_history'
@@ -2628,13 +2766,12 @@ var writeAccountFinancesHistory = function (req, res, next, options) {
             });
     });
 };
-
 var sendEmailStockManager = function (req, res, next, options) {
     let mailOptions = {
         from: '"Admin" <admin@laqv-ucibio.info>', // sender address
         to: recipients.stock_manager, // list of receivers (comma-separated)
         subject: 'A user placed order nr: ' + options.orderID, // Subject line
-        text: 'Hi ,\n\n' +
+        text: 'Hi,\n\n' +
             'Head to https://laqv-ucibio.info/internal-orders and validate this order.\n\n' +
             'Best regards,\nAdmin',
     };
@@ -2650,15 +2787,13 @@ var sendEmailStockManager = function (req, res, next, options) {
     });
     return sendEmailUser(req, res, next, options);
 };
-
 var sendEmailUser = function (req, res, next, options) {
-    //to: options.userEmail,
     if (options.userEmail !== undefined && options.userEmail !== null) {
         let mailOptions = {
             from: '"Admin" <admin@laqv-ucibio.info>', // sender address
             to: options.userEmail, // list of receivers (comma-separated)
             subject: 'Successfully placed order nr: ' + options.orderID, // Subject line
-            text: 'Hi ,\n\n' +
+            text: 'Hi,\n\n' +
                 'You successfully placed this order. Note that all orders require validation by stock manager.\n\n' +
                 'Best regards,\nAdmin',
         };
@@ -2679,7 +2814,6 @@ var sendEmailUser = function (req, res, next, options) {
         });
     return;
 };
-
 
 var makeUserOrdersQuery = function (req, res, next, options) {
     var query = 'SELECT orders.id AS order_id, orders.datetime, orders.user_ordered_id,' 
@@ -2763,7 +2897,9 @@ var getOrderStatus = function (req, res, next, options, rows, i) {
 };
 
 var getOrderDetailsInfo = function (req, res, next, options, rows, i) {
-    var query = 'SELECT items_orders.quantity, items_orders.quantity_decimal, items_orders.cost, items_orders.cost_tax,'
+    var query = 'SELECT items_orders.quantity, items_orders.quantity_decimal,'
+        + ' items_orders.delivered, items_orders.delivered_quantity, items_orders.delivered_quantity_decimal,'
+        + ' items_orders.cost, items_orders.cost_tax,'
         + ' items.*,'
         + ' quantity_types.name_plural_en AS unit_plural_en, quantity_types.name_singular_en AS unit_singular_en,'
         + ' quantity_types.name_plural_pt AS unit_plural_pt, quantity_types.name_singular_pt AS unit_singular_pt,'
@@ -2923,8 +3059,11 @@ module.exports.approveManagementOrder = function (req, res, next) {
 module.exports.rejectManagementOrder = function (req, res, next) {
     checkManagementPermissions(req, res, next, makeRejectManagerOrdersQuery, {});
 };
-module.exports.deliveredManagementOrder = function (req, res, next) {
-    checkManagementPermissions(req, res, next, makeDeliveredManagerOrdersQuery, {});
+module.exports.partialDeliveryManagementOrder = function (req, res, next) {
+    checkManagementPermissions(req, res, next, makePartialDeliveryManagerOrdersQuery, {});
+};
+module.exports.closeManagementOrder = function (req, res, next) {
+    checkManagementPermissions(req, res, next, makeCloseManagerOrdersQuery, {});
 };
 
 module.exports.makeOrder = function (req, res, next) {

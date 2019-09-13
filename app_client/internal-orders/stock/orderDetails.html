@@ -5,6 +5,10 @@
         </md-card-title-text>
     </md-card-title>
     <md-card-content layout="column">
+        {{ ctrl.order.orderPending }}<br>-<br>
+        {{ ctrl.order.approved }}<br>-<br>
+        {{ ctrl.order.partiallyDelivered }}<br>-<br>
+        {{ ctrl.order.orderNotClosed }}<br>-<br>
         <form flex novalidate name="orderDetailsForm" 
                 ng-submit="orderDetailsForm.$valid && ctrl.submitOrderChanges(ctrl.forms['orderChange'])">
             <table class="materialize-table">
@@ -24,6 +28,10 @@
                         </th>
                         <th>Change reason
                         </th>
+                        <th>This delivery <br> amount
+                        </th>
+                        <th>Already delivered <br> amount
+                        </th>
                     </tr>
                 </thead>
                 <tbody>
@@ -31,7 +39,7 @@
                         <td>{{item.item_name_en}}</td>
                         <td>{{item.brand}}</td>
                         <td>{{item.reference}}</td>
-                        <td>
+                        <td style="text-align:center">
                             <div ng-if="ctrl.order.orderPending">
                                 <div ng-if="item.decimal === 0">
                                     <md-input-container class="input-row">
@@ -74,6 +82,35 @@
                                 {{ item.change_reason }}
                             </div>
                         </td>
+                        <td style="text-align:center"> 
+                            <div ng-if="!ctrl.order.orderPending">
+                                <md-input-container ng-if="!item.delivered && item.decimal === 0"
+                                        class="input-row">
+                                    <input ng-model="item.this_delivery"
+                                        ng-change="ctrl.processAmountDelivered(item, ctrl.order)"
+                                        name="delivered_quantity[itemNum]">
+                                </md-input-container>
+                                <md-input-container ng-if="!item.delivered && item.decimal === 1"
+                                        class="input-row">
+                                    <input ng-model="item.this_delivery_decimal" 
+                                        ng-change="ctrl.processAmountDelivered(item, ctrl.order)"
+                                        name="delivered_quantity_decimal[itemNum]">
+                                </md-input-container>
+                                <md-checkbox ng-if="item.delivered"
+                                        ng-model="item.delivered" 
+                                        ng-disabled="true"
+                                        ng-true-value="1"
+                                        ng-false-value="0"
+                                        aria-label="delivered">
+                                </md-checkbox>
+                            </div>
+                        </td>
+                        <td>
+                            <div ng-if="!ctrl.order.orderPending && !item.delivered">
+                                <div ng-if="item.decimal === 0">{{ item.delivered_quantity }}</div>
+                                <div ng-if="item.decimal === 1">{{ item.delivered_quantity_decimal }}</div>
+                            </div>
+                        </td>
                     </tr>
                 </tbody>
                 <tfoot>
@@ -84,15 +121,26 @@
                         <td></td>
                         <td>Total:</td>
                         <td>{{ctrl.order.total_cost_tax | currency:"":2}} €</td>
+                        <td></td>
+                        <td></td>
                     </tr>
                 </tfoot>
             </table>
             <div ng-if="ctrl.order.orderPending" layout="column" class="spacer-top" 
                     layout-gt-sm="row" layout-align="center center">
-                <md-button type="submit" class="button-small md-raised md-primary">Submit changes</md-button>
+                <md-button type="submit" class="button-small md-raised md-primary">Submit order changes</md-button>
                 <div class="status-message" ng-hide="ctrl.hideMessage[ctrl.forms['orderChange']]">
                     <span class="message" ng-class="ctrl.messageType[ctrl.forms['orderChange']]">
                         {{ctrl.updateStatus[ctrl.forms['orderChange']]}}
+                    </span>
+                </div>
+            </div>
+            <div ng-if="ctrl.order.approved && ctrl.order.orderNotClosed" layout="column" class="spacer-top" 
+                    layout-gt-sm="row" layout-align="center center">
+                <md-button ng-click="ctrl.updatePartialDelivery(ctrl.forms['orderChange2'])" class="button-small md-raised md-warn">Submit items delivered</md-button>
+                <div class="status-message" ng-hide="ctrl.hideMessage[ctrl.forms['orderChange2']]">
+                    <span class="message" ng-class="ctrl.messageType[ctrl.forms['orderChange2']]">
+                        {{ctrl.updateStatus[ctrl.forms['orderChange2']]}}
                     </span>
                 </div>
             </div>

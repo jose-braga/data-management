@@ -14,7 +14,9 @@
                     </th>
                     <th>Refer.
                     </th>
-                    <th>Ordered amount
+                    <th>Ordered <br> amount
+                    </th>
+                    <th>Delivered <br>amount
                     </th>
                     <th>Cost (no tax)
                     </th>
@@ -30,6 +32,10 @@
                     <td>
                         <div ng-if="item.decimal === 0">{{item.quantity}}</div>
                         <div ng-if="item.decimal === 1">{{item.quantity_decimal}}</div>
+                    </td>
+                    <td>
+                        <div ng-if="item.decimal === 0">{{item.delivered_quantity}}</div>
+                        <div ng-if="item.decimal === 1">{{item.delivered_quantity_decimal}}</div>
                     </td>
                     <td>{{item.cost | currency:"":2}} €
                     </td>

@@ -106,7 +106,7 @@
 
                             scope.removeUser = function (items, thisItem) {
                                 let result = confirm('Are you sure you want to remove this user?\n\n'
-                                                    +'Note 1: This will only be effetive after selecting "Submit Changes".\n'
+                                                    +'Note 1: This will only be effective after selecting "Submit Changes".\n'
                                                     + 'Note 2: This won\'t affect previous orders.\n');
                                 if (result) {
                                     for (let el in items) {

@@ -312,6 +312,8 @@
                 };
             }];
     
+
+    // TODO: correct table sorting!
     var ordersManagement =
         ['ordersData', 'authentication', '$timeout', '$mdPanel',
             function (ordersData, authentication, $timeout, $mdPanel) {
@@ -326,7 +328,7 @@
                         function (scope, element, attrs) {
                             scope.currentPage = 1;
                             scope.pageSize = 10;
-                            scope.sortType = 'renderCategories';
+                            scope.sortType = 'datetime';
                             scope.sortReverse = false;
                             scope.searchString = '';
                             
@@ -349,8 +351,12 @@
                                 }
                                 scope.searchResults = [];
                                 for (let item in scope.orders) {
+                                    // item here refers to the item in the global orders list
+                                    // not to the specific items in each order
                                     scope.orders[item].list_id = item;
                                     for (let i in scope.orders[item].order_items) {
+                                        scope.orders[item].order_items[i].this_delivery = 0;
+                                        scope.orders[item].order_items[i].this_delivery_decimal = 0;
                                         if (scope.orders[item].order_items[i].decimal === 0) {
                                             scope.orders[item].order_items[i].original_quantity = 
                                                     scope.orders[item].order_items[i].quantity;
@@ -378,20 +384,29 @@
                                     
                                     if (scope.orders[item].last_status.order_status_id === 1) {
                                         scope.orders[item].orderPending = true;
-                                        scope.orders[item].orderNotDelivered = true;
                                         scope.orders[item].approved = undefined;
+                                        scope.orders[item].partiallyDelivered = undefined;
+                                        scope.orders[item].orderNotClosed = true;
                                     } else if (scope.orders[item].last_status.order_status_id === 2) {
                                         scope.orders[item].orderPending = false;
-                                        scope.orders[item].orderNotDelivered = true;
                                         scope.orders[item].approved = true;
-                                    } else if (scope.orders[item].last_status.order_status_id === 3){
+                                        scope.orders[item].partiallyDelivered = undefined;
+                                        scope.orders[item].orderNotClosed = true;
+                                    } else if (scope.orders[item].last_status.order_status_id === 3) {
                                         scope.orders[item].orderPending = false;
-                                        scope.orders[item].orderNotDelivered = false;
                                         scope.orders[item].approved = true;
+                                        scope.orders[item].partiallyDelivered = false;
+                                        scope.orders[item].orderNotClosed = false;
+                                    } else if (scope.orders[item].last_status.order_status_id === 5) {
+                                        scope.orders[item].orderPending = false;
+                                        scope.orders[item].approved = true;
+                                        scope.orders[item].partiallyDelivered = true;
+                                        scope.orders[item].orderNotClosed = true;
                                     } else {
                                         scope.orders[item].orderPending = false;
-                                        scope.orders[item].orderNotDelivered = undefined;
                                         scope.orders[item].approved = false;
+                                        scope.orders[item].partiallyDelivered = undefined;
+                                        scope.orders[item].orderNotClosed = undefined;
                                     }
                                     var toInclude = 0;
                                     var toIncludeDueName = 0;
@@ -446,6 +461,7 @@
 
                             };
                             scope.showDetailsOrder = function (order) {
+                                order.itemsPartialDelivery = [];
                                 var position = $mdPanel.newPanelPosition()
                                     .absolute()
                                     .center();
@@ -454,6 +470,7 @@
                                     this._mdPanelRef = mdPanelRef;
                                     ctrl.forms = {
                                         'orderChange': 0,
+                                        'orderChange2': 1,
                                     };
                                     let numberCards = Object.keys(ctrl.forms).length; // the number of cards with "Update" in each tab
                                     ctrl.updateStatus = [];
@@ -494,6 +511,19 @@
                                         
                                     };
 
+                                    ctrl.processAmountDelivered = function (item, thisOrder) {
+                                        let itemFound = false;
+                                        for (let ind in thisOrder.itemsPartialDelivery) {
+                                            if (item.id === thisOrder.itemsPartialDelivery[ind].id) {
+                                                itemFound = true;
+                                                thisOrder.itemsPartialDelivery[ind] = item
+                                            }
+                                        }
+                                        if (!itemFound) {
+                                            thisOrder.itemsPartialDelivery.push(item);
+                                        }                                        
+                                    };
+
                                     ctrl.submitOrderChanges = function (ind) {
                                         ctrl.updateStatus[ind] = "Updating order details.";
                                         ctrl.messageType[ind] = 'message-updating';
@@ -524,6 +554,66 @@
                                                 ctrl.messageType[ind] = 'message-error';
                                                 console.log(err);
                                             });
+                                    };
+
+                                    ctrl.updatePartialDelivery = function (ind) {
+                                        for (let indOrder in ctrl.order.itemsPartialDelivery) {
+                                            if (order.itemsPartialDelivery[indOrder].decimal === 0) {
+                                                if (parseInt(ctrl.order.itemsPartialDelivery[indOrder].delivered_quantity, 10)
+                                                    + parseInt(ctrl.order.itemsPartialDelivery[indOrder].this_delivery, 10)
+                                                    > parseInt(ctrl.order.itemsPartialDelivery[indOrder].quantity, 10)) {
+                                                    alert('Revise delivery amounts!');
+                                                    return;
+                                                } else {
+                                                    ctrl.order.itemsPartialDelivery[indOrder].delivered_quantity = parseInt(ctrl.order.itemsPartialDelivery[indOrder].delivered_quantity, 10)
+                                                            + parseInt(ctrl.order.itemsPartialDelivery[indOrder].this_delivery, 10);
+                                                }
+
+                                            } else {
+                                                if (parseFloat(ctrl.order.itemsPartialDelivery[indOrder].delivered_quantity_decimal) 
+                                                    + parseFloat(ctrl.order.itemsPartialDelivery[indOrder].this_delivery_decimal)
+                                                    > parseFloat(ctrl.order.itemsPartialDelivery[indOrder].quantity_decimal)) {
+                                                    alert('Revise delivery amounts!');
+                                                    return;
+                                                } else {
+                                                    ctrl.order.itemsPartialDelivery[indOrder].delivered_quantity_decimal = parseFloat(ctrl.order.itemsPartialDelivery[indOrder].delivered_quantity_decimal)
+                                                            + parseFloat(ctrl.order.itemsPartialDelivery[indOrder].this_delivery_decimal);
+                                                }
+                                            }
+                                        }
+                                        if (ctrl.order.itemsPartialDelivery.length > 0) {
+                                            ctrl.updateStatus[ind] = "Updating partial delivery information.";
+                                            ctrl.messageType[ind] = 'message-updating';
+                                            ctrl.hideMessage[ind] = false;
+                                            ordersData.partialDeliveryManagersOrder(scope.user, ctrl.order.id, ctrl.order)
+                                                .then(function () {
+                                                    ordersData.getManagersOrders(scope.user)
+                                                        .then(function (response) {
+                                                            if (response !== null && response !== undefined) {
+                                                                scope.orders = response.data.result;
+                                                                scope.renderOrders('new');
+                                                            }
+                                                        })
+                                                        .catch(function (err) {
+                                                            console.log(err);
+                                                        });
+                                                    if (ind > -1) {
+                                                        ctrl.updateStatus[ind] = "Changing partial delivery information was successful.";
+                                                        ctrl.messageType[ind] = 'message-success';
+                                                        ctrl.hideMessage[ind] = false;
+                                                        $timeout(function () { ctrl.hideMessage[ind] = true; }, 1500);
+                                                    }
+                                                }, function () {
+
+                                                })
+                                                .catch(function (err) {
+                                                    ctrl.updateStatus[ind] = "Error!";
+                                                    ctrl.messageType[ind] = 'message-error';
+                                                    console.log(err);
+                                                });
+
+                                        }
+                                        
                                     };
                                 };
                                 var config = {
@@ -630,13 +720,29 @@
                                     });
 
                             };
-                            scope.deliveredOrder = function (ordNum, order) {
+                            scope.closeOrder = function (ordNum, order) {
+                                for (let indItem in order.order_items) {
+                                    if (order.order_items[indItem].decimal === 0) {
+                                        if (parseInt(order.order_items[indItem].delivered_quantity, 10) <
+                                            parseInt(order.order_items[indItem].quantity, 10)) {
+                                            alert('Cannot close order while there are items with delivery pending!');
+                                            return;
+                                        }
+
+                                    } else {
+                                        if (parseFloat(order.order_items[indItem].delivered_quantity_decimal) >
+                                            parseFloat(order.order_items[indItem].quantity_decimal)) {
+                                            alert('Cannot close order while there are items with delivery pending!');
+                                            return;
+                                        }
+                                    }
+                                }
                                 let ind = order.list_id;
                                 scope.updateStatus[ind] = "Updating...";
                                 scope.messageType[ind] = 'message-updating';
                                 scope.hideMessage[ind] = false;
 
-                                ordersData.deliveredManagersOrder(scope.user, order.id, order)
+                                ordersData.closeManagersOrder(scope.user, order.id, order)
                                     .then(function () {
                                         ordersData.getManagersOrders(scope.user)
                                             .then(function (response) {
@@ -697,30 +803,32 @@
                                 }
                             }
                             function sorterOrders(a, b) {
-                                if (scope.sortTypeOrders === 'order_id'
-                                    || scope.sortTypeOrders === 'total_cost'
-                                    || scope.sortTypeOrders === 'total_cost_tax') {
-                                    if (scope.sortReverseOrders) {
-                                        return -(a[scope.sortTypeOrders] - b[scope.sortTypeOrders]);
+                                if (scope.sortType === 'id'
+                                    || scope.sortType === 'total_cost'
+                                    || scope.sortType === 'total_cost_tax') {
+                                    if (scope.sortReverse) {
+                                        return -(a[scope.sortType] - b[scope.sortType]);
                                     } else {
-                                        return a[scope.sortTypeOrders] - b[scope.sortTypeOrders];
+                                        return a[scope.sortType] - b[scope.sortType];
                                     }
-                                } else if (scope.sortTypeOrders === 'user_ordered_name'
-                                    || scope.sortTypeOrders === 'datetime') {
-                                    if (scope.sortReverseOrders) {
-                                        return -(a[scope.sortTypeOrders] ? a[scope.sortTypeOrders] : '')
-                                            .localeCompare(b[scope.sortTypeOrders] ? b[scope.sortTypeOrders] : '');
+                                } else if (scope.sortType === 'colloquial_name'
+                                    || scope.sortType === 'account_name_en'
+                                    || scope.sortType === 'cost_center_name_en'
+                                    || scope.sortType === 'datetime') {
+                                    if (scope.sortReverse) {
+                                        return -(a[scope.sortType] ? a[scope.sortType] : '')
+                                            .localeCompare(b[scope.sortType] ? b[scope.sortType] : '');
                                     } else {
-                                        return (a[scope.sortTypeOrders] ? a[scope.sortTypeOrders] : '')
-                                            .localeCompare(b[scope.sortTypeOrders] ? b[scope.sortTypeOrders] : '');
+                                        return (a[scope.sortType] ? a[scope.sortType] : '')
+                                            .localeCompare(b[scope.sortType] ? b[scope.sortType] : '');
                                     }
-                                } else if (scope.sortTypeOrders === 'last_status') {
-                                    if (scope.sortReverseOrders) {
-                                        return -(a[scope.sortTypeOrders].name_en ? a[scope.sortTypeOrders].name_en : '')
-                                            .localeCompare(b[scope.sortTypeOrders].name_en ? b[scope.sortTypeOrders].name_en : '');
+                                } else if (scope.sortType === 'last_status') {
+                                    if (scope.sortReverse) {
+                                        return -(a[scope.sortType].name_en ? a[scope.sortType].name_en : '')
+                                            .localeCompare(b[scope.sortType].name_en ? b[scope.sortType].name_en : '');
                                     } else {
-                                        return (a[scope.sortTypeOrders].name_en ? a[scope.sortTypeOrders].name_en : '')
-                                            .localeCompare(b[scope.sortTypeOrders].name_en ? b[scope.sortTypeOrders].name_en : '');
+                                        return (a[scope.sortType].name_en ? a[scope.sortType].name_en : '')
+                                            .localeCompare(b[scope.sortType].name_en ? b[scope.sortType].name_en : '');
                                     }
                                 }
                                 return 0;

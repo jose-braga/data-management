@@ -41,17 +41,17 @@
             <thead>
                 <tr>
                     <th>
-                        <a ng-click="sortColumn('order_id', 'orders')">Order ID</a>
-                        <ng-md-icon ng-if="!sortReverse && sortType=='order_id'" icon="arrow_downward" size="12">
+                        <a ng-click="sortColumn('id', 'orders')">Order ID</a>
+                        <ng-md-icon ng-if="!sortReverse && sortType=='id'" icon="arrow_downward" size="12">
                         </ng-md-icon>
-                        <ng-md-icon ng-if="sortReverse  && sortType=='order_id'" icon="arrow_upwards" size="12">
+                        <ng-md-icon ng-if="sortReverse  && sortType=='id'" icon="arrow_upwards" size="12">
                         </ng-md-icon>
                     </th>
                     <th>
-                        <a ng-click="sortColumn('user_ordered_name', 'orders')">Who</a>
-                        <ng-md-icon ng-if="!sortReverse && sortType=='user_ordered_name'" icon="arrow_downward"
+                        <a ng-click="sortColumn('colloquial_name', 'orders')">Who</a>
+                        <ng-md-icon ng-if="!sortReverse && sortType=='colloquial_name'" icon="arrow_downward"
                             size="12"></ng-md-icon>
-                        <ng-md-icon ng-if="sortReverse  && sortType=='user_ordered_name'" icon="arrow_upwards"
+                        <ng-md-icon ng-if="sortReverse  && sortType=='colloquial_name'" icon="arrow_upwards"
                             size="12"></ng-md-icon>
                     </th>
                     <th>
@@ -101,7 +101,7 @@
                     </th>
                     <th>Approve/Reject
                     </th>
-                    <th>Deliver
+                    <th>Close
                     </th>
                     <th><!-- For API interaction status --></th>
                 </tr>
@@ -135,21 +135,19 @@
                                 <md-icon md-svg-src="images/icons/thumb_down_24px.svg"></md-icon>
                             </md-button>
                         </div>
-                        <!--
-                        <div ng-if="!order.orderPending">
-                            <md-icon ng-if="order.approved" 
-                                    md-svg-src="images/icons/thumb_up_24px.svg"></md-icon>
-                            <md-icon ng-if="!order.approved" 
-                                    md-svg-src="images/icons/thumb_down_24px.svg"></md-icon>
-                        </div>
-                        -->
                     </td>
                     <td>
-                        <div ng-if="!order.orderPending && order.orderNotDelivered">
+                        <div ng-if="!order.orderPending && order.orderNotClosed">
+                            <md-button ng-click="closeOrder(ordNum, order)" aria-label="Delivered" 
+                                    class="md-raised">
+                                Close order
+                            </md-button>
+                            <!--
                             <md-button ng-click="deliveredOrder(ordNum, order)" aria-label="Delivered" 
                                     class="md-icon-button md-raised">
                                 <md-icon md-svg-src="images/icons/delivered_24px.svg"></md-icon>
                             </md-button>
+                            -->
                         </div>
                     </td>
                     <td>

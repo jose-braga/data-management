@@ -140,10 +140,21 @@
                 }
             );
         };
-        var deliveredManagersOrder = function (currentUser, orderID, data) {
+        var closeManagersOrder = function (currentUser, orderID, data) {
             // for a manager to make changes in an order
             return $http.put('api/stock-managers/' + currentUser
-                + '/orders/' + orderID + '/delivered',
+                + '/orders/' + orderID + '/close',
+                data,
+                {
+                    headers: { Authorization: 'Bearer ' + authentication.getToken() }
+                }
+            );
+        };
+
+        var partialDeliveryManagersOrder = function (currentUser, orderID, data) {
+            // for a manager to make changes in an order
+            return $http.put('api/stock-managers/' + currentUser
+                + '/orders/' + orderID + '/deliver-part',
                 data,
                 {
                     headers: { Authorization: 'Bearer ' + authentication.getToken() }
@@ -191,7 +202,8 @@
             updateManagersOrder: updateManagersOrder,
             approveManagersOrder: approveManagersOrder,
             rejectManagersOrder: rejectManagersOrder,
-            deliveredManagersOrder: deliveredManagersOrder,
+            partialDeliveryManagersOrder: partialDeliveryManagersOrder,
+            closeManagersOrder: closeManagersOrder,
             getUserOrders: getUserOrders,
             createOrder: createOrder,
             getUserAccountInfo: getUserAccountInfo,

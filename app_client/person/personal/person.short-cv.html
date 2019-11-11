@@ -1,0 +1,24 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Short CV</span>
+        </md-card-title-text>
+    </md-card-title>
+    <form flex novalidate name="personCVForm"
+        ng-submit="personCVForm.$valid && vm.submitShortCV(vm.forms['personCV'])">
+        <md-card-content layout="column" flex>
+            <md-input-container>
+                <label>Short CV text</label>
+                <textarea ng-model="vm.shortCV.website_text" md-maxlength="750" rows="10"></textarea>
+            </md-input-container>
+            <div layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button type="submit" class="button-small md-raised md-primary">Update</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personCV']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['personCV']]">
+                        {{vm.updateStatus[vm.forms['personCV']]}}
+                    </span>
+                </div>
+            </div>
+        </md-card-content>
+    </form>
+</md-card>

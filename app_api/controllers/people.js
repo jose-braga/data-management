@@ -1184,6 +1184,87 @@ var queryAffiliationsEndDate = function (req,res,next,updated,created,changed_by
     }
 };
 
+var queryShortCVPerson = function (req, res, next, userCity) {
+    var hasPermission = getGeoPermissions(req, userCity);
+    if ((req.payload.personID !== req.params.personID && hasPermission)
+        || req.payload.personID === req.params.personID) {
+        var personID = req.params.personID;
+        var shortCV = req.body;
+        if (shortCV.website_text_id !== null && shortCV.website_text_id !== undefined) {
+            return queryUpdateShortCV(req, res, next, personID, shortCV);
+        } else {
+            return queryCreateShortCV(req, res, next, personID, shortCV);
+        }
+    } else {
+        sendJSONResponse(res, 403, { message: 'This user is not authorized to this operation.' });
+        return;
+    }
+};
+
+var queryCreateShortCV = function (req, res, next, personID, shortCV) {
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'INSERT INTO website_texts' +
+        ' (person_id, text_type_id, text)' +
+        ' VALUES (?, ?, ?)';
+    querySQL = querySQL + '; ';
+    places.push(personID, 1, shortCV.website_text);
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        connection.query(querySQL, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, { "status": "error", "statusCode": 400, "error": err.stack });
+                    return;
+                }
+                externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'people', personID,
+                    'UCIBIO API error updating person information (add short CV) personID :', personID);
+                externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'people', personID,
+                    'LAQV API error updating person information (add short CV) personID :', personID);
+                sendJSONResponse(res, 200, { "status": "success", "statusCode": 200 });
+                return;
+            }
+        );
+    });
+};
+var queryUpdateShortCV = function (req, res, next, personID, shortCV) {
+    var querySQL = '';
+    var places = [];
+    querySQL = querySQL + 'UPDATE website_texts' +
+        ' SET text = ?' +
+        ' WHERE id = ?';
+    querySQL = querySQL + '; ';
+    places.push(shortCV.website_text, shortCV.website_text_id);
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        connection.query(querySQL, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, { "status": "error", "statusCode": 400, "error": err.stack });
+                    return;
+                }
+                externalAPI.contact(WEBSITE_API_BASE_URL[1], 'update', 'people', personID,
+                    'UCIBIO API error updating person information (update short CV) personID :', personID);
+                externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'people', personID,
+                    'LAQV API error updating person information (update short CV) personID :', personID);
+                sendJSONResponse(res, 200, { "status": "success", "statusCode": 200 });
+                return;
+            }
+        );
+    });
+};
+
+
 var queryURLsPerson = function (req, res, next, userCity) {
     var hasPermission = getGeoPermissions(req, userCity);
     if ((req.payload.personID !== req.params.personID && hasPermission)
@@ -3923,7 +4004,7 @@ var queryAuthorizationInfoPerson = function (req, res, next, userCity) {
         querySQL = querySQL + '; ';
         places.push(personID, user_id, name, colloquial_name, birth_date, gender,
             active_from, active_until, 1, updated, 'U', changed_by, visible_public);
-        
+
         if (units.indexOf(1) !== -1) {
             if (visible_public === 1) {
                 externalAPI.contact(WEBSITE_API_BASE_URL[1], 'create', 'people', personID,
@@ -3942,8 +4023,8 @@ var queryAuthorizationInfoPerson = function (req, res, next, userCity) {
                     'LAQV API error updating person information (nuclear information) :', personID);
             }
         }
-        
-        
+
+
         escapedQuery(querySQL, places, req, res, next);
     } else {
         sendJSONResponse(res, 403, { message: 'This user is not authorized to this operation.' });
@@ -4538,7 +4619,35 @@ var queryGetPersonalPhones = function (req,res,next, personID, row) {
                     return;
                 }
                 row = joinResponses(row,rowsQuery,'pers_phone');
-                return queryGetPersonalURLs(req,res,next, personID, row);
+                return queryGetWebsiteTexts(req,res,next, personID, row);
+            }
+        );
+    });
+};
+
+var queryGetWebsiteTexts = function (req, res, next, personID, row) {
+    var query = 'SELECT website_texts.id AS website_text_id, website_texts.title AS website_text_title, website_texts.text AS website_text,'
+        + ' website_texts.text_type_id AS website_text_type_id, website_text_types.name_en AS website_text_type_name_en'
+        + ' FROM people'
+        + ' LEFT JOIN website_texts ON people.id = website_texts.person_id'
+        + ' LEFT JOIN website_text_types ON website_text_types.id = website_texts.text_type_id'
+        + ' WHERE people.id = ?;';
+    var places = [personID];
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        connection.query(query, places,
+            function (err, rowsQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 400, { "status": "error", "statusCode": 400, "error": err.stack });
+                    return;
+                }
+                row = joinResponses(row, rowsQuery, 'website_texts');
+                return queryGetPersonalURLs(req, res, next, personID, row);
             }
         );
     });
@@ -5861,6 +5970,7 @@ module.exports.getAllPeople = function (req, res, next) {
     var querySQL = 'SELECT people.id, people.name AS full_name, people.colloquial_name AS name,' +
                    ' people.active_from, people.active_until,' +
                    ' emails.email, phones.phone, phones.extension AS phone_extension,' +
+                   ' website_texts.title AS website_text_title, website_texts.text AS website_text, website_texts.text_type_id AS website_text_type_id, website_text_types.name_en AS website_text_type_name_en,' +
                    ' personal_urls.url, personal_urls.url_type_id, personal_url_types.type_en AS url_type, personal_urls.description AS url_description,' +
                    ' degrees_people.start AS degree_start, degrees_people.end AS degree_end,' +
                    ' degrees_people.degree_id AS degree_type_id, degrees.name_en AS degree,' +
@@ -5892,6 +6002,8 @@ module.exports.getAllPeople = function (req, res, next) {
                   ' LEFT JOIN phones ON people.id = phones.person_id' +
                   ' LEFT JOIN personal_urls ON people.id = personal_urls.person_id' +
                   ' LEFT JOIN personal_url_types ON personal_urls.url_type_id = personal_url_types.id' +
+                  ' LEFT JOIN website_texts ON people.id = website_texts.person_id' +
+                  ' LEFT JOIN website_text_types ON website_text_types.id = website_texts.text_type_id' +
                   ' LEFT JOIN degrees_people ON people.id = degrees_people.person_id' +
                   ' LEFT JOIN degrees ON degrees_people.degree_id = degrees.id' +
                   ' LEFT JOIN jobs ON people.id = jobs.person_id' +
@@ -5928,6 +6040,7 @@ module.exports.getAllPeople = function (req, res, next) {
         places.push(unitID,unitID,unitID,unitID);
     }
     var mergeRules = [
+                      ['website_texts', 'website_text_title', 'website_text', 'website_text_type_id', 'website_text_type_name_en'],
                       ['personal_url_data', 'url', 'url_type_id', 'url_type', 'url_description'],
                       ['degree_data', 'degree_start', 'degree_end', 'degree_type_id', 'degree', 'degree_field', 'degree_institution'],
                       ['job_data', 'job_start', 'job_end', 'category_id', 'category', 'organization'],
@@ -5949,6 +6062,7 @@ module.exports.getPersonInfo = function (req, res, next) {
     var querySQL = 'SELECT people.id, people.name AS full_name, people.colloquial_name AS name,' +
                    ' people.active_from, people.active_until,' +
                    ' emails.email, phones.phone, phones.extension AS phone_extension,' +
+                   ' website_texts.title AS website_text_title, website_texts.text AS website_text, website_texts.text_type_id AS website_text_type_id, website_text_types.name_en AS website_text_type_name_en,' +
                    ' personal_urls.url, personal_urls.url_type_id, personal_url_types.type_en AS url_type, personal_urls.description AS url_description,' +
                    ' degrees_people.start AS degree_start, degrees_people.end AS degree_end,' +
                    ' degrees_people.degree_id AS degree_type_id, degrees.name_en AS degree,' +
@@ -5980,6 +6094,8 @@ module.exports.getPersonInfo = function (req, res, next) {
                   ' LEFT JOIN phones ON people.id = phones.person_id' +
                   ' LEFT JOIN personal_urls ON people.id = personal_urls.person_id' +
                   ' LEFT JOIN personal_url_types ON personal_urls.url_type_id = personal_url_types.id' +
+                  ' LEFT JOIN website_texts ON people.id = website_texts.person_id' +
+                  ' LEFT JOIN website_text_types ON website_text_types.id = website_texts.text_type_id' +
                   ' LEFT JOIN degrees_people ON people.id = degrees_people.person_id' +
                   ' LEFT JOIN degrees ON degrees_people.degree_id = degrees.id' +
                   ' LEFT JOIN jobs ON people.id = jobs.person_id' +
@@ -6012,6 +6128,7 @@ module.exports.getPersonInfo = function (req, res, next) {
                   ' WHERE people.id = ? AND people.visible_public = 1;';
     var places = [personID];
     var mergeRules = [
+                      ['website_texts', 'website_text_title', 'website_text', 'website_text_type_id', 'website_text_type_name_en'],
                       ['personal_url_data', 'url', 'url_type_id', 'url_type', 'url_description'],
                       ['degree_data', 'degree_start', 'degree_end', 'degree_type_id', 'degree', 'degree_field', 'degree_institution'],
                       ['job_data', 'job_start', 'job_end', 'category_id', 'category', 'organization'],
@@ -6577,6 +6694,14 @@ module.exports.updateAffiliationsDepartmentPerson = function (req, res, next) {
     getUserPermitSelf(req, res, [0, 5, 10, 15, 16],
         function (req, res, username) {
             getLocation(req, res, next, queryAffiliationsDepartmentPerson);
+        }
+    );
+};
+
+module.exports.updateShortCVPerson = function (req, res, next) {
+    getUser(req, res, [0, 5, 10, 15, 16, 20, 30, 40],
+        function (req, res, username) {
+            getLocation(req, res, next, queryShortCVPerson);
         }
     );
 };

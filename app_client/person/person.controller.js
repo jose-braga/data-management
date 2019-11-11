@@ -62,6 +62,7 @@
             'personPubCorrect':         48,
             'personAuthorization':      49,
             'personPUREAdd':            50,
+            'personCV':                 51,
         };
         vm.changePhoto = false;
         vm.photoSize = {w: 196, h: 196};
@@ -371,7 +372,7 @@
                     },
                     function () { }
                 );
-            return false;           
+            return false;
         }
         vm.submitNuclearInfo = function (ind) {
             vm.updateStatus[ind] = "Updating...";
@@ -461,6 +462,23 @@
                     vm.messageType[ind] = 'message-error';
                 },
                 function () {}
+                );
+            return false;
+        };
+        vm.submitShortCV = function (ind) {
+            vm.updateStatus[ind] = "Updating...";
+            vm.messageType[ind] = 'message-updating';
+            vm.hideMessage[ind] = false;
+            var data = vm.shortCV;
+            personData.updateShortCVPersonByID(vm.currentUser.personID, data)
+                .then(function () {
+                    getPersonData(vm.currentUser.personID, ind);
+                },
+                    function () {
+                        vm.updateStatus[ind] = "Error!";
+                        vm.messageType[ind] = 'message-error';
+                    },
+                    function () { }
                 );
             return false;
         };
@@ -1749,19 +1767,19 @@
                     vm.updateStatus[ind] = "Updated!";
                     vm.messageType[ind] = 'message-success';
                     vm.hideMessage[ind] = false;
-                    $timeout(function () { 
-                        vm.hideMessage[ind] = true; 
+                    $timeout(function () {
+                        vm.hideMessage[ind] = true;
                         vm.gettingAllPublications = true;
                         vm.initializePublications(-1);
                     }
-                    , 1500);                    
+                    , 1500);
                 },
                     function () {
                         vm.updateStatus[ind] = "Error!";
                         vm.messageType[ind] = 'message-error';
                     },
                     function () { }
-                );            
+                );
         };
 
         vm.connectORCID = function() {
@@ -1858,7 +1876,7 @@
                                         continue;
                                     }
                                 }
-                            }                            
+                            }
                         }
                         // tries to match based on WOS and PubMed
                         let pure_wos = null;
@@ -1872,14 +1890,14 @@
                                         pure_wos = addExtID[ind].value;
                                     } else if (addExtID[ind].idSource === 'PubMed') {
                                         pure_pubmed_id = addExtID[ind].value;
-                                    }                                    
+                                    }
                                 }
-                                if (pure_wos !== null && pure_wos !== undefined 
+                                if (pure_wos !== null && pure_wos !== undefined
                                     && db_wos !== null && db_wos !== undefined ) {
                                     if (pure_wos === db_wos) {
                                         pubsDB[el].matched_db_to_pure = pubsPURE[elPURE].pureId;
                                         pubsPURE[elPURE].matched_pure_to_db = pubsDB[el].id;
-                                        break;                                       
+                                        break;
                                     } else {
                                         continue;
                                     }
@@ -1923,7 +1941,7 @@
                             }
                         }
                         // tries to match based on title and journal name
-                        if (pubsPURE[elPURE].title !== null 
+                        if (pubsPURE[elPURE].title !== null
                             && pubsPURE[elPURE].title !== undefined) {
                             pure_title = prepareStringComparison(pubsPURE[elPURE].title);
                             if (pubsPURE[elPURE].journalAssociation !== null
@@ -1938,10 +1956,10 @@
                                 }
                             }
                         }
-                    }                                                                
+                    }
                 }
                 for (var elPURE in pubsPURE) {
-                    if (pubsPURE[elPURE].matched_pure_to_db === null 
+                    if (pubsPURE[elPURE].matched_pure_to_db === null
                         || pubsPURE[elPURE].matched_pure_to_db === undefined) {
                         let authors_raw = '';
                         for (var aut in pubsPURE[elPURE].personAssociations) {
@@ -1951,7 +1969,7 @@
                                 lastName = pubsPURE[elPURE].personAssociations[aut].name.lastName;
                                 if (lastName !== null && lastName !== undefined) {
                                     if (firstName !== null && firstName !== undefined) {
-                                        authors_raw = authors_raw + lastName + ', ' 
+                                        authors_raw = authors_raw + lastName + ', '
                                                     + firstName;
                                     } else {
                                         authors_raw = authors_raw + lastName;
@@ -2003,7 +2021,7 @@
                 }
                 for (var el in pubsDB) {
                     if (pubsDB[el].matched_db_to_pure !== null
-                        && pubsDB[el].matched_db_to_pure !== undefined) {                        
+                        && pubsDB[el].matched_db_to_pure !== undefined) {
                         alreadyDB.push(
                             {
                                 id: pubsDB[el].id,
@@ -4521,6 +4539,13 @@
                     for (var id in vm.thisPerson.emergency_contacts) {
                         vm.currentEmergencyContacts.push(Object.assign({}, vm.thisPerson.emergency_contacts[id]));
                     }
+                    vm.shortCV = {};
+                    for (var id in vm.thisPerson.website_texts) {
+                        if (vm.thisPerson.website_texts[id].website_text_type_id === 1) {
+                            vm.shortCV = vm.thisPerson.website_texts[id];
+                            break;
+                        }
+                    }
                     vm.currentURLs = [];
                     for (var id in vm.thisPerson.pers_url) {
                         vm.currentURLs.push(Object.assign({}, vm.thisPerson.pers_url[id]));
@@ -4935,7 +4960,7 @@
                 .trim()
                 ;
         }
-        // this function was taken from 
+        // this function was taken from
         //https://github.com/aceakash/string-similarity/blob/master/compare-strings.js
         function compareTwoStrings(first, second) {
             first = first.replace(/\s+/g, '')
@@ -5128,6 +5153,12 @@
         return {
             restrict: 'E',
             templateUrl: 'person/personal/person.personalURLs.html'
+        };
+    };
+    var personShortCv = function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'person/personal/person.short-cv.html'
         };
     };
     var personResearchInterests = function () {
@@ -5547,6 +5578,7 @@
         .directive('personDataAuthorization', personDataAuthorization)
         .directive('personNuclearInfo', personNuclearInfo)
         .directive('personUrls', personUrls)
+        .directive('personShortCv', personShortCv)
         .directive('personResearchInterests', personResearchInterests)
         .directive('personResearcherInfo', personResearcherInfo)
         .directive('personCostCenter', personCostCenter)

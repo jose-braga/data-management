@@ -250,6 +250,13 @@
                 }
             );
         };
+        var updateShortCVPersonByID = function (personID, data) {
+            return $http.put('api/people/short-cv/' + personID, data,
+                {
+                    headers: { Authorization: 'Bearer ' + authentication.getToken() }
+                }
+            );
+        };
         var updateResearchInterestsPersonByID = function (personID, data) {
             return $http.put('api/people/research-interests/' + personID, data,
                 {
@@ -409,6 +416,7 @@
             updateAuthorizationInfoPersonByID: updateAuthorizationInfoPersonByID,
             updateInstitutionCityPersonByID: updateInstitutionCityPersonByID,
             updateJobsPersonByID: updateJobsPersonByID,
+            updateShortCVPersonByID: updateShortCVPersonByID,
             updateURLsPersonByID: updateURLsPersonByID,
             updateAffiliationsDepartmentPersonByID: updateAffiliationsDepartmentPersonByID,
             updateResearchInterestsPersonByID: updateResearchInterestsPersonByID,

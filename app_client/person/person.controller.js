@@ -63,6 +63,7 @@
             'personAuthorization':      49,
             'personPUREAdd':            50,
             'personCV':                 51,
+            'personSelPubInterface':    52,
         };
         vm.changePhoto = false;
         vm.photoSize = {w: 196, h: 196};
@@ -71,6 +72,10 @@
         vm.selectAllPublications = false;
         vm.selectAllPublicationsORCID = false;
         vm.selectAllPublicationsPURE = false;
+        vm.personSelectedPublications = [];
+        vm.personRemovedSelectedPublications = [];
+        vm.personAddSelectedPublications = [];
+        vm.filteredSelectedPubAllPublications = [];
 
         vm.progressORCID = false;
         vm.progressPURE = false;
@@ -608,6 +613,181 @@
                 );
             return false;
         };
+
+        /* For managing selected publications */
+        vm.removePersonSelectedPub = function(pub, num) {
+            vm.personRemovedSelectedPublications.push(pub);
+            vm.personSelectedPublications.splice(num, 1);
+            for (let el in vm.personAddSelectedPublications) {
+                if (vm.personAddSelectedPublications[el].people_publications_id ===
+                        pub.people_publications_id) {
+                    vm.personAddSelectedPublications.splice(el, 1);
+                }
+            }
+        }
+        vm.addPersonSelectedPub = function (pub) {
+            let found = false;
+            for (let el in vm.personSelectedPublications) {
+                if (vm.personSelectedPublications[el].people_publications_id ===
+                    pub.people_publications_id) {
+                    found = true;
+                }
+            }
+            if (!found) {
+                vm.personAddSelectedPublications.push(pub);
+                vm.personSelectedPublications.push(pub);
+            }
+            for (let el in vm.personRemovedSelectedPublications) {
+                if (vm.personRemovedSelectedPublications[el].people_publications_id ===
+                    pub.people_publications_id) {
+                    vm.personRemovedSelectedPublications.splice(el, 1);
+                }
+            }
+        }
+        vm.getSelectedPubSearchResults = function (originalTitle, originalAuthors) {
+            if (originalTitle === undefined) originalTitle = '';
+            if (originalAuthors === undefined) originalAuthors = '';
+            var title = '', authors = '';
+            var titleMatch = [], authorsMatch = [];
+            if (originalTitle.length >= 5 || originalAuthors.length >= 5) {
+                titleMatch = originalTitle.match(/".+?"/g);
+                authorsMatch = originalAuthors.match(/".+?"/g);
+                title = originalTitle;
+                authors = originalAuthors;
+                if (titleMatch !== null) {
+                    for (var el in titleMatch) {
+                        title = title.replace(titleMatch[el], '').trim();
+                    }
+                } else {
+                    titleMatch = [];
+                }
+                if (authorsMatch !== null) {
+                    for (var el in authorsMatch) {
+                        authors = authors.replace(authorsMatch[el], '').trim();
+                    }
+                } else {
+                    authorsMatch = [];
+                }
+            }
+            vm.filteredExactSearchSelectedPublications = [];
+            var countTitle;
+            var countAuthors;
+            var pubTitle;
+            var pubAuthors;
+            var selectByTitle;
+            var selectByAuthors;
+            if (titleMatch.length > 0 || authorsMatch.length > 0) {
+                for (var ind in vm.personPublications) {
+                    countTitle = 0;
+                    countAuthors = 0;
+                    pubTitle = vm.personPublications[ind].title;
+                    pubAuthors = vm.personPublications[ind].authors_raw;
+                    selectByTitle = false;
+                    selectByAuthors = false;
+                    for (var indTitle in titleMatch) {
+                        var exactTitle = titleMatch[indTitle].replace(/"/g, '');
+                        if (pubTitle.indexOf(exactTitle) !== -1) countTitle++;
+                    }
+                    if (countTitle === titleMatch.length) selectByTitle = true;
+                    for (var indAuthors in authorsMatch) {
+                        var exactAuthors = authorsMatch[indAuthors].replace(/"/g, '');
+                        if (pubAuthors.indexOf(exactAuthors) !== -1) countAuthors++;
+                    }
+                    if (countAuthors === authorsMatch.length) selectByAuthors = true;
+                    if (selectByTitle && selectByAuthors) {
+                        vm.filteredExactSearchSelectedPublications.push(vm.allPublications[ind]);
+                    }
+                }
+            }
+            vm.filteredSelectedPubAllPublications = [];
+            if (originalTitle.length >= 3 || originalAuthors.length >= 3) {
+                if (titleMatch.length === 0) {
+                    title = originalTitle;
+                }
+                if (authorsMatch.length === 0) {
+                    authors = originalAuthors;
+                }
+                if (title.length > 0 || authors.length > 0) {
+                    title = prepareStringSearch(title);
+                    authors = prepareStringSearch(authors);
+                    var titleSplit = title.split(' ');
+                    var authorsSplit = authors.split(' ');
+                    var publicationList;
+                    if (vm.filteredExactSearchSelectedPublications.length === 0) {
+                        publicationList = vm.personPublications;
+                    } else {
+                        publicationList = vm.filteredExactSearchSelectedPublications;
+                    }
+                    for (var ind in publicationList) {
+                        if (publicationList[ind].title !== null && publicationList[ind].title !== undefined) {
+                            pubTitle = prepareStringSearch(publicationList[ind].title);
+                        } else {
+                            pubTitle = '';
+                        }
+                        if (publicationList[ind].authors_raw !== null && publicationList[ind].authors_raw !== undefined) {
+                            pubAuthors = prepareStringSearch(publicationList[ind].authors_raw);
+                        } else {
+                            pubAuthors = '';
+                        }
+                        selectByTitle = false;
+                        selectByAuthors = false;
+                        countTitle = 0;
+                        countAuthors = 0;
+                        for (var indTitle in titleSplit) {
+                            if (pubTitle.indexOf(titleSplit[indTitle]) !== -1) countTitle++;
+                        }
+                        if (countTitle === titleSplit.length) selectByTitle = true;
+                        for (var indAut in authorsSplit) {
+                            if (pubAuthors.indexOf(authorsSplit[indAut]) !== -1) countAuthors++;
+                        }
+                        if (countAuthors === authorsSplit.length) selectByAuthors = true;
+                        if (selectByTitle && selectByAuthors) {
+                            vm.filteredSelectedPubAllPublications.push(publicationList[ind]);
+                        }
+                    }
+                } else {
+                    vm.filteredSelectedPubAllPublications = vm.filteredExactSearchSelectedPublications;
+                }
+            }
+        };
+        vm.submitPersonSelectedPublicationsInterface = function (ind) {
+            vm.updateStatus[ind] = "Updating...";
+            vm.messageType[ind] = 'message-updating';
+            vm.hideMessage[ind] = false;
+            let data = {
+                addSelectedPub: vm.personAddSelectedPublications,
+                delSelectedPub: vm.personRemovedSelectedPublications,
+                addPublicPub: vm.personAddSelectedPublications,
+                delPublicPub: []
+            }
+            publications.updateSelectedPublications(vm.currentUser.personID, data)
+                .then(function () {
+                    if (ind > -1) {
+                        vm.updateStatus[ind] = "Updated!";
+                        vm.messageType[ind] = 'message-success';
+                        vm.hideMessage[ind] = false;
+                        vm.selectedPublicationsSearchTitle = '';
+                        vm.selectedPublicationsSearchAuthors = '';
+                        $timeout(function () {
+                            vm.hideMessage[ind] = true;
+                            vm.personSelectedPublications = [];
+                            vm.personRemovedSelectedPublications = [];
+                            vm.personAddSelectedPublications = [];
+                            vm.filteredSelectedPubAllPublications = [];
+                            vm.initializePublications();
+                        }, 1500);
+                    }
+                },
+                    function () {
+                        vm.updateStatus[ind] = "Error!";
+                        vm.messageType[ind] = 'message-error';
+                    },
+                    function () { }
+                );
+            return false;
+        }
+
+        /* for technicians, managers, administratives */
         vm.submitTechnicianInfo = function (ind) {
             var thisTab = vm.selectedTab;
             vm.updateStatus[ind] = "Updating...";
@@ -1596,6 +1776,9 @@
         };
 
         /* For managing publications */
+        vm.goToAddPubTab = function() {
+            vm.selectedIndexPublications = vm.pubTitles.length + 1;
+        };
         vm.submitPublicationCorrection = function (ind, pub, tab) {
             vm.updateStatus[ind] = "Updating...";
             vm.messageType[ind] = 'message-updating';
@@ -2436,6 +2619,11 @@
                         } else {
                             vm.personPublications[el].public = false;
                         }
+                        if (vm.personPublications[el].public &&
+                            vm.personPublications[el].selected) {
+                            vm.personSelectedPublications.push(vm.personPublications[el]);
+                        }
+
                         for (var indPub in vm.personPublications[el].publication_type) {
                             vm.personPublications[el].publication_type[indPub].id =
                                     vm.personPublications[el].publication_type[indPub].publication_type;
@@ -2452,6 +2640,10 @@
                             }
                         }
                     }
+                    vm.sortType = 'year';
+                    vm.sortReverse = false;
+                    vm.personSelectedPublications = vm.personSelectedPublications.sort(sorter);
+
                     vm.originalPersonPublications = JSON.parse(JSON.stringify(vm.personPublications));
                     initializeVariables();
                     if (ind > -1) {
@@ -5173,6 +5365,12 @@
             templateUrl: 'person/researcher/person.researcherInfo.html'
         };
     };
+    var personSelectedPublications = function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'person/researcher/person.selectedPublications.html'
+        };
+    };
     var personCostCenter = function () {
         return {
             restrict: 'E',
@@ -5581,6 +5779,7 @@
         .directive('personShortCv', personShortCv)
         .directive('personResearchInterests', personResearchInterests)
         .directive('personResearcherInfo', personResearcherInfo)
+        .directive('personSelectedPublications', personSelectedPublications)
         .directive('personCostCenter', personCostCenter)
         .directive('personTechnicianInfo', personTechnicianInfo)
         .directive('personTechnicianAffiliation', personTechnicianAffiliation)

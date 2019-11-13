@@ -1,0 +1,87 @@
+<md-card>
+    <md-card-title>
+        <md-card-title-text>
+            <span class="md-headline">Selected Publications</span>
+        </md-card-title-text>
+    </md-card-title>
+    <md-card-content>
+        <form flex novalidate name="personSelectedPublicationsForm"
+            ng-submit="personSelectedPublicationsForm.$valid
+                    && vm.submitPersonSelectedPublicationsInterface(vm.forms['personSelPubInterface'])">
+            <h3 class="spacer-top">Currently selected publications</h3>
+            <ul>
+                <li ng-repeat="(pubNum,publication) in vm.personSelectedPublications track by $index"
+                    class="spacer-top person-selected-publications">
+                    <div class="pub-info">
+                        {{ publication.authors_raw | limitTo: 150 }}
+                        ({{ publication.year }}). "{{ publication.title }}".
+                        {{ publication.journal_short_name }}, {{ publication.doi }}
+                    </div>
+                    <div class="action">
+                        <md-button ng-click="vm.removePersonSelectedPub(publication, pubNum)"
+                                aria-label="Remove publication"
+                                class="md-icon-button interaction-button tighter">
+                            <md-icon md-svg-src="images/icons/delete_24px.svg"></md-icon>
+                        </md-button>
+                    </div>
+                </li>
+            </ul>
+            <div layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button type="submit" class="button-small md-raised md-primary">
+                    Update
+                </md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personSelPubInterface']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['personSelPubInterface']]">
+                        {{vm.updateStatus[vm.forms['personSelPubInterface']]}}
+                    </span>
+                </div>
+            </div>
+            <h3 class="spacer-top">Add more selected publications</h3>
+            <p>Find publications by using search below.</p>
+            <div layout="row" layout-align="none center">
+                <span class="spacer-top-smaller">Search:</span>
+                <md-input-container class="input-row-longer">
+                    <label>by title (> 3 char.)</label>
+                    <input ng-model="vm.selectedPublicationsSearchTitle"
+                    ng-change="vm.getSelectedPubSearchResults(vm.selectedPublicationsSearchTitle,vm.selectedPublicationsSearchAuthors)">
+                </md-input-container>
+                <md-input-container class="input-row-longer">
+                    <label>by authors (> 3 char.)</label>
+                    <input ng-model="vm.selectedPublicationsSearchAuthors"
+                    ng-change="vm.getSelectedPubSearchResults(vm.selectedPublicationsSearchTitle,vm.selectedPublicationsSearchAuthors)">
+                </md-input-container>
+            </div>
+            <div ng-if="vm.filteredSelectedPubAllPublications.length !== 0">
+                <h3>Search results</h3>
+                <div class="search-results">
+                    <ul>
+                        <li ng-repeat="(pubNum,publication) in vm.filteredSelectedPubAllPublications track by $index"
+                        class="spacer-top person-selected-publications">
+                        <div class="pub-info">
+                            {{ publication.authors_raw | limitTo: 150 }}
+                            ({{ publication.year }}). "{{ publication.title }}".
+                            {{ publication.journal_short_name }}, {{ publication.doi }}
+                        </div>
+                        <div class="action">
+                            <md-button ng-click="vm.addPersonSelectedPub(publication)" aria-label="Add publication"
+                            class="md-icon-button interaction-button tighter">
+                            <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
+                        </md-button>
+                    </div>
+                </li>
+            </ul>
+            </div>
+            </div>
+            <div layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button type="submit" class="button-small md-raised md-primary">
+                    Update
+                </md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personSelPubInterface']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['personSelPubInterface']]">
+                        {{vm.updateStatus[vm.forms['personSelPubInterface']]}}
+                    </span>
+                </div>
+            </div>
+        </form>
+    </md-card-content>
+</md-card>

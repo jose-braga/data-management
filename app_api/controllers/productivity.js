@@ -1194,7 +1194,7 @@ var queryPURECheckIfExistsPublication = function (req, res, next, i, journalID) 
         querySQL = querySQL + 'SELECT id, title, doi FROM publications' +
             ' WHERE title = ?;';
         places.push(add[i].title);
-    }    
+    }
     pool.getConnection(function (err, connection) {
         if (err) {
             sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
@@ -1218,7 +1218,7 @@ var queryPURECheckIfExistsPublication = function (req, res, next, i, journalID) 
                 }
             }
         );
-    });       
+    });
 };
 var queryPUREInsertPublication = function (req, res, next, i, journalID) {
     var add = req.body.newPURE;
@@ -1242,7 +1242,7 @@ var queryPUREInsertPublication = function (req, res, next, i, journalID) {
         }
     }
     var volume = null;
-    if (add[i].volume !== null 
+    if (add[i].volume !== null
         && add[i].number !== null && add[i].number !== undefined) {
         volume = add[i].volume + '(' + add[i].number + ')';
     } else {
@@ -1369,7 +1369,7 @@ var queryPUREInsertPeoplePublications = function (req, res, next, i, pubID) {
                 if (i + 1 < add.length) {
                     return queryPUREGetJournalID(req, res, next, i + 1);
                 } else {
-                    return queryUpdateInstitutionalRepository(req, res, next);                    
+                    return queryUpdateInstitutionalRepository(req, res, next);
                 }
             }
         );
@@ -1380,7 +1380,7 @@ var queryUpdateInstitutionalRepository = function (req, res, next) {
     let update = req.body.matchedPURE;
     if (update.length > 0) {
         var query = 'UPDATE people_publications SET in_institutional_repository = 1 WHERE ';
-        var places = [];        
+        var places = [];
         for (var el in update) {
             if (parseInt(el,10) < update.length - 1) {
                 query = query + '(person_id = ? AND publication_id = ?) OR ';
@@ -1558,7 +1558,7 @@ var queryORCIDInsertPublication = function (req, res, next,i, journalID) {
         }
     }
     var volume = null;
-    if (add[i].volume !== null 
+    if (add[i].volume !== null
         && add[i].number !== null && add[i].number !== undefined) {
         volume = add[i].volume + '(' + add[i].number + ')';
     } else {
@@ -1651,7 +1651,7 @@ var queryORCIDInsertPublicationDescription = function (req, res, next, i, pubID)
                                                 'UCIBIO API error updating (adding description, from ORCID) (id) :', pubID);
                 externalAPI.contact(WEBSITE_API_BASE_URL[2], 'update', 'publications', pubID,
                                                 'LAQV API error updating (adding description, from ORCID) (id) :', pubID);
-                */                                                
+                */
                 return queryORCIDInsertPeoplePublications(req,res,next,i, pubID);
             }
         );
@@ -6193,18 +6193,18 @@ module.exports.getLatestPublications = function (req, res, next) {
     let unitID = req.params.unitID;
     let numberPublications = 20; // the default number of publications to retrieve
     let currentYear = moment().year();
-    
+
     if (req.query.hasOwnProperty('size')) {
         numberPublications = parseInt(req.query.size, 10);
     }
-    
+
     var querySQL = 'SELECT publications.*, journals.name AS journal_name'
                 + ' FROM publications'
                 + ' LEFT JOIN journals ON journals.id = publications.journal_id'
                 + ' LEFT JOIN units_publications ON units_publications.publication_id = publications.id'
                 + ' WHERE publications.year = ? AND units_publications.unit_id = ?;';
     var places = [currentYear, unitID];
-    
+
     pool.getConnection(function (err, connection) {
         if (err) {
             sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
@@ -6236,7 +6236,7 @@ module.exports.getLatestPublications = function (req, res, next) {
 
                     } else {
                         // get all publications in which month (and preferably day) is known
-                        // sorts publications according to publication date 
+                        // sorts publications according to publication date
                         // and then picks up first numberPublications
                         let publicationsWithDate = [];
                         let idsUsed = [];
@@ -6252,7 +6252,7 @@ module.exports.getLatestPublications = function (req, res, next) {
                                     // a string representing only month
                                     // a range of months (e.g. 'MAY-JUN') (take only  first)
                                     if (!Number.isNaN(parseInt(dateComponents[0], 10))) {
-                                        // is a number => do nothing                                    
+                                        // is a number => do nothing
                                     } else if (dateComponents[0].includes('-')) {
                                         let dateRangeSplit = dateComponents[0].split('-');
                                         let initialMonth = dateRangeSplit[0];
@@ -6274,7 +6274,7 @@ module.exports.getLatestPublications = function (req, res, next) {
                                         month = moment(thisDate, ['MMM DD', 'MMM D']).month();
                                         day = moment(thisDate, ['MMM DD', 'MMM D']).date();
                                         addToList = true;
-                                    }                                    
+                                    }
                                 }
                                 if (addToList) {
                                     resQuery[ind].curated_date = moment({
@@ -6318,7 +6318,7 @@ module.exports.getLatestPublications = function (req, res, next) {
                                     "status": "Success", "statusCode": 200, "count": numberPublications,
                                     "result": publicationsWithDate.slice(0, numberPublications)
                                 });
-                            return;                            
+                            return;
                         }
                     }
                 }

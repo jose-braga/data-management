@@ -689,3 +689,25 @@ ul.help-list li{
   width: 100px;
 
 }
+
+.person-selected-publications {
+  width: 100%;
+  display: inline-block;
+}
+
+.person-selected-publications .pub-info {
+  float: left;
+  width: 89%;
+  margin-right: 1%;
+
+}
+.person-selected-publications .action {
+  float: left;
+  width: 10%;
+}
+
+.search-results {
+  height: auto;
+  max-height: 300px;
+  overflow: scroll;
+}

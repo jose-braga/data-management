@@ -63,7 +63,7 @@
                 </md-content>
             </md-tab>
             <md-tab ng-repeat='role in vm.currentRoles | orderBy:"role_id"'
-                    md-on-select="vm.initializeRoles()"
+                    md-on-select="vm.initializeRoles(); vm.getAllPublications()"
                     label='{{role.name_en}}'
                     class="darker-tab">
                 <md-content>
@@ -77,6 +77,7 @@
                             <div flex-xs flex-sm flex-gt-sm="50" layout="column">
                                 <person-affiliation-lab></person-affiliation-lab>
                                 <person-author-names></person-author-names>
+                                <person-selected-publications></person-selected-publications>
                             </div>
                         </div>
                     </div>
@@ -158,85 +159,90 @@
                             </div>
                         </md-content>
                     </md-tab>
-                    <md-tab label='Communications' md-on-select="vm.initializeCommunications()">
-                        <md-content>
-                            <div layout-padding>
-                                <person-communications></person-communications>
-                                <person-add-communications></person-add-communications>
-                                <person-add-communications-orcid></person-add-communications-orcid>
-                            </div>
-                        </md-content>
-                    </md-tab>
-                    <md-tab label='Funding' md-on-select="vm.initializeFunding()">
-                        <md-content>
-                            <div layout-padding>
-                                <div style="padding-left: 20px;">
-                                    There are 3 sections in this tab:
-                                    <ol>
-                                        <li><a ng-click="vm.gotoSection('projects-card')" href="" >Projects</a></li>
-                                        <li><a ng-click="vm.gotoSection('agreements-card')" href="">Agreements with private entities</a></li>
-                                        <li><a ng-click="vm.gotoSection('trainings-card')" href="">Training networks</a></li>
-                                    </ol>
-                                </div>
-                                <div id="projects-card">
-                                    <person-projects></person-projects>
-                                </div>
-                                <div id="agreements-card">
-                                    <person-agreements></person-agreements>
-                                </div>
-                                <div id="trainings-card">
-                                    <person-trainings></person-trainings>
-                                </div>
-                                <div id="dummy-card" style="height: 600px;">
-                                    <!-- WORKAROUND: misbehavior of $anchorScroll with md-tabs:
-                                        https://github.com/angular/material/issues/5446
-                                    -->
-                                </div>
-                            </div>
-                        </md-content>
-                    </md-tab>
-                    <md-tab label='Patents' md-on-select="vm.initializePatents()">
-                        <md-content>
-                            <div layout-padding>
-                                <person-patents></person-patents>
-                            </div>
-                        </md-content>
-                    </md-tab>
-                    <md-tab label='Datasets' md-on-select="vm.initializeDatasets()">
-                        <md-content>
-                            <div layout-padding>
-                                <person-datasets></person-datasets>
+                    <md-tab label="Other productivity">
+                        <md-tabs md-selected="vm.selectedIndexOtherProductivity" md-dynamic-height md-border-bottom>
+                            <md-tab label='Communications' md-on-select="vm.initializeCommunications()">
+                                <md-content>
+                                    <div layout-padding>
+                                        <person-communications></person-communications>
+                                        <person-add-communications></person-add-communications>
+                                        <person-add-communications-orcid></person-add-communications-orcid>
+                                    </div>
+                                </md-content>
+                            </md-tab>
+                            <md-tab label='Funding' md-on-select="vm.initializeFunding()">
+                                <md-content>
+                                    <div layout-padding>
+                                        <div style="padding-left: 20px;">
+                                            There are 3 sections in this tab:
+                                            <ol>
+                                                <li><a ng-click="vm.gotoSection('projects-card')" href="">Projects</a></li>
+                                                <li><a ng-click="vm.gotoSection('agreements-card')" href="">Agreements with private entities</a>
+                                                </li>
+                                                <li><a ng-click="vm.gotoSection('trainings-card')" href="">Training networks</a></li>
+                                            </ol>
+                                        </div>
+                                        <div id="projects-card">
+                                            <person-projects></person-projects>
+                                        </div>
+                                        <div id="agreements-card">
+                                            <person-agreements></person-agreements>
+                                        </div>
+                                        <div id="trainings-card">
+                                            <person-trainings></person-trainings>
+                                        </div>
+                                        <div id="dummy-card" style="height: 600px;">
+                                            <!-- WORKAROUND: misbehavior of $anchorScroll with md-tabs:
+                                                                    https://github.com/angular/material/issues/5446
+                                                                -->
+                                        </div>
+                                    </div>
+                                </md-content>
+                            </md-tab>
+                            <md-tab label='Patents' md-on-select="vm.initializePatents()">
+                                <md-content>
+                                    <div layout-padding>
+                                        <person-patents></person-patents>
+                                    </div>
+                                </md-content>
+                            </md-tab>
+                            <md-tab label='Datasets' md-on-select="vm.initializeDatasets()">
+                                <md-content>
+                                    <div layout-padding>
+                                        <person-datasets></person-datasets>
 
-                            </div>
-                        </md-content>
-                    </md-tab>
-                    <md-tab label='Startups' md-on-select="vm.initializeStartups()">
-                        <md-content>
-                            <div layout-padding>
-                                <person-startups></person-startups>
-                            </div>
-                        </md-content>
-                    </md-tab>
-                    <md-tab label='Prizes' md-on-select="vm.initializePrizes()">
-                        <md-content>
-                            <div layout-padding>
-                                <person-prizes></person-prizes>
-                            </div>
-                        </md-content>
-                    </md-tab>
-                    <md-tab label='Boards' md-on-select="vm.initializeBoards()">
-                        <md-content>
-                            <div layout-padding>
-                                <person-boards></person-boards>
-                            </div>
-                        </md-content>
-                    </md-tab>
-                    <md-tab label='Outreach' md-on-select="vm.initializeOutreaches()">
-                        <md-content>
-                            <div layout-padding>
-                                <person-outreach></person-outreach>
-                            </div>
-                        </md-content>
+                                    </div>
+                                </md-content>
+                            </md-tab>
+                            <md-tab label='Startups' md-on-select="vm.initializeStartups()">
+                                <md-content>
+                                    <div layout-padding>
+                                        <person-startups></person-startups>
+                                    </div>
+                                </md-content>
+                            </md-tab>
+                            <md-tab label='Prizes' md-on-select="vm.initializePrizes()">
+                                <md-content>
+                                    <div layout-padding>
+                                        <person-prizes></person-prizes>
+                                    </div>
+                                </md-content>
+                            </md-tab>
+                            <md-tab label='Boards' md-on-select="vm.initializeBoards()">
+                                <md-content>
+                                    <div layout-padding>
+                                        <person-boards></person-boards>
+                                    </div>
+                                </md-content>
+                            </md-tab>
+                            <md-tab label='Outreach' md-on-select="vm.initializeOutreaches()">
+                                <md-content>
+                                    <div layout-padding>
+                                        <person-outreach></person-outreach>
+                                    </div>
+                                </md-content>
+                            </md-tab>
+                        </md-tabs>
                     </md-tab>
                 </md-tabs>
             </md-tab>

@@ -56,11 +56,13 @@
             personData.professionalCategories()
                 .then(function (response) {
                     vm.professionalCategories = response.data.result;
+                    let previousSortType = vm.sortType;
+                    let previousSortReverse = vm.sortReverse;
                     vm.sortType = "sort_order";
                     vm.sortReverse = true;
                     vm.professionalCategories = vm.professionalCategories.sort(sorter)
-                    vm.sortType = 'person_name';
-                    vm.sortReverse = false;
+                    vm.sortType = previousSortType;
+                    vm.sortReverse = previousSortReverse;
                 })
                 .catch(function (err) {
                     console.log(err);
@@ -332,6 +334,7 @@
         vm.renderPeople = function (str, noRoles) {
             if (str === 'new') {
                 vm.currentPage = 1;
+                vm.currentPageInactive = 1;
             }
             if (noRoles === undefined) {
                 noRoles = false;
@@ -501,14 +504,39 @@
                     aggregatePeople[pID].show[0].hide = aggregatePeople[pID].hide;
                     peopleShow.push(aggregatePeople[pID].show[0]);
                 }
-                vm.peopleActive = [];
-                vm.peopleInactive = [];
+
 
 
                 // Sort selectedPeople according to defined order, before
                 // defining page contents
                 vm.selectedPeople = peopleShow.sort(sorter);
-                vm.totalFromSearch = vm.selectedPeople.length;
+                vm.peopleActive = [];
+                vm.peopleInactive = [];
+                now = moment();
+                for (let indMember in vm.selectedPeople) {
+                    let member = vm.selectedPeople[indMember];
+                    if (member['valid_from'] === null) {
+                        if (member['valid_until'] === null) {
+                            vm.peopleActive.push(member);
+                        } else if (moment(member['valid_until']).isAfter(now)) {
+                            vm.peopleActive.push(member);
+                        } else {
+                            vm.peopleInactive.push(member);
+                        }
+                    } else if (moment(member['valid_from']).isBefore(now)) {
+                        if (member['valid_until'] === null) {
+                            vm.peopleActive.push(member);
+                        } else if (moment(member['valid_until']).isAfter(now)) {
+                            vm.peopleActive.push(member);
+                        } else {
+                            vm.peopleInactive.push(member);
+                        }
+                    } else {
+                        vm.peopleInactive.push(member);
+                    }
+                }
+
+                vm.totalFromSearch = vm.peopleActive.length;
                 vm.totalPages = Math.ceil(vm.totalFromSearch / vm.pageSize);
                 vm.pages = [];
                 for (var num=1; num<=vm.totalPages; num++) {
@@ -519,48 +547,104 @@
                 for (var member = (vm.currentPage - 1) * vm.pageSize;
                         member < vm.currentPage * vm.pageSize && member < vm.totalFromSearch;
                         member++) {
-                    vm.selectedPeople[member]['valid_from'] = processDate(vm.selectedPeople[member]['valid_from']);
-                    vm.selectedPeople[member]['labs_groups_valid_from'] = processDate(vm.selectedPeople[member]['labs_groups_valid_from']);
-                    vm.selectedPeople[member]['valid_until'] = processDate(vm.selectedPeople[member]['valid_until']);
-                    vm.selectedPeople[member]['labs_groups_valid_until'] = processDate(vm.selectedPeople[member]['labs_groups_valid_until']);
-                    vm.selectedPeople[member]['showing'] = true;
-                    vm.selectedPeople[member]['expanded'] = false;
-                    vm.selectedPeople[member]['darker'] = false;
-                    vm.currPeople.push(Object.assign({}, vm.selectedPeople[member]));
-                    for (let indInfo in vm.selectedPeople[member].hide) {
-                        vm.selectedPeople[member].hide[indInfo]['valid_from'] = processDate(vm.selectedPeople[member].hide[indInfo]['valid_from']);
-                        vm.selectedPeople[member].hide[indInfo]['labs_groups_valid_from'] = processDate(vm.selectedPeople[member].hide[indInfo]['labs_groups_valid_from']);
-                        vm.selectedPeople[member].hide[indInfo]['valid_until'] = processDate(vm.selectedPeople[member].hide[indInfo]['valid_until']);
-                        vm.selectedPeople[member].hide[indInfo]['labs_groups_valid_until'] = processDate(vm.selectedPeople[member].hide[indInfo]['labs_groups_valid_until']);
-                        vm.selectedPeople[member].hide[indInfo]['showing'] = false;
-                        vm.selectedPeople[member].hide[indInfo]['hiding_person'] = vm.selectedPeople[member]['person_id'];
-                        vm.selectedPeople[member].hide[indInfo]['darker'] = true;
-                        if (parseInt(indInfo, 10) === vm.selectedPeople[member].hide.length - 1) {
-                            vm.selectedPeople[member].hide[indInfo]['last'] = true;
+                    vm.peopleActive[member]['valid_from'] = processDate(vm.peopleActive[member]['valid_from']);
+                    vm.peopleActive[member]['labs_groups_valid_from'] = processDate(vm.peopleActive[member]['labs_groups_valid_from']);
+                    vm.peopleActive[member]['valid_until'] = processDate(vm.peopleActive[member]['valid_until']);
+                    vm.peopleActive[member]['labs_groups_valid_until'] = processDate(vm.peopleActive[member]['labs_groups_valid_until']);
+                    vm.peopleActive[member]['showing'] = true;
+                    vm.peopleActive[member]['expanded'] = false;
+                    vm.peopleActive[member]['darker'] = false;
+                    vm.currPeople.push(Object.assign({}, vm.peopleActive[member]));
+                    for (let indInfo in vm.peopleActive[member].hide) {
+                        vm.peopleActive[member].hide[indInfo]['valid_from'] = processDate(vm.peopleActive[member].hide[indInfo]['valid_from']);
+                        vm.peopleActive[member].hide[indInfo]['labs_groups_valid_from'] = processDate(vm.peopleActive[member].hide[indInfo]['labs_groups_valid_from']);
+                        vm.peopleActive[member].hide[indInfo]['valid_until'] = processDate(vm.peopleActive[member].hide[indInfo]['valid_until']);
+                        vm.peopleActive[member].hide[indInfo]['labs_groups_valid_until'] = processDate(vm.peopleActive[member].hide[indInfo]['labs_groups_valid_until']);
+                        vm.peopleActive[member].hide[indInfo]['showing'] = false;
+                        vm.peopleActive[member].hide[indInfo]['hiding_person'] = vm.peopleActive[member]['person_id'];
+                        vm.peopleActive[member].hide[indInfo]['darker'] = true;
+                        if (parseInt(indInfo, 10) === vm.peopleActive[member].hide.length - 1) {
+                            vm.peopleActive[member].hide[indInfo]['last'] = true;
                         }
-                        vm.currPeople.push(Object.assign({}, vm.selectedPeople[member].hide[indInfo]));
+                        vm.currPeople.push(Object.assign({}, vm.peopleActive[member].hide[indInfo]));
+                    }
+                }
 
+                //Inactive
+                vm.totalFromSearchInactive = vm.peopleInactive.length;
+                vm.totalPagesInactive = Math.ceil(vm.totalFromSearchInactive / vm.pageSizeInactive);
+                vm.pagesInactive = [];
+                for (var num = 1; num <= vm.totalPagesInactive; num++) {
+                    vm.pagesInactive.push(num);
+                }
+
+                vm.currPeopleInactive = [];
+                for (var member = (vm.currentPageInactive - 1) * vm.pageSizeInactive;
+                    member < vm.currentPageInactive * vm.pageSizeInactive && member < vm.totalFromSearchInactive;
+                    member++) {
+                    vm.peopleInactive[member]['valid_from'] = processDate(vm.peopleInactive[member]['valid_from']);
+                    vm.peopleInactive[member]['labs_groups_valid_from'] = processDate(vm.peopleInactive[member]['labs_groups_valid_from']);
+                    vm.peopleInactive[member]['valid_until'] = processDate(vm.peopleInactive[member]['valid_until']);
+                    vm.peopleInactive[member]['labs_groups_valid_until'] = processDate(vm.peopleInactive[member]['labs_groups_valid_until']);
+                    vm.peopleInactive[member]['showing'] = true;
+                    vm.peopleInactive[member]['expanded'] = false;
+                    vm.peopleInactive[member]['darker'] = false;
+                    vm.currPeopleInactive.push(Object.assign({}, vm.peopleInactive[member]));
+                    for (let indInfo in vm.peopleInactive[member].hide) {
+                        vm.peopleInactive[member].hide[indInfo]['valid_from'] = processDate(vm.peopleInactive[member].hide[indInfo]['valid_from']);
+                        vm.peopleInactive[member].hide[indInfo]['labs_groups_valid_from'] = processDate(vm.peopleInactive[member].hide[indInfo]['labs_groups_valid_from']);
+                        vm.peopleInactive[member].hide[indInfo]['valid_until'] = processDate(vm.peopleInactive[member].hide[indInfo]['valid_until']);
+                        vm.peopleInactive[member].hide[indInfo]['labs_groups_valid_until'] = processDate(vm.peopleInactive[member].hide[indInfo]['labs_groups_valid_until']);
+                        vm.peopleInactive[member].hide[indInfo]['showing'] = false;
+                        vm.peopleInactive[member].hide[indInfo]['hiding_person'] = vm.peopleInactive[member]['person_id'];
+                        vm.peopleInactive[member].hide[indInfo]['darker'] = true;
+                        if (parseInt(indInfo, 10) === vm.peopleInactive[member].hide.length - 1) {
+                            vm.peopleInactive[member].hide[indInfo]['last'] = true;
+                        }
+                        vm.currPeopleInactive.push(Object.assign({}, vm.peopleInactive[member].hide[indInfo]));
                     }
                 }
             }
         };
-        vm.expandInfo = function(member) {
-            member.expanded = true;
-            //member.darker = true;
-            for (let el in vm.currPeople) {
-                if (vm.currPeople[el].hiding_person === member.person_id) {
-                    vm.currPeople[el].darker = true;
-                    vm.currPeople[el].showing = true;
+        vm.expandInfo = function(member, inactive) {
+            if (!inactive) {
+                member.expanded = true;
+                //member.darker = true;
+                for (let el in vm.currPeople) {
+                    if (vm.currPeople[el].hiding_person === member.person_id) {
+                        vm.currPeople[el].darker = true;
+                        vm.currPeople[el].showing = true;
+                    }
+                }
+            } else {
+                member.expanded = true;
+                //member.darker = true;
+                for (let el in vm.currPeopleInactive) {
+                    if (vm.currPeopleInactive[el].hiding_person === member.person_id) {
+                        vm.currPeopleInactive[el].darker = true;
+                        vm.currPeopleInactive[el].showing = true;
+                    }
                 }
             }
         };
-        vm.compactInfo = function(member) {
-            member.expanded = false;
-            //member.darker = false;
-            for (let el in vm.currPeople) {
-                if (vm.currPeople[el].hiding_person === member.person_id) {
-                    vm.currPeople[el].darker = false;
-                    vm.currPeople[el].showing = false;
+        vm.compactInfo = function(member, inactive) {
+            if (!inactive) {
+                member.expanded = false;
+                //member.darker = false;
+                for (let el in vm.currPeople) {
+                    if (vm.currPeople[el].hiding_person === member.person_id) {
+                        vm.currPeople[el].darker = false;
+                        vm.currPeople[el].showing = false;
+                    }
+                }
+            } else {
+                member.expanded = false;
+                //member.darker = false;
+                for (let el in vm.currPeopleInactive) {
+                    if (vm.currPeopleInactive[el].hiding_person === member.person_id) {
+                        vm.currPeopleInactive[el].darker = false;
+                        vm.currPeopleInactive[el].showing = false;
+                    }
                 }
             }
         };
@@ -2500,10 +2584,19 @@
             vm.totalFromSearch = 10;
             vm.currentPage = 1;
             vm.totalPages = Math.ceil(vm.totalPeople / vm.pageSize);
+
+            vm.pageSizeInactive = 10;
+            vm.totalFromSearchInactive = 10;
+            vm.currentPageInactive = 1;
+            vm.totalPagesInactive = Math.ceil(vm.totalPeople / vm.pageSizeInactive);
             // computes the number of pages
             vm.pages = [];
             for (var num=0; num<vm.totalPages; num++) {
                 vm.pages.push(num);
+            }
+            vm.pagesInactive = [];
+            for (var num=0; num<vm.totalPagesInactive; num++) {
+                vm.pagesInactive.push(num);
             }
             vm.totalPeopleNoRoles = vm.allPeopleNoRoles.length;
             vm.pageSizeNoRoles = 10;
@@ -2528,7 +2621,8 @@
                 vm.pagesValidate.push(num);
             }
 
-            var formsArray = ['allPeople','personNuclear','personContact','personIdentifications',
+            var formsArray =
+                ['allPeople', 'allPeopleInactive','personNuclear','personContact','personIdentifications',
                 'personEmergency','personInstitutional','personURLs','personDepartment','personResInfo',
                 'personLabAffiliation','personRmResearcherRole','personProfessional','personTechInfo',
                 'personTechLab','personManagerInfo','personManagerOffice','personAdministrativeInfo',
@@ -2548,74 +2642,7 @@
                 'personUserPermissions','validateUserPermissions','personCostCenter',
                 'personCars','validateCars','personFCTStatus','validateFCTStatus',
                 'personSelectedPub','personPubRemove'];
-            /*vm.forms = {
-                'allPeople': 0,
-                'personNuclear': 1,
-                'personContact': 2,
-                'personIdentifications': 3,
-                'personEmergency': 4,
-                'personInstitutional': 5,
-                'personDepartment': 6,
-                'personResInfo': 7,
-                'personLabAffiliation': 8,
-                'personRmResearcherRole': 9,
-                'personProfessional': 10,
-                'personTechInfo': 11,
-                'personTechLab': 12,
-                'personManagerInfo': 13,
-                'personManagerOffice': 14,
-                'personAdministrativeInfo': 15,
-                'personAdministrativeOffice': 16,
-                'personAffiliationTech': 17,
-                'personAffiliationScMan': 18,
-                'personAffiliationAdm': 19,
-                'personRmTechnicianRole': 20,
-                'personRmScManRole': 21,
-                'personRmAdmRole': 22,
-                'personFinishedDegrees': 23,
-                'personOngoingDegrees': 24,
-                'personResponsibles': 25,
-                'personPole': 26,
-                'personLeft': 27,
-                'validateNuclear': 28,
-                'validateContact': 29,
-                'validateIdentifications': 30,
-                'validateEmergency': 31,
-                'validateInstitutional': 32,
-                'validateDepartment': 33,
-                'validateResInfo': 34,
-                'validateLabAffiliation': 35,
-                'validateRmResearcherRole': 36,
-                'validateProfessional': 37,
-                'validateTechInfo': 38,
-                'validateTechLab': 39,
-                'validateManagerInfo': 40,
-                'validateManagerOffice': 41,
-                'validateAdministrativeInfo': 42,
-                'validateAdministrativeOffice': 43,
-                'validateAffiliationTech': 44,
-                'validateAffiliationScMan': 45,
-                'validateAffiliationAdm': 46,
-                'validateRmTechnicianRole': 47,
-                'validateRmScManRole': 48,
-                'validateRmAdmRole': 49,
-                'validateFinishedDegrees': 50,
-                'validateOngoingDegrees': 51,
-                'validateResponsibles': 52,
-                'validatePole': 53,
-                'validateUser':54,
-                'personPasswordReset': 55,
-                'personPhoto':56,
-                'personAuthorNames': 57,
-                'validatePhoto': 58,
-                'personUserPermissions': 59,
-                'validateUserPermissions': 60,
-                'personCostCenter': 61,
-                'personCars': 62,
-                'validateCars': 63,
-                'personFCTStatus': 64,
-                'validateFCTStatus': 65
-            };*/
+
 
             if (ind === undefined) {
                 //var numberCards = Object.keys(vm.forms).length; // the number of cards with "Update" in each tab
@@ -2755,9 +2782,13 @@
                         }
                         vm.currentAffiliationsLab[el].push(Object.assign({}, vm.thisPerson[el].lab_data[id]));
                     }
+                    let previousSortType = vm.sortType;
+                    let previousSortReverse = vm.sortReverse;
                     vm.sortType = 'lab_end';
                     vm.sortReverse = false;
                     vm.currentAffiliationsLab[el] = vm.currentAffiliationsLab[el].sort(sorter);
+                    vm.sortType = previousSortType;
+                    vm.sortReverse = previousSortReverse;
 
 
                     vm.currentCostCenters[el] = [];
@@ -3415,6 +3446,12 @@
             templateUrl: 'manager/all_people/all.members.html'
         };
     };
+    var allPeopleInactivePresentation = function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'manager/all_people/all.membersInactive.html'
+        };
+    };
     var allPeopleNoRolesPresentation = function () {
         return {
             restrict: 'E',
@@ -3771,6 +3808,7 @@
     angular
         .module('managementApp')
         .directive('allPeoplePresentation', allPeoplePresentation)
+        .directive('allPeopleInactivePresentation', allPeopleInactivePresentation)
         .directive('allPeopleNoRolesPresentation', allPeopleNoRolesPresentation)
         .directive('managerFctMctes', managerFctMctes)
         .directive('managerPersonNuclearInfo', managerPersonNuclearInfo)

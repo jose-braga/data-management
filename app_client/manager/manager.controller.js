@@ -25,6 +25,13 @@
                 .catch(function (err) {
                     console.log(err);
                 });
+            personData.urlTypes()
+                .then(function (response) {
+                    vm.urlTypes = response.data.result;
+                })
+                .catch(function (err) {
+                    console.log(err);
+                });
             personData.degreeTypes()
                 .then(function (response) {
                     vm.degreeTypes = response.data.result;
@@ -49,6 +56,11 @@
             personData.professionalCategories()
                 .then(function (response) {
                     vm.professionalCategories = response.data.result;
+                    vm.sortType = "sort_order";
+                    vm.sortReverse = true;
+                    vm.professionalCategories = vm.professionalCategories.sort(sorter)
+                    vm.sortType = 'person_name';
+                    vm.sortReverse = false;
                 })
                 .catch(function (err) {
                     console.log(err);
@@ -315,7 +327,7 @@
         };
         vm.renderHub = function() {
             vm.renderPeople('new')
-            vm.renderPeople('new', true)            
+            vm.renderPeople('new', true)
         };
         vm.renderPeople = function (str, noRoles) {
             if (str === 'new') {
@@ -371,7 +383,7 @@
                 vm.totalPeople = vm.allPeople.length;
                 // now we filter based on search terms
                 vm.selectedPeople = [];
-                
+
                 for (var member in vm.allPeople) {
                     toInclude = 0;
                     toIncludeDueName = 0;
@@ -448,7 +460,7 @@
                     }
 
                 }
-                
+
                 // from the selected entries we aggregate the ones refering
                 // to the same person. Only one row will be at 'show' property
                 var aggregatePeople = {};
@@ -489,7 +501,9 @@
                     aggregatePeople[pID].show[0].hide = aggregatePeople[pID].hide;
                     peopleShow.push(aggregatePeople[pID].show[0]);
                 }
-                
+                vm.peopleActive = [];
+                vm.peopleInactive = [];
+
 
                 // Sort selectedPeople according to defined order, before
                 // defining page contents
@@ -541,7 +555,7 @@
             }
         };
         vm.compactInfo = function(member) {
-            member.expanded = false;            
+            member.expanded = false;
             //member.darker = false;
             for (let el in vm.currPeople) {
                 if (vm.currPeople[el].hiding_person === member.person_id) {
@@ -1308,6 +1322,25 @@
                 );
             return false;
         };
+        vm.submitURLs = function (ind, indDetail) {
+            vm.updateStatus[ind] = "Updating...";
+            vm.messageType[ind] = 'message-updating';
+            vm.hideMessage[ind] = false;
+            var data = processDataRows(vm.currentURLs[indDetail],
+                                    vm.thisPerson[indDetail].pers_url,
+                'personal_url_id', 'newURL', 'updateURL', 'deleteURL');
+            personData.updateURLsPersonByID(vm.thisPerson[indDetail].id, data)
+                .then(function () {
+                    getPersonData(vm.thisPerson[indDetail].id, indDetail, ind);
+                },
+                    function () {
+                        vm.updateStatus[ind] = "Error!";
+                        vm.messageType[ind] = 'message-error';
+                    },
+                    function () { }
+                );
+            return false;
+        };
         vm.submitResearcherInfo = function (ind, indDetail, datum, validate) {
             vm.updateStatus[ind] = "Updating...";
             vm.messageType[ind] = 'message-updating';
@@ -1951,6 +1984,13 @@
                     obj = {card_id: 'new', card_type: null, card_type_id: null, card_number: null, card_valid_until: null};
                     current.push(obj);
                 }
+            } else if (type === 'urls') {
+                if (current.length == 1 && current[0]['personal_url_id'] === null) {
+                    current[0]['personal_url_id'] = 'new';
+                } else {
+                    obj = { personal_url_id: 'new', url_type_id: null, personal_url: null, description: null };
+                    current.push(obj);
+                }
             } else if (type === 'emergencyContacts') {
                 if (current.length == 1 && current[0]['emergency_id'] === null) {
                     current[0]['emergency_id'] = 'new';
@@ -2394,7 +2434,7 @@
             vm.initialFinishedDegrees = [];
             vm.currentOngoingDegrees = [];
             vm.initialOngoingDegrees = [];
-
+            vm.currentURLs = [];
             vm.currentEmergencyContacts = [];
             vm.currentFCTStatus = [];
             vm.currentAffiliationsLab = [];
@@ -2489,7 +2529,7 @@
             }
 
             var formsArray = ['allPeople','personNuclear','personContact','personIdentifications',
-                'personEmergency','personInstitutional','personDepartment','personResInfo',
+                'personEmergency','personInstitutional','personURLs','personDepartment','personResInfo',
                 'personLabAffiliation','personRmResearcherRole','personProfessional','personTechInfo',
                 'personTechLab','personManagerInfo','personManagerOffice','personAdministrativeInfo',
                 'personAdministrativeOffice','personAffiliationTech','personAffiliationScMan',
@@ -2641,6 +2681,11 @@
                     }
                     vm.thisPerson[el].author_data = authors;
 
+                    vm.currentURLs[el] = [];
+                    for (var id in vm.thisPerson[el].pers_url) {
+                        vm.currentURLs[el].push(Object.assign({}, vm.thisPerson[el].pers_url[id]));
+                    }
+
                     vm.currentEmergencyContacts[el] = [];
                     for (var id in vm.thisPerson[el].emergency_contacts) {
                         vm.currentEmergencyContacts[el].push(Object.assign({}, vm.thisPerson[el].emergency_contacts[id]));
@@ -2710,6 +2755,10 @@
                         }
                         vm.currentAffiliationsLab[el].push(Object.assign({}, vm.thisPerson[el].lab_data[id]));
                     }
+                    vm.sortType = 'lab_end';
+                    vm.sortReverse = false;
+                    vm.currentAffiliationsLab[el] = vm.currentAffiliationsLab[el].sort(sorter);
+
 
                     vm.currentCostCenters[el] = [];
                     for (var id in vm.thisPerson[el].cost_centers) {
@@ -3092,6 +3141,30 @@
                     return (a[vm.sortType] ? getNameFromID(a[vm.sortType],vm.sortType, aRoleID) : 'ZZ')
                         .localeCompare(b[vm.sortType] ? getNameFromID(b[vm.sortType],vm.sortType, bRoleID) : 'ZZ');
                 }
+            } else if (vm.sortType == 'lab_end') {
+                if (vm.sortReverse) {
+                    if ((moment(a[vm.sortType]).isValid() ? moment(a[vm.sortType]) : moment().add(100, 'years'))
+                        .isBefore(moment(b[vm.sortType]).isValid() ? moment(b[vm.sortType]) : moment().add(100, 'years'))) {
+                        return 1;
+                    } else if ((moment(a[vm.sortType]).isValid() ? moment(a[vm.sortType]) : moment().add(100, 'years'))
+                        .isAfter(moment(b[vm.sortType]).isValid() ? moment(b[vm.sortType]) : moment().add(100, 'years'))) {
+                        return -1;
+                    }
+                } else {
+                    if ((moment(a[vm.sortType]).isValid() ? moment(a[vm.sortType]) : moment(0))
+                        .isAfter(moment(b[vm.sortType]).isValid() ? moment(b[vm.sortType]) : moment(0))) {
+                        return 1;
+                    } else if ((moment(a[vm.sortType]).isValid() ? moment(a[vm.sortType]) : moment(0))
+                        .isBefore(moment(b[vm.sortType]).isValid() ? moment(b[vm.sortType]) : moment(0))) {
+                        return -1;
+                    }
+                }
+            } else if (vm.sortType === 'sort_order') {
+                if (vm.sortReverse) {
+                    return a[vm.sortType] - b[vm.sortType];
+                } else {
+                    return -(a[vm.sortType] - b[vm.sortType]);
+                }
             } else {
                 if (vm.sortReverse) {
                     return -(a[vm.sortType] ? a[vm.sortType] : '')
@@ -3409,6 +3482,12 @@
             templateUrl: 'manager/person_details/manager.personInstitutionalContactsInfo.html'
         };
     };
+    var managerPersonUrls = function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'manager/person_details/manager.personUrls.html'
+        };
+    };
     var managerPersonCurrentRoles = function () {
         return {
             restrict: 'E',
@@ -3700,6 +3779,7 @@
         .directive('managerPersonCarsInfo', managerPersonCarsInfo)
         .directive('managerPersonEmergencyContactsInfo', managerPersonEmergencyContactsInfo)
         .directive('managerPersonInstitutionalContactsInfo', managerPersonInstitutionalContactsInfo)
+        .directive('managerPersonUrls', managerPersonUrls)
         .directive('managerPersonCurrentRoles', managerPersonCurrentRoles)
         .directive('managerPersonResearcherInfo', managerPersonResearcherInfo)
         .directive('managerPersonCostCenter', managerPersonCostCenter)

@@ -42,6 +42,7 @@
                                     <manager-person-photo></manager-person-photo>
                                     <manager-person-pole></manager-person-pole>
                                     <manager-person-institutional-contacts-info></manager-person-institutional-contacts-info>
+                                    <manager-person-urls></manager-person-urls>
                                     <manager-person-department></manager-person-department>
                                     <manager-person-professional></manager-person-professional>
                                     <manager-person-responsibles></manager-person-responsibles>
@@ -79,15 +80,15 @@
                                         flex>
                                     </manager-add-person-publications-small>
 
-                                    <manager-add-person-publications-pure-large ng-if="vm.showTable()" 
+                                    <manager-add-person-publications-pure-large ng-if="vm.showTable()"
                                         data-person="{{person.id}}"
-                                        data-pureres="{{person.researcher_data[0].pure_id}}" 
+                                        data-pureres="{{person.researcher_data[0].pure_id}}"
                                         data-puretech="{{person.technician_data[0].pure_id}}"
                                         data-purescman="{{person.science_manager_data[0].pure_id}}" flex>
                                     </manager-add-person-publications-pure-large>
-                                    <manager-add-person-publications-pure-small ng-if="!vm.showTable()" 
+                                    <manager-add-person-publications-pure-small ng-if="!vm.showTable()"
                                         data-person="{{person.id}}"
-                                        data-pureres="{{person.researcher_data[0].pure_id}}" 
+                                        data-pureres="{{person.researcher_data[0].pure_id}}"
                                         data-puretech="{{person.technician_data[0].pure_id}}"
                                         data-purescman="{{person.science_manager_data[0].pure_id}}" flex>
                                     </manager-add-person-publications-pure-small>

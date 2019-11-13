@@ -1722,6 +1722,10 @@
             personData.professionalCategories()
                 .then(function (response) {
                     vm.professionalCategories = response.data.result;
+                    vm.sortType = "sort_order";
+                    vm.sortReverse = true;
+                    vm.professionalCategories = vm.professionalCategories.sort(sorter)
+                   
                 })
                 .catch(function (err) {
                     console.log(err);
@@ -4397,6 +4401,30 @@
                         return -1;
                     }
                 }
+            } else if (vm.sortType == 'lab_end') {
+                if (vm.sortReverse) {
+                    if ((moment(a[vm.sortType]).isValid() ? moment(a[vm.sortType]) : moment().add(100, 'years'))
+                        .isBefore(moment(b[vm.sortType]).isValid() ? moment(b[vm.sortType]) : moment().add(100, 'years'))) {
+                        return 1;
+                    } else if ((moment(a[vm.sortType]).isValid() ? moment(a[vm.sortType]) : moment().add(100, 'years'))
+                        .isAfter(moment(b[vm.sortType]).isValid() ? moment(b[vm.sortType]) : moment().add(100, 'years'))) {
+                        return -1;
+                    }
+                } else {
+                    if ((moment(a[vm.sortType]).isValid() ? moment(a[vm.sortType]) : moment(0))
+                        .isAfter(moment(b[vm.sortType]).isValid() ? moment(b[vm.sortType]) : moment(0))) {
+                        return 1;
+                    } else if ((moment(a[vm.sortType]).isValid() ? moment(a[vm.sortType]) : moment(0))
+                        .isBefore(moment(b[vm.sortType]).isValid() ? moment(b[vm.sortType]) : moment(0))) {
+                        return -1;
+                    }
+                }
+            } else if (vm.sortType === 'sort_order') {
+                if (vm.sortReverse) {
+                    return a[vm.sortType] - b[vm.sortType];
+                } else {
+                    return -(a[vm.sortType] - b[vm.sortType]);
+                }
             } else {
                 if (vm.sortReverse) {
                     return -(a[vm.sortType] ? a[vm.sortType] : '')
@@ -4800,6 +4828,9 @@
                         vm.thisPerson.lab_data[id]['lab_closed'] = processDate(vm.thisPerson.lab_data[id]['lab_closed']);
                         vm.currentAffiliationsLab.push(Object.assign({}, vm.thisPerson.lab_data[id]));
                     }
+                    vm.sortType = 'lab_end';
+                    vm.sortReverse = false;
+                    vm.currentAffiliationsLab = vm.currentAffiliationsLab.sort(sorter);
 
 
                     vm.currentCostCenters = [];

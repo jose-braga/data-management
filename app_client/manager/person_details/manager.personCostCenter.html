@@ -10,7 +10,7 @@
             <div ng-if="!vm.nothingToShow(vm.currentCostCenters[vm.selectedIndex-2],'people_cost_centers_id')" layout="column">
                 <div ng-repeat="(num,cost_center) in vm.currentCostCenters[vm.selectedIndex-2] track by $index"
                         layout="column" layout-gt-xs="row" class="spacer-top">
-                    <md-input-container>
+                    <md-input-container style="width: 50%;">
                         <label>Choose</label>
                         <md-select ng-model="vm.currentCostCenters[vm.selectedIndex-2][num].cost_center_id"
                                 name="cost_center[num]">
@@ -19,12 +19,16 @@
                     </md-input-container>
                     <md-input-container class="input-row-longer">
                         <label>Start</label>
-                        <md-datepicker md-current-view="year" ng-model="vm.currentCostCenters[vm.selectedIndex-2][num].valid_from"
+                        <md-datepicker
+                                md-hide-icons="calendar"
+                                md-current-view="year" ng-model="vm.currentCostCenters[vm.selectedIndex-2][num].valid_from"
                                 name="cost_start[num]" md-placeholder="Enter date"></md-datepicker>
                     </md-input-container>
                     <md-input-container class="input-row-longer">
                         <label>End</label>
-                        <md-datepicker md-current-view="year" ng-model="vm.currentCostCenters[vm.selectedIndex-2][num].valid_until"
+                        <md-datepicker
+                                md-hide-icons="calendar"
+                                md-current-view="year" ng-model="vm.currentCostCenters[vm.selectedIndex-2][num].valid_until"
                                 name="cost_end[num]" md-placeholder="Enter date"></md-datepicker>
                     </md-input-container>
                     <div layout="row" layout-align="start center">

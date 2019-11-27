@@ -1,7 +1,7 @@
 (function () {
     var ordersData = function ($http, authentication) {
-        //var currentUser = authentication.currentUser();      
-    
+        //var currentUser = authentication.currentUser();
+
         // to get data for select elements
         var itemCategories = function () {
             return $http.get('api/list/item-categories');
@@ -24,7 +24,7 @@
         var orderAccountRoles = function () {
             return $http.get('api/list/order-account-roles');
         };
-        
+
         var getManagementPermissions = function (currentUser) {
             return $http.get('api/users/' + currentUser + '/management-permissions',
                 {
@@ -32,7 +32,7 @@
                 }
             );
         };
-        
+
         var searchUsersSimple = function (currentUser, name) {
             return $http.get('api/stock-managers/' + currentUser + '/users-search?name=' + name,
                 {
@@ -80,8 +80,8 @@
             );
         };
 
-        var getInventory = function (currentUser) {
-            return $http.get('api/users/' + currentUser + '/inventory',
+        var getInventory = function (currentUser, accountID) {
+            return $http.get('api/users/' + currentUser + '/inventory/' + accountID,
                 {
                     headers: { Authorization: 'Bearer ' + authentication.getToken() }
                 }
@@ -122,8 +122,8 @@
         };
         var approveManagersOrder = function (currentUser, orderID, data) {
             // for a manager to make changes in an order
-            return $http.put('api/stock-managers/' + currentUser 
-                            + '/orders/' + orderID + '/approve', 
+            return $http.put('api/stock-managers/' + currentUser
+                            + '/orders/' + orderID + '/approve',
                 data,
                 {
                     headers: { Authorization: 'Bearer ' + authentication.getToken() }
@@ -162,30 +162,38 @@
             );
         };
 
-        var getUserOrders = function (currentUser) {
-            return $http.get('api/users/' + currentUser + '/orders',
+        var getUserOrders = function (currentUser, accountID) {
+            return $http.get('api/users/' + currentUser + '/orders/' + accountID,
                 {
                     headers: { Authorization: 'Bearer ' + authentication.getToken() }
                 }
             );
         };
 
-        var getUserAccountInfo = function (currentUser) {
-            return $http.get('api/users/' + currentUser + '/accounts-orders',
+        var getUserAccountInfo = function (currentUser, accountID) {
+            return $http.get('api/users/' + currentUser + '/accounts-orders/' + accountID,
                 {
                     headers: { Authorization: 'Bearer ' + authentication.getToken() }
                 }
             );
         };
 
-        var createOrder = function (currentUser, data) {
-            return $http.post('api/users/' + currentUser + '/orders', data,
+        var getUserMultipleAccounts = function (currentUser) {
+            return $http.get('api/users/' + currentUser + '/multiple-accounts',
                 {
                     headers: { Authorization: 'Bearer ' + authentication.getToken() }
                 }
             );
         };
-        
+
+        var createOrder = function (currentUser, accountID, data) {
+            return $http.post('api/users/' + currentUser + '/orders/' + accountID, data,
+                {
+                    headers: { Authorization: 'Bearer ' + authentication.getToken() }
+                }
+            );
+        };
+
 
         return {
             searchUsersSimple: searchUsersSimple,
@@ -206,6 +214,7 @@
             closeManagersOrder: closeManagersOrder,
             getUserOrders: getUserOrders,
             createOrder: createOrder,
+            getUserMultipleAccounts: getUserMultipleAccounts,
             getUserAccountInfo: getUserAccountInfo,
             itemCategories: itemCategories,
             unitTypes: unitTypes,

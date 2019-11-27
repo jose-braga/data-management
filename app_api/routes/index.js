@@ -244,10 +244,11 @@ router.post('/pre-registration/photo/:personID/:imageType', auth, ctrlPreRegistr
 router.get('/pre-registration/people/:personID', auth, ctrlPreRegistrationData.getPersonData);
 
 /* Internal orders API */
-router.get('/users/:userID/orders', auth, ctrlOrders.getUserOrders);
-router.post('/users/:userID/orders', auth, ctrlOrders.makeOrder);
-router.get('/users/:userID/accounts-orders', auth, ctrlOrders.getUserAccounts);
-router.get('/users/:userID/inventory', auth, ctrlOrders.getInventory);
+router.get('/users/:userID/orders/:accountID', auth, ctrlOrders.getUserOrders);
+router.post('/users/:userID/orders/:accountID', auth, ctrlOrders.makeOrder);
+router.get('/users/:userID/multiple-accounts', auth, ctrlOrders.getUserMultipleAccounts);
+router.get('/users/:userID/accounts-orders/:accountID', auth, ctrlOrders.getUserAccounts);
+router.get('/users/:userID/inventory/:accountID', auth, ctrlOrders.getInventory);
 router.get('/users/:userID/management-permissions', auth, ctrlOrders.getManagementPermissions);
 router.get('/stock-managers/:userID/users-info', auth, ctrlOrders.getManagementUsersInfo);
 router.put('/stock-managers/:userID/users-info', auth, ctrlOrders.updateManagementUsersInfo);

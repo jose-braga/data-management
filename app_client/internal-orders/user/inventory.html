@@ -1,5 +1,5 @@
-<div layout-xs="column" 
-    layout-sm="column" 
+<div layout-xs="column"
+    layout-sm="column"
     layout-md="column"
     layout-gt-md="row" layout-padding>
     <div flex-xs flex-sm flex-md flex-gt-md="75" layout="column">
@@ -92,14 +92,14 @@
                             <td>
                                 <md-icon ng-if="item.status_id === 1"
                                     class="smaller-icon" md-svg-src="images/icons/check_24px.svg"></md-icon>
-                                <md-icon ng-if="item.status_id === 2" 
+                                <md-icon ng-if="item.status_id === 2"
                                     class="smaller-icon" md-svg-src="images/icons/watch_24px.svg"></md-icon>
-                                <md-icon ng-if="item.status_id === 3" 
+                                <md-icon ng-if="item.status_id === 3"
                                     class="smaller-icon" md-svg-src="images/icons/unavailable_24px.svg"></md-icon>
                             </td>
                             <td>
                                 <md-button class="smaller-button" ng-click="addToCart(item)" aria-label="Add to Cart" class="md-icon-button">
-                                    <md-icon 
+                                    <md-icon
                                         class="smaller-icon"
                                         md-svg-src="images/icons/add_shopping_cart_24px.svg"></md-icon>
                                 </md-button>
@@ -136,7 +136,7 @@
                 </md-card-title-text>
             </md-card-title>
             <md-card-content layout="column">
-                <form flex novalidate name="orderCartForm" 
+                <form flex novalidate name="orderCartForm"
                         ng-submit="orderCartForm.$valid && submitOrder(forms['orderCart'])"
                         class="spacer-top">
                     <table class="materialize-table">
@@ -172,18 +172,18 @@
                                 <td>{{item.renderQuantity}}</td>
                                 <td>
                                     <md-input-container class="input-no-margin">
-                                        <input 
+                                        <input
                                             ng-if="item.decimal === 0"
                                             ng-model="item.amount_to_order"
                                             aria-label="item amount"
                                             name="item_amount[itemNum]"
                                             positive-integer-validate="{{item.itemsAvailable}}">
-                                        <input 
+                                        <input
                                             ng-if="item.decimal === 1"
                                             ng-model="item.amount_to_order"
                                             aria-label="item amount"
                                             name="item_amount[itemNum]"
-                                            
+
                                             positive-float-validate="{{item.itemsAvailable_decimal}}">
                                     </md-input-container>
                                 </td>
@@ -313,8 +313,8 @@
                             <td>{{order.total_cost_tax| currency:"":2}} €</td>
                             <td>{{order.last_status.name_en}}</td>
                             <td>
-                                <md-button ng-click="showDetailsOrder(order)" 
-                                        aria-label="Details" 
+                                <md-button ng-click="showDetailsOrder(order)"
+                                        aria-label="Details"
                                         class="md-icon-button interaction-button">
                                     <md-icon md-svg-src="images/icons/description_24px.svg"></md-icon>
                                 </md-button>

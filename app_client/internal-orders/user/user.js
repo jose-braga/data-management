@@ -32,7 +32,7 @@
                         scope.shoppingCartTotalNoTax = 0;
                         scope.forms = {
                             'orderCart': 0,
-                        };                        
+                        };
                         var numberCards = Object.keys(scope.forms).length; // the number of cards with "Update" in each tab
                         scope.updateStatus = [];
                         scope.messageType = [];
@@ -41,10 +41,15 @@
                             scope.updateStatus.push('');
                             scope.messageType.push('message-updating');
                             scope.hideMessage.push(true);
-                        }  
-                        
+                        }
+
+                        scope.$watch("account", function () {
+                            scope.reloadInventory();
+                            scope.reloadOrders();
+                        });
+
                         scope.reloadInventory = function () {
-                            ordersData.getInventory(scope.user)
+                            ordersData.getInventory(scope.user, scope.account)
                                 .then(function (response) {
                                     if (response !== null && response !== undefined) {
                                         if (response.data.result.account_info.accountID !== undefined
@@ -61,7 +66,7 @@
 
                         };
                         scope.reloadOrders = function () {
-                            ordersData.getUserOrders(scope.user)
+                            ordersData.getUserOrders(scope.user, scope.account)
                                 .then(function (response) {
                                     if (response !== null && response !== undefined) {
                                         scope.orders = response.data.result;
@@ -71,7 +76,7 @@
                                 .catch(function (err) {
                                     console.log(err);
                                 });
-                            ordersData.getUserAccountInfo(scope.user)
+                            ordersData.getUserAccountInfo(scope.user, scope.account)
                                 .then(function (response) {
                                     if (response !== null && response !== undefined) {
                                         // for now we are assuming that there is only 1 account per user
@@ -115,18 +120,18 @@
                                             break;
                                         }
                                     }
-                                    
+
                                 } else {
                                     toIncludeDueName = 1;
                                     toIncludeDueBrand = 1;
                                     toIncludeDueReference = 1;
                                     toIncludeDueType = 1;
                                 }
-                                if (toIncludeDueName === 1 || toIncludeDueBrand === 1 
+                                if (toIncludeDueName === 1 || toIncludeDueBrand === 1
                                     || toIncludeDueReference === 1 || toIncludeDueType === 1) {
                                     toInclude = 1;
                                 }
-                                if (toInclude === 1 
+                                if (toInclude === 1
                                         && scope.inventory[item].stock_id !== null
                                         && scope.inventory[item].stock_id !== undefined){
                                     scope.inventory[item].renderQuantity = scope.renderQuantities(scope.inventory[item]);
@@ -174,7 +179,7 @@
                         };
                         scope.renderFinances = function () {
                             // assuming only 1 account per user
-                            if (scope.finaccount !== undefined 
+                            if (scope.finaccount !== undefined
                                     && scope.finaccount !== null
                                     && scope.finaccount.length === 1) {
                                 let finances = scope.finaccount[0].account_finances;
@@ -203,7 +208,7 @@
                                     scope.sortReverseOrders = false;
                                 }
                                 scope.renderOrders('new')
-                            }                            
+                            }
                         };
                         scope.renderCost = function (item, unit_price, tax, quantity) {
                             let cost = unit_price * (1.0 + tax/100.0) * quantity;
@@ -248,14 +253,14 @@
                             let quantString = '';
                             let itemsAvailable;
                             if (item.decimal === 0) {
-                                if (item.quantity_in_requests === null 
+                                if (item.quantity_in_requests === null
                                     || item.quantity_in_requests === undefined ) {
                                     item.quantity_in_requests = 0;
                                 }
                                 itemsAvailable = item.quantity_in_stock - item.quantity_in_requests;
                                 item.itemsAvailable = itemsAvailable;
                                 if (itemsAvailable > 1) {
-                                    quantString = quantString 
+                                    quantString = quantString
                                             +  itemsAvailable
                                             + ' ' + item.unit_plural_en;
                                 } else {
@@ -279,7 +284,7 @@
                                         + itemsAvailable.toFixed(3)
                                         + ' ' + item.unit_singular_en;
                                 }
-                            }                            
+                            }
                             return quantString;
                         };
                         scope.removeFromCart = function (cart, num) {
@@ -366,10 +371,10 @@
                                         }
                                     }
                                 }
-                                return inventoryLevels;                                
+                                return inventoryLevels;
                             }
                             function redrawScreen() {
-                                ordersData.getInventory(scope.user)
+                                ordersData.getInventory(scope.user, scope.account)
                                     .then(function (response) {
                                         if (response !== null && response !== undefined) {
                                             if (response.data.result.account_info.accountID !== undefined
@@ -378,7 +383,7 @@
                                                 scope.renderProducts('new');
                                             }
                                         }
-                                        ordersData.getUserOrders(scope.user)
+                                        ordersData.getUserOrders(scope.user, scope.account)
                                             .then(function (response) {
                                                 if (response !== null && response !== undefined) {
                                                     scope.orders = response.data.result;
@@ -388,7 +393,7 @@
                                             .catch(function (err) {
                                                 console.log(err);
                                             });
-                                        ordersData.getUserAccountInfo(scope.user)
+                                        ordersData.getUserAccountInfo(scope.user, scope.account)
                                             .then(function (response) {
                                                 if (response !== null && response !== undefined) {
                                                     // for now we are assuming that there is only 1 account per user
@@ -415,12 +420,12 @@
 
                             }
                             function performOrder (data) {
-                                ordersData.createOrder(scope.user, data)
+                                ordersData.createOrder(scope.user, scope.account, data)
                                     .then(function () {
                                         scope.shoppingCart = [];
                                         scope.shoppingCartTotal = 0;
                                         redrawScreen();
-                                        
+
                                     },
                                         function () {
                                             scope.updateStatus[ind] = "Error!";
@@ -430,13 +435,13 @@
                                     );
 
                             }
-                            if (scope.shoppingCart.length > 0 
+                            if (scope.shoppingCart.length > 0
                                     && scope.foundFinances) {
                                 scope.updateStatus[ind] = "Checking current inventory levels.";
                                 scope.messageType[ind] = 'message-updating';
                                 scope.hideMessage[ind] = false;
-                                
-                                ordersData.getInventory(scope.user)
+
+                                ordersData.getInventory(scope.user, scope.account)
                                     .then(function (response) {
                                         if (response !== null && response !== undefined) {
                                             if (response.data.result.account_info.accountID !== undefined
@@ -445,7 +450,7 @@
                                                 scope.renderProducts('new');
                                                 // is there an alternative to this nested for?
                                                 let inventoryLevels = checkInventoryLevels();
-                                                
+
                                                 if (inventoryLevels) {
                                                     scope.updateStatus[ind] = "Inventory levels OK! Proceeding with order...";
                                                     scope.messageType[ind] = 'message-updating';
@@ -463,7 +468,7 @@
                                                     scope.messageType[ind] = 'message-error';
                                                     scope.hideMessage[ind] = false;
                                                     $timeout(function () { scope.hideMessage[ind] = true; }, 10000);
-                                                }                                                    
+                                                }
                                             }
                                         }
                                     })
@@ -482,7 +487,7 @@
                             }
                         };
 
-                        // to initialize inventory 
+                        // to initialize inventory
                         scope.renderProducts('new');
                         scope.renderOrders('new');
                         scope.renderFinances();
@@ -513,10 +518,10 @@
                             } else {
                                 return '';
                             }
-                            
+
                         }
                         function sorterInventory(a, b) {
-                            if (scope.sortType === 'renderCategories' 
+                            if (scope.sortType === 'renderCategories'
                                 || scope.sortType === 'name_en'
                                 || scope.sortType === 'brand'){
                                 if (scope.sortReverse) {

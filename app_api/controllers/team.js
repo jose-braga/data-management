@@ -984,7 +984,6 @@ var queryUpdateLabPeople = function (req, res, next, userCity, labs) {
         data = updateArr[0];
         return queryUpdateResearcher(req, res, next, updateArr, deleteArr, updated, data, 0);
     } else if (deleteArr.length > 0) {
-        console.log('here!!!!')
         data = deleteArr[0];
         return queryDeleteLab(req, res, next, updateArr, deleteArr, updated, data, 0);
     }
@@ -2541,7 +2540,8 @@ var sendEmailsToUsers = function (req, res, next, userID, personID,
         // send mail with defined transport object
         transporter.sendMail(mailOptions, (error, info) => {
             if (error) {
-                return console.log(error);
+                console.log(error);
+                return;
             }
             console.log('Message %s sent: %s', info.messageId, info.response);
         });

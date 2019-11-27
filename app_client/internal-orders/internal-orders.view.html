@@ -1,16 +1,48 @@
 <div layout="row">
-    <div ng-if="vm.currentUser === null || !(vm.showUserOrders || vm.showStock || vm.showFinancial)" 
+    <navigation-column></navigation-column>
+    <div ng-if="vm.currentUser === null || !(vm.showUserOrders || vm.showStock || vm.showFinancial)"
             layout="column" flex>
         <md-content class='md-padding' flex>
             Make sure you have the appropriate permissions to access this page.
         </md-content>
     </div>
     <div ng-if="vm.currentUser !== null && (vm.showUserOrders || vm.showStock || vm.showFinancial)" layout="column" flex>
+        <div class="admin-message" ng-if="vm.adminMessage" layout-align layout="column">
+            <div class="my-toast my-button" ng-click="vm.deleteAdminMessages()" layout="column">
+                <div layout="row"><span>Hide all warnings</span><span class="bold">X</span></div>
+            </div>
+            <div class="my-toast" ng-repeat="message in vm.listAdminMessages" layout="column">
+                <span class="sender-identification">({{message.time}}) Admin says:</span>
+                <span class="sender-message">{{message.msg}}</span>
+            </div>
+        </div>
         <toolbar-row></toolbar-row>
         <md-tabs md-dynamic-height md-border-bottom md-selected="vm.tab_level_1">
             <md-tab label="My orders" ng-if="vm.showUserOrders">
                 <md-content>
-                    <internal-order-inventory 
+                    <div ng-if="vm.multipleAccounts">
+                        <md-card>
+                            <md-card-title>
+                                <md-card-title-text>
+                                    <span class="md-headline">Choose Account</span>
+                                </md-card-title-text>
+                            </md-card-title>
+                            <md-card-content layout="column">
+                                You were entitled to order through several accounts, please select which one:
+                                <md-input-container>
+                                    <label>Select account</label>
+                                    <md-select ng-model="vm.currentUser.accountID"
+                                            ng-change="vm.makeAccountSelection()">
+                                        <md-option ng-repeat="account in vm.thisUserAccounts" ng-value="account.account_id">
+                                            {{account.account_name_en}}@{{account.cost_center_name_en}}
+                                        </md-option>
+                                    </md-select>
+                                </md-input-container>
+                            </md-card-content>
+                        </md-card>
+                    </div>
+                    <internal-order-inventory
+                        ng-if="vm.accountSelected"
                         data-user="{{vm.currentUser.userID}}"
                         data-account="{{vm.currentUser.accountID}}"
                         data-inventory="vm.inventory"
@@ -20,12 +52,12 @@
                     </internal-order-inventory>
                 </md-content>
             </md-tab>
-            <md-tab label="Management" 
+            <md-tab label="Management"
                     ng-if="vm.showStock || vm.showFinancial">
                 <md-tabs md-dynamic-height md-border-bottom  md-selected="vm.tab_level_2">
                     <md-tab label="Stock" ng-if="vm.showStock">
                         <md-content>
-                            <inventory-management 
+                            <inventory-management
                                 data-user="{{vm.currentUser.userID}}"
                                 data-inventory="vm.managersInventory"
                                 flex>
@@ -34,7 +66,7 @@
                     </md-tab>
                     <md-tab label="Orders" ng-if="vm.showStock">
                         <md-content>
-                            <orders-management 
+                            <orders-management
                                 data-user="{{vm.currentUser.userID}}"
                                 data-orders="vm.managersOrders"
                                 flex>
@@ -55,20 +87,20 @@
                             <div layout-xs="column" layout-sm="column" layout-md="column" layout-gt-md="row" layout-padding>
                                 <div flex-xs flex-sm flex-md flex-gt-md="50" layout="column">
                                     <order-financial-monitoring
-                                        data-user="{{vm.currentUser.userID}}"                                
+                                        data-user="{{vm.currentUser.userID}}"
                                         flex>
                                     </order-financial-monitoring>
                                 </div>
                                 <div flex-xs flex-sm flex-md flex-gt-md="50" layout="column">
-                                    <order-financial-structure 
-                                        data-user="{{vm.currentUser.userID}}" 
+                                    <order-financial-structure
+                                        data-user="{{vm.currentUser.userID}}"
                                         flex>
                                     </order-financial-structure>
                                 </div>
-                            </div>                            
+                            </div>
                         </md-content>
                     </md-tab>
-                </md-tabs>                
+                </md-tabs>
             </md-tab>
         </md-tabs>
     </div>

@@ -21,9 +21,9 @@ function momentToDate(timedate, timezone, timeformat) {
     return timedate !== null ? moment.tz(timedate, timezone).format(timeformat) : null;
 }
 
-var checksOrderPermissions = function (req, res, next, callback, callbackOptions) {
+var initialAccountCheck = function (req, res, next) {
     var userID = req.params.userID;
-    if (parseInt(userID,10) === req.payload.userID) {
+    if (parseInt(userID, 10) === req.payload.userID) {
         // if user is who he says he is
         var query = 'SELECT accounts_people.account_id, emails.email'
             + ' FROM accounts_people'
@@ -46,6 +46,99 @@ var checksOrderPermissions = function (req, res, next, callback, callbackOptions
                         sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
                         return;
                     }
+                    if (resQuery.length >= 1) {
+                        return getInitialAccountData(req, res, next, resQuery, 0);
+                    } else {
+                        sendJSONResponse(res, 403, {
+                            "status": "error",
+                            "statusCode": 403,
+                            "message": "You are not authorized to access this resource"
+                        });
+                        return;
+                    }
+                });
+        });
+    } else {
+        sendJSONResponse(res, 403, {
+            "status": "error",
+            "statusCode": 403,
+            "message": "User mismatches JWT token. You are not authorized to access this resource."
+        });
+        return;
+    }
+};
+
+var getInitialAccountData = function (req, res, next, rows, i) {
+    var userID = req.params.userID;
+    var query = 'SELECT accounts_people.user_id, accounts_people.account_id,'
+        + ' accounts.name_en AS account_name_en, accounts.name_pt AS account_name_pt,'
+        + ' cost_centers_orders.name_en AS cost_center_name_en, cost_centers_orders.name_pt AS cost_center_name_pt'
+        + ' FROM accounts_people'
+        + ' JOIN accounts ON accounts.id = accounts_people.account_id'
+        + ' JOIN cost_centers_orders ON cost_centers_orders.id = accounts.cost_center_id'
+        + ' WHERE accounts_people.user_id = ? AND accounts.id = ?;';
+    var places = [userID, rows[i].account_id];
+    pool.getConnection(function (err, connection) {
+        if (err) {
+            sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+            return;
+        }
+        // Use the connection
+        connection.query(query, places,
+            function (err, resQuery) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                    return;
+                }
+                rows[i].user_id = resQuery[0].user_id;
+                rows[i].account_name_en = resQuery[0].account_name_en;
+                rows[i].account_name_pt = resQuery[0].account_name_pt;
+                rows[i].cost_center_name_en = resQuery[0].cost_center_name_en;
+                rows[i].cost_center_name_pt = resQuery[0].cost_center_name_pt;
+                if (i + 1 < rows.length) {
+                    return getInitialAccountData(req, res, next, rows, i + 1);
+                } else {
+                    sendJSONResponse(res, 200, {
+                        "status": "success",
+                        "statusCode": 200,
+                        "count": rows.length,
+                        "result": rows
+                    });
+                    return
+                }
+            });
+    });
+
+};
+
+var checksOrderPermissions = function (req, res, next, callback, callbackOptions) {
+    var userID = req.params.userID;
+    var accountID = req.params.accountID;
+    if (parseInt(userID,10) === req.payload.userID) {
+        // if user is who he says he is
+        var query = 'SELECT accounts_people.account_id, emails.email'
+            + ' FROM accounts_people'
+            + ' JOIN accounts ON accounts.id = accounts_people.account_id'
+            + ' JOIN people ON people.user_id = accounts_people.user_id'
+            + ' LEFT JOIN emails ON emails.person_id = people.id'
+            + ' WHERE accounts_people.user_id = ? AND accounts.id = ? AND accounts.active = 1;';
+        var places = [userID, accountID];
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                return;
+            }
+            // Use the connection
+            connection.query(query, places,
+                function (err, resQuery) {
+                    // And done with the connection.
+                    connection.release();
+                    if (err) {
+                        sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
+                        return;
+                    }
                     if (resQuery.length === 1
                         && resQuery[0].account_id !== null
                         && resQuery[0].account_id !== undefined) {
@@ -54,12 +147,11 @@ var checksOrderPermissions = function (req, res, next, callback, callbackOptions
                         callbackOptions.accountID = resQuery[0].account_id;
                         return callback(req, res, next, callbackOptions);
                     } else if (resQuery.length > 1) {
-                        console.log(resQuery)
                         // TODO: if necessary, a user might belong to more than 1 account
                         sendJSONResponse(res, 403, {
                             "status": "error",
                             "statusCode": 403,
-                            "message": "This user belongs to several accounts."
+                            "message": "Something strange happened."
                         });
                         return;
                     } else {
@@ -82,7 +174,7 @@ var checksOrderPermissions = function (req, res, next, callback, callbackOptions
         return;
 
     }
-    
+
 };
 
 var checkManagementPermissions = function (req, res, next, callback, callbackOptions) {
@@ -109,7 +201,7 @@ var checkManagementPermissions = function (req, res, next, callback, callbackOpt
                     && resQuery[0].id !== null
                     && resQuery[0].id !== undefined) {
                     callbackOptions.userID = userID;
-                    callbackOptions.stockAuthorization = true;                    
+                    callbackOptions.stockAuthorization = true;
                 } else {
                     callbackOptions.stockAuthorization = false;
 
@@ -161,7 +253,7 @@ var checkManagementPermissionsFinancial = function (req, res, next, callback, ca
                 } else {
                     sendJSONResponse(res, 200,
                         {
-                            "status": "success", "statusCode": 200, 
+                            "status": "success", "statusCode": 200,
                             "result": {
                                 stockAuthorization: callbackOptions.stockAuthorization,
                                 financialAuthorization: callbackOptions.financialAuthorization,
@@ -456,7 +548,7 @@ var updateCostCenter = function (req, res, next, options, i) {
         + ' active = ?'
         + ' WHERE id = ?;';
     places = [
-        items[i].name_en, 
+        items[i].name_en,
         items[i].name_en,
         items[i].active,
         items[i].id
@@ -713,7 +805,7 @@ var getManagementAccountFinancesQuery = function (req, res, next, options) {
                 }
                 return;
             });
-    });    
+    });
 };
 
 var updateManagementAccountFinancesQuery = function (req, res, next, options) {
@@ -791,7 +883,7 @@ var updateManagementAccountFinancesQuery = function (req, res, next, options) {
                 "status": "success", "statusCode": 200, "message": "No changes!"
             });
         return;
-    }   
+    }
 };
 var updateManagementAccountFinancesHistory = function (req, res, next, options) {
     let accountID = req.params.accountID
@@ -850,7 +942,7 @@ var updateManagementAccountFinancesHistory = function (req, res, next, options) 
                             "status": "success", "statusCode": 200, "message": "Changes were successful."
                         });
                     return;
-                }                    
+                }
             });
         });
 };
@@ -936,7 +1028,7 @@ var makeManagerInventoryItemQuery = function (req, res, next, options) {
                                 "result": { "account_info": options, "inventory": [] }
                             });
                         return;
-                    }                    
+                    }
                 });
         });
     } else {
@@ -946,7 +1038,7 @@ var makeManagerInventoryItemQuery = function (req, res, next, options) {
             "message": "You are not authorized to access this resource"
         });
         return;
-    }    
+    }
 };
 
 var updateManagememtInventoryQuery = function (req, res, next, options) {
@@ -1005,7 +1097,7 @@ var deleteStockItem = function (req, res, next, options, i) {
                 } else {
                     return writeStockItemHistory(req, res, next, options, 0, 'delete');
                 }
-                
+
             });
     });
 };
@@ -1014,7 +1106,7 @@ var updateStockItem = function (req, res, next, options, i) {
     // there should be at least 1 order item
     let query;
     let places;
-    query = 'UPDATE items' 
+    query = 'UPDATE items'
             + ' SET name_en = ?,'
             + ' brand = ?,'
             + ' reference = ?,'
@@ -1056,7 +1148,7 @@ var updateStockItem = function (req, res, next, options, i) {
                     sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
                     return;
                 }
-                return updateItemCategories(req, res, next, options, i, 'update');                
+                return updateItemCategories(req, res, next, options, i, 'update');
             });
     });
 };
@@ -1203,7 +1295,7 @@ var updateItemCategories = function (req, res, next, options, i, operation) {
                         }
                     } else if (operation === 'create') {
                         return createStockItemStock(req, res, next, options, i);
-                    }                    
+                    }
                 });
         });
     } else {
@@ -1336,7 +1428,7 @@ var writeStockItemHistory = function (req, res, next, options, i, operation) {
                                     "message": "All changes were made."
                                 });
                             return;
-                        }                            
+                        }
                     } else if (operation === 'update') {
                         if (options.create.length > 0) {
                             return createStockItem(req, res, next, options, 0);
@@ -1354,8 +1446,8 @@ var writeStockItemHistory = function (req, res, next, options, i, operation) {
                                 "status": "success", "statusCode": 200,
                                 "message": "All changes were made."
                             });
-                        return;                        
-                    }                    
+                        return;
+                    }
                 }
             });
     });
@@ -1398,7 +1490,7 @@ var makeManagerOrdersQuery = function (req, res, next, options) {
                             "status": "success", "statusCode": 200, "count": 0,
                             "result": []
                         });
-                    return;                    
+                    return;
                 }
             });
     });
@@ -1512,7 +1604,7 @@ var getManagerOrderFinances = function (req, res, next, rows, i, options) {
                         "message": "No financial information for order: " + rows[i],
                     });
                     return;
-                }                 
+                }
                 if (i + 1 < rows.length) {
                     return getManagerOrderFinances(req, res, next, rows, i + 1, options);
                 } else {
@@ -1621,7 +1713,7 @@ var updateManagerOrderItems = function (req, res, next, i, options) {
 var updateManagerAccountFinancesOrder = function (req, res, next, options) {
     let order = req.body;
     let finances = order.order_finances;
-    
+
     var query = 'UPDATE account_finances'
         + ' SET amount_requests = ?,'
         + ' amount_requests_tax = ?'
@@ -1712,7 +1804,7 @@ var updateManagerStockOrder = function (req, res, next, i, options) {
             ];
 
         }
-        
+
         pool.getConnection(function (err, connection) {
             if (err) {
                 sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
@@ -1739,7 +1831,7 @@ var updateManagerStockOrder = function (req, res, next, i, options) {
                 "statusCode": 200,
                 "message": "Order updated by manager."
             });
-        return; 
+        return;
     }
 };
 var getManagerStockUpdatedLevelsOrder = function (req, res, next, i, options) {
@@ -1859,12 +1951,12 @@ var makeApproveManagerOrdersQuery = function (req, res, next, options) {
     });
 
 };
-var makeRejectManagerOrdersQuery = function (req, res, next, options) { 
+var makeRejectManagerOrdersQuery = function (req, res, next, options) {
     // remove from pending requests amounts and from account finances
     options.datetime = momentToDate(moment(), undefined, 'YYYY-MM-DD HH:mm:ss');
     let order = req.body;
     options.userEmail = order.email;
-    let query = 'INSERT INTO order_status_track' 
+    let query = 'INSERT INTO order_status_track'
                 + ' (order_id, order_status_id, datetime)'
                 + ' VALUES (?,?,?);';
     let places = [order.id, 4, options.datetime]; // 4 = rejected status id
@@ -1929,7 +2021,7 @@ var makePartialDeliveryManagerOrdersQuery = function (req, res, next, options) {
 var updatePartialDeliveryItem = function (req, res, next, i, options) {
     let item = options.partialDelivery[i];
     let query;
-    let places;    
+    let places;
     if (item.decimal === 0) {
         item.delivered_quantity = parseInt(item.delivered_quantity,10);
         item.quantity = parseInt(item.quantity, 10);
@@ -1944,7 +2036,7 @@ var updatePartialDeliveryItem = function (req, res, next, i, options) {
                 + ' delivered = 1'
                 + ' WHERE id = ?;';
             places = [item.delivered_quantity, item.id];
-        } 
+        }
     } else {
         item.delivered_quantity_decimal = parseFloat(item.delivered_quantity_decimal);
         item.quantity_decimal = parseFloat(item.quantity_decimal);
@@ -1960,7 +2052,7 @@ var updatePartialDeliveryItem = function (req, res, next, i, options) {
                 + ' WHERE id = ?;';
             places = [item.delivered_quantity_decimal, item.id];
         }
-    }    
+    }
     pool.getConnection(function (err, connection) {
         if (err) {
             sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
@@ -1978,8 +2070,8 @@ var updatePartialDeliveryItem = function (req, res, next, i, options) {
                 if (i + 1 < options.partialDelivery.length) {
                     return updatePartialDeliveryItem(req, res, next, i + 1, options);
                 } else {
-                    return sendEmailUserPartialDelivery(req, res, next, options);                    
-                }                
+                    return sendEmailUserPartialDelivery(req, res, next, options);
+                }
             });
     });
 }
@@ -1987,13 +2079,13 @@ var sendEmailUserPartialDelivery = function (req, res, next, options) {
     if (options.userEmail !== undefined && options.userEmail !== null) {
         let mailText = 'Hi, \n\n' +
                 'Stock manager is ready to deliver the following items:\n\n';
-        let str = ''; 
+        let str = '';
         for (let ind in options.partialDelivery) {
             let indList = parseInt(ind,10) + 1;
-            
+
             str = str + (indList + ' - '
                 + options.partialDelivery[ind].brand + ', '
-                + options.partialDelivery[ind].item_name_en 
+                + options.partialDelivery[ind].item_name_en
                 + ' (ref: ' + options.partialDelivery[ind].reference + '). Quantity: ');
             if (options.partialDelivery[ind].decimal === 0) {
                 str = str + options.partialDelivery[ind].this_delivery + '.\n';
@@ -2031,7 +2123,7 @@ var sendEmailUserPartialDelivery = function (req, res, next, options) {
 };
 
 
-var makeCloseManagerOrdersQuery = function (req, res, next, options) { 
+var makeCloseManagerOrdersQuery = function (req, res, next, options) {
     // ??? a delivered(=closed) order affects cost centers also ???
 
     options.datetime = momentToDate(moment(), undefined, 'YYYY-MM-DD HH:mm:ss');
@@ -2105,7 +2197,7 @@ var moveQuantitiesWithinStock = function (req, res, next, i, options) {
                 item.item_id
             ];
         }
-    }    
+    }
     pool.getConnection(function (err, connection) {
         if (err) {
             sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
@@ -2215,7 +2307,7 @@ var moveAmountsWithinFinances = function (req, res, next, options) {
     let finances = order.order_finances;
     var query;
     var places;
-    
+
     if (options.current_status_order === 'reject') {
         query = 'UPDATE account_finances'
             + ' SET amount_requests = amount_requests - ?,'
@@ -2240,7 +2332,7 @@ var moveAmountsWithinFinances = function (req, res, next, options) {
             order.total_cost_tax,
             finances.id
         ];
-    }    
+    }
     pool.getConnection(function (err, connection) {
         if (err) {
             sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
@@ -2400,12 +2492,12 @@ var sendEmailUserUpdateStatus = function (req, res, next, options) {
                 });
         }
         return;
-    }    
+    }
 };
 
 var getItemCategories = function (req, res, next, rows, i, options) {
     var query = 'SELECT items_categories.id AS items_categories_id, items_categories.category_id AS id,'
-                + ' list_categories.name_en, list_categories.name_pt,' 
+                + ' list_categories.name_en, list_categories.name_pt,'
                 + ' list_categories.description_en, list_categories.description_pt'
                 + ' FROM items_categories'
                 + ' JOIN list_categories ON list_categories.id = items_categories.category_id'
@@ -2426,7 +2518,7 @@ var getItemCategories = function (req, res, next, rows, i, options) {
                     return;
                 }
                 rows[i].item_categories = resQuery;
-                
+
                 if (i + 1 < rows.length) {
                     return getItemCategories(req, res, next, rows, i + 1, options);
                 } else {
@@ -2438,7 +2530,7 @@ var getItemCategories = function (req, res, next, rows, i, options) {
                     return;
                 }
             });
-    });    
+    });
 };
 
 var startOrderProcedure = function (req, res, next, options) {
@@ -2446,9 +2538,9 @@ var startOrderProcedure = function (req, res, next, options) {
     let datetime = momentToDate(moment(), undefined, 'YYYY-MM-DD HH:mm:ss');
     var query = 'INSERT INTO orders (datetime, account_id, user_ordered_id, total_cost, total_cost_tax)'
         + ' VALUES (?,?,?,?,?)';
-    var places = [datetime, 
-        options.accountID, 
-        options.userID, 
+    var places = [datetime,
+        options.accountID,
+        options.userID,
         data.totalCostNoTax,
         data.totalCost];
     pool.getConnection(function (err, connection) {
@@ -2482,9 +2574,9 @@ var writeOrderItems = function (req, res, next, options, i) {
         query = 'INSERT INTO items_orders (item_id, order_id, quantity, cost, cost_tax, delivered, delivered_quantity)'
             + ' VALUES (?,?,?,?,?,?,?)';
         places = [
-                cart[i].id, 
-                options.orderID, 
-                parseInt(cart[i].amount_to_order, 10), 
+                cart[i].id,
+                options.orderID,
+                parseInt(cart[i].amount_to_order, 10),
                 parseFloat(cart[i].cost_truncated_no_tax),
                 parseFloat(cart[i].cost_truncated),
                 0, 0
@@ -2493,7 +2585,7 @@ var writeOrderItems = function (req, res, next, options, i) {
         query = 'INSERT INTO items_orders (item_id, order_id, quantity_decimal, cost, cost_tax, delivered, delivered_quantity_decimal)'
             + ' VALUES (?,?,?,?,?,?,?)';
         places = [
-                cart[i].id, 
+                cart[i].id,
                 options.orderID,
                 parseFloat(cart[i].amount_to_order),
                 parseFloat(cart[i].cost_truncated_no_tax),
@@ -2522,7 +2614,7 @@ var writeOrderItems = function (req, res, next, options, i) {
 
                 }
             });
-    });    
+    });
 };
 var writeInitialOrderStatus = function (req, res, next, options) {
     let query = 'INSERT INTO order_status_track (order_id, order_status_id, datetime)'
@@ -2643,7 +2735,7 @@ var writeStockHistory = function (req, res, next, options, i) {
         options.updatedStockValues[i].quantity_in_requests,
         cart[i].status_id,
         'U',
-        options.orderTime];    
+        options.orderTime];
     pool.getConnection(function (err, connection) {
         if (err) {
             sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
@@ -2705,7 +2797,7 @@ var updateAccountFinances = function (req, res, next, options) {
     }
 };
 var getAccountFinancesUpdatedValue = function (req, res, next, options) {
-    let data = req.body;  
+    let data = req.body;
     var query = 'SELECT amount_requests, amount_requests_tax FROM account_finances'
                 + ' WHERE id = ?;';
     var places = [data.currentFinances.id];
@@ -2734,11 +2826,11 @@ var writeAccountFinancesHistory = function (req, res, next, options) {
     let data = req.body;
     var query = 'INSERT INTO account_finances_history'
         + ' (account_finance_id, account_id, initial_amount,'
-        + ' current_amount, amount_requests,' 
+        + ' current_amount, amount_requests,'
         + ' current_amount_tax, amount_requests_tax, year, datetime)'
         + ' VALUES (?,?,?,?,?,?,?,?,?);';
     var places = [
-            data.currentFinances.id, 
+            data.currentFinances.id,
             data.currentFinances.account_id,
             data.currentFinances.initial_amount,
             data.currentFinances.current_amount,
@@ -2778,11 +2870,11 @@ var sendEmailStockManager = function (req, res, next, options) {
     // send mail with defined transport object
     transporter.sendMail(mailOptions, (error, info) => {
         if (error) {
-            console.log('Error: Order ID: %s. Message to %s not sent due to error below.', 
+            console.log('Error: Order ID: %s. Message to %s not sent due to error below.',
                             options.orderID, 'Stock Manager');
             console.log(error);
         }
-        console.log('OK! Order ID: %s. Message %s was sent to %s with response: %s', 
+        console.log('OK! Order ID: %s. Message %s was sent to %s with response: %s',
                     options.orderID, info.messageId, 'Stock Manager', info.response);
     });
     return sendEmailUser(req, res, next, options);
@@ -2800,11 +2892,11 @@ var sendEmailUser = function (req, res, next, options) {
         // send mail with defined transport object
         transporter.sendMail(mailOptions, (error, info) => {
             if (error) {
-                console.log('Error: Order ID: %s. Message to %s not sent due to error below.', 
+                console.log('Error: Order ID: %s. Message to %s not sent due to error below.',
                                 options.orderID, 'user');
                 console.log(error);
             }
-            console.log('OK! Order ID: %s. Message %s was sent to requester with response: %s', 
+            console.log('OK! Order ID: %s. Message %s was sent to requester with response: %s',
                             options.orderID, info.messageId, info.response);
         });
     }
@@ -2816,7 +2908,7 @@ var sendEmailUser = function (req, res, next, options) {
 };
 
 var makeUserOrdersQuery = function (req, res, next, options) {
-    var query = 'SELECT orders.id AS order_id, orders.datetime, orders.user_ordered_id,' 
+    var query = 'SELECT orders.id AS order_id, orders.datetime, orders.user_ordered_id,'
         + ' orders.account_id, orders.total_cost, orders.total_cost_tax,'
         + ' people.colloquial_name AS user_ordered_name'
         + ' FROM orders'
@@ -2846,10 +2938,10 @@ var makeUserOrdersQuery = function (req, res, next, options) {
                             "status": "success", "statusCode": 200, "count": 0,
                             "result": []
                         });
-                    return;   
+                    return;
 
                 }
-                
+
             });
     });
 }
@@ -2933,11 +3025,11 @@ var getOrderDetailsInfo = function (req, res, next, options, rows, i) {
                             "status": "success", "statusCode": 200, "count": rows.length,
                             "result": rows
                         });
-                    return;   
+                    return;
                 }
             });
     });
-    
+
 };
 
 var makeUserAccountsQuery = function (req, res, next, options) {
@@ -2946,10 +3038,10 @@ var makeUserAccountsQuery = function (req, res, next, options) {
         + ' accounts.name_en AS account_name_en, accounts.name_pt AS account_name_pt,'
         + ' cost_centers_orders.name_en AS cost_center_name_en, cost_centers_orders.name_pt AS cost_center_name_pt'
         + ' FROM accounts_people'
-        + ' JOIN accounts ON accounts.id = accounts_people.account_id' 
+        + ' JOIN accounts ON accounts.id = accounts_people.account_id'
         + ' JOIN cost_centers_orders ON cost_centers_orders.id = accounts.cost_center_id'
-        + ' WHERE accounts_people.user_id = ?;';
-    var places = [options.userID];
+        + ' WHERE accounts_people.user_id = ? AND accounts.id = ?;';
+    var places = [options.userID, options.accountID];
     pool.getConnection(function (err, connection) {
         if (err) {
             sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
@@ -3013,6 +3105,10 @@ var getAccountFinances = function (req, res, next, options, rows, i) {
             });
     });
 
+};
+
+module.exports.getUserMultipleAccounts = function (req, res, next) {
+    initialAccountCheck(req, res, next);
 };
 
 module.exports.getUserAccounts = function (req, res, next) {
@@ -3107,8 +3203,8 @@ module.exports.searchPeopleSimple = function (req, res, next) {
                     }
                     sendJSONResponse(res, 200,
                         {
-                            "status": "OK!", 
-                            "statusCode": 200, 
+                            "status": "OK!",
+                            "statusCode": 200,
                             "count": resQuery.length,
                             "result": resQuery
                         });
@@ -3135,7 +3231,7 @@ module.exports.getManagementAccountFinances = function (req, res, next) {
     checkManagementPermissions(req, res, next, getManagementAccountFinancesQuery, {});
 };
 module.exports.updateManagementAccountFinances = function (req, res, next) {
-    checkManagementPermissions(req, res, next, updateManagementAccountFinancesQuery, 
+    checkManagementPermissions(req, res, next, updateManagementAccountFinancesQuery,
     {
         i: 0,
         datetime: momentToDate(moment(), undefined, 'YYYY-MM-DD HH:mm:ss')

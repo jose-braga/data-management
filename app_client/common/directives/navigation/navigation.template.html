@@ -61,13 +61,13 @@
           </md-button>
         </md-list-item>
         <md-divider ng-if="nav.showAdmin"></md-divider>
-        <md-list-item ng-if="nav.showUCIBIO" style="padding:0px; border-radius:0px;">
+        <md-list-item ng-if="nav.showUCIBIO && false" style="padding:0px; border-radius:0px;">
           <md-button ng-href="/#!internal-orders" style="border-radius:0px;" layout-align="center center"
             class="md-toolbar-tools sidenav-button" ng-class="nav.selected('/internal-orders')">
             Warehouse
           </md-button>
         </md-list-item>
-        <md-divider ng-if="nav.showUCIBIO"></md-divider>
+        <md-divider ng-if="nav.showUCIBIO && false"></md-divider>
         <md-list-item ng-if="nav.showUCIBIO" style="padding:0px; border-radius:0px;">
           <md-button ng-href="/#!unit-area/UCIBIO" style="border-radius:0px;" layout-align="center center"
               class="md-toolbar-tools sidenav-button"  ng-class="nav.selected('/unit-area/UCIBIO')">

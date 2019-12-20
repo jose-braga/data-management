@@ -7,7 +7,10 @@
         vm.isLoggedIn = authentication.isLoggedIn();
         vm.currentUser = authentication.currentUser();
         var currentUnitShortName = $routeParams.unit;
+        var currentCityName = $routeParams.city;
         var writingPermissions = [0, 5, 10, 15, 16, 20];
+        vm.cityID = undefined;
+        vm.cityName = undefined;
 
         initialize();
 
@@ -28,7 +31,7 @@
                 fd.append('file_name', vm.doc.file.file_name);
             }
 
-            docsData.createUnitDoc(vm.unitID, fd)
+            docsData.createUnitDoc(vm.unitID, fd, vm.cityID)
                 .then( function () {
                     vm.updateStatus[ind] = "Added!";
                     vm.messageType[ind] = 'message-success';
@@ -58,7 +61,7 @@
                 vm.messageType[ind] = 'message-updating';
                 vm.hideMessage[ind] = false;
 
-                docsData.deleteUnitDoc(vm.unitID, doc.id)
+                docsData.deleteUnitDoc(vm.unitID, doc.id, vm.cityID)
                     .then( function () {
                         vm.updateStatus[ind] = "Deleted!";
                         vm.messageType[ind] = 'message-success';
@@ -77,6 +80,7 @@
             }
         };
         vm.showDetails = function (doc) {
+            console.log(doc)
             var position = $mdPanel.newPanelPosition()
                                 .absolute()
                                 .center();
@@ -109,7 +113,7 @@
                         fd.append('file_name', doc.file.file_name);
                     }
 
-                    docsData.updateUnitDoc(doc.unit_id, doc.id, fd)
+                    docsData.updateUnitDoc(doc.unit_id, doc.id, fd, doc.city_id)
                         .then( function () {
                             getDocLists();
                             ctrl.updateStatus[ind] = "Updated!";
@@ -235,7 +239,7 @@
 
         function getDocLists() {
             if (vm.publishPermission) {
-                docsData.getUnitDocs(vm.unitID)
+                docsData.getUnitDocs(vm.unitID, vm.cityID)
                     .then(function (response) {
                         vm.docUnitQueue = response.data.result;
                         for (let el in vm.docUnitQueue) {
@@ -249,7 +253,7 @@
                         console.log(err);
                     });
             }
-            docsData.getUnitActiveDocs(vm.unitID)
+            docsData.getUnitActiveDocs(vm.unitID, vm.cityID)
                 .then(function (response) {
                     vm.docUnitActive = response.data.result;
                     for (let el in vm.docUnitActive) {
@@ -303,7 +307,12 @@
                             units.push(units_temp[el]);
                         }
                     }
-                    initializeInterface(currentUnitShortName, units);
+                    personData.institutionCities()
+                        .then(function (response) {
+                            var cities = response.data.result;
+                            initializeInterface(currentUnitShortName, units,
+                                                currentCityName, cities);
+                        });
                 })
                 .catch(function (err) {
                     console.log(err);
@@ -319,57 +328,114 @@
                     console.log(err);
                 });
         }
-        function initializeInterface(currentUnitShortName, units) {
-            vm.credentials = {
-                username: '',
-                password: '',
-                newPassword1: '',
-                newPassword2: ''
-            };
-            vm.showPasswordChange = false;
-            vm.initialPassword = 'Password';
-            vm.changeButtonTxt = 'Change Password';
-            vm.submitButtonTxt = 'Login';
-
-            vm.progressSubmit = 0;
-            vm.showData = [];
-            vm.doc = {};
-            vm.doc.hasAttachment = 'None';
-            for (let el in units) {
-                if (units[el].short_name === currentUnitShortName) {
-                    vm.unitName = units[el].name;
-                    vm.unitID = units[el].id;
+        function initializeInterface(currentUnitShortName, units, currentCityName, cities) {
+            if (currentCityName === undefined || currentCityName === null) {
+                vm.credentials = {
+                    username: '',
+                    password: '',
+                    newPassword1: '',
+                    newPassword2: ''
+                };
+                vm.showPasswordChange = false;
+                vm.initialPassword = 'Password';
+                vm.changeButtonTxt = 'Change Password';
+                vm.submitButtonTxt = 'Login';
+    
+                vm.progressSubmit = 0;
+                vm.showData = [];
+                vm.doc = {};
+                vm.doc.hasAttachment = 'None';
+                for (let el in units) {
+                    if (units[el].short_name === currentUnitShortName) {
+                        vm.unitName = units[el].name;
+                        vm.unitID = units[el].id;
+                    }
                 }
-            }
-            if (vm.currentUser.unitID.indexOf(vm.unitID) !== -1) {
-                vm.accessPermission = true;
-                if (writingPermissions.indexOf(vm.currentUser.stat) !== -1) {
-                    vm.publishPermission = true;
+                if (vm.currentUser.unitID.indexOf(vm.unitID) !== -1) {
+                    vm.accessPermission = true;
+                    if (writingPermissions.indexOf(vm.currentUser.stat) !== -1) {
+                        vm.publishPermission = true;
+                    } else {
+                        vm.publishPermission = false;
+                    }
                 } else {
+                    vm.accessPermission = false;
                     vm.publishPermission = false;
                 }
+                vm.toolbarData = {title: currentUnitShortName + ': Documents and general information'};
+                vm.forms = {
+                    'docAdd':            0,
+                    'docUpdate':         1,
+                    'docDelete':         2,
+                };
+                var numberCards = Object.keys(vm.forms).length; // the number of cards with "Update" in each tab
+                vm.updateStatus = [];
+                vm.messageType = [];
+                vm.hideMessage = [];
+                for (var i=0; i<numberCards; i++) {
+                    vm.updateStatus.push('');
+                    vm.messageType.push('message-updating');
+                    vm.hideMessage.push(true);
+                }
+                getDocLists();                
             } else {
-                vm.accessPermission = false;
-                vm.publishPermission = false;
+                vm.credentials = {
+                    username: '',
+                    password: '',
+                    newPassword1: '',
+                    newPassword2: ''
+                };
+                vm.showPasswordChange = false;
+                vm.initialPassword = 'Password';
+                vm.changeButtonTxt = 'Change Password';
+                vm.submitButtonTxt = 'Login';
+    
+                vm.progressSubmit = 0;
+                vm.showData = [];
+                vm.doc = {};
+                vm.doc.hasAttachment = 'None';
+                for (let el in units) {
+                    if (units[el].short_name === currentUnitShortName) {
+                        vm.unitName = units[el].name;
+                        vm.unitID = units[el].id;
+                    }
+                }
+                for (let el in cities) {
+                    if (cities[el].city === currentCityName) {
+                        vm.cityName = cities[el].city;
+                        vm.cityID = cities[el].id;
+                    }
+                }
+                if (vm.currentUser.unitID.indexOf(vm.unitID) !== -1 
+                    && vm.currentUser.cityID === vm.cityID) {
+                    vm.accessPermission = true;
+                    if (writingPermissions.indexOf(vm.currentUser.stat) !== -1) {
+                        vm.publishPermission = true;
+                    } else {
+                        vm.publishPermission = false;
+                    }
+                } else {
+                    vm.accessPermission = false;
+                    vm.publishPermission = false;
+                }
+                vm.toolbarData = {title: currentUnitShortName + '@' + currentCityName + ': Documents and general information'};
+                vm.forms = {
+                    'docAdd':            0,
+                    'docUpdate':         1,
+                    'docDelete':         2,
+                };
+                var numberCards = Object.keys(vm.forms).length; // the number of cards with "Update" in each tab
+                vm.updateStatus = [];
+                vm.messageType = [];
+                vm.hideMessage = [];
+                for (var i=0; i<numberCards; i++) {
+                    vm.updateStatus.push('');
+                    vm.messageType.push('message-updating');
+                    vm.hideMessage.push(true);
+                }
+                getDocLists();
             }
-            vm.toolbarData = {title: currentUnitShortName + ': Documents and general information'};
-            vm.forms = {
-                'docAdd':            0,
-                'docUpdate':         1,
-                'docDelete':         2,
-            };
-            var numberCards = Object.keys(vm.forms).length; // the number of cards with "Update" in each tab
-            vm.updateStatus = [];
-            vm.messageType = [];
-            vm.hideMessage = [];
-            for (var i=0; i<numberCards; i++) {
-                vm.updateStatus.push('');
-                vm.messageType.push('message-updating');
-                vm.hideMessage.push(true);
-            }
-            getDocLists();
         }
-
     };
 
 /******************************** Directives **********************************/

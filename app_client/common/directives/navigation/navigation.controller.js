@@ -35,11 +35,23 @@
             }
             nav.showUCIBIO = false;
             nav.showLAQV = false;
+            nav.showLisboa = false;
+            nav.showPorto = false;
             if (nav.currentUser.unitID.indexOf(1) !== -1) {
                 nav.showUCIBIO = true;
+                if (nav.currentUser.cityID === 1) {
+                    nav.showLisboa = true;
+                } else if (nav.currentUser.cityID === 2) {
+                    nav.showPorto = true;
+                }
             }
             if (nav.currentUser.unitID.indexOf(2) !== -1) {
                 nav.showLAQV = true;
+                if (nav.currentUser.cityID === 1) {
+                    nav.showLisboa = true;
+                } else if (nav.currentUser.cityID === 2) {
+                    nav.showPorto = true;
+                }
             }
 
         }

@@ -232,6 +232,12 @@ router.post('/docs/unit/:unitID', auth, ctrlDocsData.addDoc);
 router.put('/docs/unit/:unitID/:docID', auth, ctrlDocsData.updateDoc);
 router.delete('/docs/unit/:unitID/:docID', auth, ctrlDocsData.deleteDoc);
 
+router.get('/docs/unit/:unitID/city/:cityID/active', auth, ctrlDocsData.getUnitCityActiveDocs);
+router.get('/docs/unit/:unitID/city/:cityID', auth, ctrlDocsData.getUnitCityDocs);
+router.post('/docs/unit/:unitID/city/:cityID', auth, ctrlDocsData.addCityDoc);
+router.put('/docs/unit/:unitID/city/:cityID/:docID', auth, ctrlDocsData.updateCityDoc);
+router.delete('/docs/unit/:unitID/city/:cityID/:docID', auth, ctrlDocsData.deleteCityDoc);
+
 // POST (Create) new user (authenticated)
 router.post('/registration', auth, ctrlRegistrationData.addPerson);
 

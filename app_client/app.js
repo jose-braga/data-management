@@ -39,6 +39,11 @@
                 controller: 'unitAreaCtrl',
                 controllerAs: 'vm'
             })
+            .when('/unit-area/:unit/city/:city', {
+                templateUrl: 'unit-areas/unit-area.view.html',
+                controller: 'unitAreaCtrl',
+                controllerAs: 'vm'
+            })
             .when('/manager', {
                 templateUrl: 'manager/manager.view.html',
                 controller: 'managerCtrl',

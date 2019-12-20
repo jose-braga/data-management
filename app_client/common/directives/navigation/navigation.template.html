@@ -71,7 +71,21 @@
         <md-list-item ng-if="nav.showUCIBIO" style="padding:0px; border-radius:0px;">
           <md-button ng-href="/#!unit-area/UCIBIO" style="border-radius:0px;" layout-align="center center"
               class="md-toolbar-tools sidenav-button"  ng-class="nav.selected('/unit-area/UCIBIO')">
-            My UCIBIO
+            My UCIBIO All
+          </md-button>
+        </md-list-item>
+        <md-divider ng-if="nav.showUCIBIO && nav.showLisboa"></md-divider>
+        <md-list-item ng-if="nav.showUCIBIO && nav.showLisboa" style="padding:0px; border-radius:0px;">
+          <md-button ng-href="/#!unit-area/UCIBIO/city/Lisboa" style="border-radius:0px;" layout-align="center center"
+              class="md-toolbar-tools sidenav-button"  ng-class="nav.selected('/unit-area/UCIBIO/city/Lisboa')">
+            My UCIBIO@NOVA
+          </md-button>
+        </md-list-item>
+        <md-divider ng-if="nav.showUCIBIO && nav.showPorto"></md-divider>
+        <md-list-item ng-if="nav.showUCIBIO && nav.showPorto" style="padding:0px; border-radius:0px;">
+          <md-button ng-href="/#!unit-area/UCIBIO/city/Porto" style="border-radius:0px;" layout-align="center center"
+              class="md-toolbar-tools sidenav-button"  ng-class="nav.selected('/unit-area/UCIBIO/city/Porto')">
+            My UCIBIO@Porto
           </md-button>
         </md-list-item>
         <md-divider ng-if="nav.showUCIBIO"></md-divider>
@@ -79,6 +93,20 @@
           <md-button ng-href="/#!unit-area/LAQV" style="border-radius:0px;" layout-align="center center"
               class="md-toolbar-tools sidenav-button"  ng-class="nav.selected('/unit-area/LAQV')">
             My LAQV
+          </md-button>
+        </md-list-item>
+        <md-divider ng-if="nav.showLAQV && nav.showLisboa"></md-divider>
+        <md-list-item ng-if="nav.showLAQV && nav.showLisboa" style="padding:0px; border-radius:0px;">
+          <md-button ng-href="/#!unit-area/LAQV/city/Lisboa" style="border-radius:0px;" layout-align="center center"
+              class="md-toolbar-tools sidenav-button"  ng-class="nav.selected('/unit-area/LAQV/city/Lisboa')">
+            My LAQV@NOVA
+          </md-button>
+        </md-list-item>
+        <md-divider ng-if="nav.showLAQV && nav.showPorto"></md-divider>
+        <md-list-item ng-if="nav.showLAQV && nav.showPorto" style="padding:0px; border-radius:0px;">
+          <md-button ng-href="/#!unit-area/LAQV/city/Porto" style="border-radius:0px;" layout-align="center center"
+              class="md-toolbar-tools sidenav-button"  ng-class="nav.selected('/unit-area/LAQV/city/Porto')">
+            My LAQV@Porto
           </md-button>
         </md-list-item>
         <md-divider ng-if="nav.showLAQV"></md-divider>

@@ -96,6 +96,7 @@
                     username: payload.username,
                     labID: payload.labID,
                     unitID: payload.unitID,
+                    cityID: payload.cityID,
                     base_url: payload.base_url,
                 };
             } else {

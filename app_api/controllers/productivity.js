@@ -6202,8 +6202,8 @@ module.exports.getLatestPublications = function (req, res, next) {
                 + ' FROM publications'
                 + ' LEFT JOIN journals ON journals.id = publications.journal_id'
                 + ' LEFT JOIN units_publications ON units_publications.publication_id = publications.id'
-                + ' WHERE publications.year = ? AND units_publications.unit_id = ?;';
-    var places = [currentYear, unitID];
+                + ' WHERE (publications.year = ? OR publications.year = ?) AND units_publications.unit_id = ?;';
+    var places = [currentYear, currentYear - 1, unitID];
 
     pool.getConnection(function (err, connection) {
         if (err) {

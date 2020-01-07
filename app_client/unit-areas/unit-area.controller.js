@@ -1,6 +1,6 @@
 (function(){
 /******************************* Controllers **********************************/
-    var unitAreaCtrl = function ($scope, $routeParams, $route, $q, $location, 
+    var unitAreaCtrl = function ($scope, $routeParams, $route, $q, $location,
                                 $timeout, $mdMedia, $mdPanel,
                                 personData, docsData, authentication) {
         var vm = this;
@@ -80,7 +80,6 @@
             }
         };
         vm.showDetails = function (doc) {
-            console.log(doc)
             var position = $mdPanel.newPanelPosition()
                                 .absolute()
                                 .center();
@@ -340,7 +339,7 @@
                 vm.initialPassword = 'Password';
                 vm.changeButtonTxt = 'Change Password';
                 vm.submitButtonTxt = 'Login';
-    
+
                 vm.progressSubmit = 0;
                 vm.showData = [];
                 vm.doc = {};
@@ -377,7 +376,7 @@
                     vm.messageType.push('message-updating');
                     vm.hideMessage.push(true);
                 }
-                getDocLists();                
+                getDocLists();
             } else {
                 vm.credentials = {
                     username: '',
@@ -389,7 +388,7 @@
                 vm.initialPassword = 'Password';
                 vm.changeButtonTxt = 'Change Password';
                 vm.submitButtonTxt = 'Login';
-    
+
                 vm.progressSubmit = 0;
                 vm.showData = [];
                 vm.doc = {};
@@ -406,7 +405,7 @@
                         vm.cityID = cities[el].id;
                     }
                 }
-                if (vm.currentUser.unitID.indexOf(vm.unitID) !== -1 
+                if (vm.currentUser.unitID.indexOf(vm.unitID) !== -1
                     && vm.currentUser.cityID === vm.cityID) {
                     vm.accessPermission = true;
                     if (writingPermissions.indexOf(vm.currentUser.stat) !== -1) {

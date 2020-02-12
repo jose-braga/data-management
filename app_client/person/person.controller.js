@@ -1725,7 +1725,7 @@
                     vm.sortType = "sort_order";
                     vm.sortReverse = true;
                     vm.professionalCategories = vm.professionalCategories.sort(sorter)
-                   
+
                 })
                 .catch(function (err) {
                     console.log(err);

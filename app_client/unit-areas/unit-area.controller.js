@@ -79,7 +79,7 @@
                     });
             }
         };
-        vm.showDetails = function (doc) {
+        vm.showDetails = function (doc) {  
             var position = $mdPanel.newPanelPosition()
                                 .absolute()
                                 .center();

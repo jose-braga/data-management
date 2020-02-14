@@ -8,6 +8,14 @@ a {
 }
 
 /* Added by JB */
+md-switch.md-checked .md-bar,
+md-switch.md-checked:not([disabled]) .md-bar {
+  background-color: rgba(31, 236, 31, 0.63);
+}
+md-switch.md-checked .md-thumb,
+md-switch.md-checked:not([disabled]) .md-thumb {
+  background-color: rgba(7, 161, 7, 0.87);
+}
 
 .layout-column>.flex {
   min-height: initial !important;

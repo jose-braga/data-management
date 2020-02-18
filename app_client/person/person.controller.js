@@ -596,6 +596,7 @@
                 "nuclearCV":vm.thisPerson.researcher_data[0].nuclearCV,
                 "researcher_id": vm.thisPerson.researcher_data[0].researcher_id,
                 "association_key": vm.thisPerson.researcher_data[0].association_key,
+                "ciencia_id": vm.thisPerson.researcher_data[0].ciencia_id,
                 "researcherID": vm.thisPerson.researcher_data[0].researcherID,
                 "scopusID": vm.thisPerson.researcher_data[0].scopusID,
                 "pure_id": vm.thisPerson.researcher_data[0].pure_id,
@@ -797,6 +798,7 @@
                 "id": vm.thisPerson.technician_data[0].id,
                 "association_key": vm.thisPerson.technician_data[0].association_key,
                 "researcherID": vm.thisPerson.technician_data[0].researcherID,
+                "ciencia_id": vm.thisPerson.technician_data[0].ciencia_id,
                 "pure_id": vm.thisPerson.technician_data[0].pure_id,
                 "ORCID": vm.thisPerson.technician_data[0].ORCID,
             };
@@ -843,6 +845,7 @@
                 "id": vm.thisPerson.science_manager_data[0].id,
                 "association_key": vm.thisPerson.science_manager_data[0].association_key,
                 "researcherID": vm.thisPerson.science_manager_data[0].researcherID,
+                "ciencia_id": vm.thisPerson.science_manager_data[0].ciencia_id,
                 "pure_id": vm.thisPerson.science_manager_data[0].pure_id,
                 "ORCID": vm.thisPerson.science_manager_data[0].ORCID,
             };

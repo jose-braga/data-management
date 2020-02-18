@@ -4409,6 +4409,7 @@ var queryResearcherInfoPerson = function (req, res, next, userCity) {
         var researcherID = req.body.researcherID;
         var scopusID = req.body.scopusID;
         var ORCID = req.body.ORCID;
+        var ciencia_id = req.body.ciencia_id;
         var pure_id = req.body.pure_id;
         var pluriannual = req.body.pluriannual;
         var integrated = req.body.integrated;
@@ -4420,6 +4421,7 @@ var queryResearcherInfoPerson = function (req, res, next, userCity) {
                        ' SET `researcherID` = ?,' +
                        ' `ORCID` = ?,' +
                        ' `pure_id` = ?,' +
+                       ' `ciencia_id` = ?,' +
                        ' `scopusID` = ?,' +
                        ' `association_key` = ?,' +
                        ' `pluriannual` = ?,' +
@@ -4427,15 +4429,17 @@ var queryResearcherInfoPerson = function (req, res, next, userCity) {
                        ' `nuclearCV` = ?' +
                        ' WHERE `id` = ?';
             querySQL = querySQL + '; ';
-            places.push(researcherID, ORCID, pure_id,scopusID,association_key,
+            places.push(researcherID, ORCID, pure_id, ciencia_id,
+                        scopusID,association_key,
                         pluriannual, integrated, nuclearCV,
                         researcher_id);
         } else {
             querySQL = querySQL + 'INSERT INTO `researchers`' +
-                       ' (`person_id`,`researcherID`,`ORCID`,`pure_id`,`scopusID`,`association_key`,`pluriannual`,`integrated`,`nuclearCV`)' +
-                       ' VALUES (?,?,?,?,?,?,?,?,?)';
+                       ' (`person_id`,`researcherID`,`ORCID`,`pure_id`,`ciencia_id`,`scopusID`,`association_key`,`pluriannual`,`integrated`,`nuclearCV`)' +
+                       ' VALUES (?,?,?,?,?,?,?,?,?,?)';
             querySQL = querySQL + '; ';
-            places.push(personID,researcherID,ORCID,pure_id,scopusID,association_key,pluriannual,integrated, nuclearCV);
+            places.push(personID,researcherID,ORCID,pure_id, ciencia_id,
+                scopusID,association_key,pluriannual,integrated, nuclearCV);
         }
         // insert role in case it doesn't exist already
         querySQL = querySQL + 'INSERT INTO `people_roles`' +
@@ -5197,7 +5201,7 @@ var queryGetRoles = function (req,res,next, personID, row) {
 
 var queryGetResearcherData = function (req,res,next, personID, row) {
     var query = 'SELECT researchers.id AS researcher_id,' +
-                ' researchers.researcherID,researchers.ORCID,researchers.scopusID, researchers.pure_id, researchers.association_key,' +
+                ' researchers.researcherID,researchers.ORCID,researchers.scopusID, researchers.pure_id, researchers.ciencia_id, researchers.association_key,' +
                 ' researchers.integrated,researchers.nuclearCV,researchers.pluriannual,' +
                 ' researchers.valid_from AS res_valid_from, researchers.valid_until AS res_valid_until' +
                 ' FROM people' +
@@ -5290,7 +5294,7 @@ var queryGetTechnicianAffiliation = function (req,res,next, personID, row) {
 
 var queryGetTechnicianData = function (req,res,next, personID, row) {
     var query = 'SELECT technicians_info.id AS id,' +
-                ' technicians_info.researcherID, technicians_info.ORCID, technicians_info.pure_id, technicians_info.association_key' +
+                ' technicians_info.researcherID, technicians_info.ORCID, technicians_info.pure_id, technicians_info.ciencia_id, technicians_info.association_key' +
                 ' FROM people' +
                 ' LEFT JOIN technicians_info ON people.id = technicians_info.person_id' +
                 ' WHERE people.id = ?;';
@@ -5352,7 +5356,7 @@ var queryGetScienceManagerAffiliation = function (req,res,next, personID, row) {
 
 var queryGetScienceManagerData = function (req,res,next, personID, row) {
     var query = 'SELECT science_managers_info.id AS id,' +
-                ' science_managers_info.association_key, science_managers_info.researcherID, science_managers_info.ORCID, science_managers_info.pure_id' +
+                ' science_managers_info.ciencia_id, science_managers_info.association_key, science_managers_info.researcherID, science_managers_info.ORCID, science_managers_info.pure_id' +
                 ' FROM people' +
                 ' LEFT JOIN science_managers_info ON people.id = science_managers_info.person_id' +
                 ' WHERE people.id = ?;';
@@ -5413,7 +5417,7 @@ var queryGetAdministrativeAffiliation = function (req,res,next, personID, row) {
 };
 
 var queryGetAdministrativeData = function (req,res,next, personID, row) {
-    var query = 'SELECT administrative_info.id, administrative_info.association_key' +
+    var query = 'SELECT administrative_info.id, administrative_info.ciencia_id, administrative_info.association_key' +
                 ' FROM people' +
                 ' LEFT JOIN administrative_info ON people.id = administrative_info.person_id' +
                 ' WHERE people.id = ?;';
@@ -5511,6 +5515,7 @@ var queryTechnicianInfoPerson = function (req, res, next, userCity) {
         var researcherID = req.body.researcherID;
         var ORCID = req.body.ORCID;
         var pure_id = req.body.pure_id;
+        var ciencia_id = req.body.ciencia_id;
         var places = [];
         var querySQL = '';
         if (id !== null && id !== 'new') {
@@ -5518,17 +5523,18 @@ var queryTechnicianInfoPerson = function (req, res, next, userCity) {
                        ' SET `researcherID` = ?,' +
                        ' `ORCID` = ?,' +
                        ' `pure_id` = ?,' +
+                       ' `ciencia_id` = ?,' +
                        ' `association_key` = ?' +
                        ' WHERE `id` = ?';
             querySQL = querySQL + '; ';
-            places.push(researcherID, ORCID, pure_id, association_key,
+            places.push(researcherID, ORCID, pure_id, ciencia_id, association_key,
                         id);
         } else {
             querySQL = querySQL + 'INSERT INTO `technicians_info`' +
-                       ' (`person_id`,`researcherID`,`ORCID`,`pure_id`,`association_key`)' +
-                       ' VALUES (?,?,?,?,?)';
+                       ' (`person_id`,`researcherID`,`ORCID`,`pure_id`,`ciencia_id`,`association_key`)' +
+                       ' VALUES (?,?,?,?,?,?)';
             querySQL = querySQL + '; ';
-            places.push(personID,researcherID,ORCID,pure_id,association_key);
+            places.push(personID,researcherID,ORCID,pure_id,ciencia_id,association_key);
         }
         // insert role in case it doesn't exist already
         querySQL = querySQL + 'INSERT INTO `people_roles`' +
@@ -5554,6 +5560,7 @@ var queryScienceManagerInfoPerson = function (req, res, next, userCity) {
         var researcherID = req.body.researcherID;
         var ORCID = req.body.ORCID;
         var pure_id = req.body.pure_id;
+        var ciencia_id = req.body.ciencia_id;
         var places = [];
         var querySQL = '';
         if (id !== null) {
@@ -5561,17 +5568,18 @@ var queryScienceManagerInfoPerson = function (req, res, next, userCity) {
                        ' SET `researcherID` = ?,' +
                        ' `ORCID` = ?,' +
                        ' `pure_id` = ?,' +
+                       ' `ciencia_id` = ?,' +
                        ' `association_key` = ?' +
                        ' WHERE `id` = ?';
             querySQL = querySQL + '; ';
-            places.push(researcherID, ORCID,pure_id,association_key,
+            places.push(researcherID, ORCID,pure_id,ciencia_id,association_key,
                         id);
         } else {
             querySQL = querySQL + 'INSERT INTO `science_managers_info`' +
-                       ' (`person_id`,`researcherID`,`ORCID`,`pure_id`,`association_key`)' +
-                       ' VALUES (?,?,?,?,?)';
+                       ' (`person_id`,`researcherID`,`ORCID`,`pure_id`,`ciencia_id`,`association_key`)' +
+                       ' VALUES (?,?,?,?,?,?)';
             querySQL = querySQL + '; ';
-            places.push(personID,researcherID,ORCID,pure_id,association_key);
+            places.push(personID,researcherID,ORCID,pure_id,ciencia_id,association_key);
         }
         // insert role in case it doesn't exist already
         querySQL = querySQL + 'INSERT INTO `people_roles`' +
@@ -5594,20 +5602,21 @@ var queryAdministrativeInfoPerson = function (req, res, next, userCity) {
         var personID = req.params.personID;
         var id = req.body.id;
         var association_key = req.body.association_key;
+        var ciencia_id = req.body.ciencia_id;
         var places = [];
         var querySQL = '';
         if (id !== null) {
             querySQL = querySQL + 'UPDATE `administrative_info`' +
-                       ' SET `association_key` = ?' +
+                       ' SET `association_key` = ?, ciencia_id  = ?' +
                        ' WHERE `id` = ?';
             querySQL = querySQL + '; ';
-            places.push(association_key,id);
+            places.push(association_key, ciencia_id,id);
         } else {
             querySQL = querySQL + 'INSERT INTO `administrative_info`' +
-                       ' (`person_id`,`association_key`)' +
-                       ' VALUES (?,?)';
+                       ' (`person_id`,`association_key`,`ciencia_id`)' +
+                       ' VALUES (?,?,?)';
             querySQL = querySQL + '; ';
-            places.push(personID, association_key);
+            places.push(personID, association_key, ciencia_id);
         }
         // insert role in case it doesn't exist already
         querySQL = querySQL + 'INSERT INTO `people_roles`' +

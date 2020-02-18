@@ -9,6 +9,7 @@ var auth = jwt({
 
 
 var ctrlPeopleData = require('../controllers/people.js');
+var ctrl_v1_1_people = require('../controllers/people_v1_1.js');
 var ctrlTeamData = require('../controllers/team.js');
 var ctrlManagerData = require('../controllers/manager.js');
 var ctrlProductivityData = require('../controllers/productivity.js');
@@ -43,6 +44,25 @@ router.get('/v1/publication/group/:groupID', ctrlProductivityData.getGroupPublic
 router.get('/v1/publication/unit/:unitID', ctrlProductivityData.getUnitPublicationInfo);
 router.get('/v1/publication/unit/:unitID/latest', ctrlProductivityData.getLatestPublications);
 
+
+router.get('/v1.1/people/:personID', ctrl_v1_1_people.getPersonInfo);
+router.get('/v1.1/people/:personID/publications', ctrl_v1_1_people.getPersonPublications);
+router.get('/v1.1/people', ctrl_v1_1_people.searchPeople);
+router.get('/v1.1/groups/:groupID/people', ctrl_v1_1_people.getGroupMembers);
+router.get('/v1.1/groups/:groupID/publications', ctrl_v1_1_people.getGroupPublications);
+router.get('/v1.1/groups/:groupID/labs', ctrl_v1_1_people.getGroupLabs);
+router.get('/v1.1/groups/:groupID/labs/:labID/publications', ctrl_v1_1_people.getGroupLabsPublications);
+router.get('/v1.1/groups/:groupID', ctrl_v1_1_people.getGroupInfo);// TODO: acrescentar Research Group coordinator???
+router.get('/v1.1/groups', ctrl_v1_1_people.getGroupsList);
+router.get('/v1.1/labs/:labID', ctrl_v1_1_people.getLabInfo);
+router.get('/v1.1/labs', ctrl_v1_1_people.getLabsList);
+router.get('/v1.1/publications/:pubID', ctrl_v1_1_people.getPublicationInfo);
+router.get('/v1.1/facilities', ctrl_v1_1_people.getFacilitiesList);
+router.get('/v1.1/facilities/:officeID/people', ctrl_v1_1_people.getFacilityMembers);
+router.get('/v1.1/science-management-offices', ctrl_v1_1_people.getScienceManagementOfficesList);
+router.get('/v1.1/science-management-offices/:officeID/people', ctrl_v1_1_people.getScienceManagementOfficeMembers);
+router.get('/v1.1/administrative-offices', ctrl_v1_1_people.getAdministrativeOfficesList);
+router.get('/v1.1/administrative-offices/:officeID/people', ctrl_v1_1_people.getAdministrativeOfficeMembers);
 
 /**************************** APP SPECIFIC ENDPOINTS ****************************/
 

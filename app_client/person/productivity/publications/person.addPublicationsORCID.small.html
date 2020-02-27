@@ -23,6 +23,16 @@
 
         <form flex novalidate name="personAddORCIDPublicationsForm"
                 ng-submit="personAddORCIDPublicationsForm.$valid && vm.submitAddORCIDPublications(vm.forms['personORCIDAdd'])">
+            <div class="spacer-top"
+                    layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button type="submit"
+                    class="button-small md-raised md-primary">Add ORCID Pub.</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personORCIDAdd']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['personORCIDAdd']]">
+                        {{vm.updateStatus[vm.forms['personORCIDAdd']]}}
+                    </span>
+                </div>
+            </div>
             <div class="publication small-screens" layout="column">
                 <div layout="row" layout-align="start center">
                     <div class="question"><span class="highlight"><h2>Select all:</h2></span></div>

@@ -17,6 +17,16 @@
             </div>
             <form flex novalidate name="managerAddORCIDPublicationsForm"
                     ng-submit="managerAddORCIDPublicationsForm.$valid && submitAddORCIDPublications(forms['managerORCIDAdd'])">
+                <div class="spacer-top"
+                        layout="column" layout-gt-sm="row" layout-align="none center">
+                    <md-button type="submit"
+                        class="button-small md-raised md-primary">Add ORCID Pub.</md-button>
+                    <div class="status-message" ng-hide="hideMessage[forms['managerORCIDAdd']]">
+                        <span class="message" ng-class="messageType[forms['managerORCIDAdd']]">
+                            {{updateStatus[forms['managerORCIDAdd']]}}
+                        </span>
+                    </div>
+                </div>
                 <table class="publications-orcid">
                     <thead>
                         <tr>

@@ -24,6 +24,16 @@
 
         <form flex novalidate name="personAddPUREPublicationsForm"
                 ng-submit="personAddPUREPublicationsForm.$valid && vm.submitAddPUREPublications(vm.forms['personPUREAdd'])">
+            <div class="spacer-top"
+                    layout="column" layout-gt-sm="row" layout-align="none center">
+                <md-button type="submit"
+                    class="button-small md-raised md-primary">Synchronize Repository/DB</md-button>
+                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personPUREAdd']]">
+                    <span class="message" ng-class="vm.messageType[vm.forms['personPUREAdd']]">
+                        {{vm.updateStatus[vm.forms['personPUREAdd']]}}
+                    </span>
+                </div>
+            </div>
             <table class="publications-orcid">
                 <thead>
                     <tr>
@@ -85,7 +95,7 @@
                         </td>
                         <td>
                             <md-input-container>
-                                <input ng-required="publication.chosen" 
+                                <input ng-required="publication.chosen"
                                     ng-model="vm.newPUREPublications[pubNum].journal_name" name="journal_name">
                             </md-input-container>
                         </td>

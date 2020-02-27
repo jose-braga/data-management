@@ -22,7 +22,7 @@
         <div layout="column" layout-gt-sm="row">
             <md-input-container class="input-row">
                 <label>Birth date</label>
-                <md-datepicker md-current-view="year" required ng-model="vm.thisPerson.birth_date"
+                <md-datepicker md-current-view="year" ng-model="vm.thisPerson.birth_date"
                     md-placeholder="Enter date"></md-datepicker>
             </md-input-container>
             <md-input-container class="select-container input-row">
@@ -37,7 +37,7 @@
                 class="search-box select-container input-row"
                 ng-controller="CountrySelectCtrl as count">
                 <label>Nationalities</label>
-                <md-select required id="nationalities" ng-model="vm.thisPerson.nationalities"
+                <md-select id="nationalities" ng-model="vm.thisPerson.nationalities"
                     ng-model-options="{trackBy: '$value.country_id'}" multiple>
                     <div class="anchored">
                         <md-select-header class="select-search-header">

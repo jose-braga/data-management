@@ -9,7 +9,7 @@
             <md-input-container>
                 <label>Phone</label>
                 <input ng-model="vm.thisPerson.work_phone[0].phone"
-                        name="work_phone" required>
+                        name="work_phone">
             </md-input-container>
             <md-input-container>
                 <label>Extension</label>
@@ -19,7 +19,7 @@
             <md-input-container>
                 <label>Email</label>
                 <input type="email" ng-model="vm.thisPerson.work_email[0]"
-                        name="work_email" required>
+                        name="work_email">
                 <div ng-messages="registrationForm.work_email.$error" role="alert">
                     <div ng-message="email">Must be a valid email.</div>
                 </div>

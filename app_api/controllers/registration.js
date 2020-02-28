@@ -727,25 +727,33 @@ var queryAddRemainingInfo = function (req, res, next, userID, personID, querySQL
                 'VALUES (?,?,?,?);';
     places.push(personID, address, postalCode, city);
     //personal_phones
-    querySQL = querySQL +
+    if (personalPhone !== undefined && personalPhone.length === 1) {
+        querySQL = querySQL +
                 'INSERT INTO `personal_phones` (`person_id`,`phone`) ' +
                 'VALUES (?,?);';
-    places.push(personID, personalPhone[0]);
+        places.push(personID, personalPhone[0]);
+    }
     //personal_emails
-    querySQL = querySQL +
-                'INSERT INTO `personal_emails` (`person_id`,`email`) ' +
-                'VALUES (?,?);';
-    places.push(personID, personalEmail[0]);
+    if (personalEmail !== undefined && personalEmail.length === 1) {
+        querySQL = querySQL +
+                    'INSERT INTO `personal_emails` (`person_id`,`email`) ' +
+                    'VALUES (?,?);';
+        places.push(personID, personalEmail[0]);
+    }
     //work_phones
-    querySQL = querySQL +
-                'INSERT INTO `phones` (`person_id`,`phone`,`extension`) ' +
-                'VALUES (?,?,?);';
-    places.push(personID, workPhone[0].phone, workPhone[0].extension);
+    if (workPhone !== undefined && workPhone.length === 1) {
+        querySQL = querySQL +
+                    'INSERT INTO `phones` (`person_id`,`phone`,`extension`) ' +
+                    'VALUES (?,?,?);';
+        places.push(personID, workPhone[0].phone, workPhone[0].extension);
+    }
     //work_emails
-    querySQL = querySQL +
-                'INSERT INTO `emails` (`person_id`,`email`) ' +
-                'VALUES (?,?);';
-    places.push(personID, workEmail[0]);
+    if (workEmail !== undefined && workEmail.length === 1) {
+        querySQL = querySQL +
+                    'INSERT INTO `emails` (`person_id`,`email`) ' +
+                    'VALUES (?,?);';
+        places.push(personID, workEmail[0]);
+    }
     //institution_city
     querySQL = querySQL +
                 'INSERT INTO `people_institution_city` (`person_id`,`city_id`, `valid_from`) ' +

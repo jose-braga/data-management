@@ -1434,6 +1434,7 @@
                 "integrated":datum.researcher_data[0].integrated,
                 "nuclearCV":datum.researcher_data[0].nuclearCV,
                 "researcher_id": datum.researcher_data[0].researcher_id,
+                "ciencia_id": datum.researcher_data[0].ciencia_id,
                 "association_key": datum.researcher_data[0].association_key,
                 "researcherID": datum.researcher_data[0].researcherID,
                 "scopusID": datum.researcher_data[0].scopusID,
@@ -1513,6 +1514,7 @@
             var data = {
                 "id": datum.technician_data[0].id,
                 "association_key": datum.technician_data[0].association_key,
+                "ciencia_id": datum.technician_data[0].ciencia_id,
                 "researcherID": datum.technician_data[0].researcherID,
                 "ORCID": datum.technician_data[0].ORCID
             };
@@ -1575,6 +1577,7 @@
             var data = {
                 "id": datum.science_manager_data[0].id,
                 "association_key": datum.science_manager_data[0].association_key,
+                "ciencia_id": datum.science_manager_data[0].ciencia_id,
                 "researcherID": datum.science_manager_data[0].researcherID,
                 "ORCID": datum.science_manager_data[0].ORCID
             };
@@ -1634,7 +1637,8 @@
             vm.hideMessage[ind] = false;
             var data = {
                 "id": datum.administrative_data[0].id,
-                "association_key": datum.administrative_data[0].association_key
+                "association_key": datum.administrative_data[0].association_key,
+                "ciencia_id": datum.administrative_data[0].ciencia_id,
             };
 
             personData.updateAdministrativeInfoPersonByID(datum.id,data)

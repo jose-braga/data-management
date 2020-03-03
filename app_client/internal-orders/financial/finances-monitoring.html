@@ -7,7 +7,7 @@
     <md-card-content layout="column">
         <div flex layout-padding>
             Reload cost centers information
-            <md-button ng-click="getData()" aria-label="Reload" class="md-icon-button md-raised">
+            <md-button ng-click="getDataLists()" aria-label="Reload" class="md-icon-button md-raised">
                 <md-icon md-svg-src="images/icons/reload_24px.svg"></md-icon>
             </md-button>
         </div>
@@ -35,35 +35,34 @@
             </md-input-container>
         </div>
         <form flex novalidate name="financialManagementForm"
-            ng-submit="financialManagementForm.$valid && submitDataChanges(forms['finances'])">
+            ng-submit="financialManagementForm.$valid && submitDataChanges(forms['finances'], financesToShow, thisAccount)">
             <div flex layout="row" layout-padding>
                 <div class="centers-list" layout-padding>
-                
-                    <div class="compact-list" 
+                    <div class="compact-list"
                             ng-repeat="(centerNum,center) in shownData track by $index">
                         <div class="first-level">
                             <md-button ng-click="center.showAccounts = true"
                                     ng-if="!center.showAccounts"
-                                    aria-label="Details" 
+                                    aria-label="Details"
                                     class="md-icon-button interaction-button">
                                 <md-icon md-svg-src="images/icons/expand_more_24px.svg"></md-icon>
                             </md-button>
                             <md-button ng-click="center.showAccounts = false"
                                     ng-if="center.showAccounts"
-                                    aria-label="Details" 
+                                    aria-label="Details"
                                     class="md-icon-button interaction-button">
                                 <md-icon md-svg-src="images/icons/expand_less_24px.svg"></md-icon>
-                            </md-button>                    
+                            </md-button>
                             {{ center.name_en }}
-                            <md-icon ng-if="center.active === 1" 
+                            <md-icon ng-if="center.active === 1"
                                     class="financial-status"
                                     md-svg-src="images/icons/check_24px.svg"></md-icon>
-                            <md-icon ng-if="center.active === 0" 
+                            <md-icon ng-if="center.active === 0"
                                     class="financial-status"
                                     md-svg-src="images/icons/unavailable_24px.svg"></md-icon>
                             <!--
                                 <md-button ng-click="showDetailsCenter(costCentersList, center)"
-                                        aria-label="Details" 
+                                        aria-label="Details"
                                         class="md-icon-button interaction-button">
                                     <md-icon md-svg-src="images/icons/description_24px.svg"></md-icon>
                                 </md-button>
@@ -74,14 +73,14 @@
                             <div ng-repeat="(accountNum,account) in center.accountsMatching track by $index"
                                     class="list-item">
                                 {{ account.name_en }}
-                                <md-icon ng-if="account.active === 1" 
+                                <md-icon ng-if="account.active === 1"
                                         class="financial-status"
                                         md-svg-src="images/icons/check_24px.svg"></md-icon>
-                                <md-icon ng-if="account.active === 0" 
+                                <md-icon ng-if="account.active === 0"
                                         class="financial-status"
                                         md-svg-src="images/icons/unavailable_24px.svg"></md-icon>
                                 <md-button ng-click="showDetailsAccount(center, account)"
-                                        aria-label="Details" 
+                                        aria-label="Details"
                                         class="md-icon-button interaction-button">
                                     <md-icon md-svg-src="images/icons/description_24px.svg"></md-icon>
                                 </md-button>
@@ -106,7 +105,7 @@
                             </md-select>
                         </md-input-container>
                     </div>
-                
+
                 </div>
                 <div layout-padding>
                     <div ng-if="accountSelected" class="show-finances">
@@ -118,7 +117,7 @@
                             <div layout="row" layout-align="center center">
                                 <div class="previous-year" layout="row" layout-align="center">
                                     <md-button ng-click="previousYearFinances(financesToShow)"
-                                            aria-label="Details" 
+                                            aria-label="Details"
                                             class="md-icon-button interaction-button">
                                         <md-icon md-svg-src="images/icons/previous_24px.svg"></md-icon>
                                     </md-button>
@@ -128,7 +127,7 @@
                                 </div>
                                 <div class="next-year" layout="row" layout-align="center">
                                     <md-button ng-click="nextYearFinances(financesToShow)"
-                                            aria-label="Details" 
+                                            aria-label="Details"
                                             class="md-icon-button interaction-button">
                                         <md-icon md-svg-src="images/icons/next_24px.svg"></md-icon>
                                     </md-button>
@@ -151,7 +150,7 @@
                                 </ul>
                             </div>
                         </div>
-                        <div ng-if="currentYear > financesToShow.year" 
+                        <div ng-if="currentYear > financesToShow.year"
                                 layout="column" layout-align="start start">
                             <div layout="row" layout-align="center">
                                 <p>Financial information for {{thisAccount.name_en}}@{{thisAccount.cost_center_name_en}}:</p>
@@ -159,7 +158,7 @@
                             <div layout="row" layout-align="center center">
                                 <div class="previous-year" layout="row" layout-align="center">
                                     <md-button ng-click="previousYearFinances(financesToShow)"
-                                            aria-label="Details" 
+                                            aria-label="Details"
                                             class="md-icon-button interaction-button">
                                         <md-icon md-svg-src="images/icons/previous_24px.svg"></md-icon>
                                     </md-button>
@@ -169,7 +168,7 @@
                                 </div>
                                 <div class="next-year" layout="row" layout-align="center">
                                     <md-button ng-click="nextYearFinances(financesToShow)"
-                                            aria-label="Details" 
+                                            aria-label="Details"
                                             class="md-icon-button interaction-button">
                                         <md-icon md-svg-src="images/icons/next_24px.svg"></md-icon>
                                     </md-button>
@@ -177,14 +176,14 @@
                             </div>
                             <div>
                                 <ul>
-                                    <li>Amount spent:
+                                    <li>Amount available:
                                         {{(financesToShow.current_amount_tax - financesToShow.amount_requests_tax) | currency:"":2}}
                                         €</li>
                                     <li>Funds allocated: {{financesToShow.initial_amount | currency:"":2}} €</li>
                                 </ul>
                             </div>
                         </div>
-                        <div ng-if="financesToShow.year > currentYear" 
+                        <div ng-if="financesToShow.year > currentYear"
                                 layout="column" layout-align="start start">
                             <div layout="row" layout-align="center">
                                 <p>Financial information for {{thisAccount.name_en}}@{{thisAccount.cost_center_name_en}}:</p>
@@ -218,14 +217,15 @@
                                 </ul>
                             </div>
                         </div>
-                        <div flex layout="column" layout-gt-sm="row" layout-align="center center">
+                        <div flex layout="column" layout-gt-sm="row" layout-align="center center"
+                            ng-if="financesToShow.year >= currentYear">
                             <md-button type="submit" class="button-small md-raised md-primary">Submit changes</md-button>
                             <div class="status-message" ng-hide="hideMessage[forms['finances']]">
                                 <span class="message" ng-class="messageType[forms['finances']]">
                                     {{updateStatus[forms['finances']]}}
                                 </span>
                             </div>
-                        </div> 
+                        </div>
                     </div>
                 </div>
             </div>

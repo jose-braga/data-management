@@ -2093,7 +2093,7 @@ module.exports.listAllPeopleWithRolesData = function (req, res, next) {
             var querySQL = 'SELECT people.id AS person_id, people.name AS person_name, people.colloquial_name, people.birth_date, people.gender,' +
                            ' people_institution_city.city_id AS pole_id, institution_city.city AS pole_name,' +
                            ' people_roles.role_id, people_roles.id AS people_roles_id,' +
-                           ' researchers.association_key, researchers.ORCID,' +
+                           ' researchers.association_key, researchers.ciencia_id, researchers.ORCID,' +
                            ' people_labs.lab_id,' +
                            ' labs.name AS lab,' +
                            ' labs.started AS lab_opened, labs.finished AS lab_closed,' +

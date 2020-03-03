@@ -63,13 +63,13 @@
                                             }
 
                                         }
-                                        
-                                        
+
+
                                     } else {
                                         // include all
                                         scope.costCentersList[indCenter].accountsMatching = scope.costCentersList[indCenter].accounts;
-                                        scope.searchResults.push(scope.costCentersList[indCenter]);                                        
-                                    }                                    
+                                        scope.searchResults.push(scope.costCentersList[indCenter]);
+                                    }
                                 }
                                 scope.totalFromSearch = scope.searchResults.length;
                                 scope.totalPages = Math.ceil(scope.totalFromSearch / scope.pageSize);
@@ -88,7 +88,7 @@
                                 }
 
                             };
-                            
+
                             scope.removeCenter = function (items, thisItem) {
                                 let result = confirm('Are you sure you want to remove this Cost Center?\n\n'
                                     + 'Note 1: This will only be effetive after selecting "Submit Changes".\n'
@@ -128,7 +128,7 @@
                                     }
                                     scope.renderData('new');
                                 }
-                                
+
                             };
                             scope.addCenter = function (item) {
                                 if (item.name_en !== null && item.name_en !== undefined) {
@@ -175,7 +175,7 @@
                                             scope.costCenterChanges.update[indFound] = item;
                                         } else {
                                             scope.costCenterChanges.update.push(item);
-                                        }                                        
+                                        }
                                     } else if (field === 'account') {
                                         for (let el in scope.accountChanges.update) {
                                             if (scope.accountChanges.update[el].id === item.id) {
@@ -190,7 +190,7 @@
                                             scope.accountChanges.update.push(item);
                                         }
                                     }
-                                }                                   
+                                }
 
 
                                 /*
@@ -221,7 +221,7 @@
                                     }
                                 }
                                 */
-                            };                            
+                            };
                             scope.submitDataChanges = function (ind) {
                                 scope.updateStatus[ind] = "Updating...";
                                 scope.messageType[ind] = 'message-updating';
@@ -242,7 +242,7 @@
                                     costCenters: scope.costCenterChanges,
                                     accounts: scope.accountChanges,
                                 }
-                                
+
                                 ordersData.updateManagersFinancialStructure(scope.user, data)
                                     .then(function () {
                                         scope.costCenterChanges = {
@@ -269,10 +269,10 @@
                                         },
                                         function () { }
                                     );
-                                
+
                             };
 
-                            // to initialize data 
+                            // to initialize data
                             getDataLists();
 
                             function getDataLists() {
@@ -342,7 +342,7 @@
                 };
             }];
 
-    
+
     var orderFinancialMonitoring =
         ['ordersData', 'authentication', '$timeout', '$mdPanel',
             function (ordersData, authentication, $timeout, $mdPanel) {
@@ -424,28 +424,47 @@
 
                             };
                             scope.getDataLists = function () {
-                                ordersData.orderCostCenters()
+                                ordersData.getAllUsersInfo(scope.user)
                                     .then(function (response) {
                                         if (response !== null && response !== undefined) {
-                                            scope.costCentersList = response.data.result;
-                                            ordersData.orderAccounts()
+                                            var users = response.data.result;
+                                            scope.users = users;
+                                            ordersData.orderCostCenters()
                                                 .then(function (response) {
                                                     if (response !== null && response !== undefined) {
-                                                        scope.accountsList = response.data.result;
-                                                        for (let indCenter in scope.costCentersList) {
-                                                            scope.costCentersList[indCenter].accounts = [];
-                                                            for (let indAccount in scope.accountsList) {
-                                                                if (scope.accountsList[indAccount].cost_center_id
-                                                                    === scope.costCentersList[indCenter].id) {
-                                                                    scope.costCentersList[indCenter].accounts.push(scope.accountsList[indAccount]);
+                                                        scope.costCentersList = response.data.result;
+                                                        ordersData.orderAccounts()
+                                                            .then(function (response) {
+                                                                if (response !== null && response !== undefined) {
+                                                                    scope.accountsList = response.data.result;
+                                                                    for (let indCenter in scope.costCentersList) {
+                                                                        scope.costCentersList[indCenter].accounts = [];
+                                                                        for (let indAccount in scope.accountsList) {
+                                                                            if (scope.accountsList[indAccount].cost_center_id
+                                                                                === scope.costCentersList[indCenter].id) {
+                                                                                for (let indUser in users) {
+                                                                                    if (users[indUser].account_id === scope.accountsList[indAccount].id
+                                                                                            && users[indUser].role_id === 1) {
+                                                                                        scope.accountsList[indAccount].responsible_name = users[indUser].colloquial_name;
+                                                                                        scope.accountsList[indAccount].responsible_email = users[indUser].email;
+                                                                                    }
+                                                                                }
+                                                                                scope.costCentersList[indCenter].accounts.push(scope.accountsList[indAccount]);
+
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                    scope.renderData('new');
                                                                 }
-                                                            }
-                                                        }
-                                                        scope.renderData('new');
+                                                            })
                                                     }
                                                 })
                                         }
                                     })
+                                    .catch(function (err) {
+                                        console.log(err);
+                                    });
+
                             };
 
                             scope.previousYearFinances = function (account) {
@@ -467,7 +486,7 @@
                                     }
                                 }
                             };
-                            
+
                             scope.showDetailsAccount = function (center, account) {
                                 ordersData.getManagersAccountFinances(scope.user, account.id)
                                     .then(function (response) {
@@ -483,7 +502,7 @@
                                                 scope.accountSelected = true;
                                                 scope.financesToShow = {
                                                     id: 'new',
-                                                    account_id: account.account_id,
+                                                    account_id: account.id,
                                                     initial_amount: null,
                                                     current_amount_tax: null,
                                                     amount_requests_tax: null,
@@ -493,7 +512,7 @@
                                                     scope.financesToShow,
                                                     {
                                                         id: 'new',
-                                                        account_id: account.account_id,
+                                                        account_id: account.id,
                                                         initial_amount: null,
                                                         year: scope.currentYear + 1,
                                                     }
@@ -509,16 +528,16 @@
                                                 let indHighestYear;
                                                 let indNextYear = -1;
                                                 for (let ind in scope.accountFinances) {
-                                                    if (scope.accountFinances.year === scope.currentYear + 1) {
+                                                    if (scope.accountFinances[ind].year === scope.currentYear + 1) {
                                                         indNextYear = ind;
                                                     }
-                                                    if (scope.accountFinances.year > highestYear) {
-                                                        highestYear = scope.accountFinances.year;
+                                                    if (scope.accountFinances[ind].year > highestYear) {
+                                                        highestYear = scope.accountFinances[ind].year;
                                                         indHighestYear = ind;
                                                     }
                                                     if (scope.accountFinances[ind].year === scope.currentYear) {
                                                         //by default we show the current year
-                                                        foundCurrentYear = true;                                                        
+                                                        foundCurrentYear = true;
                                                         scope.financesToShow = scope.accountFinances[ind];
                                                     }
                                                 }
@@ -526,20 +545,28 @@
                                                     if (highestYear === scope.currentYear - 1) {
                                                         scope.financesToShow = {
                                                             id: 'new',
-                                                            account_id: account.account_id,
+                                                            account_id: account.id,
                                                             initial_amount: null,
                                                             current_amount_tax: null,
                                                             amount_requests_tax: null,
                                                             year: scope.currentYear,
                                                         }
                                                         scope.accountFinances.push(scope.financesToShow);
+                                                        scope.accountFinances.push({
+                                                            id: 'new',
+                                                            account_id: account.id,
+                                                            initial_amount: null,
+                                                            current_amount_tax: null,
+                                                            amount_requests_tax: null,
+                                                            year: scope.currentYear + 1,
+                                                        });
                                                     } else if (highestYear < scope.currentYear - 1) {
                                                         scope.financesToShow = scope.accountFinances[indHighestYear];
                                                     } else if (indNextYear !== -1) {
                                                         scope.financesToShow = scope.accountFinances[indNextYear];
                                                         let addCurrentYear = {
                                                             id: 'new',
-                                                            account_id: account.account_id,
+                                                            account_id: account.id,
                                                             initial_amount: null,
                                                             current_amount_tax: null,
                                                             amount_requests_tax: null,
@@ -553,7 +580,7 @@
                                                         scope.accountFinances.push(
                                                             {
                                                                 id: 'new',
-                                                                account_id: account.account_id,
+                                                                account_id: account.id,
                                                                 initial_amount: null,
                                                                 year: scope.currentYear + 1,
                                                             });
@@ -563,7 +590,7 @@
                                         } else {
                                             scope.accountSelected = false;
                                         }
-                                    });                                                                                              
+                                    });
                             };
 
                             scope.processChange = function (finance, oldAmount) {
@@ -583,7 +610,95 @@
                                 finance.current_amount_tax = finance.current_amount_tax + difference;
                             };
 
-                            scope.submitDataChanges = function (ind) {
+                            scope.submitDataChanges = function (ind, finances, account) {
+                                var position = $mdPanel.newPanelPosition()
+                                    .absolute()
+                                    .center();
+                                var emailDetailsCtrl = function (mdPanelRef) {
+                                    var ctrl = this;
+                                    ctrl.updateStatus = '';
+                                    ctrl.messageType = 'message-updating';
+                                    ctrl.hideMessage = true;
+
+                                    this._mdPanelRef = mdPanelRef;
+
+                                    ctrl.closePanel = function () {
+                                        mdPanelRef.close();
+                                    };
+                                    ctrl.submitEmail = function (finances, account, emailData) {
+                                        ctrl.updateStatus = "Updating...";
+                                        ctrl.messageType = 'message-updating';
+                                        ctrl.hideMessage = false;
+                                        let data = {
+                                            email: emailData,
+                                            finances: finances,
+                                        };
+                                        ordersData.updateManagersAccountFinances(ctrl.user, finances.account_id, data)
+                                            .then(function () {
+                                                scope.getDataLists();
+                                                ctrl.updateStatus = "Updated!";
+                                                ctrl.messageType = 'message-success';
+                                                ctrl.hideMessage = false;
+                                                $timeout(function () {
+                                                    scope.hideMessage[ind] = true;
+                                                    ctrl.closePanel();
+                                                }, 1500);
+                                            },
+                                            function (error) {
+                                                scope.getDataLists();
+                                                ctrl.updateStatus = "Error!";
+                                                ctrl.messageType = 'message-error';
+                                                console.log(error);
+                                                $timeout(function () {
+                                                    ctrl.hideMessage = true;
+                                                }, 6000);
+                                            },
+                                            function () {
+                                            });
+                                    };
+
+                                };
+                                let subject = 'UCIBIO Internal Warehouse - Allocation of funds for the year ' + finances.year;
+                                let body = 'Dear ' + account.responsible_name + ',\n\n';
+                                body = body + 'For the year ' + finances.year
+                                            + ' your internal warehouse account was allocated with the following funds: '
+                                            + parseFloat(finances.initial_amount).toFixed(2) + ' €.\n\n'
+                                            + 'Best regards,\n'
+                                            + 'Cecília Bonifácio';
+
+                                var email = {
+                                    subject: subject,
+                                    body: body,
+                                    recipients: account.responsible_email,
+                                };
+
+                                var config = {
+                                    //attachTo: angular.element(document.body),
+                                    controller: emailDetailsCtrl,
+                                    controllerAs: 'ctrl',
+                                    templateUrl: 'internal-orders/financial/email.details.html',
+                                    locals: {
+                                        user: scope.user,
+                                        finances: finances,
+                                        account: account,
+                                        email: email,
+                                    },
+                                    hasBackdrop: true,
+                                    panelClass: 'publication-details',
+                                    position: position,
+                                    disableParentScroll: true,
+                                    trapFocus: true,
+                                    zIndex: 150,
+                                    clickOutsideToClose: true,
+                                    escapeToClose: true,
+                                    focusOnOpen: true
+                                    //onCloseSuccess:
+                                };
+                                scope.emailDetailsPanel = $mdPanel.open(config);
+
+
+
+                                /*
                                 // there's no delete, just create or update
                                 scope.updateStatus[ind] = "Updating...";
                                 scope.messageType[ind] = 'message-updating';
@@ -606,6 +721,7 @@
                                         },
                                         function () { }
                                     );
+                                */
 
                             };
 

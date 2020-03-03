@@ -32,36 +32,35 @@
         </div>
         <form flex novalidate name="costCentersManagementForm"
             ng-submit="costCentersManagementForm.$valid && submitDataChanges(forms['finances'])" class="spacer-top">
-            
-            <div class="compact-list" 
+            <div class="compact-list"
                     ng-repeat="(centerNum,center) in shownData track by $index">
                 <div class="first-level">
                     <md-button ng-click="center.showAccounts = true"
                             ng-if="!center.showAccounts"
-                            aria-label="Details" 
+                            aria-label="Details"
                             class="md-icon-button interaction-button">
                         <md-icon md-svg-src="images/icons/expand_more_24px.svg"></md-icon>
                     </md-button>
                     <md-button ng-click="center.showAccounts = false"
                             ng-if="center.showAccounts"
-                            aria-label="Details" 
+                            aria-label="Details"
                             class="md-icon-button interaction-button">
                         <md-icon md-svg-src="images/icons/expand_less_24px.svg"></md-icon>
-                    </md-button>                    
+                    </md-button>
                     <md-input-container class="input-no-margin">
                         <input ng-model="center.name_en"
                                 ng-change="processChange(center,'cost_center')"
                                 name="centerName[centerNum]">
                     </md-input-container>
-                    <md-icon ng-if="center.active === 1" 
+                    <md-icon ng-if="center.active === 1"
                             class="financial-status"
                             md-svg-src="images/icons/check_24px.svg"></md-icon>
-                    <md-icon ng-if="center.active === 0" 
+                    <md-icon ng-if="center.active === 0"
                             class="financial-status"
                             md-svg-src="images/icons/unavailable_24px.svg"></md-icon>
                     <md-button ng-click="removeCenter(costCentersList, center)"
                             ng-if="center.active === 1"
-                            aria-label="Details" 
+                            aria-label="Details"
                             class="md-icon-button interaction-button">
                         <md-icon md-svg-src="images/icons/delete_24px.svg"></md-icon>
                     </md-button>
@@ -75,15 +74,15 @@
                                     ng-change="processChange(account,'account')"
                                     name="accountName[centerNum]">
                         </md-input-container>
-                        <md-icon ng-if="account.active === 1" 
+                        <md-icon ng-if="account.active === 1"
                                 class="financial-status"
                                 md-svg-src="images/icons/check_24px.svg"></md-icon>
-                        <md-icon ng-if="account.active === 0" 
+                        <md-icon ng-if="account.active === 0"
                                 class="financial-status"
                                 md-svg-src="images/icons/unavailable_24px.svg"></md-icon>
                         <md-button ng-click="removeAccount(center.accounts, account)"
                                 ng-if="account.active === 1"
-                                aria-label="Details" 
+                                aria-label="Details"
                                 class="md-icon-button interaction-button">
                             <md-icon md-svg-src="images/icons/delete_24px.svg"></md-icon>
                         </md-button>
@@ -95,7 +94,7 @@
                                     name="newAccount[centerNum]">
                         </md-input-container>
                         <md-button ng-click="addAccount(center)"
-                                aria-label="Details" 
+                                aria-label="Details"
                                 class="md-icon-button interaction-button">
                             <md-icon md-svg-src="images/icons/add_24px.svg"></md-icon>
                         </md-button>

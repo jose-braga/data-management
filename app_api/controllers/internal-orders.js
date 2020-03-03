@@ -810,48 +810,42 @@ var getManagementAccountFinancesQuery = function (req, res, next, options) {
 
 var updateManagementAccountFinancesQuery = function (req, res, next, options) {
     let accountID = req.params.accountID
-    let i = options.i;
     var query = null;
     var places = null;
-    let hasData = false;
     let isCreate = false;
-    while (!hasData && i < req.body.length) {
-        let finances = req.body[i];
-        if (finances.initial_amount !== null) {
-            hasData = true;
-            if (finances.id !== 'new') {
-                // update
-                query = 'UPDATE account_finances'
-                    + ' SET initial_amount = ?,'
-                    + ' current_amount = ?,'
-                    + ' current_amount_tax = ?'
-                    + ' WHERE id = ?;';
-                places = [
-                    parseFloat(finances.initial_amount),
-                    parseFloat(finances.current_amount),
-                    parseFloat(finances.current_amount_tax),
-                    finances.id
-                ];
-            } else {
-                // create
-                isCreate = true;
-                query = 'INSERT INTO account_finances'
-                    + ' (account_id, initial_amount, current_amount, amount_requests, current_amount_tax, amount_requests_tax, year)'
-                    + ' VALUES (?,?,?,?,?,?,?);';
-                places = [
-                    accountID,
-                    parseFloat(finances.initial_amount),
-                    parseFloat(finances.initial_amount),
-                    0,
-                    parseFloat(finances.initial_amount),
-                    0,
-                    finances.year
-                ];
-            }
+    let finances = req.body.finances;
+    if (finances.initial_amount !== null) {
+        if (finances.id  !== 'new') {
+            // update
+            query = 'UPDATE account_finances'
+                + ' SET initial_amount = ?,'
+                + ' current_amount = ?,'
+                + ' current_amount_tax = ?'
+                + ' WHERE id = ?;';
+            places = [
+                parseFloat(finances.initial_amount),
+                parseFloat(finances.current_amount),
+                parseFloat(finances.current_amount_tax),
+                finances.id
+            ];
         } else {
-            i = i + 1;
+            // create
+            isCreate = true;
+            query = 'INSERT INTO account_finances'
+                + ' (account_id, initial_amount, current_amount, amount_requests, current_amount_tax, amount_requests_tax, year)'
+                + ' VALUES (?,?,?,?,?,?,?);';
+            places = [
+                accountID,
+                parseFloat(finances.initial_amount),
+                parseFloat(finances.initial_amount),
+                0,
+                parseFloat(finances.initial_amount),
+                0,
+                finances.year
+            ];
         }
     }
+
     if (query !== null) {
         pool.getConnection(function (err, connection) {
             if (err) {
@@ -869,15 +863,16 @@ var updateManagementAccountFinancesQuery = function (req, res, next, options) {
                     }
                     if (isCreate) {
                         let financeID = resQuery.insertId;
-                        req.body[i].id = financeID;
-                        req.body[i].created = true;
+                        req.body.finances.id = financeID;
+                        req.body.finances.created = true;
                     } else {
-                        req.body[i].created = false;
+                        req.body.finances.created = false;
                     }
                     return updateManagementAccountFinancesHistory(req, res, next, options);
                 });
         });
     } else {
+        // No change and no email sent!
         sendJSONResponse(res, 200,
             {
                 "status": "success", "statusCode": 200, "message": "No changes!"
@@ -887,8 +882,7 @@ var updateManagementAccountFinancesQuery = function (req, res, next, options) {
 };
 var updateManagementAccountFinancesHistory = function (req, res, next, options) {
     let accountID = req.params.accountID
-    let i = options.i;
-    let finances = req.body[i];
+    let finances = req.body.finances;
     let query = 'INSERT INTO account_finances_history'
         + ' (account_finance_id, account_id, initial_amount, current_amount, amount_requests,'
         + ' current_amount_tax, amount_requests_tax, year, datetime)'
@@ -933,18 +927,34 @@ var updateManagementAccountFinancesHistory = function (req, res, next, options) 
                     sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });
                     return;
                 }
-                if (i + 1 < req.body.length) {
-                    options.i = i + 1;
-                    return updateManagementAccountFinancesQuery(req, res, next, options);
-                } else {
-                    sendJSONResponse(res, 200,
-                        {
-                            "status": "success", "statusCode": 200, "message": "Changes were successful."
-                        });
-                    return;
-                }
+                return sendEmailUpdateManagementAccountFinances(req, res, next, options);
             });
+    });
+};
+
+var sendEmailUpdateManagementAccountFinances = function (req, res, next, options) {
+    let email = req.body.email;
+    let mailOptions = {
+        from: '"Admin" <admin@laqv-ucibio.info>', // sender address
+        to: email.recipients, // list of receivers (comma-separated)
+        subject: email.subject, // Subject line
+        text: email.body,
+    };
+    // send mail with defined transport object
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            console.log('Error: Allocation of funds. Message to %s not sent due to error below.',
+                email.recipients);
+            console.log(error);
+        }
+        console.log('OK! Allocation of funds. Message %s was sent to requester (%s) with response: %s',
+            info.messageId, email.recipients, info.response);
+    });
+    sendJSONResponse(res, 200,
+        {
+            "status": "success", "statusCode": 200, "message": "Allocation of funds was successful."
         });
+    return;
 };
 
 var makeInventoryItemQuery = function (req, res, next, options) {
@@ -3233,7 +3243,6 @@ module.exports.getManagementAccountFinances = function (req, res, next) {
 module.exports.updateManagementAccountFinances = function (req, res, next) {
     checkManagementPermissions(req, res, next, updateManagementAccountFinancesQuery,
     {
-        i: 0,
         datetime: momentToDate(moment(), undefined, 'YYYY-MM-DD HH:mm:ss')
     });
 };

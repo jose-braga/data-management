@@ -3232,14 +3232,14 @@
                 .then(function (ans) {
                     // the details dialog has no action, so code is run only when closed(i.e. cancelled)
                 },
-                    function () {
-                        for (var ind in vm.currCommunications) {
-                            for (var ind_ori in vm.personCommunications) {
-                                if (vm.currCommunications[ind].id == vm.personCommunications[ind_ori].id) {
-                                    vm.personCommunications[ind_ori] = vm.currCommunications[ind];
-                                }
+                function () {
+                    for (var ind in vm.currCommunications) {
+                        for (var ind_ori in vm.personCommunications) {
+                            if (vm.currCommunications[ind].id == vm.personCommunications[ind_ori].id) {
+                                vm.personCommunications[ind_ori] = vm.currCommunications[ind];
                             }
                         }
+                    }
                 });
         };
         vm.changePublicStatusComm = function (work) {

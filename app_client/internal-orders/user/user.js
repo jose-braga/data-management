@@ -60,7 +60,7 @@
                                     }
                                 })
                                 .catch(function (err) {
-                                    scope.updateStatus[ind] = "Error! Order might have been submited but couldn't retrieve inventory.";
+                                    scope.updateStatus[0] = "Error! Order might have been submited but couldn't retrieve inventory.";
                                     console.log(err);
                                 });
 

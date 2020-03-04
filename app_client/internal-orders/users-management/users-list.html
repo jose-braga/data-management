@@ -6,7 +6,7 @@
     </md-card-title>
     <md-card-content layout="column">
         <div flex layout-padding>
-            Reload cost centers information
+            Reload users information
             <md-button ng-click="getDataLists()" aria-label="Reload" class="md-icon-button md-raised">
                 <md-icon md-svg-src="images/icons/reload_24px.svg"></md-icon>
             </md-button>
@@ -36,7 +36,7 @@
                 </md-select>
             </md-input-container>
         </div>
-        <form flex novalidate name="userManagementForm" 
+        <form flex novalidate name="userManagementForm"
                 ng-submit="userManagementForm.$valid && submitUserChanges(forms['userList'])"
             class="spacer-top">
             <table class="materialize-table spacer-top">
@@ -72,11 +72,11 @@
                         </th>
                         <th>Account<br>
                             active?
-                        </th>                    
+                        </th>
                         <th>
                             Email
                         </th>
-                        
+
                         <th>
                             <!-- For removing person from allowed users -->
                         </th>
@@ -112,7 +112,7 @@
                                 </md-select>
                             </md-input-container>
                         </td>
-                        <td><md-checkbox ng-model="user.account_active" 
+                        <td><md-checkbox ng-model="user.account_active"
                                     ng-true-value="1"
                                     ng-false-value="0"
                                     ng-disabled="true"
@@ -129,7 +129,7 @@
                     </tr>
                 </tbody>
             </table>
-            
+
             <div layout="row" class="paginator">
                 <md-input-container class="input-no-margin wider">
                     <label>Results/page</label>
@@ -157,7 +157,7 @@
                         <th>Name</th>
                         <th>Role</th>
                         <th>Cost Center</th>
-                        <th>Account</th>            
+                        <th>Account</th>
                         <th>
                             <!-- For adding person icon -->
                         </th>
@@ -179,21 +179,21 @@
                                     No users matching "{{searchName}}" were found.
                                 </md-not-found>
                             </md-autocomplete>
-                        
+
                         </td>
                         <td>
                             <md-input-container class="select-container select-no-margin">
                                 <md-select ng-model="newUser.role_id" name="newuser_role">
                                     <md-option ng-repeat="role in accountRoles" ng-value="role.id">{{role.name_en}}</md-option>
                                 </md-select>
-                            </md-input-container>                            
+                            </md-input-container>
                         </td>
                         <td>
                             <md-input-container class="select-container select-no-margin">
                                 <md-select ng-model="newUser.cost_center_id"
                                     ng-change="processChangeNewUser(newUser)"
                                     name="newuser_cost_center">
-                                    <md-option ng-repeat="center in costCentersList" 
+                                    <md-option ng-repeat="center in costCentersList"
                                         ng-value="center.id">{{center.name_en}}
                                     </md-option>
                                 </md-select>
@@ -228,8 +228,8 @@
             </div>
         </form>
 
-        
 
-        
+
+
     </md-card-content>
 </md-card>

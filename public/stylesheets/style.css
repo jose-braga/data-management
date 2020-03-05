@@ -8,6 +8,12 @@ a {
 }
 
 /* Added by JB */
+.scrollable-card {
+  height: 400px;
+  overflow-y: auto;
+}
+
+
 md-switch.md-checked .md-bar,
 md-switch.md-checked:not([disabled]) .md-bar {
   background-color: rgba(31, 236, 31, 0.63);

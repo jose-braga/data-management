@@ -1057,6 +1057,7 @@ module.exports.getPersonPublications = function (req, res, next) {
                 }
                 for (var ind in resQuery) {
                     if (resQuery[ind].selected === null) {resQuery[ind].selected = false;}
+                    else if (resQuery[ind].selected === 0) {resQuery[ind].selected = false;}
                     else if (resQuery[ind].selected !== null) {resQuery[ind].selected = true;}
                 }
                 var publications = processPublications(resQuery, 'single-person');
@@ -1255,6 +1256,7 @@ module.exports.getGroupPublications = function (req, res, next) {
                 }
                 for (var ind in resQuery) {
                     if (resQuery[ind].selected === null) { resQuery[ind].selected = false; }
+                    else if (resQuery[ind].selected === 0) { resQuery[ind].selected = false; }
                     else if (resQuery[ind].selected !== null) { resQuery[ind].selected = true; }
                 }
                 sendJSONResponse(res, 200,
@@ -1376,6 +1378,7 @@ module.exports.getGroupLabsPublications = function (req, res, next) {
                 }
                 for (var ind in resQuery) {
                     if (resQuery[ind].selected === null) {resQuery[ind].selected = false;}
+                    else if (resQuery[ind].selected === 0) {resQuery[ind].selected = false;}
                     else if (resQuery[ind].selected !== null) {resQuery[ind].selected = true;}
                 }
                 sendJSONResponse(res, 200,

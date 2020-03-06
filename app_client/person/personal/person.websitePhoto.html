@@ -11,7 +11,8 @@
                     layout="column" layout-gt-sm="row" layout-margin
                     layout-align="center center">
                 <div>
-                    <img class="personal-photo" ng-src="{{vm.thisPerson.pers_photo[0].image_path}}">
+                    <img class="personal-photo"
+                    ng-src="{{vm.thisPerson.pers_photo[0].image_path}}">
                 </div>
                 <div>
                     <md-button ng-click="vm.changePhotoAction()"
@@ -42,15 +43,23 @@
                             area-min-size="10"
                             aspect-ratio="vm.aspectRatio"
                             result-image="vm.imageTemp"
+                            result-image-size="[vm.photoSize, vm.photoSizeLarger]"
+                            result-array-image="vm.imagePersonCroppedArray"
                             result-image-format="{{vm.personImageType}}"
-                            url-blob="vm.imagePersonCropped"
-                            result-image-size="vm.photoSize">
+                            url-blob="vm.imagePersonCropped">
                         </ui-cropper>
                     </div>
                     <div class="show-cropped" layout-padding layout-margin>
                         <img ng-src="{{vm.imagePersonCropped}}" />
                     </div>
                 </div>
+                <!--
+                    <img ng-src="{{vm.imagePersonCroppedArray[1].dataURI }}" />
+                {{ vm.imagePersonCropped }}<br>------------<br>
+                {{ vm.imagePersonCroppedArray[1] }}
+
+                -->
+
                 <div layout="column" layout-gt-sm="row" layout-align="none center">
                     <md-button type="submit"
                         class="button-small md-raised md-primary">Update</md-button>

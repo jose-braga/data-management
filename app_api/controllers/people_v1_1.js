@@ -642,7 +642,7 @@ module.exports.searchPeople = function (req, res, next) {
                     ' people_administrative_units.unit_id AS administrative_unit_id, administrative_units.name AS administrative_unit_name,' +
                     ' people_administrative_offices.administrative_position_id, administrative_positions.name_en AS administrative_position_name_en, administrative_positions.name_pt AS administrative_position_name_pt,' +
                     ' jobs.category_id, categories.name_en AS category, jobs.organization, jobs.valid_from AS job_start, jobs.valid_until AS job_end,' +
-                    ' personal_photo.url AS image_path' +
+                    ' personal_photo.photo_type_id, personal_photo_type.name_en AS photo_type_name_en, personal_photo.url AS image_path' +
                     ' FROM people' +
                     ' LEFT JOIN emails ON people.id = emails.person_id' +
                     ' LEFT JOIN phones ON people.id = phones.person_id' +
@@ -679,6 +679,7 @@ module.exports.searchPeople = function (req, res, next) {
                     ' LEFT JOIN units AS administrative_units ON administrative_units.id = people_administrative_units.unit_id' +
                     ' LEFT JOIN administrative_positions ON administrative_positions.id = people_administrative_offices.administrative_position_id' +
                     ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
+                    ' LEFT JOIN personal_photo_type ON personal_photo_type.id = personal_photo.photo_type_id' +
                     ' WHERE people.status = ? AND people.visible_public = 1' +
                     ' AND (people.active_until > ? OR (people.active_from < ? AND people.active_until IS NULL) OR (people.active_from IS NULL AND people.active_until IS NULL))'
                     ;
@@ -715,7 +716,7 @@ module.exports.searchPeople = function (req, res, next) {
                    ' people_administrative_units.unit_id AS administrative_unit_id, administrative_units.name AS administrative_unit_name,' +
                    ' people_administrative_offices.administrative_position_id, administrative_positions.name_en AS administrative_position_name_en, administrative_positions.name_pt AS administrative_position_name_pt,' +
                    ' jobs.category_id, categories.name_en AS category, jobs.organization, jobs.valid_from AS job_start, jobs.valid_until AS job_end,' +
-                   ' personal_photo.url AS image_path' +
+                   ' personal_photo.photo_type_id, personal_photo_type.name_en AS photo_type_name_en, personal_photo.url AS image_path' +
                    ' FROM people' +
                    ' LEFT JOIN emails ON people.id = emails.person_id' +
                    ' LEFT JOIN phones ON people.id = phones.person_id' +
@@ -752,6 +753,7 @@ module.exports.searchPeople = function (req, res, next) {
                    ' LEFT JOIN units AS administrative_units ON administrative_units.id = people_administrative_units.unit_id' +
                    ' LEFT JOIN administrative_positions ON administrative_positions.id = people_administrative_offices.administrative_position_id' +
                    ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
+                   ' LEFT JOIN personal_photo_type ON personal_photo_type.id = personal_photo.photo_type_id' +
                    ' WHERE people.visible_public = 1 AND people.name LIKE ?' +
                      ' AND (people.active_until > ? OR (people.active_from < ? AND people.active_until IS NULL) OR (people.active_from IS NULL AND people.active_until IS NULL))';
         places = [name,now,now];
@@ -787,7 +789,7 @@ module.exports.searchPeople = function (req, res, next) {
                    ' people_administrative_units.unit_id AS administrative_unit_id, administrative_units.name AS administrative_unit_name,' +
                    ' people_administrative_offices.administrative_position_id, administrative_positions.name_en AS administrative_position_name_en, administrative_positions.name_pt AS administrative_position_name_pt,' +
                    ' jobs.category_id, categories.name_en AS category, jobs.organization, jobs.valid_from AS job_start, jobs.valid_until AS job_end,' +
-                      ' personal_photo.url AS image_path' +
+                   ' personal_photo.photo_type_id, personal_photo_type.name_en AS photo_type_name_en, personal_photo.url AS image_path' +
                       ' FROM people' +
                       ' LEFT JOIN emails ON people.id = emails.person_id' +
                       ' LEFT JOIN phones ON people.id = phones.person_id' +
@@ -824,6 +826,7 @@ module.exports.searchPeople = function (req, res, next) {
                   ' LEFT JOIN units AS administrative_units ON administrative_units.id = people_administrative_units.unit_id' +
                   ' LEFT JOIN administrative_positions ON administrative_positions.id = people_administrative_offices.administrative_position_id' +
                       ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
+                      ' LEFT JOIN personal_photo_type ON personal_photo_type.id = personal_photo.photo_type_id' +
                       ' WHERE people.visible_public = 1 AND (labs.name LIKE ?)' +
                         ' AND (people.active_until > ? OR (people.active_from < ? AND people.active_until IS NULL) OR (people.active_from IS NULL AND people.active_until IS NULL))';
         places = [lab,now,now];
@@ -861,7 +864,7 @@ module.exports.searchPeople = function (req, res, next) {
                    ' people_administrative_units.unit_id AS administrative_unit_id, administrative_units.name AS administrative_unit_name,' +
                    ' people_administrative_offices.administrative_position_id, administrative_positions.name_en AS administrative_position_name_en, administrative_positions.name_pt AS administrative_position_name_pt,' +
                    ' jobs.category_id, categories.name_en AS category, jobs.organization, jobs.valid_from AS job_start, jobs.valid_until AS job_end,' +
-                      ' personal_photo.url AS image_path' +
+                   ' personal_photo.photo_type_id, personal_photo_type.name_en AS photo_type_name_en, personal_photo.url AS image_path' +
                       ' FROM people' +
                       ' LEFT JOIN emails ON people.id = emails.person_id' +
                       ' LEFT JOIN phones ON people.id = phones.person_id' +
@@ -897,7 +900,8 @@ module.exports.searchPeople = function (req, res, next) {
                   ' LEFT JOIN people_administrative_units ON people_administrative_units.administrative_id = people_administrative_offices.id' +
                   ' LEFT JOIN units AS administrative_units ON administrative_units.id = people_administrative_units.unit_id' +
                   ' LEFT JOIN administrative_positions ON administrative_positions.id = people_administrative_offices.administrative_position_id' +
-                      ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
+                  ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
+                  ' LEFT JOIN personal_photo_type ON personal_photo_type.id = personal_photo.photo_type_id' +
                       ' WHERE people.visible_public = 1 AND people.name LIKE ?' +
                         ' AND (labs.name LIKE ?)' +
                         ' AND (people.active_until > ? OR (people.active_from < ? AND people.active_until IS NULL) OR (people.active_from IS NULL AND people.active_until IS NULL))';
@@ -908,6 +912,7 @@ module.exports.searchPeople = function (req, res, next) {
         places.push(unitID,unitID,unitID,unitID);
     }
     var mergeRules = [
+                      ['photo_data', 'photo_type_id', 'photo_type_name_en', 'image_path'],
                       ['website_texts', 'website_text_title', 'website_text', 'website_text_type_id', 'website_text_type_name_en'],
                       ['personal_url_data', 'url', 'url_type_id', 'url_type', 'url_description'],
                       ['degree_data', 'degree_start', 'degree_end', 'degree_type_id', 'degree', 'degree_field', 'degree_institution'],
@@ -957,7 +962,7 @@ module.exports.getPersonInfo = function (req, res, next) {
                    ' people_administrative_units.unit_id AS administrative_unit_id, administrative_units.name AS administrative_unit_name,' +
                    ' people_administrative_offices.administrative_position_id, administrative_positions.name_en AS administrative_position_name_en, administrative_positions.name_pt AS administrative_position_name_pt,' +
                    ' jobs.category_id, categories.name_en AS category, jobs.organization, jobs.valid_from AS job_start, jobs.valid_until AS job_end,' +
-                   ' personal_photo.url AS image_path' +
+                   ' personal_photo.photo_type_id, personal_photo_type.name_en AS photo_type_name_en, personal_photo.url AS image_path' +
                   ' FROM people' +
                   ' LEFT JOIN emails ON people.id = emails.person_id' +
                   ' LEFT JOIN phones ON people.id = phones.person_id' +
@@ -994,9 +999,11 @@ module.exports.getPersonInfo = function (req, res, next) {
                   ' LEFT JOIN units AS administrative_units ON administrative_units.id = people_administrative_units.unit_id' +
                   ' LEFT JOIN administrative_positions ON administrative_positions.id = people_administrative_offices.administrative_position_id' +
                   ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
+                  ' LEFT JOIN personal_photo_type ON personal_photo_type.id = personal_photo.photo_type_id' +
                   ' WHERE people.id = ? AND people.visible_public = 1;';
     var places = [personID];
     var mergeRules = [
+                      ['photo_data', 'photo_type_id', 'photo_type_name_en', 'image_path'],
                       ['website_texts', 'website_text_title', 'website_text', 'website_text_type_id', 'website_text_type_name_en'],
                       ['personal_url_data', 'url', 'url_type_id', 'url_type', 'url_description'],
                       ['degree_data', 'degree_start', 'degree_end', 'degree_type_id', 'degree', 'degree_field', 'degree_institution'],
@@ -1197,7 +1204,7 @@ module.exports.getGroupMembers = function (req, res, next) {
                    ' lab_positions.name_en AS lab_position_name_en,' +
                    ' lab_positions.name_pt  AS lab_position_name_pt,' +
                    ' lab_positions.sort_order AS lab_position_sort_order,' +
-                  ' personal_photo.url AS image_path' +
+                   ' personal_photo.photo_type_id, personal_photo_type.name_en AS photo_type_name_en, personal_photo.url AS image_path' +
                   ' FROM people' +
                   ' LEFT JOIN emails ON people.id = emails.person_id' +
                   ' LEFT JOIN phones ON people.id = phones.person_id' +
@@ -1209,6 +1216,7 @@ module.exports.getGroupMembers = function (req, res, next) {
                   ' LEFT JOIN units ON groups_units.unit_id = units.id' +
                   ' LEFT JOIN lab_positions ON lab_positions.id = people_labs.lab_position_id' +
                   ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
+                  ' LEFT JOIN personal_photo_type ON personal_photo_type.id = personal_photo.photo_type_id' +
                   ' WHERE groups.id = ?' +
                   ' AND people.visible_public = 1'
                   ' AND (people.active_until > ? OR (people.active_from < ? AND people.active_until IS NULL) OR (people.active_from IS NULL AND people.active_until IS NULL))' +
@@ -1217,6 +1225,7 @@ module.exports.getGroupMembers = function (req, res, next) {
     // sort_order is a user defined sort weight that might be used to override
     // sort orders defined in lab_positions
     var mergeRules = [
+                      ['photo_data', 'photo_type_id', 'photo_type_name_en', 'image_path'],
                       ['lab_data', 'lab_start', 'lab_end', 'lab_position_id',
                       'lab_position_name_en','lab_position_name_pt','lab_position_sort_order',
                       'sort_order',
@@ -1527,7 +1536,7 @@ module.exports.getFacilityMembers = function (req, res, next) {
                 ' technicians.valid_from AS technician_start, technicians.valid_until AS technician_end,' +
                 ' technicians_units.unit_id AS technician_unit_id, technician_units.name AS technician_unit_name,' +
                 ' technicians.technician_position_id, technician_positions.name_en AS technician_position_name_en, technician_positions.name_pt AS technician_position_name_pt,' +
-                ' personal_photo.url AS image_path' +
+                ' personal_photo.photo_type_id, personal_photo_type.name_en AS photo_type_name_en, personal_photo.url AS image_path' +
                 ' FROM people' +
                 ' LEFT JOIN emails ON people.id = emails.person_id' +
                 ' LEFT JOIN phones ON people.id = phones.person_id' +
@@ -1539,6 +1548,7 @@ module.exports.getFacilityMembers = function (req, res, next) {
                 ' LEFT JOIN technician_positions ON technician_positions.id = technicians.technician_position_id' +
 
                 ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
+                ' LEFT JOIN personal_photo_type ON personal_photo_type.id = personal_photo.photo_type_id' +
                 ' WHERE technician_offices.id = ? AND people.visible_public = 1' +
                 ' AND (people.active_until > ? OR (people.active_from < ? AND people.active_until IS NULL) OR (people.active_from IS NULL AND people.active_until IS NULL))';
     places = [officeID,now,now];
@@ -1547,6 +1557,7 @@ module.exports.getFacilityMembers = function (req, res, next) {
         places.push(unitID);
     }
     var mergeRules = [
+            ['photo_data', 'photo_type_id', 'photo_type_name_en', 'image_path'],
             ['technician_data', 'technician_start', 'technician_end', 'technician_position_id','technician_position_name_en','technician_position_name_pt',
              'technician_id','technician_office_id','technician_office_name','technician_unit_id','technician_unit_name']
       ];
@@ -1567,7 +1578,7 @@ module.exports.getScienceManagementOfficeMembers = function (req, res, next) {
                 ' science_managers.valid_from AS science_manager_start, science_managers.valid_until AS science_manager_end,' +
                 ' science_managers_units.unit_id AS science_manager_unit_id, science_manager_units.name AS science_manager_unit_name,' +
                 ' science_managers.science_manager_position_id, science_manager_positions.name_en AS science_manager_position_name_en, science_manager_positions.name_pt AS science_manager_position_name_pt,' +
-                ' personal_photo.url AS image_path' +
+                ' personal_photo.photo_type_id, personal_photo_type.name_en AS photo_type_name_en, personal_photo.url AS image_path' +
                 ' FROM people' +
                 ' LEFT JOIN emails ON people.id = emails.person_id' +
                 ' LEFT JOIN phones ON people.id = phones.person_id' +
@@ -1579,6 +1590,7 @@ module.exports.getScienceManagementOfficeMembers = function (req, res, next) {
                 ' LEFT JOIN science_manager_positions ON science_manager_positions.id = science_managers.science_manager_position_id' +
 
                 ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
+                ' LEFT JOIN personal_photo_type ON personal_photo_type.id = personal_photo.photo_type_id' +
                 ' WHERE science_manager_offices.id = ? AND people.visible_public = 1' +
                 ' AND (people.active_until > ? OR (people.active_from < ? AND people.active_until IS NULL) OR (people.active_from IS NULL AND people.active_until IS NULL))';
     places = [officeID,now,now];
@@ -1587,6 +1599,7 @@ module.exports.getScienceManagementOfficeMembers = function (req, res, next) {
         places.push(unitID);
     }
     var mergeRules = [
+            ['photo_data', 'photo_type_id', 'photo_type_name_en', 'image_path'],
             ['science_management_data', 'science_manager_start', 'science_manager_end', 'science_manager_position_id','science_manager_position_name_en','science_manager_position_name_pt',
             'science_manager_id','science_manager_office_id','science_manager_office_name','science_manager_unit_id','science_manager_unit_name']
         ];
@@ -1607,7 +1620,7 @@ module.exports.getAdministrativeOfficeMembers = function (req, res, next) {
                 ' people_administrative_offices.valid_from AS administrative_start, people_administrative_offices.valid_until AS administrative_end,' +
                 ' people_administrative_units.unit_id AS administrative_unit_id, administrative_units.name AS administrative_unit_name,' +
                 ' people_administrative_offices.administrative_position_id, administrative_positions.name_en AS administrative_position_name_en, administrative_positions.name_pt AS administrative_position_name_pt,' +
-                ' personal_photo.url AS image_path' +
+                ' personal_photo.photo_type_id, personal_photo_type.name_en AS photo_type_name_en, personal_photo.url AS image_path' +
                 ' FROM people' +
                 ' LEFT JOIN emails ON people.id = emails.person_id' +
                 ' LEFT JOIN phones ON people.id = phones.person_id' +
@@ -1619,6 +1632,7 @@ module.exports.getAdministrativeOfficeMembers = function (req, res, next) {
                 ' LEFT JOIN administrative_positions ON administrative_positions.id = people_administrative_offices.administrative_position_id' +
 
                 ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
+                ' LEFT JOIN personal_photo_type ON personal_photo_type.id = personal_photo.photo_type_id' +
                 ' WHERE administrative_offices.id = ? AND people.visible_public = 1' +
                 ' AND (people.active_until > ? OR (people.active_from < ? AND people.active_until IS NULL) OR (people.active_from IS NULL AND people.active_until IS NULL))';
     places = [officeID,now,now];
@@ -1627,6 +1641,7 @@ module.exports.getAdministrativeOfficeMembers = function (req, res, next) {
         places.push(unitID);
     }
     var mergeRules = [
+        ['photo_data', 'photo_type_id', 'photo_type_name_en', 'image_path'],
         ['administrative_data', 'administrative_start', 'administrative_end', 'administrative_position_id','administrative_position_name_en','administrative_position_name_pt',
          'administrative_id','administrative_office_id','administrative_office_name','administrative_unit_id','administrative_unit_name']
     ];

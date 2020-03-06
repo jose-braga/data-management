@@ -68,6 +68,10 @@
         vm.changePhoto = false;
         vm.photoSize = {w: 196, h: 196};
         vm.aspectRatio = (vm.photoSize.w*1.0)/(vm.photoSize.h*1.0);
+
+        vm.photoSizeLarger = {w: 320, h: 320};
+        vm.imagePersonCroppedArray = [];
+
         vm.editDOI = false;
         vm.selectAllPublications = false;
         vm.selectAllPublicationsORCID = false;
@@ -995,13 +999,35 @@
             vm.hideMessage[ind] = false;
             Upload.urlToBlob(vm.imagePersonCropped)
                 .then(function(blob) {
-                    var croppedImagePre = blob;
-                    var croppedImageFile = new File([croppedImagePre],
+                    let croppedImagePre = blob;
+                    let croppedImageFile = new File([croppedImagePre],
                             vm.imagePersonPre.name, {type: vm.personImageType});
-                    var data = {
+                    let data = {
                         file: croppedImageFile
                     };
                     personData.updatePersonPhoto(vm.currentUser.personID,1, data)
+                        .then( function () {
+                            getPersonData(vm.currentUser.personID, ind);
+                            vm.changePhoto = false;
+                        },
+                        function () {
+                            vm.updateStatus[ind] = "Error!";
+                            vm.messageType[ind] = 'message-error';
+                        },
+                        function () {}
+                        );
+                    return false;
+
+                });
+            Upload.urlToBlob(vm.imagePersonCroppedArray[1].dataURI)
+                .then(function(blob) {
+                    let croppedImagePre = blob;
+                    let croppedImageFile = new File([croppedImagePre],
+                            vm.imagePersonPre.name, {type: vm.personImageType});
+                    let data = {
+                        file: croppedImageFile
+                    };
+                    personData.updatePersonPhoto(vm.currentUser.personID,2, data)
                         .then( function () {
                             getPersonData(vm.currentUser.personID, ind);
                             vm.changePhoto = false;
@@ -4728,7 +4754,11 @@
                     vm.pluriannual = vm.thisPerson.researcher_data[0].pluriannual;
                     vm.integrated = vm.thisPerson.researcher_data[0].integrated;
                     vm.nuclearCV = vm.thisPerson.researcher_data[0].nuclearCV;
+                    console.log(vm.thisPerson.pers_photo)
                     if (vm.thisPerson.pers_photo[0].personal_photo_id !== null) {
+                        if (vm.thisPerson.pers_photo[0].image_path.includes('localhost') ) {
+                            vm.thisPerson.pers_photo[0].image_path = 'http://' + vm.thisPerson.pers_photo[0].image_path;
+                        }
                         vm.hasPhoto = true;
                     }
                     if (vm.thisPerson['birth_date'] !== null) {

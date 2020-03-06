@@ -80,6 +80,8 @@
             $compileProvider.debugInfoEnabled(false);
             $compileProvider.commentDirectivesEnabled(false);
             $compileProvider.cssClassDirectivesEnabled(false);
+            $compileProvider.imgSrcSanitizationWhitelist(/^\s*(localhost|https?|ftp|file|blob):|data:image\//);
+
         }])
         .config(['$routeProvider', '$locationProvider', config])
         .config(function($mdDateLocaleProvider) {

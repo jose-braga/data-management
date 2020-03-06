@@ -5693,10 +5693,11 @@ var queryUpdatePhoto = function (req, res, next, userCity) {
 
 var queryUpdatePhotoDatabaseGetPrevious = function (req, res, next, file) {
     var personID = req.params.personID;
+    var imageType = req.params.imageType;
     var query = 'SELECT *' +
                 ' FROM personal_photo' +
                 ' WHERE person_id = ? AND photo_type_id = ?;';
-    var places = [personID, 1];
+    var places = [personID, imageType];
     pool.getConnection(function(err, connection) {
         if (err) {
             sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
@@ -5724,6 +5725,7 @@ var queryUpdatePhotoDatabaseGetPrevious = function (req, res, next, file) {
 
 var queryUpdatePhotoDatabaseFinal = function (req, res, next, file, action) {
     var personID = req.params.personID;
+    var imageType = req.params.imageType;
     var filePath = process.env.PATH_PREFIX + '/' + file.path.replace('public/','');
     var query;
     var places;
@@ -5731,13 +5733,13 @@ var queryUpdatePhotoDatabaseFinal = function (req, res, next, file, action) {
         query = 'UPDATE personal_photo' +
                 ' SET photo_type_id = ?,' +
                 ' url = ?' +
-                ' WHERE person_id = ?;';
-        places = [1, filePath, personID];
+                ' WHERE person_id = ? AND photo_type_id = ?;';
+        places = [imageType, filePath, personID, imageType];
     } else {
         query = 'INSERT INTO personal_photo' +
                 ' (person_id,photo_type_id,url)' +
                 ' VALUES (?,?,?);';
-        places = [personID, 1, filePath];
+        places = [personID, imageType, filePath];
     }
     pool.getConnection(function(err, connection) {
         if (err) {

@@ -2492,6 +2492,7 @@ var queryAddRole = function (req, res, next, personID, userCity, role, updated, 
                     sendJSONResponse(res, 400, {"status": "error", "statusCode": 400, "error" : err.stack});
                     return;
                 }
+                // Should be unit dependent
                 externalAPI.contactCreateOrUpdate(WEBSITE_API_BASE_URL[1], 'people', personID,
                                 'UCIBIO API error updating person information (create person or person role [personID]) :', personID);
                 externalAPI.contactCreateOrUpdate(WEBSITE_API_BASE_URL[2], 'people', personID,

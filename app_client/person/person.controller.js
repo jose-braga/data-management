@@ -4754,7 +4754,6 @@
                     vm.pluriannual = vm.thisPerson.researcher_data[0].pluriannual;
                     vm.integrated = vm.thisPerson.researcher_data[0].integrated;
                     vm.nuclearCV = vm.thisPerson.researcher_data[0].nuclearCV;
-                    console.log(vm.thisPerson.pers_photo)
                     if (vm.thisPerson.pers_photo[0].personal_photo_id !== null) {
                         if (vm.thisPerson.pers_photo[0].image_path.includes('localhost') ) {
                             vm.thisPerson.pers_photo[0].image_path = 'http://' + vm.thisPerson.pers_photo[0].image_path;

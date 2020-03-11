@@ -42,9 +42,10 @@
                         area-min-size="10"
                         aspect-ratio="vm.aspectRatio"
                         result-image="vm.imageTemp[vm.selectedIndex-2]"
+                        result-image-size="[vm.photoSize, vm.photoSizeLarger]"
+                        result-array-image="vm.imagePersonCroppedArray[vm.selectedIndex-2]"
                         result-image-format="{{vm.personImageType[vm.selectedIndex-2]}}"
-                        url-blob="vm.imagePersonCropped[vm.selectedIndex-2]"
-                        result-image-size="vm.photoSize">
+                        url-blob="vm.imagePersonCropped[vm.selectedIndex-2]">
                     </ui-cropper>
                 </div>
                 <div class="show-cropped" layout-padding layout-margin>
@@ -60,6 +61,7 @@
                     </span>
                 </div>
             </div>
+            {{vm.imagePersonCroppedArray}}
             </div>
         </md-card-content>
     </form>

@@ -10,6 +10,7 @@
         vm.isLoggedIn = authentication.isLoggedIn();
 
         vm.photoSize = {w: 196, h: 196};
+        vm.photoSizeLarger = {w: 600, h: 600};
         vm.aspectRatio = (vm.photoSize.w*1.0)/(vm.photoSize.h*1.0);
         vm.loadingAllPeople = true;
 
@@ -726,6 +727,7 @@
                 vm.imagePersonPre.push('');
                 vm.imagePerson.push('');
                 vm.imagePersonCropped.push('');
+                vm.imagePersonCroppedArray.push([]);
                 vm.imageTemp.push('');
                 vm.personImageType.push('');
                 var sizeImagePersonPre = vm.imagePersonPre.length;
@@ -768,6 +770,7 @@
                 vm.imagePersonPreValidate.push('');
                 vm.imagePersonValidate.push('');
                 vm.imagePersonCroppedValidate.push('');
+                vm.imagePersonCroppedValidateArray.push([])
                 vm.imageTempValidate.push('');
                 vm.personImageTypeValidate.push('');
                 var sizeImagePersonPre = vm.imagePersonPreValidate.length;
@@ -1184,6 +1187,28 @@
                         return false;
 
                     });
+                Upload.urlToBlob(vm.imagePersonCroppedArray[indDetail][1].dataURI)
+                    .then(function(blob) {
+                        let croppedImagePre = blob;
+                        let croppedImageFile = new File([croppedImagePre],
+                                vm.imagePersonPre[indDetail].name, {type: vm.personImageType[indDetail]});
+                        let data = {
+                            file: croppedImageFile
+                        };
+                        personData.updatePersonPhoto(vm.thisPerson[indDetail].id, 2, data)
+                            .then( function () {
+                                getPersonData(vm.thisPerson[indDetail].id, indDetail, ind);
+                                vm.changePhoto[indDetail] = false;
+                            },
+                            function () {
+                                vm.updateStatus[ind] = "Error!";
+                                vm.messageType[ind] = 'message-error';
+                            },
+                            function () {}
+                            );
+                        return false;
+
+                    });
             } else {
                 Upload.urlToBlob(vm.imagePersonCroppedValidate[indDetail])
                     .then(function(blob) {
@@ -1194,6 +1219,28 @@
                             file: croppedImageFile
                         };
                         personData.updatePersonPhoto(vm.thisPersonValidate[indDetail].id,1, data)
+                            .then( function () {
+                                getPersonDataValidate(vm.thisPersonValidate[indDetail].id, indDetail, ind);
+                                vm.changePhotoValidate[indDetail] = false;
+                            },
+                            function () {
+                                vm.updateStatus[ind] = "Error!";
+                                vm.messageType[ind] = 'message-error';
+                            },
+                            function () {}
+                            );
+                        return false;
+
+                    });
+                Upload.urlToBlob(vm.imagePersonCroppedValidateArray[indDetail][1].dataURI)
+                    .then(function(blob) {
+                        let croppedImagePre = blob;
+                        let croppedImageFile = new File([croppedImagePre],
+                            vm.imagePersonPreValidate[indDetail].name, {type: vm.personImageTypeValidate[indDetail]});
+                        let data = {
+                            file: croppedImageFile
+                        };
+                        personData.updatePersonPhoto(vm.thisPersonValidate[indDetail].id, 2, data)
                             .then( function () {
                                 getPersonDataValidate(vm.thisPersonValidate[indDetail].id, indDetail, ind);
                                 vm.changePhotoValidate[indDetail] = false;
@@ -2505,6 +2552,7 @@
             vm.imagePersonPre = [];
             vm.imagePerson = [];
             vm.imagePersonCropped = [];
+            vm.imagePersonCroppedArray = [];
             vm.imageTemp = [];
             vm.personImageType = [];
             vm.watchImage = [];
@@ -2514,6 +2562,7 @@
             vm.imagePersonPreValidate = [];
             vm.imagePersonValidate = [];
             vm.imagePersonCroppedValidate = [];
+            vm.imagePersonCroppedValidateArray = [];
             vm.imageTempValidate = [];
             vm.personImageTypeValidate = [];
             vm.watchImageValidate = [];
@@ -2679,6 +2728,9 @@
                         vm.thisPerson[el]['birth_date'] = date;
                     }
                     if (vm.thisPerson[el].pers_photo[0].personal_photo_id !== null) {
+                        if (vm.thisPerson[el].pers_photo[0].image_path.includes('localhost') ) {
+                            vm.thisPerson[el].pers_photo[0].image_path = 'http://' + vm.thisPerson[el].pers_photo[0].image_path;
+                        }
                         vm.hasPhoto[el] = true;
                     }
 

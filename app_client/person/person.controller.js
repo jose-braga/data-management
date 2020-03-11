@@ -69,7 +69,7 @@
         vm.photoSize = {w: 196, h: 196};
         vm.aspectRatio = (vm.photoSize.w*1.0)/(vm.photoSize.h*1.0);
 
-        vm.photoSizeLarger = {w: 320, h: 320};
+        vm.photoSizeLarger = {w: 600, h: 600};
         vm.imagePersonCroppedArray = [];
 
         vm.editDOI = false;

@@ -1,5 +1,6 @@
 var server = require('../models/server');
 var moment = require('moment-timezone');
+var userModule = require('../models/users');
 
 var pool = server.pool;
 
@@ -590,7 +591,58 @@ var uniqueObj = function (a) {
 };
 
 
+module.exports.login = function (req, res, next) {
+    var now = momentToDate(moment());
+    var username = req.body.username;
+    var password = req.body.password;
+    var places = [];
+    var unitID = null;
+    if (req.query.hasOwnProperty('unit')) {
+        unitID = req.query.unit;
+    }
+    var querySQL = 'SELECT people.id, users.id AS user_id, users.username, users.password' +
+                ' FROM users' +
+                ' LEFT JOIN people ON people.user_id = users.id' +
+                ' WHERE users.username = ?  AND people.status = 1;';
+    places = [username];
+    pool.getConnection(function(err, connection) {
+        if (err) {
+            return done(err);
+        }
+        connection.query(querySQL,places,
+            function (err, rows) {
+                // And done with the connection.
+                connection.release();
+                if (err) {
+                    return sendJSONResponse(res, 500,
+                        {statusCode: 500, error: err}
+                    );
+                }
+                if (rows.length < 1) {
+                    return sendJSONResponse(res, 400,
+                        { statusCode: 400, message: 'Incorrect credentials.' }
+                    );
+                }
+                // if the user is found but the password is wrong
+                if (!userModule.checkPassword(password, rows[0].password)) {
+                    return sendJSONResponse(res, 400,
+                        { statusCode: 400, message: 'Incorrect credentials.' }
+                    );
+                }
+                // all is well, return successful user
+                let response = {};
+                response.person_id = rows[0].id;
+                return sendJSONResponse(res, 200,
+                    {
+                        statusCode: 200,
+                        result: response
+                    }
+                );
+            }
+        );
+    });
 
+};
 module.exports.searchPeople = function (req, res, next) {
     var now = momentToDate(moment());
     var name;

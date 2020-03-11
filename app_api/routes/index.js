@@ -44,7 +44,7 @@ router.get('/v1/publication/group/:groupID', ctrlProductivityData.getGroupPublic
 router.get('/v1/publication/unit/:unitID', ctrlProductivityData.getUnitPublicationInfo);
 router.get('/v1/publication/unit/:unitID/latest', ctrlProductivityData.getLatestPublications);
 
-
+router.post('/v1.1/login', ctrl_v1_1_people.login);
 router.get('/v1.1/people/:personID', ctrl_v1_1_people.getPersonInfo);
 router.get('/v1.1/people/:personID/publications', ctrl_v1_1_people.getPersonPublications);
 router.get('/v1.1/people', ctrl_v1_1_people.searchPeople);

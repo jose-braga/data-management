@@ -603,7 +603,23 @@ module.exports.login = function (req, res, next) {
     var querySQL = 'SELECT people.id, users.id AS user_id, users.username, users.password' +
                 ' FROM users' +
                 ' LEFT JOIN people ON people.user_id = users.id' +
-                ' WHERE users.username = ?  AND people.status = 1;';
+                ' LEFT JOIN people_labs ON people_labs.person_id = people.id' +
+                ' LEFT JOIN labs ON labs.id = people_labs.lab_id' +
+                ' LEFT JOIN labs_groups ON labs_groups.lab_id = labs.id' +
+                ' LEFT JOIN groups ON labs_groups.group_id = groups.id' +
+                ' LEFT JOIN groups_units ON groups_units.group_id = groups.id' +
+                ' LEFT JOIN technicians ON technicians.person_id = people.id' +
+                ' LEFT JOIN technician_offices ON technician_offices.id = technicians.technician_office_id' +
+                ' LEFT JOIN technicians_units ON technicians_units.technician_id = technicians.id' +
+                ' LEFT JOIN science_managers ON science_managers.person_id = people.id' +
+                ' LEFT JOIN science_manager_offices ON science_manager_offices.id = science_managers.science_manager_office_id' +
+                ' LEFT JOIN science_managers_units ON science_managers_units.science_manager_id = science_managers.id' +
+                ' LEFT JOIN people_administrative_offices ON people_administrative_offices.person_id = people.id' +
+                ' LEFT JOIN administrative_offices ON administrative_offices.id = people_administrative_offices.administrative_office_id' +
+                ' LEFT JOIN people_administrative_units ON people_administrative_units.administrative_id = people_administrative_offices.id' +
+                ' WHERE users.username = ?  AND people.status = 1 AND ' +
+                ' (groups_units.unit_id = 2 OR technicians_units.unit_id = 2 OR ' +
+                ' science_managers_units.unit_id = 2 OR people_administrative_units.unit_id = 2);';
     places = [username];
     pool.getConnection(function(err, connection) {
         if (err) {

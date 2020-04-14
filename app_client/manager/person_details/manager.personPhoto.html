@@ -21,47 +21,46 @@
             <div ng-if="!vm.hasPhoto[vm.selectedIndex-2] || vm.changePhoto[vm.selectedIndex-2]">
                 <p ng-if="vm.changePhoto[vm.selectedIndex-2]">To change image click below, then crop </p>
                 <div class="dropzone-container">
-                <!-- ngf-change="vm.initializeCrop()" -->
-                <div type="file"
-        	        name="imagePerson[vm.selectedIndex-2]"
-                    ngf-drop
-                    ngf-select
-        	        ng-model="vm.imagePersonPre[vm.selectedIndex-2]"
-                    ngf-pattern="'image/*'"
-                    accept="image/*"
-                    ngf-max-size="20MB"
-                    class="dropzone dropzone-hover">
-                    Drop image or click
+                    <!-- ngf-change="vm.initializeCrop()" -->
+                    <div type="file"
+                        name="imagePerson[vm.selectedIndex-2]"
+                        ngf-drop
+                        ngf-select
+                        ng-model="vm.imagePersonPre[vm.selectedIndex-2]"
+                        ngf-pattern="'image/*'"
+                        accept="image/*"
+                        ngf-max-size="20MB"
+                        class="dropzone dropzone-hover">
+                        Drop image or click
+                    </div>
                 </div>
-            </div>
                 <div layout="column" layout-gt-sm="row">
-                <div class="cropArea show-original">
-                    <img hidden ngf-src="vm.imagePersonPre[vm.selectedIndex-2]"/>
-                    <ui-cropper image="vm.imagePerson[vm.selectedIndex-2]"
-                        area-type="rectangle"
-                        area-min-size="10"
-                        aspect-ratio="vm.aspectRatio"
-                        result-image="vm.imageTemp[vm.selectedIndex-2]"
-                        result-image-size="[vm.photoSize, vm.photoSizeLarger]"
-                        result-array-image="vm.imagePersonCroppedArray[vm.selectedIndex-2]"
-                        result-image-format="{{vm.personImageType[vm.selectedIndex-2]}}"
-                        url-blob="vm.imagePersonCropped[vm.selectedIndex-2]">
-                    </ui-cropper>
+                    <div class="cropArea show-original">
+                        <img hidden ngf-src="vm.imagePersonPre[vm.selectedIndex-2]"/>
+                        <ui-cropper image="vm.imagePerson[vm.selectedIndex-2]"
+                            area-type="rectangle"
+                            area-min-size="10"
+                            aspect-ratio="vm.aspectRatio"
+                            result-image="vm.imageTemp[vm.selectedIndex-2]"
+                            result-image-size="[vm.photoSize, vm.photoSizeLarger]"
+                            result-array-image="vm.imagePersonCroppedArray[vm.selectedIndex-2]"
+                            result-image-format="{{vm.personImageType[vm.selectedIndex-2]}}"
+                            url-blob="vm.imagePersonCropped[vm.selectedIndex-2]">
+                        </ui-cropper>
+                    </div>
+                    <div class="show-cropped" layout-padding layout-margin>
+                        <img ng-src="{{vm.imagePersonCropped[vm.selectedIndex-2]}}" />
+                    </div>
                 </div>
-                <div class="show-cropped" layout-padding layout-margin>
-                    <img ng-src="{{vm.imagePersonCropped[vm.selectedIndex-2]}}" />
-                </div>
-            </div>
                 <div layout="column" layout-gt-sm="row" layout-align="none center">
-                <md-button type="submit"
-                    class="button-small md-raised md-primary">Update</md-button>
-                <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personPhoto']]">
-                    <span class="message" ng-class="vm.messageType[vm.forms['personPhoto']]">
-                        {{vm.updateStatus[vm.forms['personPhoto']]}}
-                    </span>
+                    <md-button type="submit"
+                        class="button-small md-raised md-primary">Update</md-button>
+                    <div class="status-message" ng-hide="vm.hideMessage[vm.forms['personPhoto']]">
+                        <span class="message" ng-class="vm.messageType[vm.forms['personPhoto']]">
+                            {{vm.updateStatus[vm.forms['personPhoto']]}}
+                        </span>
+                    </div>
                 </div>
-            </div>
-            {{vm.imagePersonCroppedArray}}
             </div>
         </md-card-content>
     </form>

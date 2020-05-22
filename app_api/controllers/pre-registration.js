@@ -1187,7 +1187,7 @@ var queryGetLabs = function (req,res,next, personID, row) {
 
 var queryGetResearcherData = function (req,res,next, personID, row) {
     var query = 'SELECT researchers.id AS researcher_id,' +
-                ' researchers.researcherID,researchers.ORCID,researchers.scopusID,researchers.association_key,' +
+                ' researchers.researcherID,researchers.ORCID,researchers.ciencia_id,researchers.scopusID,researchers.association_key,' +
                 ' researchers.integrated,researchers.nuclearCV,researchers.pluriannual,' +
                 ' researchers.valid_from AS res_valid_from, researchers.valid_until AS res_valid_until' +
                 ' FROM people' +

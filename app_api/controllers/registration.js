@@ -355,13 +355,14 @@ var queryAddResearcher = function (req, res, next,userID, personID, querySQL, pl
     var researcherAssociationKey = req.body.researcher_data.association_key;
     var researcherResearcherID = req.body.researcher_data.researcherID;
     var researcherORCID = req.body.researcher_data.ORCID;
+    var researcherCienciaID = req.body.researcher_data.ciencia_id;
     var researcherScopusID = req.body.researcher_data.scopusID;
     var integrated = req.body.researcher_data.integrated;
     var pluriannual = req.body.researcher_data.pluriannual;
     var nuclearCV = req.body.researcher_data.nuclearCV;
-    var query = 'INSERT INTO `researchers` (`person_id`,`researcherID`,`ORCID`,`scopusID`,`association_key`,`pluriannual`,`integrated`,`nuclearCV`) ' +
-                    'VALUES (?,?,?,?,?,?,?,?);';
-    var placeholders = [personID, researcherResearcherID,researcherORCID, researcherScopusID,
+    var query = 'INSERT INTO `researchers` (`person_id`,`researcherID`,`ciencia_id`,`ORCID`,`scopusID`,`association_key`,`pluriannual`,`integrated`,`nuclearCV`) ' +
+                    'VALUES (?,?,?,?,?,?,?,?,?);';
+    var placeholders = [personID, researcherResearcherID, researcherCienciaID,researcherORCID, researcherScopusID,
                             researcherAssociationKey, pluriannual, integrated, nuclearCV];
     pool.getConnection(function(err, connection) {
         if (err) {
@@ -389,15 +390,16 @@ var queryAddResearcherHistory = function (req, res, next,userID, personID, resID
     var researcherAssociationKey = req.body.researcher_data.association_key;
     var researcherResearcherID = req.body.researcher_data.researcherID;
     var researcherORCID = req.body.researcher_data.ORCID;
+    var researcherCienciaID = req.body.researcher_data.ciencia_id;
     var researcherScopusID = req.body.researcher_data.scopusID;
     var integrated = req.body.researcher_data.integrated;
     var pluriannual = req.body.researcher_data.pluriannual;
     var nuclearCV = req.body.researcher_data.nuclearCV;
     var query = 'INSERT INTO `researchers_history`' +
-                '(`researcher_id`,`person_id`,`researcherID`,`ORCID`,`scopusID`,`association_key`,' +
+                '(`researcher_id`,`person_id`,`researcherID`,`ciencia_id`,`ORCID`,`scopusID`,`association_key`,' +
                 '`pluriannual`,`integrated`,`nuclearCV`,`created`,`operation`,`changed_by`) ' +
-                    'VALUES (?,?,?,?,?,?,?,?,?,?,?,?);';
-    var placeholders = [resID,personID, researcherResearcherID,researcherORCID, researcherScopusID,
+                    'VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?);';
+    var placeholders = [resID,personID, researcherResearcherID,researcherCienciaID,researcherORCID, researcherScopusID,
                         researcherAssociationKey, pluriannual, integrated, nuclearCV,
                         created,'C',changed_by];
     pool.getConnection(function(err, connection) {
@@ -690,11 +692,14 @@ var queryAddRemainingInfo = function (req, res, next, userID, personID, querySQL
     var roles = req.body.roles;
     var managerAssociationKey = req.body.science_manager_data.association_key;
     var managerResearcherID = req.body.science_manager_data.researcherID;
+    var managerCienciaID = req.body.science_manager_data.ciencia_id;
     var managerORCID = req.body.science_manager_data.ORCID;
     var technicianAssociationKey = req.body.technician_data.association_key;
     var technicianResearcherID = req.body.technician_data.researcherID;
+    var technicianCienciaID = req.body.technician_data.ciencia_id;
     var technicianORCID = req.body.technician_data.ORCID;
     var administrativeAssociationKey = req.body.administrative_data.association_key;
+    var administrativeCienciaID = req.body.administrative_data.ciencia_id;
 
     //responsibles
     for (var ind in responsibles) {
@@ -766,19 +771,19 @@ var queryAddRemainingInfo = function (req, res, next, userID, personID, querySQL
             // already added to DB
         } else if (roles[ind].name_en === 'Technical') {
             querySQL = querySQL +
-                    'INSERT INTO `technicians_info` (`person_id`,`researcherID`,`association_key`,`ORCID`) ' +
-                    'VALUES (?,?,?,?);';
-            places.push(personID, technicianResearcherID, technicianAssociationKey, technicianORCID);
+                    'INSERT INTO `technicians_info` (`person_id`,`ciencia_id`,`researcherID`,`association_key`,`ORCID`) ' +
+                    'VALUES (?,?,?,?,?);';
+            places.push(personID, technicianCienciaID,technicianResearcherID, technicianAssociationKey, technicianORCID);
         } else if (roles[ind].name_en === 'Science management') {
             querySQL = querySQL +
-                    'INSERT INTO `science_managers_info` (`person_id`,`researcherID`,`association_key`,`ORCID`) ' +
-                    'VALUES (?,?,?,?);';
-            places.push(personID, managerResearcherID, managerAssociationKey, managerORCID);
+                    'INSERT INTO `science_managers_info` (`person_id`,`ciencia_id`,`researcherID`,`association_key`,`ORCID`) ' +
+                    'VALUES (?,?,?,?,?);';
+            places.push(personID, managerCienciaID,managerResearcherID, managerAssociationKey, managerORCID);
         } else if (roles[ind].name_en === 'Administrative') {
             querySQL = querySQL +
-                    'INSERT INTO `administrative_info` (`person_id`,`association_key`) ' +
-                    'VALUES (?,?);';
-            places.push(personID, administrativeAssociationKey);
+                    'INSERT INTO `administrative_info` (`person_id`,`ciencia_id`,`association_key`) ' +
+                    'VALUES (?,?,?);';
+            places.push(personID, administrativeCienciaID, administrativeAssociationKey);
         }
     }
     pool.getConnection(function(err, connection) {

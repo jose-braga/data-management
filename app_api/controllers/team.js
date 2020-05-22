@@ -2646,7 +2646,7 @@ module.exports.listLabPeopleData = function (req, res, next) {
             var groupID = req.params.groupID;
             var places = [];
             var querySQL = 'SELECT people_labs.*, people.name AS person_name, ' +
-                           ' researchers.id AS researchers_id,researchers.association_key, researchers.ORCID,' +
+                           ' researchers.id AS researchers_id,researchers.association_key, researchers.ORCID,researchers.ciencia_id,' +
                            ' labs.started AS lab_opened, labs.finished AS lab_closed,' +
                            ' labs_groups.valid_from AS labs_groups_valid_from, labs_groups.valid_until AS labs_groups_valid_until,' +
                            ' groups.id AS group_id, groups.name AS group_name' +

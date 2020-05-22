@@ -5988,7 +5988,7 @@ module.exports.getAllPeople = function (req, res, next) {
                    ' degrees_people.degree_id AS degree_type_id, degrees.name_en AS degree,' +
                    ' degrees_people.area AS degree_field, degrees_people.institution AS degree_institution,' +
                    ' research_interests.interests, research_interests.sort_order AS interests_sort_order,' +
-                   ' researchers.ORCID, researchers.researcherID,' +
+                   ' researchers.ORCID, researchers.researcherID, researchers.ciencia_id,' +
                    ' people_labs.sort_order, people_labs.valid_from AS lab_start, people_labs.valid_until AS lab_end,' +
                    ' labs.id AS lab_id, labs.name AS lab_name,' +
                    ' labs_groups.valid_from AS labs_groups_valid_from, labs_groups.valid_until AS labs_groups_valid_until,' +
@@ -6080,7 +6080,7 @@ module.exports.getPersonInfo = function (req, res, next) {
                    ' degrees_people.degree_id AS degree_type_id, degrees.name_en AS degree,' +
                    ' degrees_people.area AS degree_field, degrees_people.institution AS degree_institution,' +
                    ' research_interests.interests, research_interests.sort_order AS interests_sort_order,' +
-                   ' researchers.ORCID, researchers.researcherID,' +
+                   ' researchers.ORCID, researchers.researcherID, researchers.ciencia_id,' +
                    ' people_labs.valid_from AS lab_start, people_labs.valid_until AS lab_end, people_labs.sort_order,' +
                    ' labs.id AS lab_id, labs.name AS lab_name,' +
                    ' labs_groups.valid_from AS labs_groups_valid_from, labs_groups.valid_until AS labs_groups_valid_until,' +

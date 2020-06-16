@@ -725,3 +725,28 @@ ul.help-list li{
   max-height: 300px;
   overflow: scroll;
 }
+
+.poll-list .poll-title {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.poll-list .date-small {
+  font-size: 12px;
+}
+
+
+.poll-list li {
+  margin-top: 15px;
+}
+
+.questionnaire .question-required {
+  font-size: 28px;
+  color: red;
+}
+
+.questionnaire .poll-question {
+  font-size: 18px;
+}
+
+

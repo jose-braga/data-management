@@ -17,6 +17,7 @@ var ctrlStatistics = require('../controllers/statistics.js');
 var ctrlDocsData = require('../controllers/docs.js');
 
 var ctrlOrders = require('../controllers/internal-orders.js');
+var ctrlPolls = require('../controllers/polls.js');
 
 var ctrlRegistrationData = require('../controllers/registration.js');
 var ctrlPreRegistrationData = require('../controllers/pre-registration.js');
@@ -291,6 +292,10 @@ router.put('/financial-managers/:userID/financial-structure', auth, ctrlOrders.u
 router.get('/financial-managers/:userID/account-info/:accountID', auth, ctrlOrders.getManagementAccountFinances);
 router.put('/financial-managers/:userID/account-info/:accountID', auth, ctrlOrders.updateManagementAccountFinances);
 
+// Polls API
+router.get('/people/:personID/polls', auth, ctrlPolls.getPersonPolls);
+router.get('/people/:personID/polls/:pollID', auth, ctrlPolls.getPersonPollQuestions);
+router.post('/people/:personID/polls/:pollID', auth, ctrlPolls.votePoll);
 
 
 

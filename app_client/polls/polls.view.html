@@ -1,0 +1,18 @@
+<div layout="row">
+    <navigation-column></navigation-column>
+    <div ng-if="!vm.isLoggedIn" layout="column" flex>
+        <md-content class='md-padding' flex>
+            <p>You must login first.</p>
+            <p>If you are logged in make sure you have the appropriate permissions to access this page.</p>
+            <login-authentication></login-authentication>
+        </md-content>
+    </div>
+    <div ng-if="vm.isLoggedIn" layout="column" flex>
+        <toolbar-row></toolbar-row>
+        <md-content>
+            <div flex layout="column" layout-padding>
+                <polls-list></polls-list>
+            </div>
+        </md-content>
+    </div>
+</div>

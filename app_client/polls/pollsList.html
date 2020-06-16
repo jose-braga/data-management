@@ -1,0 +1,25 @@
+<div flex>
+    <md-card flex>
+        <md-card-title>
+            <md-card-title-text>
+                <span class="md-headline">Active polls list</span>
+                <span class="md-subhead">Click on the poll in which you want to vote</span>
+            </md-card-title-text>
+        </md-card-title>
+        <md-card-content flex>
+            <ul class="poll-list">
+                <li ng-repeat="poll in vm.activePolls">
+                    <span class="poll-title">
+                        <a href="/polls/{{poll.poll_id}}">
+                            <b>{{poll.title}}</b>
+                        </a>
+                    </span><br>
+                    <span class="date-small">
+                        Open from {{poll.date_from}} {{poll.time_from}}<br>
+                        Closes after {{poll.date_until}} {{poll.time_until}}<br>
+                    </span>
+                </li>
+            </ul>
+        </md-card-content>
+    </md-card>
+</div>

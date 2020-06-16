@@ -69,6 +69,16 @@
                 controller: 'ordersCtrl',
                 controllerAs: 'vm'
             })
+            .when('/polls', {
+                templateUrl: 'polls/polls.view.html',
+                controller: 'pollsCtrl',
+                controllerAs: 'vm'
+            })
+            .when('/polls/:pollID', {
+                templateUrl: 'polls/pollsQuestionnaire.html',
+                controller: 'questCtrl',
+                controllerAs: 'vm'
+            })
             .otherwise({redirectTo: '/'});
 
         $locationProvider.html5Mode(true);

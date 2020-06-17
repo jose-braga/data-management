@@ -83,17 +83,17 @@
                         for (let ind in vm.activePolls) {
                             let date_split
                             if (vm.activePolls[ind].valid_from !== null) {
-                                date_split = vm.activePolls[ind].valid_from.split('T')
-                                vm.activePolls[ind].date_from = date_split[0];
-                                vm.activePolls[ind].time_from = '@ ' + date_split[1].replace('.000Z','');
+                                vm.activePolls[ind].valid_from = moment(vm.activePolls[ind].valid_from).tz("Europe/Lisbon")
+                                vm.activePolls[ind].date_from = vm.activePolls[ind].valid_from.format("YYYY-MM-DD")
+                                vm.activePolls[ind].time_from = vm.activePolls[ind].valid_from.format("HH:mm:ss")
                             } else {
                                 vm.activePolls[ind].date_from = '-∞';
                                 vm.activePolls[ind].time_from = '';
                             }
                             if (vm.activePolls[ind].valid_until !== null) {
-                                date_split = vm.activePolls[ind].valid_until.split('T')
-                                vm.activePolls[ind].date_until = date_split[0];
-                                vm.activePolls[ind].time_until = '@ ' + date_split[1].replace('.000Z','');
+                                vm.activePolls[ind].valid_until = moment(vm.activePolls[ind].valid_until).tz("Europe/Lisbon")
+                                vm.activePolls[ind].date_until = vm.activePolls[ind].valid_until.format("YYYY-MM-DD")
+                                vm.activePolls[ind].time_until = vm.activePolls[ind].valid_until.format("HH:mm:ss")
                             } else {
                                 vm.activePolls[ind].date_until = '+∞';
                                 vm.activePolls[ind].time_until = '';

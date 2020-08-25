@@ -144,7 +144,7 @@
                                             <input ng-model="financesToShow.initial_amount"
                                                     ng-change="processChange(financesToShow,'{{financesToShow.initial_amount}}')"
                                                     name="moneyCurrent"
-                                                    positive-float-validate="1000000000">
+                                                    non-negative-float-validate="1000000000">
                                         </md-input-container>
                                     </li>
                                 </ul>
@@ -211,7 +211,7 @@
                                         <md-input-container class="input-row smaller">
                                             <input ng-model="financesToShow.initial_amount"
                                                     name="moneyFuture"
-                                                    positive-float-validate="1000000000">
+                                                    non-negative-float-validate="1000000000">
                                         </md-input-container>
                                     </li>
                                 </ul>

@@ -19,7 +19,7 @@
                     <input ng-model="searchString" ng-change="renderProducts('new')">
                 </md-input-container>
             </div>
-            <form flex novalidate name="inventoryForm" 
+            <form flex novalidate name="inventoryForm"
                 ng-submit="inventoryForm.$valid && submitStockChanges(forms['stock'])"
                 class="spacer-top">
                 <div layout="row" class="paginator">
@@ -96,12 +96,12 @@
                             <td>
                                 <md-input-container class="select-container input-row">
                                     <md-select multiple ng-model="item.item_categories"
-                                        ng-model-options="{trackBy: '$value.id'}" 
-                                        multiple 
+                                        ng-model-options="{trackBy: '$value.id'}"
+                                        multiple
                                         class="select-no-margin" aria-label="item type"
                                         name="item_type[itemNum]"
                                         md-on-close="processChange(item)">
-                                        <md-option ng-repeat="type in itemCategories" 
+                                        <md-option ng-repeat="type in itemCategories"
                                                 ng-value="type">{{type.name_en}}</md-option>
                                     </md-select>
                                 </md-input-container>
@@ -115,14 +115,14 @@
                             </td>
                             <td>
                                 <md-input-container class="input-row">
-                                    <input ng-model="item.brand" 
+                                    <input ng-model="item.brand"
                                             ng-change="processChange(item)"
                                             name="brand[itemNum]">
                                 </md-input-container>
                             </td>
                             <td>
                                 <md-input-container class="input-row">
-                                    <input ng-model="item.reference" 
+                                    <input ng-model="item.reference"
                                             ng-change="processChange(item)"
                                             name="reference[itemNum]">
                                 </md-input-container>
@@ -132,7 +132,7 @@
                                     <input ng-model="item.current_unit_price"
                                             ng-change="processChange(item,'money')"
                                             name="money[itemNum]"
-                                            positive-float-validate="1000000000">
+                                            non-negative-float-validate="1000000000">
                                 </md-input-container>
                             </td>
                             <td>
@@ -140,7 +140,7 @@
                                     <input ng-model="item.tax"
                                             ng-change="processChange(item,'money')"
                                             name="money[itemNum]"
-                                            positive-float-validate="1000000000">
+                                            non-negative-float-validate="1000000000">
                                 </md-input-container>
                             </td>
                             <td>
@@ -149,14 +149,14 @@
                                     <input ng-model="item.quantity_in_stock"
                                             ng-change="processChange(item)"
                                             name="quantity[itemNum]"
-                                            positive-integer-validate="1000000000">
+                                            non-negative-integer-validate="1000000000">
                                 </md-input-container>
                                 <md-input-container ng-if="item.decimal === 1"
                                         class="input-row">
-                                    <input ng-model="item.quantity_in_stock_decimal" 
+                                    <input ng-model="item.quantity_in_stock_decimal"
                                         ng-change="processChange(item)"
                                         name="quantity[itemNum]"
-                                        positive-float-validate="1000000000">
+                                        non-negative-float-validate="1000000000">
                                 </md-input-container>
                             </td>
                             <td>
@@ -173,7 +173,7 @@
                                 </md-input-container>
                             </td>
                             <td>
-                                <md-select ng-model="item.status_id" 
+                                <md-select ng-model="item.status_id"
                                         ng-change="processChange(item)"
                                         name="newunit_type">
                                     <md-option ng-value="1">
@@ -191,7 +191,7 @@
                                 </md-select>
                             </td>
                             <td>
-                                <md-checkbox ng-model="item.visible" 
+                                <md-checkbox ng-model="item.visible"
                                         ng-change="processChange(item)"
                                         ng-true-value="1"
                                         ng-false-value="0"
@@ -199,7 +199,7 @@
                                 </md-checkbox>
                             </td>
                             <td>
-                                <md-button ng-click="removeInventory(inventory, item.id, item.brand, item.reference)" aria-label="Remove" 
+                                <md-button ng-click="removeInventory(inventory, item.id, item.brand, item.reference)" aria-label="Remove"
                                             class="md-icon-button interaction-button">
                                     <md-icon md-svg-src="images/icons/delete_24px.svg"></md-icon>
                                 </md-button>
@@ -292,9 +292,9 @@
                                 </md-input-container>
                             </td>
                             <td>
-                                <md-input-container ng-if="newItem.decimal === 0" 
+                                <md-input-container ng-if="newItem.decimal === 0"
                                         class="input-row">
-                                    <input ng-model="newItem.quantity_in_stock" 
+                                    <input ng-model="newItem.quantity_in_stock"
                                             name="newquantity">
                                 </md-input-container>
                                 <md-input-container ng-if="newItem.decimal === 1"
@@ -344,7 +344,7 @@
                         </tr>
                     </tbody>
                 </table>
-                
+
                 <div layout="column" class="spacer-top" layout-gt-sm="row" layout-align="center center">
                     <md-button type="submit" class="button-small md-raised md-primary">Submit changes</md-button>
                     <div class="status-message" ng-hide="hideMessage[forms['stock']]">
@@ -353,11 +353,11 @@
                         </span>
                     </div>
                 </div>
-                
+
 
             </form>
-    
-            
+
+
         </md-card-content>
     </md-card>
 </div>

@@ -7,7 +7,7 @@
                     restrict: 'E',
                     scope: {
                         user: '@',
-                        inventory: '=',                        
+                        inventory: '=',
                     },
                     templateUrl: 'internal-orders/stock/inventory.html',
                     link:
@@ -140,7 +140,7 @@
                                         item.quantity_in_requests_decimal = 0;
                                     } else {
                                         item.decimal = 0;
-                                        item.quantity_in_requests = 0;                   
+                                        item.quantity_in_requests = 0;
                                     }
                                 }
                             }
@@ -151,7 +151,7 @@
                                 if (result) {
                                     for (let el in items) {
                                         if (items[el].stock_id !== 'new') {
-                                            if (items[el].id === itemID) {                                                
+                                            if (items[el].id === itemID) {
                                                 scope.inventoryChanges.delete.push(items[el]);
                                                 items.splice(el, 1);
                                                 break;
@@ -165,12 +165,12 @@
                                         }
                                     }
                                     scope.renderProducts('new');
-                                }                                
+                                }
                             };
                             scope.addToInventory = function (item) {
                                 item.stock_id = 'new';
                                 let newItem = Object.assign({}, item);
-                                scope.inventory.push(newItem);                                
+                                scope.inventory.push(newItem);
                                 scope.renderProducts('new');
                                 scope.newItem = {
                                     status_id: 1,
@@ -208,7 +208,7 @@
                                 for (let el in scope.inventory) {
                                     if (scope.inventory[el].stock_id === 'new') {
                                         scope.inventoryChanges.create.push(scope.inventory[el]);
-                                    } 
+                                    }
                                 }
                                 ordersData.updateManagersInventory(scope.user, scope.inventoryChanges)
                                     .then(function () {
@@ -244,10 +244,10 @@
                                     );
                             };
 
-                            // to initialize inventory 
+                            // to initialize inventory
                             scope.renderProducts('new');
                             getDataLists();
-                            
+
                             function getDataLists() {
                                 ordersData.itemCategories()
                                     .then(function (response) {
@@ -311,7 +311,7 @@
                         }
                 };
             }];
-    
+
 
     // TODO: correct table sorting!
     var ordersManagement =
@@ -331,7 +331,7 @@
                             scope.sortType = 'datetime';
                             scope.sortReverse = false;
                             scope.searchString = '';
-                            
+
                             scope.reloadOrders = function () {
                                 ordersData.getManagersOrders(scope.user)
                                     .then(function (response) {
@@ -358,7 +358,7 @@
                                         scope.orders[item].order_items[i].this_delivery = 0;
                                         scope.orders[item].order_items[i].this_delivery_decimal = 0;
                                         if (scope.orders[item].order_items[i].decimal === 0) {
-                                            scope.orders[item].order_items[i].original_quantity = 
+                                            scope.orders[item].order_items[i].original_quantity =
                                                     scope.orders[item].order_items[i].quantity;
                                             scope.orders[item].order_items[i].unit_price =
                                                 (scope.orders[item].order_items[i].cost * 1.0) /
@@ -381,7 +381,7 @@
                                                 .toFixed(2);
                                         }
                                     }
-                                    
+
                                     if (scope.orders[item].last_status.order_status_id === 1) {
                                         scope.orders[item].orderPending = true;
                                         scope.orders[item].approved = undefined;
@@ -423,10 +423,10 @@
                                             toIncludeDueAccount = 1;
                                         }
                                     } else {
-                                        toInclude = 1;                                        
+                                        toInclude = 1;
                                     }
-                                    if (toIncludeDueName === 1 
-                                            || toIncludeDueCostCenter === 1 
+                                    if (toIncludeDueName === 1
+                                            || toIncludeDueCostCenter === 1
                                             || toIncludeDueAccount === 1) {
                                         toInclude = 1;
                                     }
@@ -507,8 +507,8 @@
                                         thisOrder.order_finances.amount_requests_tax = parseFloat((thisOrder.order_finances.amount_requests_tax + differenceTax).toFixed(2));
                                         thisOrder.total_cost = totalCost;
                                         thisOrder.total_cost_tax = totalCostTax;
-                                        
-                                        
+
+
                                     };
 
                                     ctrl.processAmountDelivered = function (item, thisOrder) {
@@ -521,7 +521,7 @@
                                         }
                                         if (!itemFound) {
                                             thisOrder.itemsPartialDelivery.push(item);
-                                        }                                        
+                                        }
                                     };
 
                                     ctrl.submitOrderChanges = function (ind) {
@@ -570,7 +570,7 @@
                                                 }
 
                                             } else {
-                                                if (parseFloat(ctrl.order.itemsPartialDelivery[indOrder].delivered_quantity_decimal) 
+                                                if (parseFloat(ctrl.order.itemsPartialDelivery[indOrder].delivered_quantity_decimal)
                                                     + parseFloat(ctrl.order.itemsPartialDelivery[indOrder].this_delivery_decimal)
                                                     > parseFloat(ctrl.order.itemsPartialDelivery[indOrder].quantity_decimal)) {
                                                     alert('Revise delivery amounts!');
@@ -613,7 +613,7 @@
                                                 });
 
                                         }
-                                        
+
                                     };
                                 };
                                 var config = {
@@ -682,7 +682,7 @@
                                         $timeout(function () { scope.hideMessage[ind] = true; }, 1500);
                                         console.log(err);
                                     });
-                                                                
+
                             };
                             scope.rejectOrder = function (ordNum, order) {
                                 let ind = order.list_id;

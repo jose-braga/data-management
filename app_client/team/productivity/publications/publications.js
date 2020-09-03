@@ -704,7 +704,7 @@
                     } else {
                         to = scope.toYearPub;
                     }
-                    var fname = 'my_publications_' + from + '_' + to
+                    var fname = 'lab_publications_' + from + '_' + to
                                 + '_' + dateTime + '.' + type;
                     try {
                     	saveAs(new Blob([s2ab(wbout)],{type:"application/octet-stream"}), fname);
@@ -774,7 +774,7 @@
                                     if_last_year = arrObj[el].impact_factors[ind];
                                 }
                             }
-                            var citations_last_year;
+                            var citations_last_year = {citations: '-'};
                             for (var ind in arrObj[el].citations) {
                                 if (ind > 0) {
                                     if (citations_last_year.year < arrObj[el].citations[ind].year) {

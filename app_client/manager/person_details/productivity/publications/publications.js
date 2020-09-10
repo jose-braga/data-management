@@ -1377,14 +1377,14 @@
                                             let filtered = removeCommonPURE(pubPUREList, scope.allPublicationsPrior);
                                             scope.newPUREPublications = filtered.newPURE;
                                             scope.matchedPURE = filtered.alreadyDB;
-                                            scope.progressPURE = false;                                            
+                                            scope.progressPURE = false;
                                         })
                                         .catch(function (err) {
                                             console.log(err);
                                         });
                                 }
                             };
-                            
+
                             scope.submitAddPUREPublications = function (ind) {
                                 scope.updateStatus[ind] = "Updating...";
                                 scope.messageType[ind] = 'message-updating';
@@ -1417,9 +1417,9 @@
                                         },
                                         function () { }
                                     );
-                                        
-                                    
-                                
+
+
+
                                 return false;
                             };
 
@@ -1701,7 +1701,7 @@
                                     .trim()
                                     ;
                             }
-                            // this function was taken from 
+                            // this function was taken from
                             //https://github.com/aceakash/string-similarity/blob/master/compare-strings.js
                             function compareTwoStrings(first, second) {
                                 first = first.replace(/\s+/g, '')

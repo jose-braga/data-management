@@ -3677,6 +3677,12 @@
             templateUrl: 'manager/person_details/manager.personInstitutionCity.html'
         };
     };
+    var managerAuthorization = function () {
+        return {
+            restrict: 'E',
+            templateUrl: 'manager/person_details/manager.authorization.html'
+        };
+    };
     var managerPersonLeft = function () {
         return {
             restrict: 'E',
@@ -3890,6 +3896,7 @@
         .directive('managerPersonOngoingDegrees', managerPersonOngoingDegrees)
         .directive('managerPersonResponsibles', managerPersonResponsibles)
         .directive('managerPersonPole', managerPersonPole)
+        .directive('managerAuthorization', managerAuthorization)
         .directive('managerPersonLeft', managerPersonLeft)
         .directive('managerPersonPhoto', managerPersonPhoto)
         .directive('managerPersonAuthorNames', managerPersonAuthorNames)

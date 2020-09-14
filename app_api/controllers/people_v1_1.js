@@ -661,319 +661,119 @@ module.exports.login = function (req, res, next) {
 };
 module.exports.searchPeople = function (req, res, next) {
     var now = momentToDate(moment());
-    var name;
-    var lab;
+    var name = '';
+    var lab = '';
+    let email = '';
+    let rgID = null;
+    var unitID = null;
     if (req.query.hasOwnProperty('name')) {
         name = req.query.name.replace(/\s/gi,'%');
-    } else {
-        name = '';
     }
     if (req.query.hasOwnProperty('lab')) {
         lab = req.query.lab.replace(/\s/gi,'%');
-    } else {
-        lab = '';
     }
-    var unitID = null;
+    if (req.query.hasOwnProperty('email')) {
+        email = req.query.email;
+    }
+    if (req.query.hasOwnProperty('rg')) {
+        rgID = req.query.rg;
+    }
     if (req.query.hasOwnProperty('unit')) {
         unitID = req.query.unit;
     }
     var querySQL;
     var places;
-    if (name === '' && lab === '') {
-        var querySQL = 'SELECT people.id, people.name AS full_name, people.colloquial_name AS name,' +
-                    ' people.active_from, people.active_until,' +
-                    ' emails.email, phones.phone, phones.extension AS phone_extension,' +
-                    ' website_texts.title AS website_text_title, website_texts.text AS website_text, website_texts.text_type_id AS website_text_type_id, website_text_types.name_en AS website_text_type_name_en,' +
-                    ' personal_urls.url, personal_urls.url_type_id, personal_url_types.type_en AS url_type, personal_urls.description AS url_description,' +
-                    ' degrees_people.start AS degree_start, degrees_people.end AS degree_end,' +
-                    ' degrees_people.degree_id AS degree_type_id, degrees.name_en AS degree,' +
-                    ' degrees_people.area AS degree_field, degrees_people.institution AS degree_institution,' +
-                    ' research_interests.interests, research_interests.sort_order AS interests_sort_order,' +
-                    ' researchers.ORCID, researchers.researcherID, researchers.ciencia_id,' +
-                    ' people_labs.sort_order, people_labs.valid_from AS lab_start, people_labs.valid_until AS lab_end,' +
-                    ' labs.id AS lab_id, labs.name AS lab_name,' +
-                    ' labs_groups.valid_from AS labs_groups_valid_from, labs_groups.valid_until AS labs_groups_valid_until,' +
-                    ' groups.id AS group_id, groups.name AS group_name,' +
-                    ' units.id AS unit_id, units.name AS unit_name,' +
-                    ' lab_positions.id AS lab_position_id, lab_positions.name_en AS lab_position_name_en, lab_positions.name_pt  AS lab_position_name_pt,' +
-                    ' lab_positions.sort_order  AS lab_position_sort_order,' +
-                    ' technicians.id AS technician_id, technicians.technician_office_id, technician_offices.name_en AS technician_office_name,' +
-                    ' technicians.valid_from AS technician_start, technicians.valid_until AS technician_end,' +
-                    ' technicians_units.unit_id AS technician_unit_id, technician_units.name AS technician_unit_name,' +
-                    ' technicians.technician_position_id, technician_positions.name_en AS technician_position_name_en, technician_positions.name_pt AS technician_position_name_pt,' +
-                    ' science_managers.id AS science_manager_id, science_managers.science_manager_office_id, science_manager_offices.name_en AS science_manager_office_name,' +
-                    ' science_managers.valid_from AS science_manager_start, science_managers.valid_until AS science_manager_end,' +
-                    ' science_managers_units.unit_id AS science_manager_unit_id, science_manager_units.name AS science_manager_unit_name,' +
-                    ' science_managers.science_manager_position_id, science_manager_positions.name_en AS science_manager_position_name_en, science_manager_positions.name_pt AS science_manager_position_name_pt,' +
-                    ' people_administrative_offices.id AS administrative_id, people_administrative_offices.administrative_office_id, administrative_offices.name_en AS administrative_office_name,' +
-                    ' people_administrative_offices.valid_from AS administrative_start, people_administrative_offices.valid_until AS administrative_end,' +
-                    ' people_administrative_units.unit_id AS administrative_unit_id, administrative_units.name AS administrative_unit_name,' +
-                    ' people_administrative_offices.administrative_position_id, administrative_positions.name_en AS administrative_position_name_en, administrative_positions.name_pt AS administrative_position_name_pt,' +
-                    ' jobs.category_id, categories.name_en AS category, jobs.organization, jobs.valid_from AS job_start, jobs.valid_until AS job_end,' +
-                    ' personal_photo.photo_type_id, personal_photo_type.name_en AS photo_type_name_en, personal_photo.url AS image_path' +
-                    ' FROM people' +
-                    ' LEFT JOIN emails ON people.id = emails.person_id' +
-                    ' LEFT JOIN phones ON people.id = phones.person_id' +
-                    ' LEFT JOIN personal_urls ON people.id = personal_urls.person_id' +
-                    ' LEFT JOIN personal_url_types ON personal_urls.url_type_id = personal_url_types.id' +
-                    ' LEFT JOIN website_texts ON people.id = website_texts.person_id' +
-                    ' LEFT JOIN website_text_types ON website_text_types.id = website_texts.text_type_id' +
-                    ' LEFT JOIN degrees_people ON people.id = degrees_people.person_id' +
-                    ' LEFT JOIN degrees ON degrees_people.degree_id = degrees.id' +
-                    ' LEFT JOIN jobs ON people.id = jobs.person_id' +
-                    ' LEFT JOIN categories ON jobs.category_id = categories.id' +
-                    ' LEFT JOIN research_interests ON people.id = research_interests.person_id' +
-                    ' LEFT JOIN researchers ON people.id = researchers.person_id' +
-                    ' LEFT JOIN people_labs ON people.id = people_labs.person_id' +
-                    ' LEFT JOIN labs ON labs.id = people_labs.lab_id' +
-                    ' LEFT JOIN labs_groups ON labs_groups.lab_id = labs.id' +
-                    ' LEFT JOIN groups ON labs_groups.group_id = groups.id' +
-                    ' LEFT JOIN groups_units ON groups_units.group_id = groups.id' +
-                    ' LEFT JOIN units ON groups_units.unit_id = units.id' +
-                    ' LEFT JOIN lab_positions ON lab_positions.id = people_labs.lab_position_id' +
-                    ' LEFT JOIN technicians ON technicians.person_id = people.id' +
-                    ' LEFT JOIN technician_offices ON technician_offices.id = technicians.technician_office_id' +
-                    ' LEFT JOIN technicians_units ON technicians_units.technician_id = technicians.id' +
-                    ' LEFT JOIN units AS technician_units ON technician_units.id = technicians_units.unit_id' +
-                    ' LEFT JOIN technician_positions ON technician_positions.id = technicians.technician_position_id' +
-                    ' LEFT JOIN science_managers ON science_managers.person_id = people.id' +
-                    ' LEFT JOIN science_manager_offices ON science_manager_offices.id = science_managers.science_manager_office_id' +
-                    ' LEFT JOIN science_managers_units ON science_managers_units.science_manager_id = science_managers.id' +
-                    ' LEFT JOIN units AS science_manager_units ON science_manager_units.id = science_managers_units.unit_id' +
-                    ' LEFT JOIN science_manager_positions ON science_manager_positions.id = science_managers.science_manager_position_id' +
-                    ' LEFT JOIN people_administrative_offices ON people_administrative_offices.person_id = people.id' +
-                    ' LEFT JOIN administrative_offices ON administrative_offices.id = people_administrative_offices.administrative_office_id' +
-                    ' LEFT JOIN people_administrative_units ON people_administrative_units.administrative_id = people_administrative_offices.id' +
-                    ' LEFT JOIN units AS administrative_units ON administrative_units.id = people_administrative_units.unit_id' +
-                    ' LEFT JOIN administrative_positions ON administrative_positions.id = people_administrative_offices.administrative_position_id' +
-                    ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
-                    ' LEFT JOIN personal_photo_type ON personal_photo_type.id = personal_photo.photo_type_id' +
-                    ' WHERE people.status = ? AND people.visible_public = 1' +
-                    ' AND (people.active_until > ? OR (people.active_from < ? AND people.active_until IS NULL) OR (people.active_from IS NULL AND people.active_until IS NULL))'
+    querySQL = 'SELECT people.id, people.name AS full_name, people.colloquial_name AS name,'
+                    + ' people.active_from, people.active_until,'
+                    + ' emails.email, phones.phone, phones.extension AS phone_extension,'
+                    + ' website_texts.title AS website_text_title, website_texts.text AS website_text, website_texts.text_type_id AS website_text_type_id, website_text_types.name_en AS website_text_type_name_en,'
+                    + ' personal_urls.url, personal_urls.url_type_id, personal_url_types.type_en AS url_type, personal_urls.description AS url_description,'
+                    + ' degrees_people.start AS degree_start, degrees_people.end AS degree_end,'
+                    + ' degrees_people.degree_id AS degree_type_id, degrees.name_en AS degree,'
+                    + ' degrees_people.area AS degree_field, degrees_people.institution AS degree_institution,'
+                    + ' research_interests.interests, research_interests.sort_order AS interests_sort_order,'
+                    + ' researchers.ORCID, researchers.researcherID, researchers.ciencia_id,'
+                    + ' people_labs.sort_order, people_labs.valid_from AS lab_start, people_labs.valid_until AS lab_end,'
+                    + ' labs.id AS lab_id, labs.name AS lab_name,'
+                    + ' labs_groups.valid_from AS labs_groups_valid_from, labs_groups.valid_until AS labs_groups_valid_until,'
+                    + ' `groups`.id AS group_id, `groups`.name AS group_name,'
+                    + ' units.id AS unit_id, units.name AS unit_name,'
+                    + ' lab_positions.id AS lab_position_id, lab_positions.name_en AS lab_position_name_en, lab_positions.name_pt  AS lab_position_name_pt,'
+                    + ' lab_positions.sort_order  AS lab_position_sort_order,'
+                    + ' technicians.id AS technician_id, technicians.technician_office_id, technician_offices.name_en AS technician_office_name,'
+                    + ' technicians.valid_from AS technician_start, technicians.valid_until AS technician_end,'
+                    + ' technicians_units.unit_id AS technician_unit_id, technician_units.name AS technician_unit_name,'
+                    + ' technicians.technician_position_id, technician_positions.name_en AS technician_position_name_en, technician_positions.name_pt AS technician_position_name_pt,'
+                    + ' science_managers.id AS science_manager_id, science_managers.science_manager_office_id, science_manager_offices.name_en AS science_manager_office_name,'
+                    + ' science_managers.valid_from AS science_manager_start, science_managers.valid_until AS science_manager_end,'
+                    + ' science_managers_units.unit_id AS science_manager_unit_id, science_manager_units.name AS science_manager_unit_name,'
+                    + ' science_managers.science_manager_position_id, science_manager_positions.name_en AS science_manager_position_name_en, science_manager_positions.name_pt AS science_manager_position_name_pt,'
+                    + ' people_administrative_offices.id AS administrative_id, people_administrative_offices.administrative_office_id, administrative_offices.name_en AS administrative_office_name,'
+                    + ' people_administrative_offices.valid_from AS administrative_start, people_administrative_offices.valid_until AS administrative_end,'
+                    + ' people_administrative_units.unit_id AS administrative_unit_id, administrative_units.name AS administrative_unit_name,'
+                    + ' people_administrative_offices.administrative_position_id, administrative_positions.name_en AS administrative_position_name_en, administrative_positions.name_pt AS administrative_position_name_pt,'
+                    + ' jobs.category_id, categories.name_en AS category, jobs.organization, jobs.valid_from AS job_start, jobs.valid_until AS job_end,'
+                    + ' personal_photo.photo_type_id, personal_photo_type.name_en AS photo_type_name_en, personal_photo.url AS image_path'
+                    + ' FROM people'
+                    + ' LEFT JOIN emails ON people.id = emails.person_id'
+                    + ' LEFT JOIN phones ON people.id = phones.person_id'
+                    + ' LEFT JOIN personal_urls ON people.id = personal_urls.person_id'
+                    + ' LEFT JOIN personal_url_types ON personal_urls.url_type_id = personal_url_types.id'
+                    + ' LEFT JOIN website_texts ON people.id = website_texts.person_id'
+                    + ' LEFT JOIN website_text_types ON website_text_types.id = website_texts.text_type_id'
+                    + ' LEFT JOIN degrees_people ON people.id = degrees_people.person_id'
+                    + ' LEFT JOIN degrees ON degrees_people.degree_id = degrees.id'
+                    + ' LEFT JOIN jobs ON people.id = jobs.person_id'
+                    + ' LEFT JOIN categories ON jobs.category_id = categories.id'
+                    + ' LEFT JOIN research_interests ON people.id = research_interests.person_id'
+                    + ' LEFT JOIN researchers ON people.id = researchers.person_id'
+                    + ' LEFT JOIN people_labs ON people.id = people_labs.person_id'
+                    + ' LEFT JOIN labs ON labs.id = people_labs.lab_id'
+                    + ' LEFT JOIN labs_groups ON labs_groups.lab_id = labs.id'
+                    + ' LEFT JOIN `groups` ON labs_groups.group_id = `groups`.id'
+                    + ' LEFT JOIN groups_units ON groups_units.group_id = groups.id'
+                    + ' LEFT JOIN units ON groups_units.unit_id = units.id'
+                    + ' LEFT JOIN lab_positions ON lab_positions.id = people_labs.lab_position_id'
+                    + ' LEFT JOIN technicians ON technicians.person_id = people.id'
+                    + ' LEFT JOIN technician_offices ON technician_offices.id = technicians.technician_office_id'
+                    + ' LEFT JOIN technicians_units ON technicians_units.technician_id = technicians.id'
+                    + ' LEFT JOIN units AS technician_units ON technician_units.id = technicians_units.unit_id'
+                    + ' LEFT JOIN technician_positions ON technician_positions.id = technicians.technician_position_id'
+                    + ' LEFT JOIN science_managers ON science_managers.person_id = people.id'
+                    + ' LEFT JOIN science_manager_offices ON science_manager_offices.id = science_managers.science_manager_office_id'
+                    + ' LEFT JOIN science_managers_units ON science_managers_units.science_manager_id = science_managers.id'
+                    + ' LEFT JOIN units AS science_manager_units ON science_manager_units.id = science_managers_units.unit_id'
+                    + ' LEFT JOIN science_manager_positions ON science_manager_positions.id = science_managers.science_manager_position_id'
+                    + ' LEFT JOIN people_administrative_offices ON people_administrative_offices.person_id = people.id'
+                    + ' LEFT JOIN administrative_offices ON administrative_offices.id = people_administrative_offices.administrative_office_id'
+                    + ' LEFT JOIN people_administrative_units ON people_administrative_units.administrative_id = people_administrative_offices.id'
+                    + ' LEFT JOIN units AS administrative_units ON administrative_units.id = people_administrative_units.unit_id'
+                    + ' LEFT JOIN administrative_positions ON administrative_positions.id = people_administrative_offices.administrative_position_id'
+                    + ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id'
+                    + ' LEFT JOIN personal_photo_type ON personal_photo_type.id = personal_photo.photo_type_id'
+                    + ' WHERE people.status = ? AND people.visible_public = 1'
+                    + ' AND (people.active_until > ? OR (people.active_from < ? AND people.active_until IS NULL) OR (people.active_from IS NULL AND people.active_until IS NULL))'
                     ;
-        var places = [1,now,now];
-    } else if (name !== '' && lab === '') {
+    places = [1,now,now];
+    if (name !== '') {
         name = '%' + name + '%';
-        querySQL = 'SELECT people.id, people.name AS full_name, people.colloquial_name AS name,' +
-                       ' people.active_from, people.active_until,' +
-                       ' emails.email, phones.phone, phones.extension AS phone_extension,' +
-                       ' website_texts.title AS website_text_title, website_texts.text AS website_text, website_texts.text_type_id AS website_text_type_id, website_text_types.name_en AS website_text_type_name_en,' +
-                    ' personal_urls.url, personal_urls.url_type_id, personal_url_types.type_en AS url_type, personal_urls.description AS url_description,' +
-                    ' degrees_people.start AS degree_start, degrees_people.end AS degree_end,' +
-                    ' degrees_people.degree_id AS degree_type_id, degrees.name_en AS degree,' +
-                    ' degrees_people.area AS degree_field, degrees_people.institution AS degree_institution,' +
-                    ' research_interests.interests, research_interests.sort_order AS interests_sort_order,' +
-                    ' researchers.ORCID, researchers.researcherID, researchers.ciencia_id,' +
-                       ' people_labs.valid_from AS lab_start, people_labs.valid_until AS lab_end,' +
-                       ' labs.id AS lab_id, labs.name AS lab_name,' +
-                       ' labs_groups.valid_from AS labs_groups_valid_from, labs_groups.valid_until AS labs_groups_valid_until,' +
-                       ' groups.id AS group_id, groups.name AS group_name,' +
-                       ' units.id AS unit_id, units.name AS unit_name,' +
-                       ' lab_positions.id AS lab_position_id, lab_positions.name_en AS lab_position_name_en, lab_positions.name_pt  AS lab_position_name_pt,' +
-                       ' lab_positions.sort_order  AS lab_position_sort_order,' +
-                       ' technicians.id AS technician_id, technicians.technician_office_id, technician_offices.name_en AS technician_office_name,' +
-                   ' technicians.valid_from AS technician_start, technicians.valid_until AS technician_end,' +
-                   ' technicians_units.unit_id AS technician_unit_id, technician_units.name AS technician_unit_name,' +
-                   ' technicians.technician_position_id, technician_positions.name_en AS technician_position_name_en, technician_positions.name_pt AS technician_position_name_pt,' +
-                   ' science_managers.id AS science_manager_id, science_managers.science_manager_office_id, science_manager_offices.name_en AS science_manager_office_name,' +
-                   ' science_managers.valid_from AS science_manager_start, science_managers.valid_until AS science_manager_end,' +
-                   ' science_managers_units.unit_id AS science_manager_unit_id, science_manager_units.name AS science_manager_unit_name,' +
-                   ' science_managers.science_manager_position_id, science_manager_positions.name_en AS science_manager_position_name_en, science_manager_positions.name_pt AS science_manager_position_name_pt,' +
-                   ' people_administrative_offices.id AS administrative_id, people_administrative_offices.administrative_office_id, administrative_offices.name_en AS administrative_office_name,' +
-                   ' people_administrative_offices.valid_from AS administrative_start, people_administrative_offices.valid_until AS administrative_end,' +
-                   ' people_administrative_units.unit_id AS administrative_unit_id, administrative_units.name AS administrative_unit_name,' +
-                   ' people_administrative_offices.administrative_position_id, administrative_positions.name_en AS administrative_position_name_en, administrative_positions.name_pt AS administrative_position_name_pt,' +
-                   ' jobs.category_id, categories.name_en AS category, jobs.organization, jobs.valid_from AS job_start, jobs.valid_until AS job_end,' +
-                   ' personal_photo.photo_type_id, personal_photo_type.name_en AS photo_type_name_en, personal_photo.url AS image_path' +
-                   ' FROM people' +
-                   ' LEFT JOIN emails ON people.id = emails.person_id' +
-                   ' LEFT JOIN phones ON people.id = phones.person_id' +
-                   ' LEFT JOIN personal_urls ON people.id = personal_urls.person_id' +
-                    ' LEFT JOIN personal_url_types ON personal_urls.url_type_id = personal_url_types.id' +
-                    ' LEFT JOIN website_texts ON people.id = website_texts.person_id' +
-                    ' LEFT JOIN website_text_types ON website_text_types.id = website_texts.text_type_id' +
-                    ' LEFT JOIN degrees_people ON people.id = degrees_people.person_id' +
-                    ' LEFT JOIN degrees ON degrees_people.degree_id = degrees.id' +
-                    ' LEFT JOIN jobs ON people.id = jobs.person_id' +
-                    ' LEFT JOIN categories ON jobs.category_id = categories.id' +
-                    ' LEFT JOIN research_interests ON people.id = research_interests.person_id' +
-                    ' LEFT JOIN researchers ON people.id = researchers.person_id' +
-                   ' LEFT JOIN people_labs ON people.id = people_labs.person_id' +
-                   ' LEFT JOIN labs ON labs.id = people_labs.lab_id' +
-                   ' LEFT JOIN labs_groups ON labs_groups.lab_id = labs.id' +
-                   ' LEFT JOIN groups ON labs_groups.group_id = groups.id' +
-                   ' LEFT JOIN groups_units ON groups_units.group_id = groups.id' +
-                   ' LEFT JOIN units ON groups_units.unit_id = units.id' +
-                   ' LEFT JOIN lab_positions ON lab_positions.id = people_labs.lab_position_id' +
-                   ' LEFT JOIN technicians ON technicians.person_id = people.id' +
-                   ' LEFT JOIN technician_offices ON technician_offices.id = technicians.technician_office_id' +
-                   ' LEFT JOIN technicians_units ON technicians_units.technician_id = technicians.id' +
-                   ' LEFT JOIN units AS technician_units ON technician_units.id = technicians_units.unit_id' +
-                   ' LEFT JOIN technician_positions ON technician_positions.id = technicians.technician_position_id' +
-                   ' LEFT JOIN science_managers ON science_managers.person_id = people.id' +
-                   ' LEFT JOIN science_manager_offices ON science_manager_offices.id = science_managers.science_manager_office_id' +
-                   ' LEFT JOIN science_managers_units ON science_managers_units.science_manager_id = science_managers.id' +
-                   ' LEFT JOIN units AS science_manager_units ON science_manager_units.id = science_managers_units.unit_id' +
-                   ' LEFT JOIN science_manager_positions ON science_manager_positions.id = science_managers.science_manager_position_id' +
-                   ' LEFT JOIN people_administrative_offices ON people_administrative_offices.person_id = people.id' +
-                   ' LEFT JOIN administrative_offices ON administrative_offices.id = people_administrative_offices.administrative_office_id' +
-                   ' LEFT JOIN people_administrative_units ON people_administrative_units.administrative_id = people_administrative_offices.id' +
-                   ' LEFT JOIN units AS administrative_units ON administrative_units.id = people_administrative_units.unit_id' +
-                   ' LEFT JOIN administrative_positions ON administrative_positions.id = people_administrative_offices.administrative_position_id' +
-                   ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
-                   ' LEFT JOIN personal_photo_type ON personal_photo_type.id = personal_photo.photo_type_id' +
-                   ' WHERE people.visible_public = 1 AND people.name LIKE ?' +
-                     ' AND (people.active_until > ? OR (people.active_from < ? AND people.active_until IS NULL) OR (people.active_from IS NULL AND people.active_until IS NULL))';
-        places = [name,now,now];
-    } else if (name === '' && lab !== '') {
-        lab =  '%' + lab + '%';
-        querySQL = 'SELECT people.id, people.name AS full_name, people.colloquial_name AS name,' +
-                       ' people.active_from, people.active_until,' +
-                       ' emails.email, phones.phone, phones.extension AS phone_extension,' +
-                       ' website_texts.title AS website_text_title, website_texts.text AS website_text, website_texts.text_type_id AS website_text_type_id, website_text_types.name_en AS website_text_type_name_en,' +
-                    ' personal_urls.url, personal_urls.url_type_id, personal_url_types.type_en AS url_type, personal_urls.description AS url_description,' +
-                    ' degrees_people.start AS degree_start, degrees_people.end AS degree_end,' +
-                    ' degrees_people.degree_id AS degree_type_id, degrees.name_en AS degree,' +
-                    ' degrees_people.area AS degree_field, degrees_people.institution AS degree_institution,' +
-                    ' research_interests.interests, research_interests.sort_order AS interests_sort_order,' +
-                    ' researchers.ORCID, researchers.researcherID, researchers.ciencia_id,' +
-                       ' people_labs.valid_from AS lab_start, people_labs.valid_until AS lab_end,' +
-                       ' labs.id AS lab_id, labs.name AS lab_name,' +
-                       ' labs_groups.valid_from AS labs_groups_valid_from, labs_groups.valid_until AS labs_groups_valid_until,' +
-                       ' groups.id AS group_id, groups.name AS group_name,' +
-                       ' units.id AS unit_id, units.name AS unit_name,' +
-                       ' lab_positions.id AS lab_position_id, lab_positions.name_en AS lab_position_name_en, lab_positions.name_pt  AS lab_position_name_pt,' +
-                       ' lab_positions.sort_order  AS lab_position_sort_order,' +
-                       ' technicians.id AS technician_id, technicians.technician_office_id, technician_offices.name_en AS technician_office_name,' +
-                   ' technicians.valid_from AS technician_start, technicians.valid_until AS technician_end,' +
-                   ' technicians_units.unit_id AS technician_unit_id, technician_units.name AS technician_unit_name,' +
-                   ' technicians.technician_position_id, technician_positions.name_en AS technician_position_name_en, technician_positions.name_pt AS technician_position_name_pt,' +
-                   ' science_managers.id AS science_manager_id, science_managers.science_manager_office_id, science_manager_offices.name_en AS science_manager_office_name,' +
-                   ' science_managers.valid_from AS science_manager_start, science_managers.valid_until AS science_manager_end,' +
-                   ' science_managers_units.unit_id AS science_manager_unit_id, science_manager_units.name AS science_manager_unit_name,' +
-                   ' science_managers.science_manager_position_id, science_manager_positions.name_en AS science_manager_position_name_en, science_manager_positions.name_pt AS science_manager_position_name_pt,' +
-                   ' people_administrative_offices.id AS administrative_id, people_administrative_offices.administrative_office_id, administrative_offices.name_en AS administrative_office_name,' +
-                   ' people_administrative_offices.valid_from AS administrative_start, people_administrative_offices.valid_until AS administrative_end,' +
-                   ' people_administrative_units.unit_id AS administrative_unit_id, administrative_units.name AS administrative_unit_name,' +
-                   ' people_administrative_offices.administrative_position_id, administrative_positions.name_en AS administrative_position_name_en, administrative_positions.name_pt AS administrative_position_name_pt,' +
-                   ' jobs.category_id, categories.name_en AS category, jobs.organization, jobs.valid_from AS job_start, jobs.valid_until AS job_end,' +
-                   ' personal_photo.photo_type_id, personal_photo_type.name_en AS photo_type_name_en, personal_photo.url AS image_path' +
-                      ' FROM people' +
-                      ' LEFT JOIN emails ON people.id = emails.person_id' +
-                      ' LEFT JOIN phones ON people.id = phones.person_id' +
-                      ' LEFT JOIN personal_urls ON people.id = personal_urls.person_id' +
-                    ' LEFT JOIN personal_url_types ON personal_urls.url_type_id = personal_url_types.id' +
-                    ' LEFT JOIN website_texts ON people.id = website_texts.person_id' +
-                    ' LEFT JOIN website_text_types ON website_text_types.id = website_texts.text_type_id' +
-                    ' LEFT JOIN degrees_people ON people.id = degrees_people.person_id' +
-                    ' LEFT JOIN degrees ON degrees_people.degree_id = degrees.id' +
-                    ' LEFT JOIN jobs ON people.id = jobs.person_id' +
-                    ' LEFT JOIN categories ON jobs.category_id = categories.id' +
-                    ' LEFT JOIN research_interests ON people.id = research_interests.person_id' +
-                    ' LEFT JOIN researchers ON people.id = researchers.person_id' +
-                      ' LEFT JOIN people_labs ON people.id = people_labs.person_id' +
-                      ' LEFT JOIN labs ON labs.id = people_labs.lab_id' +
-                      ' LEFT JOIN labs_groups ON labs_groups.lab_id = labs.id' +
-                      ' LEFT JOIN groups ON labs_groups.group_id = groups.id' +
-                      ' LEFT JOIN groups_units ON groups_units.group_id = groups.id' +
-                      ' LEFT JOIN units ON groups_units.unit_id = units.id' +
-                      ' LEFT JOIN lab_positions ON lab_positions.id = people_labs.lab_position_id' +
-                      ' LEFT JOIN technicians ON technicians.person_id = people.id' +
-                  ' LEFT JOIN technician_offices ON technician_offices.id = technicians.technician_office_id' +
-                  ' LEFT JOIN technicians_units ON technicians_units.technician_id = technicians.id' +
-                  ' LEFT JOIN units AS technician_units ON technician_units.id = technicians_units.unit_id' +
-                  ' LEFT JOIN technician_positions ON technician_positions.id = technicians.technician_position_id' +
-                  ' LEFT JOIN science_managers ON science_managers.person_id = people.id' +
-                  ' LEFT JOIN science_manager_offices ON science_manager_offices.id = science_managers.science_manager_office_id' +
-                  ' LEFT JOIN science_managers_units ON science_managers_units.science_manager_id = science_managers.id' +
-                  ' LEFT JOIN units AS science_manager_units ON science_manager_units.id = science_managers_units.unit_id' +
-                  ' LEFT JOIN science_manager_positions ON science_manager_positions.id = science_managers.science_manager_position_id' +
-                  ' LEFT JOIN people_administrative_offices ON people_administrative_offices.person_id = people.id' +
-                  ' LEFT JOIN administrative_offices ON administrative_offices.id = people_administrative_offices.administrative_office_id' +
-                  ' LEFT JOIN people_administrative_units ON people_administrative_units.administrative_id = people_administrative_offices.id' +
-                  ' LEFT JOIN units AS administrative_units ON administrative_units.id = people_administrative_units.unit_id' +
-                  ' LEFT JOIN administrative_positions ON administrative_positions.id = people_administrative_offices.administrative_position_id' +
-                      ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
-                      ' LEFT JOIN personal_photo_type ON personal_photo_type.id = personal_photo.photo_type_id' +
-                      ' WHERE people.visible_public = 1 AND (labs.name LIKE ?)' +
-                        ' AND (people.active_until > ? OR (people.active_from < ? AND people.active_until IS NULL) OR (people.active_from IS NULL AND people.active_until IS NULL))';
-        places = [lab,now,now];
-
-    } else if (name !== '' && lab !== '') {
-        name = '%' + name + '%';
-        lab =  '%' + lab + '%';
-        querySQL = 'SELECT people.id, people.name AS full_name, people.colloquial_name AS name,' +
-                    ' people.active_from, people.active_until,' +
-                    ' emails.email, phones.phone, phones.extension AS phone_extension,' +
-                    ' website_texts.title AS website_text_title, website_texts.text AS website_text, website_texts.text_type_id AS website_text_type_id, website_text_types.name_en AS website_text_type_name_en,' +
-                    ' personal_urls.url, personal_urls.url_type_id, personal_url_types.type_en AS url_type, personal_urls.description AS url_description,' +
-                    ' degrees_people.start AS degree_start, degrees_people.end AS degree_end,' +
-                    ' degrees_people.degree_id AS degree_type_id, degrees.name_en AS degree,' +
-                    ' degrees_people.area AS degree_field, degrees_people.institution AS degree_institution,' +
-                    ' research_interests.interests, research_interests.sort_order AS interests_sort_order,' +
-                    ' researchers.ORCID, researchers.researcherID, researchers.ciencia_id,' +
-                    ' people_labs.valid_from AS lab_start, people_labs.valid_until AS lab_end,' +
-                    ' labs.id AS lab_id, labs.name AS lab_name,' +
-                    ' labs_groups.valid_from AS labs_groups_valid_from, labs_groups.valid_until AS labs_groups_valid_until,' +
-                    ' groups.id AS group_id, groups.name AS group_name,' +
-                    ' units.id AS unit_id, units.name AS unit_name,' +
-                    ' lab_positions.id AS lab_position_id, lab_positions.name_en AS lab_position_name_en, lab_positions.name_pt  AS lab_position_name_pt,' +
-                    ' lab_positions.sort_order AS lab_position_sort_order,' +
-                    ' technicians.id AS technician_id, technicians.technician_office_id, technician_offices.name_en AS technician_office_name,' +
-                   ' technicians.valid_from AS technician_start, technicians.valid_until AS technician_end,' +
-                   ' technicians_units.unit_id AS technician_unit_id, technician_units.name AS technician_unit_name,' +
-                   ' technicians.technician_position_id, technician_positions.name_en AS technician_position_name_en, technician_positions.name_pt AS technician_position_name_pt,' +
-                   ' science_managers.id AS science_manager_id, science_managers.science_manager_office_id, science_manager_offices.name_en AS science_manager_office_name,' +
-                   ' science_managers.valid_from AS science_manager_start, science_managers.valid_until AS science_manager_end,' +
-                   ' science_managers_units.unit_id AS science_manager_unit_id, science_manager_units.name AS science_manager_unit_name,' +
-                   ' science_managers.science_manager_position_id, science_manager_positions.name_en AS science_manager_position_name_en, science_manager_positions.name_pt AS science_manager_position_name_pt,' +
-                   ' people_administrative_offices.id AS administrative_id, people_administrative_offices.administrative_office_id, administrative_offices.name_en AS administrative_office_name,' +
-                   ' people_administrative_offices.valid_from AS administrative_start, people_administrative_offices.valid_until AS administrative_end,' +
-                   ' people_administrative_units.unit_id AS administrative_unit_id, administrative_units.name AS administrative_unit_name,' +
-                   ' people_administrative_offices.administrative_position_id, administrative_positions.name_en AS administrative_position_name_en, administrative_positions.name_pt AS administrative_position_name_pt,' +
-                   ' jobs.category_id, categories.name_en AS category, jobs.organization, jobs.valid_from AS job_start, jobs.valid_until AS job_end,' +
-                   ' personal_photo.photo_type_id, personal_photo_type.name_en AS photo_type_name_en, personal_photo.url AS image_path' +
-                      ' FROM people' +
-                      ' LEFT JOIN emails ON people.id = emails.person_id' +
-                      ' LEFT JOIN phones ON people.id = phones.person_id' +
-                      ' LEFT JOIN personal_urls ON people.id = personal_urls.person_id' +
-                    ' LEFT JOIN personal_url_types ON personal_urls.url_type_id = personal_url_types.id' +
-                    ' LEFT JOIN website_texts ON people.id = website_texts.person_id' +
-                    ' LEFT JOIN website_text_types ON website_text_types.id = website_texts.text_type_id' +
-                    ' LEFT JOIN degrees_people ON people.id = degrees_people.person_id' +
-                    ' LEFT JOIN degrees ON degrees_people.degree_id = degrees.id' +
-                    ' LEFT JOIN jobs ON people.id = jobs.person_id' +
-                    ' LEFT JOIN categories ON jobs.category_id = categories.id' +
-                    ' LEFT JOIN research_interests ON people.id = research_interests.person_id' +
-                    ' LEFT JOIN researchers ON people.id = researchers.person_id' +
-                      ' LEFT JOIN people_labs ON people.id = people_labs.person_id' +
-                      ' LEFT JOIN labs ON labs.id = people_labs.lab_id' +
-                      ' LEFT JOIN labs_groups ON labs_groups.lab_id = labs.id' +
-                      ' LEFT JOIN groups ON labs_groups.group_id = groups.id' +
-                      ' LEFT JOIN groups_units ON groups_units.group_id = groups.id' +
-                      ' LEFT JOIN units ON groups_units.unit_id = units.id' +
-                      ' LEFT JOIN lab_positions ON lab_positions.id = people_labs.lab_position_id' +
-                      ' LEFT JOIN technicians ON technicians.person_id = people.id' +
-                  ' LEFT JOIN technician_offices ON technician_offices.id = technicians.technician_office_id' +
-                  ' LEFT JOIN technicians_units ON technicians_units.technician_id = technicians.id' +
-                  ' LEFT JOIN units AS technician_units ON technician_units.id = technicians_units.unit_id' +
-                  ' LEFT JOIN technician_positions ON technician_positions.id = technicians.technician_position_id' +
-                  ' LEFT JOIN science_managers ON science_managers.person_id = people.id' +
-                  ' LEFT JOIN science_manager_offices ON science_manager_offices.id = science_managers.science_manager_office_id' +
-                  ' LEFT JOIN science_managers_units ON science_managers_units.science_manager_id = science_managers.id' +
-                  ' LEFT JOIN units AS science_manager_units ON science_manager_units.id = science_managers_units.unit_id' +
-                  ' LEFT JOIN science_manager_positions ON science_manager_positions.id = science_managers.science_manager_position_id' +
-                  ' LEFT JOIN people_administrative_offices ON people_administrative_offices.person_id = people.id' +
-                  ' LEFT JOIN administrative_offices ON administrative_offices.id = people_administrative_offices.administrative_office_id' +
-                  ' LEFT JOIN people_administrative_units ON people_administrative_units.administrative_id = people_administrative_offices.id' +
-                  ' LEFT JOIN units AS administrative_units ON administrative_units.id = people_administrative_units.unit_id' +
-                  ' LEFT JOIN administrative_positions ON administrative_positions.id = people_administrative_offices.administrative_position_id' +
-                  ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
-                  ' LEFT JOIN personal_photo_type ON personal_photo_type.id = personal_photo.photo_type_id' +
-                      ' WHERE people.visible_public = 1 AND people.name LIKE ?' +
-                        ' AND (labs.name LIKE ?)' +
-                        ' AND (people.active_until > ? OR (people.active_from < ? AND people.active_until IS NULL) OR (people.active_from IS NULL AND people.active_until IS NULL))';
-        places = [name,lab,now,now];
+        querySQL = querySQL + ' AND people.name LIKE ?'
+        places.push(name);
+    }
+    if (lab !== '') {
+        lab = '%' + lab + '%';
+        querySQL = querySQL + ' AND labs.name LIKE ?'
+        places.push(lab);
+    }
+    if (email !== '') {
+        email = '%' + email + '%';
+        console.log(email)
+        querySQL = querySQL + ' AND emails.email LIKE ?'
+        places.push(email);
+    }
+    if (rgID !== null) {
+        querySQL = querySQL + ' AND `groups`.id = ?'
+        places.push(rgID);
     }
     if (unitID !== null) {
         querySQL = querySQL + ' AND (units.id = ? OR technicians_units.unit_id = ? OR science_managers_units.unit_id = ? OR people_administrative_units.unit_id = ?)';
@@ -999,6 +799,10 @@ module.exports.searchPeople = function (req, res, next) {
     escapedQueryPersonSearch(querySQL, places, mergeRules, req, res, next);
 };
 module.exports.getPersonInfo = function (req, res, next) {
+    let unit = null;
+    if (req.query.hasOwnProperty('unit')) {
+        unit = req.query.unit;
+    }
     var personID = req.params.personID;
     var querySQL = 'SELECT people.id, people.name AS full_name, people.colloquial_name AS name,' +
                    ' people.active_from, people.active_until,' +
@@ -1019,11 +823,11 @@ module.exports.getPersonInfo = function (req, res, next) {
                    ' lab_positions.sort_order AS lab_position_sort_order,' +
                    ' technicians.id AS technician_id, technicians.technician_office_id, technician_offices.name_en AS technician_office_name,' +
                    ' technicians.valid_from AS technician_start, technicians.valid_until AS technician_end,' +
-                   ' technicians_units.unit_id AS technician_unit_id, technician_units.name AS technician_unit_name,' +
+                   ' technicians_units.unit_id AS technician_unit_id, technician_units_units.name AS technician_unit_name,' +
                    ' technicians.technician_position_id, technician_positions.name_en AS technician_position_name_en, technician_positions.name_pt AS technician_position_name_pt,' +
                    ' science_managers.id AS science_manager_id, science_managers.science_manager_office_id, science_manager_offices.name_en AS science_manager_office_name,' +
                    ' science_managers.valid_from AS science_manager_start, science_managers.valid_until AS science_manager_end,' +
-                   ' science_managers_units.unit_id AS science_manager_unit_id, science_manager_units.name AS science_manager_unit_name,' +
+                   ' science_managers_units.unit_id AS science_manager_unit_id, science_manager_units_units.name AS science_manager_unit_name,' +
                    ' science_managers.science_manager_position_id, science_manager_positions.name_en AS science_manager_position_name_en, science_manager_positions.name_pt AS science_manager_position_name_pt,' +
                    ' people_administrative_offices.id AS administrative_id, people_administrative_offices.administrative_office_id, administrative_offices.name_en AS administrative_office_name,' +
                    ' people_administrative_offices.valid_from AS administrative_start, people_administrative_offices.valid_until AS administrative_end,' +
@@ -1054,12 +858,12 @@ module.exports.getPersonInfo = function (req, res, next) {
                   ' LEFT JOIN technicians ON technicians.person_id = people.id' +
                   ' LEFT JOIN technician_offices ON technician_offices.id = technicians.technician_office_id' +
                   ' LEFT JOIN technicians_units ON technicians_units.technician_id = technicians.id' +
-                  ' LEFT JOIN units AS technician_units ON technician_units.id = technicians_units.unit_id' +
+                  ' LEFT JOIN units AS technician_units_units ON technician_units_units.id = technicians_units.unit_id' +
                   ' LEFT JOIN technician_positions ON technician_positions.id = technicians.technician_position_id' +
                   ' LEFT JOIN science_managers ON science_managers.person_id = people.id' +
                   ' LEFT JOIN science_manager_offices ON science_manager_offices.id = science_managers.science_manager_office_id' +
                   ' LEFT JOIN science_managers_units ON science_managers_units.science_manager_id = science_managers.id' +
-                  ' LEFT JOIN units AS science_manager_units ON science_manager_units.id = science_managers_units.unit_id' +
+                  ' LEFT JOIN units AS science_manager_units_units ON science_manager_units_units.id = science_managers_units.unit_id' +
                   ' LEFT JOIN science_manager_positions ON science_manager_positions.id = science_managers.science_manager_position_id' +
                   ' LEFT JOIN people_administrative_offices ON people_administrative_offices.person_id = people.id' +
                   ' LEFT JOIN administrative_offices ON administrative_offices.id = people_administrative_offices.administrative_office_id' +
@@ -1068,8 +872,12 @@ module.exports.getPersonInfo = function (req, res, next) {
                   ' LEFT JOIN administrative_positions ON administrative_positions.id = people_administrative_offices.administrative_position_id' +
                   ' LEFT JOIN personal_photo ON people.id = personal_photo.person_id' +
                   ' LEFT JOIN personal_photo_type ON personal_photo_type.id = personal_photo.photo_type_id' +
-                  ' WHERE people.id = ? AND people.visible_public = 1;';
+                  ' WHERE people.id = ? AND people.visible_public = 1';
     var places = [personID];
+    if (unit !== null) {
+        querySQL = querySQL + ' AND (units.id = ? OR technician_units_units.id = ? OR science_manager_units_units.id = ? OR administrative_units.id = ?)';
+        places.push(unit, unit, unit, unit);
+    }
     var mergeRules = [
                       ['photo_data', 'photo_type_id', 'photo_type_name_en', 'image_path'],
                       ['website_texts', 'website_text_title', 'website_text', 'website_text_type_id', 'website_text_type_name_en'],
@@ -1090,6 +898,14 @@ module.exports.getPersonInfo = function (req, res, next) {
     escapedQueryPersonSearch(querySQL, places, mergeRules, req, res, next);
 };
 module.exports.getPersonPublications = function (req, res, next) {
+    let sort = 'DESC';
+    if (req.query.hasOwnProperty('sort')) {
+        if (req.query.sort === 'asc') {
+            sort = 'ASC'
+        } else {
+            sort = 'DESC'
+        }
+    }
     var personID = req.params.personID;
     var querySQL = 'SELECT people_publications.author_type_id,' +
                     ' people_publications.selected,' +
@@ -1109,8 +925,15 @@ module.exports.getPersonPublications = function (req, res, next) {
                     ' LEFT JOIN groups_units ON groups_units.group_id = groups.id' +
                     ' LEFT JOIN units ON groups_units.unit_id = units.id' +
                     ' LEFT JOIN units_publications ON units_publications.publication_id = publications.id' +
-                    ' WHERE people_publications.person_id = ? AND people_publications.public = 1;';
+                    ' WHERE people_publications.person_id = ? AND people_publications.public = 1';
+
+    if (sort === 'ASC') {
+        querySQL = querySQL + ' ORDER BY publications.year ASC';
+    } else {
+        querySQL = querySQL + ' ORDER BY publications.year DESC';
+    }
     var places = [personID];
+    console.log(querySQL)
     pool.getConnection(function(err, connection) {
         if (err) {
             sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
@@ -1131,6 +954,7 @@ module.exports.getPersonPublications = function (req, res, next) {
                     return;
                 }
                 for (var ind in resQuery) {
+                    console.log(resQuery[ind].year)
                     if (resQuery[ind].selected === null) {resQuery[ind].selected = false;}
                     else if (resQuery[ind].selected === 0) {resQuery[ind].selected = false;}
                     else if (resQuery[ind].selected !== null) {resQuery[ind].selected = true;}

@@ -767,7 +767,6 @@ module.exports.searchPeople = function (req, res, next) {
     }
     if (email !== '') {
         email = '%' + email + '%';
-        console.log(email)
         querySQL = querySQL + ' AND emails.email LIKE ?'
         places.push(email);
     }
@@ -933,7 +932,6 @@ module.exports.getPersonPublications = function (req, res, next) {
         querySQL = querySQL + ' ORDER BY publications.year DESC';
     }
     var places = [personID];
-    console.log(querySQL)
     pool.getConnection(function(err, connection) {
         if (err) {
             sendJSONResponse(res, 500, {"status": "error", "statusCode": 500, "error" : err.stack});
@@ -954,7 +952,6 @@ module.exports.getPersonPublications = function (req, res, next) {
                     return;
                 }
                 for (var ind in resQuery) {
-                    console.log(resQuery[ind].year)
                     if (resQuery[ind].selected === null) {resQuery[ind].selected = false;}
                     else if (resQuery[ind].selected === 0) {resQuery[ind].selected = false;}
                     else if (resQuery[ind].selected !== null) {resQuery[ind].selected = true;}

@@ -1506,10 +1506,13 @@ var getMoreInfo = function (req, res, next, rows, i, irole) {
 var getDepartments = function (req, res, next, rows, i, irole) {
     var query = 'SELECT people_departments.id AS people_departments_id,' +
                 ' people_departments.department_id AS department_id, departments.name_en AS department,' +
-                ' people_departments.valid_from AS department_start, people_departments.valid_until AS department_end' +
+                ' people_departments.valid_from AS department_start, people_departments.valid_until AS department_end,' +
+                ' schools.shortname_en AS school_shortname_en, universities.shortname_en AS university_shortname_en' +
                 ' FROM people' +
                 ' LEFT JOIN people_departments ON people.id = people_departments.person_id' +
                 ' LEFT JOIN departments ON people_departments.department_id = departments.id' +
+                ' LEFT JOIN schools ON schools.id = departments.school_id' +
+                ' LEFT JOIN universities ON universities.id = schools.university_id' +
                 ' WHERE people.id = ?';
     var places = [rows[irole][i].person_id];
     pool.getConnection(function(err, connection) {
@@ -1618,14 +1621,37 @@ var getPersonalEmails = function (req, res, next, rows, i, irole) {
 
 var getJobs = function (req, res, next, rows, i, irole) {
     var query = 'SELECT jobs.id AS job_id,' +
-                ' jobs.category_id AS job_category_id, categories.name_en AS job_category_name_en,' +
-                ' jobs.organization AS job_organization, jobs.dedication AS job_dedication,' +
-                ' jobs.valid_from AS job_valid_from, jobs.valid_until AS job_valid_until' +
-
-                ' FROM people' +
-                ' LEFT JOIN jobs ON people.id = jobs.person_id' +
-                ' LEFT JOIN categories ON jobs.category_id = categories.id' +
-                ' WHERE people.id = ?';
+    ' jobs.situation_id AS job_situation_id, situations.name_en AS job_situation_name_en,' +
+    ' situations.requires_unit_contract AS job_situation_requires_unit_contract,' +
+    ' situations.requires_fellowship AS job_situation_requires_fellowship,' +
+    ' jobs.category_id AS job_category_id, categories.name_en AS job_category_name_en,' +
+    ' jobs.organization AS job_organization, jobs.dedication AS job_dedication,' +
+    ' jobs.valid_from AS job_valid_from, jobs.valid_until AS job_valid_until,' +
+    ' jobs_contracts.id AS jobs_contracts_id, jobs_contracts.contract_id AS contract_id,' +
+    ' contracts.reference AS contract_reference,' +
+    ' contracts.start AS contract_start, contracts.end AS contract_end, contracts.maximum_extension AS contract_maximum_extension,' +
+    ' jobs_fellowships.id AS jobs_fellowships_id, jobs_fellowships.fellowship_id AS fellowship_id,' +
+    ' fellowships.fellowship_type_id, fellowship_types.name AS fellowship_type_name, fellowship_types.acronym AS fellowship_type_acronym,' +
+    ' fellowships.reference AS fellowship_reference,' +
+    ' fellowships.start AS fellowship_start, fellowships.end AS fellowship_end, fellowships.maximum_extension AS fellowship_maximum_extension,' +
+    ' fellowships_funding_agencies.id AS fellowships_funding_agencies_id, fellowships_funding_agencies.funding_agency_id AS funding_agency_id,' +
+    ' funding_agencies.official_name AS funding_agency_official_name, funding_agencies.short_name AS funding_agency_short_name,' +
+    ' fellowships_management_entities.id AS fellowships_management_entities_id, fellowships_management_entities.management_entity_id AS management_entity_id,' +
+    ' management_entities.official_name AS management_entity_official_name, management_entities.short_name AS management_entity_short_name' +
+    ' FROM people' +
+    ' LEFT JOIN jobs ON people.id = jobs.person_id' +
+    ' LEFT JOIN situations ON jobs.situation_id = situations.id' +
+    ' LEFT JOIN categories ON jobs.category_id = categories.id' +
+    ' LEFT JOIN jobs_contracts ON jobs.id = jobs_contracts.job_id' +
+    ' LEFT JOIN contracts ON jobs_contracts.contract_id = contracts.id' +
+    ' LEFT JOIN jobs_fellowships ON jobs.id = jobs_fellowships.job_id' +
+    ' LEFT JOIN fellowships ON jobs_fellowships.fellowship_id = fellowships.id' +
+    ' LEFT JOIN fellowship_types ON fellowships.fellowship_type_id = fellowship_types.id' +
+    ' LEFT JOIN fellowships_management_entities ON fellowships.id = fellowships_management_entities.fellowship_id' +
+    ' LEFT JOIN management_entities ON fellowships_management_entities.management_entity_id = management_entities.id' +
+    ' LEFT JOIN fellowships_funding_agencies ON fellowships.id = fellowships_funding_agencies.fellowship_id' +
+    ' LEFT JOIN funding_agencies ON fellowships_funding_agencies.funding_agency_id = funding_agencies.id' +
+    ' WHERE people.id = ?';
     var places = [rows[irole][i].person_id];
     pool.getConnection(function(err, connection) {
         if (err) {

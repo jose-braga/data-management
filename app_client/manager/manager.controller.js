@@ -3406,7 +3406,10 @@
                     let work_email = arrObj[el]['work_email'].length === 0 ? '' : arrObj[el]['work_email'][0].work_email;
                     let personal_email = arrObj[el]['personal_email'].length === 0 ? '' : arrObj[el]['personal_email'][0].personal_email;
                     let degrees = arrObj[el]['degrees'];
+                    let jobs = arrObj[el]['jobs'];
+                    let departments = arrObj[el]['departments'];
                     let hasPhD = 'N/A';
+                    let yearPhD = '';
                     let maxDegree = 20;
                     for (let indDeg in degrees) {
                         if (degrees[indDeg].degree_type_id !== null) {
@@ -3418,33 +3421,121 @@
                             } else if (degrees[indDeg].degree_type_id === 2
                                         && moment().isAfter(moment(degrees[indDeg].degree_end))) {
                                 hasPhD = 'Yes';
+                                if (degrees[indDeg].degree_end !== null) {
+                                    yearPhD = moment(degrees[indDeg].degree_end).year()
+                                }
                             } else if (degrees[indDeg].degree_type_id === 2) {
                                 hasPhD = 'No';
                             }
                         }
                     }
+                    let currentJob = {category: '', reference: '', management: ''}
+                    for (let indJob in jobs) {
+                        if (
+                            (jobs[indJob].job_valid_from === null || moment().isAfter(moment(jobs[indJob].job_valid_from)))
+                            &&
+                            (jobs[indJob].job_valid_until === null || moment().isBefore(moment(jobs[indJob].job_valid_until)))
+                        ) {
+                            if (jobs[indJob].job_category_name_en !== null
+                                    &&jobs[indJob].job_category_name_en.includes('Fellowship')) {
+                                if (jobs[indJob].fellowship_type_name === 'Bolsa de Doutoramento') {
+                                    currentJob.category = 'PhD Fellowship';
+                                } else if (jobs[indJob].fellowship_type_name === 'Bolsa de Pós-Doutoramento') {
+                                    currentJob.category = 'Postdoc Fellowship';
+                                } else if (jobs[indJob].fellowship_type_name === 'Bolsa de Integração na Investigação') {
+                                    currentJob.category = '"Integração na Investigação" Fellowship';
+                                } else if (jobs[indJob].fellowship_type_name === 'Bolsa de Gestão de Ciência e Tecnologia') {
+                                    currentJob.category = 'BGCT Fellowship';
+                                } else if (jobs[indJob].fellowship_type_name === 'Bolsa de Cientista Convidado') {
+                                    currentJob.category = 'Invited Scientist Fellowship';
+                                } else if (jobs[indJob].fellowship_type_name === 'Bolsa de Desenvolvimento de Carreira Científica ') {
+                                    currentJob.category = 'Carreer Development Fellowship';
+                                } else if (jobs[indJob].fellowship_type_name === 'Bolsa de Estágio em Organizações Científicas e Tecnológicas Internacionais') {
+                                    currentJob.category = '"Estágio em Organizações Internacionais" Fellowship';
+                                } else if (jobs[indJob].fellowship_type_name === 'Bolsa de mobilidade entre instituições de I&D e empresas ou outras entidades') {
+                                    currentJob.category = '"Mobilidade entre instituições de I&D e empresas" Fellowship';
+                                } else if (jobs[indJob].fellowship_type_name === 'Bolsa de Investigação') {
+                                    currentJob.category = 'BI Fellowship';
+                                } else if (jobs[indJob].fellowship_type_name === 'Bolsa de Iniciação científica') {
+                                    currentJob.category = 'BII Fellowship';
+                                }
+                            } else {
+                                currentJob.category = jobs[indJob].job_category_name_en;
+                            }
+                            let ref = '';
+                            let mngmt = '';
+                            if (jobs[indJob].contract_reference !== null) {
+                                ref = jobs[indJob].contract_reference;
+                                mngmt = jobs[indJob].job_organization;
+                            } else if (jobs[indJob].fellowship_reference !== null) {
+                                ref = jobs[indJob].fellowship_reference;
+                                mngmt = jobs[indJob].management_entity_short_name;
+                            }
+                            currentJob.reference = ref;
+                            currentJob.management = mngmt;
+                            break;
+                        }
+
+                    }
+                    let currentDepartment = ''
+                    let firstEntry = true;
+                    for (let indDep in departments) {
+                        if (
+                            (departments[indDep].department_start === null || moment().isAfter(moment(departments[indDep].department_start)))
+                            &&
+                            (departments[indDep].department_end === null || moment().isBefore(moment(departments[indDep].department_end)))
+                        ) {
+                            if (departments[indDep].department !== null) {
+                                if (firstEntry) firstEntry = false;
+                                currentDepartment = currentDepartment + departments[indDep].department;
+                            }
+                            if (departments[indDep].school_shortname_en !== null) {
+                                if (firstEntry) {
+                                    firstEntry = false;
+                                } else {
+                                    currentDepartment = currentDepartment + ', '
+                                }
+                                currentDepartment = currentDepartment + departments[indDep].school_shortname_en;
+                            }
+                            if (departments[indDep].university_shortname_en !== null) {
+                                if (firstEntry) {
+                                    firstEntry = false;
+                                } else {
+                                    currentDepartment = currentDepartment + ', '
+                                }
+                                currentDepartment = currentDepartment + departments[indDep].university_shortname_en;
+                            }
+                            break;
+                        }
+                    }
                     if (maxDegree > 2 && maxDegree !== 20) hasPhD = 'No';
                     data.push({
+                        "Pole": arrObj[el]['pole_name'],
+                        "Unit": getUnit(arrObj[el]['unit_id'], arrObj[el]['role_id']),
+                        "Group": getGroup(arrObj[el]['group_id'], arrObj[el]['role_id']),
+                        "Lab": arrObj[el]['lab'],
                         "Person Name": arrObj[el]['person_name'],
-                        "Colloquial Name": arrObj[el]['colloquial_name'],
-                        "Birth Date": momentToDate(arrObj[el]['birth_date']),
-                        "Gender": arrObj[el]['gender'],
-                        "Work Email": work_email,
-                        "Pers. Email": personal_email,
+                        "Email": work_email,
                         "Position": getPosition(arrObj[el]['position_id'], arrObj[el]['role_id']),
                         "Dedication": arrObj[el]['dedication'],
-                        "Lab": arrObj[el]['lab'],
-                        "Group": getGroup(arrObj[el]['group_id'], arrObj[el]['role_id']),
-                        "Unit": getUnit(arrObj[el]['unit_id'], arrObj[el]['role_id']),
                         "Started": momentToDate(arrObj[el]['valid_from']),
                         "Ended": momentToDate(arrObj[el]['valid_until']),
-                        "Pole": arrObj[el]['pole_name'],
+                        "Professional category": currentJob['category'],
+                        "Reference Contract/Fellowshio": currentJob['reference'],
+                        "Management Entity": currentJob['management'],
                         "ORCID": arrObj[el]['ORCID'],
-                        "Key": arrObj[el]['association_key'],
-                        "Departments": stringFromArrObj(arrObj[el]['departments'],'department'),
-                        "Jobs": stringFromArrObj(arrObj[el]['jobs'],'job_category_name_en',['job_valid_from','job_valid_until']),
+                        "Ciência ID": arrObj[el]['ciencia_id'],
+                        "Assoc. Key": arrObj[el]['association_key'],
                         "PhD?": hasPhD,
-                        "Degrees": stringFromArrObj(arrObj[el]['degrees'],'degree_name_en',['degree_start','degree_end'])
+                        "Year PhD": yearPhD,
+                        "Degrees": stringFromArrObj(arrObj[el]['degrees'],'degree_name_en',['degree_start','degree_end']),
+                        "Jobs History": stringFromArrObj(arrObj[el]['jobs'],'job_category_name_en',['job_valid_from','job_valid_until']),
+                        "Current Department": currentDepartment,
+                        //"Departments History": stringFromArrObj(arrObj[el]['departments'],'department'),
+                        "Colloquial Name": arrObj[el]['colloquial_name'],
+                        "Personal Email": personal_email,
+                        "Gender": arrObj[el]['gender'],
+                        "Birth Date": momentToDate(arrObj[el]['birth_date']),
                     });
                 }
                 return data;

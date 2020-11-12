@@ -1481,6 +1481,7 @@
                 "integrated":datum.researcher_data[0].integrated,
                 "nuclearCV":datum.researcher_data[0].nuclearCV,
                 "researcher_id": datum.researcher_data[0].researcher_id,
+                "pure_id": datum.researcher_data[0].pure_id,
                 "ciencia_id": datum.researcher_data[0].ciencia_id,
                 "association_key": datum.researcher_data[0].association_key,
                 "researcherID": datum.researcher_data[0].researcherID,

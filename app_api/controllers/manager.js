@@ -1644,13 +1644,15 @@ var getJobs = function (req, res, next, rows, i, irole) {
     ' LEFT JOIN categories ON jobs.category_id = categories.id' +
     ' LEFT JOIN jobs_contracts ON jobs.id = jobs_contracts.job_id' +
     ' LEFT JOIN contracts ON jobs_contracts.contract_id = contracts.id' +
+
     ' LEFT JOIN jobs_fellowships ON jobs.id = jobs_fellowships.job_id' +
     ' LEFT JOIN fellowships ON jobs_fellowships.fellowship_id = fellowships.id' +
     ' LEFT JOIN fellowship_types ON fellowships.fellowship_type_id = fellowship_types.id' +
-    ' LEFT JOIN fellowships_management_entities ON fellowships.id = fellowships_management_entities.fellowship_id' +
+    ' LEFT JOIN fellowships_funding_agencies ON fellowships_funding_agencies.fellowship_id = fellowships.id' +
+    ' LEFT JOIN fellowships_management_entities ON fellowships_management_entities.fellowship_id = fellowships.id' +
     ' LEFT JOIN management_entities ON fellowships_management_entities.management_entity_id = management_entities.id' +
-    ' LEFT JOIN fellowships_funding_agencies ON fellowships.id = fellowships_funding_agencies.fellowship_id' +
     ' LEFT JOIN funding_agencies ON fellowships_funding_agencies.funding_agency_id = funding_agencies.id' +
+
     ' WHERE people.id = ?';
     var places = [rows[irole][i].person_id];
     pool.getConnection(function(err, connection) {

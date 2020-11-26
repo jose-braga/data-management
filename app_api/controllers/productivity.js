@@ -6193,18 +6193,28 @@ module.exports.getLatestPublications = function (req, res, next) {
     let unitID = req.params.unitID;
     let numberPublications = 20; // the default number of publications to retrieve
     let currentYear = moment().year();
+    let now = moment();
+    var querySQL;
+    var places;
 
     if (req.query.hasOwnProperty('size')) {
         numberPublications = parseInt(req.query.size, 10);
     }
-
-    var querySQL = 'SELECT publications.*, journals.name AS journal_name'
+    if (now.isAfter(moment(currentYear + '-04-30'))) {
+        querySQL = 'SELECT publications.*, journals.name AS journal_name'
+                + ' FROM publications'
+                + ' LEFT JOIN journals ON journals.id = publications.journal_id'
+                + ' LEFT JOIN units_publications ON units_publications.publication_id = publications.id'
+                + ' WHERE publications.year = ? AND units_publications.unit_id = ?;';
+        places = [currentYear, unitID];
+    } else {
+        querySQL = 'SELECT publications.*, journals.name AS journal_name'
                 + ' FROM publications'
                 + ' LEFT JOIN journals ON journals.id = publications.journal_id'
                 + ' LEFT JOIN units_publications ON units_publications.publication_id = publications.id'
                 + ' WHERE (publications.year = ? OR publications.year = ?) AND units_publications.unit_id = ?;';
-    var places = [currentYear, currentYear - 1, unitID];
-
+        places = [currentYear, currentYear - 1, unitID];
+    }
     pool.getConnection(function (err, connection) {
         if (err) {
             sendJSONResponse(res, 500, { "status": "error", "statusCode": 500, "error": err.stack });

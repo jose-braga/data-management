@@ -6288,7 +6288,7 @@ module.exports.getLatestPublications = function (req, res, next) {
                                 }
                                 if (addToList) {
                                     resQuery[ind].curated_date = moment({
-                                        year: currentYear,
+                                        year: resQuery[ind].year,
                                         month: month,
                                         day: day
                                     });

@@ -51,6 +51,17 @@
                     </div>
                 </div>
                 <div layout="row" layout-align="center" class="publication-spacer">
+                    <div class="question"><span class="highlight">Sort order:</span></div>
+                    <div class="answer">
+                        <md-input-container class="input-compact" flex>
+                            <input ng-model="ctrl.doc.sort_order"
+                                aria-label="order"
+                                name="doc_sort_order"
+                                integer-validate>
+                        </md-input-container>
+                    </div>
+                </div>
+                <div layout="row" layout-align="center" class="publication-spacer">
                     <div class="question"><span class="highlight">Change file/URL?</span></div>
                     <div class="answer">
                         <div layout="row" layout-align="start center" flex>

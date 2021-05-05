@@ -79,7 +79,7 @@
                     });
             }
         };
-        vm.showDetails = function (doc) {  
+        vm.showDetails = function (doc) {
             var position = $mdPanel.newPanelPosition()
                                 .absolute()
                                 .center();
@@ -111,7 +111,6 @@
                         fd.append('file', doc.file.file);
                         fd.append('file_name', doc.file.file_name);
                     }
-
                     docsData.updateUnitDoc(doc.unit_id, doc.id, fd, doc.city_id)
                         .then( function () {
                             getDocLists();

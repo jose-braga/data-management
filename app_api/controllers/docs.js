@@ -30,7 +30,7 @@ var storage = multer.diskStorage({ //multers disk storage settings
         } else {
             tempDirectory = 'public/documents/' + unitFolder + '/' + cityFolder + '/' + addDocID;
         }
-        
+
         fs.ensureDir(tempDirectory)
             .then(() => {
                 fs.emptyDir(tempDirectory)
@@ -100,11 +100,13 @@ function momentToDate(timedate, timezone, timeformat) {
 /***************************** Query Functions ********************************/
 var queryGetUnitsActiveDocs = function (req, res, next) {
     var unitID = req.params.unitID;
-    var query = 'SELECT unit_documents.*, document_types.name AS doc_type_name FROM unit_documents' +
-                ' JOIN document_types ON unit_documents.doc_type_id = document_types.id' +
-                ' WHERE unit_documents.unit_id = ?' +
-                ' AND ((unit_documents.valid_from <= CURRENT_DATE() OR unit_documents.valid_from IS NULL) ' +
-                 ' AND (unit_documents.valid_until >= CURRENT_DATE() OR unit_documents.valid_until IS NULL));';
+    var query = 'SELECT unit_documents.*, document_types.name AS doc_type_name FROM unit_documents'
+                + ' JOIN document_types ON unit_documents.doc_type_id = document_types.id'
+                + ' WHERE unit_documents.unit_id = ?'
+                + ' AND ((unit_documents.valid_from <= CURRENT_DATE() OR unit_documents.valid_from IS NULL) '
+                + ' AND (unit_documents.valid_until >= CURRENT_DATE() OR unit_documents.valid_until IS NULL))'
+                + ' ORDER BY sort_order DESC'
+                + ';';
     var places = [unitID];
     pool.getConnection(function(err, connection) {
         if (err) {
@@ -201,7 +203,8 @@ var queryAddDocDBWriteUpdateRemaining = function (req, res, next, docID, webPath
                 ' content = ?,' +
                 ' attachment_url = ?,' +
                 ' valid_from = ?,' +
-                ' valid_until = ?' +
+                ' valid_until = ?,' +
+                ' sort_order = ?' +
                 ' WHERE id = ?';
     var places = [docData.type,
                 docData.title,
@@ -209,6 +212,7 @@ var queryAddDocDBWriteUpdateRemaining = function (req, res, next, docID, webPath
                 url,
                 valid_from,
                 valid_until,
+                docData.sort_order,
                 docID];
     pool.getConnection(function(err, connection) {
         if (err) {
@@ -308,7 +312,8 @@ var queryUpdateDBWriteUpdateRemaining = function (req, res, next, docID, webPath
                     ' content = ?,' +
                     ' attachment_url = ?,' +
                     ' valid_from = ?,' +
-                    ' valid_until = ?' +
+                    ' valid_until = ?,' +
+                    ' sort_order = ?' +
                     ' WHERE id = ?';
         places = [docData.doc_type_id,
                     docData.title,
@@ -316,6 +321,7 @@ var queryUpdateDBWriteUpdateRemaining = function (req, res, next, docID, webPath
                     url,
                     valid_from,
                     valid_until,
+                    docData.sort_order,
                     docID];
     } else {
         query = 'UPDATE unit_documents' +
@@ -323,13 +329,15 @@ var queryUpdateDBWriteUpdateRemaining = function (req, res, next, docID, webPath
                     ' title = ?,' +
                     ' content = ?,' +
                     ' valid_from = ?,' +
-                    ' valid_until = ?' +
+                    ' valid_until = ?,' +
+                    ' sort_order = ?' +
                     ' WHERE id = ?';
         places = [docData.doc_type_id,
                     docData.title,
                     docData.content,
                     valid_from,
                     valid_until,
+                    docData.sort_order,
                     docID];
     }
     pool.getConnection(function(err, connection) {
@@ -398,12 +406,14 @@ var queryDeleteDocDB = function (req, res, next, docID) {
 var queryGetUnitsCityActiveDocs = function (req, res, next) {
     var unitID = req.params.unitID;
     var cityID = req.params.cityID;
-    var query = 'SELECT unit_city_documents.*, document_types.name AS doc_type_name ' +
-                ' FROM unit_city_documents' +
-                ' JOIN document_types ON unit_city_documents.doc_type_id = document_types.id' +
-                ' WHERE unit_city_documents.unit_id = ? AND unit_city_documents.city_id = ? ' +
-                ' AND ((unit_city_documents.valid_from <= CURRENT_DATE() OR unit_city_documents.valid_from IS NULL) ' +
-                 ' AND (unit_city_documents.valid_until >= CURRENT_DATE() OR unit_city_documents.valid_until IS NULL));';
+    var query = 'SELECT unit_city_documents.*, document_types.name AS doc_type_name '
+                + ' FROM unit_city_documents'
+                + ' JOIN document_types ON unit_city_documents.doc_type_id = document_types.id'
+                + ' WHERE unit_city_documents.unit_id = ? AND unit_city_documents.city_id = ? '
+                + ' AND ((unit_city_documents.valid_from <= CURRENT_DATE() OR unit_city_documents.valid_from IS NULL) '
+                + ' AND (unit_city_documents.valid_until >= CURRENT_DATE() OR unit_city_documents.valid_until IS NULL))'
+                + ' ORDER BY sort_order DESC'
+                + ';';
     var places = [unitID,cityID];
     pool.getConnection(function(err, connection) {
         if (err) {
@@ -503,7 +513,8 @@ var queryAddCityDocDBWriteUpdateRemaining = function (req, res, next, docID, web
                 ' content = ?,' +
                 ' attachment_url = ?,' +
                 ' valid_from = ?,' +
-                ' valid_until = ?' +
+                ' valid_until = ?,' +
+                ' sort_order = ?' +
                 ' WHERE id = ?';
     var places = [docData.type,
                 docData.title,
@@ -511,6 +522,7 @@ var queryAddCityDocDBWriteUpdateRemaining = function (req, res, next, docID, web
                 url,
                 valid_from,
                 valid_until,
+                docData.sort_order,
                 docID];
     pool.getConnection(function(err, connection) {
         if (err) {
@@ -607,6 +619,7 @@ var queryUpdateCityDocFileOperations = function (req, res, next) {
 
 var queryUpdateCityDBWriteUpdateRemaining = function (req, res, next, docID, webPath) {
     var docData = req.body;
+
     var valid_from = momentToDate(docData.valid_from);
     var valid_until = momentToDate(docData.valid_until);
 
@@ -624,7 +637,8 @@ var queryUpdateCityDBWriteUpdateRemaining = function (req, res, next, docID, web
                     ' content = ?,' +
                     ' attachment_url = ?,' +
                     ' valid_from = ?,' +
-                    ' valid_until = ?' +
+                    ' valid_until = ?,' +
+                    ' sort_order = ?' +
                     ' WHERE id = ?';
         places = [docData.doc_type_id,
                     docData.title,
@@ -632,6 +646,7 @@ var queryUpdateCityDBWriteUpdateRemaining = function (req, res, next, docID, web
                     url,
                     valid_from,
                     valid_until,
+                    docData.sort_order,
                     docID];
     } else {
         query = 'UPDATE unit_city_documents' +
@@ -639,13 +654,15 @@ var queryUpdateCityDBWriteUpdateRemaining = function (req, res, next, docID, web
                     ' title = ?,' +
                     ' content = ?,' +
                     ' valid_from = ?,' +
-                    ' valid_until = ?' +
+                    ' valid_until = ?,' +
+                    ' sort_order = ?' +
                     ' WHERE id = ?';
         places = [docData.doc_type_id,
                     docData.title,
                     docData.content,
                     valid_from,
                     valid_until,
+                    docData.sort_order,
                     docID];
     }
     pool.getConnection(function(err, connection) {

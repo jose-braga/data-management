@@ -29,6 +29,13 @@
                     md-maxlength="2000" rows="5"
                     name="doc_contents"></textarea>
             </md-input-container>
+            <md-input-container flex>
+                <label>Sort order</label>
+                <input ng-model="vm.doc.sort_order"
+                    aria-label="order"
+                    name="doc_sort_order"
+                    integer-validate>
+            </md-input-container>
             <div layout="column" layout-gt-xs="row" layout-align="start center" flex>
                 <div>
                     <p>Add File or URL?</p>

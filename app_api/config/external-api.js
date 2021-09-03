@@ -1,6 +1,6 @@
 var request = require('requestretry');
 
-var baseURL = {1: 'https://www.requimte.pt/ucibio/api',
+var baseURL = {1: 'https://ucibio.pt/api',
                2: 'https://www.requimte.pt/laqv/api'};
 /*if (process.env.NODE_ENV === 'production') {
     baseURL = {1: 'https://www.requimte.pt/ucibio/api',
@@ -48,7 +48,7 @@ function slotBackoffStrategy(slot) {
     };
 }
 
-var contact = function (baseURL, operation, entityType, entityID, 
+var contact = function (baseURL, operation, entityType, entityID,
                         errorMessage, errorIDs, slot) {
     // Note: request is asynchronous !
     // errorIDs are the IDs associated with the request being done
@@ -85,7 +85,7 @@ var contact = function (baseURL, operation, entityType, entityID,
         });
 };
 
-var contactPURE = function (req, res, baseURL, version, apiKey, entity, 
+var contactPURE = function (req, res, baseURL, version, apiKey, entity,
                             entityID, entityData, q,
                             offset, size, dataList) {
     let qs = {
@@ -112,7 +112,7 @@ var contactPURE = function (req, res, baseURL, version, apiKey, entity,
         maxAttempts: 5,
         retryDelay: 1000,
         retryStrategy: retryBodyOrHTTPOrNetwork
-    }, 
+    },
     function (error, response, body) {
         if (body !== undefined) {
             if (body.length > 0) {
@@ -146,7 +146,7 @@ var contactPURE = function (req, res, baseURL, version, apiKey, entity,
                 }
             } else {
                 body = { 'statusCode': 503 };
-                sendJSONResponse(res, 503, body); 
+                sendJSONResponse(res, 503, body);
                 return;
             }
         } else {
@@ -159,7 +159,7 @@ var contactPURE = function (req, res, baseURL, version, apiKey, entity,
 
 exports.contact = contact;
 
-exports.contactCreateOrUpdate = function (baseURL, entityType, entityID, 
+exports.contactCreateOrUpdate = function (baseURL, entityType, entityID,
                                          errorMessage, errorIDs, slot) {
     if (slot === undefined) {
         slot = 1;

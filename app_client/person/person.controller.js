@@ -2158,8 +2158,11 @@
                         }
                         // tries to match based on title and journal name
                         if (pubsPURE[elPURE].title !== null
-                            && pubsPURE[elPURE].title !== undefined) {
-                            pure_title = prepareStringComparison(pubsPURE[elPURE].title);
+                            && pubsPURE[elPURE].title !== undefined
+                            && pubsPURE[elPURE].title.value !== undefined
+                            && pubsPURE[elPURE].title.value !== null
+                        ) {
+                            pure_title = prepareStringComparison(pubsPURE[elPURE].title.value);
                             if (pubsPURE[elPURE].journalAssociation !== null
                                 && pubsPURE[elPURE].journalAssociation !== undefined) {
                                 pure_journal = prepareStringComparison(

@@ -78,7 +78,7 @@
                         <tr ng-repeat="(pubNum,publication) in newPUREPublications track by $index">
                             <td>
                                 <md-input-container class="area md-block" layout="row" layout-align="start end">
-                                        <textarea ng-model="newPUREPublications[pubNum].title" name="title"></textarea>
+                                        <textarea ng-model="newPUREPublications[pubNum].title.value" name="title"></textarea>
                                 </md-input-container>
                             </td>
                             <td>

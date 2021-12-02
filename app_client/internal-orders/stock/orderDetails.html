@@ -7,7 +7,10 @@
     <md-card-content layout="column" class="scrollable-card">
         <form flex novalidate name="orderDetailsForm"
                 ng-submit="orderDetailsForm.$valid && ctrl.submitOrderChanges(ctrl.forms['orderChange'])">
-            <table class="materialize-table">
+
+
+
+                <table class="materialize-table">
                 <thead>
                     <tr>
                         <th>Prod. Name
@@ -36,7 +39,7 @@
                         <td>{{item.brand}}</td>
                         <td>{{item.reference}}</td>
                         <td style="text-align:center">
-                            <div ng-if="ctrl.order.orderPending">
+                            <div ng-if="ctrl.order.orderNotClosed">
                                 <div ng-if="item.decimal === 0">
                                     <md-input-container class="input-row">
                                             <input ng-model="item.quantity"
@@ -54,7 +57,7 @@
                                     </md-input-container>
                                 </div>
                             </div>
-                            <div ng-if="!ctrl.order.orderPending">
+                            <div ng-if="!ctrl.order.orderNotClosed">
                                 <div ng-if="item.decimal === 0">
                                     {{ item.quantity }}
                                 </div>
@@ -68,13 +71,13 @@
                         <td>{{item.cost_tax | currency:"":2}} €
                         </td>
                         <td>
-                            <div ng-if="ctrl.order.orderPending">
+                            <div ng-if="ctrl.order.orderNotClosed">
                                 <md-input-container class="input-row">
                                     <input ng-model="item.change_reason"
                                         name="changeReason[itemNum]">
                                 </md-input-container>
                             </div>
-                            <div ng-if="!ctrl.order.orderPending">
+                            <div ng-if="!ctrl.order.orderNotClosed">
                                 {{ item.change_reason }}
                             </div>
                         </td>
@@ -102,7 +105,7 @@
                             </div>
                         </td>
                         <td>
-                            <div ng-if="!ctrl.order.orderPending && !item.delivered">
+                            <div ng-if="!ctrl.order.orderNotClosed && !item.delivered">
                                 <div ng-if="item.decimal === 0">{{ item.delivered_quantity }}</div>
                                 <div ng-if="item.decimal === 1">{{ item.delivered_quantity_decimal }}</div>
                             </div>
@@ -122,7 +125,7 @@
                     </tr>
                 </tfoot>
             </table>
-            <div ng-if="ctrl.order.orderPending" layout="column" class="spacer-top"
+            <div ng-if="ctrl.order.orderNotClosed" layout="column" class="spacer-top"
                     layout-gt-sm="row" layout-align="center center">
                 <md-button type="submit" class="button-small md-raised md-primary">Submit order changes</md-button>
                 <div class="status-message" ng-hide="ctrl.hideMessage[ctrl.forms['orderChange']]">

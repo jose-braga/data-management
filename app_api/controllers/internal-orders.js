@@ -1638,7 +1638,7 @@ var makeUpdateManagerOrdersQuery = function (req, res, next, options) {
     // account finances history is changed
     // stock is changed
     // stock history is changed
-    // only pending orders are changed!!!!
+    
     var query = 'UPDATE orders'
         + ' SET total_cost = ?,'
         + ' total_cost_tax = ?'

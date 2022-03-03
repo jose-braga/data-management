@@ -4,18 +4,19 @@
     <md-list style="padding:0px;">
       <md-list-item ng-hide="nav.isLoggedIn" style="padding:0px; border-radius:0px;">
         <md-button ng-href="/#"
-            style="border-radius:0px;" layout-align="center center"
-            class="md-toolbar-tools sidenav-button md-accent">
-          Login
-        </md-button>
-      </md-list-item>
-      <md-list-item ng-show="nav.isLoggedIn" style="padding:0px; border-radius:0px;">
-        <md-button ng-href="" ng-click="nav.logout()"
-            style="border-radius:0px;" layout-align="center center"
-            class="md-toolbar-tools sidenav-button md-primary">
-          Logout
-        </md-button>
-      </md-list-item>
+        style="border-radius:0px;" layout-align="center center"
+        class="md-toolbar-tools sidenav-button md-accent">
+        Login
+      </md-button>
+    </md-list-item>
+    <md-list-item ng-show="nav.isLoggedIn" style="padding:0px; border-radius:0px;">
+      <md-button ng-href="" ng-click="nav.logout()"
+      style="border-radius:0px;" layout-align="center center"
+      class="md-toolbar-tools sidenav-button md-primary">
+      Logout
+    </md-button>
+  </md-list-item>
+  <!--
       <md-divider ng-show="nav.isLoggedIn"></md-divider>
       <div ng-show="nav.isLoggedIn">
         <md-divider ng-hide="nav.isLoggedIn"></md-divider>
@@ -119,6 +120,7 @@
       </md-list-item>
       <md-divider></md-divider>
     </md-list>
+    -->
     <navigation-highlights></navigation-highlights>
   </md-sidenav>
 </div>
